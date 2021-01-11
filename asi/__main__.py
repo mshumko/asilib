@@ -4,7 +4,7 @@ import pathlib
 # Run the configuration script when the user runs 
 # python3 -m asi [init, config, or configure]
 
-here = pathlib.Path(__file__).resolve()
+here = pathlib.Path(__file__).parent.resolve()
 
 
 if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'configure']):
@@ -25,12 +25,16 @@ if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'con
     else:
         # If the user did not specify the directory, make one at /aurora_asi/data/
         asi_data_dir = here.parents[0] / 'data'
-        asi_data_dir.mkdir()
+        if not asi_data_dir.exists():
+            asi_data_dir.mkdir()
+            print(f'aurora_asi directory at {asi_data_dir} created.')
+        else:
+            print(f'aurora_asi directory at {asi_data_dir} already exists.')
 
     # Finally write the Python code to be later imported.
     with open(pathlib.Path(here, 'config.py'), 'w') as f:
         f.write('import pathlib\n\n')
-        f.write(f'PROJECT_DIR = pathlib.Path("{here}")')
+        f.write(f'PROJECT_DIR = pathlib.Path("{here}")\n')
         f.write(f'ASI_DATA_DIR = pathlib.Path("{asi_data_dir}")\n')
 
 else:
