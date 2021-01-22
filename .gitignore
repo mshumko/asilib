@@ -1,6 +1,7 @@
 env/*
-*.cdf
 __pycache__/
 *.egg-info/
 .DS_Store
-config.py
+*.pgm.gz
+*.cdf
+asi/config.py

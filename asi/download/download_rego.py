@@ -2,6 +2,7 @@ import requests
 from datetime import datetime
 from typing import List, Union
 import dateutil.parser
+import pathlib
 # import argparse
 
 from bs4 import BeautifulSoup
@@ -81,6 +82,10 @@ def download(day: Union[datetime, str], station: str, download_minute: bool=True
     # Append the station url directory and the UTC hour to the url.
     url +=  f'{station_url[0]}ut{str(day.hour).zfill(2)}/'
 
+    # Make the REGO directory if doesn't exist.
+    if not pathlib.Path(config.ASI_DATA_DIR, 'rego').exists():
+        pathlib.Path(config.ASI_DATA_DIR, 'rego').mkdir()
+
     if download_minute:
         # Find an image file for the one minute.
         file_names = search_hrefs(url, search_pattern=day.strftime('%Y%m%d_%H%M'))
@@ -98,9 +103,9 @@ def download(day: Union[datetime, str], station: str, download_minute: bool=True
                 f.write(r.content)
     return
 
-day = datetime(2017, 4, 13, 5, 10)
-station = 'LUCK'
-
+# day = datetime(2017, 4, 13, 5, 10)
+# station = 'LUCK'
+# download(day, station)
 
 # url = (f'https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/stream0/'
 #         f'{day.year}/{str(day.month).zfill(2)}/{str(day.day).zfill(2)}/')
