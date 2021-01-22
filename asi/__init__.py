@@ -11,7 +11,14 @@ if not pathlib.Path(here / 'config.py').is_file():
     raise ImportError('config.py file with the ASI data directory not found. '
                 'Did you run "python3 -m aurora_asi init"?')
 
-from asi.download.download_wrapper import download # Import download scrips.
+# Import download programs.
 from asi.download import download_rego
-# from . import plot_frame
-# from . import plot_movie
+from asi.download import download_themis
+
+# Import the image plotting programs.
+# from asi import plot_frame
+# from asi import plot_movie
+
+# Import the magnetic field mapping 
+# from asi import lla2azel
+# from asi import map_satellite

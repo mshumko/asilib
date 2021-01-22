@@ -3,7 +3,6 @@ from datetime import datetime
 from typing import List, Union
 import dateutil.parser
 import pathlib
-# import argparse
 
 from bs4 import BeautifulSoup
 
