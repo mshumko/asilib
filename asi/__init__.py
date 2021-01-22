@@ -4,5 +4,6 @@
 # from .download import download_themis
 
 from asi.download.download_wrapper import download # Import download scrips.
+from asi.download import download_rego
 # from . import plot_frame
 # from . import plot_movie
