@@ -87,25 +87,22 @@ def load(day: Union[datetime, str], mission: str, station: str,
     search_path = pathlib.Path(config.ASI_DATA_DIR, mission.lower())
     search_pattern = f'*{station.lower()}*{day.strftime("%Y%m%d%H")}*'
     matched_paths = list(search_path.rglob(search_pattern))
-    print('1', matched_paths)
     # Try to download files if one is not found locally.
     if (len(matched_paths) == 0) and (mission.lower() == 'themis'):
         try:
-            download_themis.download_themis_img(day, station)
+            download_path = download_themis.download_themis_img(day, station)
         except NotADirectoryError:
             raise ValueError(f'THEMIS ASI data not found for station {station} on day {day.date()}')
-    if (len(matched_paths) == 0) and (mission.lower() == 'rego'):
+    elif (len(matched_paths) == 0) and (mission.lower() == 'rego'):
         try:
-            download_rego.download_rego_img(day, station)
+            download_path = download_rego.download_rego_img(day, station)
         except NotADirectoryError:
             raise ValueError(f'REGO ASI data not found for station {station} on day {day.date()}')
+    else:
+        download_path = matched_paths[0]
 
     # If we made it here, we either found a local file, or downloaded one
-    # search for it again and open it using cdflib
-    matched_paths = list(search_path.rglob(search_pattern))
-    assert len(matched_paths) == 1, (f'One unique ASI path not found in {search_path} matching {search_pattern}')
-    print('2', matched_paths)
-    return cdflib.CDF(matched_paths[0])
+    return cdflib.CDF(download_path)
 
 if __name__ == '__main__':
     rego_data = load(datetime(2016, 10, 29, 4), 'REGO', 'GILL')

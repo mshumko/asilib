@@ -23,7 +23,7 @@ if not pathlib.Path(config.ASI_DATA_DIR, 'rego').exists():
 
 
 def download_rego_img(day: Union[datetime, str], station: str, download_hour: bool=True,
-            force_download: bool=False, test_flag: bool=False):
+            force_download: bool=False, test_flag: bool=False) -> List[pathlib.Path]:
     """
     The wrapper to download the REGO data given the day, station name,
     and a flag to download a single hour file or the entire day. The images
@@ -45,7 +45,9 @@ def download_rego_img(day: Union[datetime, str], station: str, download_hour: bo
 
     Returns
     -------
-    None
+    download_paths: list
+        A list of pathlib.Path objects that contain the downloaded file
+        path(s).
 
     Example
     -------
@@ -69,18 +71,20 @@ def download_rego_img(day: Union[datetime, str], station: str, download_hour: bo
         # Download if force_download=True or the file does not exist.
         if force_download or (not download_path.is_file()):
             stream_large_file(download_url, download_path, test_flag=test_flag)
-        
+        return [download_path]
     else:
         # Otherwise find all of the image files for that station and UT hour.
         file_names = search_hrefs(url)
+        download_paths = []
         # Download files
         for file_name in file_names:
             download_url = url + file_name
             download_path = pathlib.Path(config.ASI_DATA_DIR, 'rego', file_name)
+            download_paths.append(download_path)
             # Download if force_download=True or the file does not exist.
             if force_download or (not download_path.is_file()):
                 stream_large_file(download_url, download_path, test_flag=test_flag)
-    return
+        return download_paths
 
 def download_rego_cal(station: str, force_download: bool=False):
     """
