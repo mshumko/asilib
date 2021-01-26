@@ -10,17 +10,22 @@ from asi import config
 
 """
 This program contains the download() function to download the Red-line Emission Geospace 
-Observatory (REGO) data from the https://data.phys.ucalgary.ca server to the 
+Observatory (REGO) data from the themis.ssl.berkeley.edu server to the 
 config.ASI_DATA_DIR/rego/ directory
 """
 
-BASE_URL = 'https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/stream0/'
+BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/'
+
+# Check and make a config.ASI_DATA_DIR/rego/ directory if doesn't already exist.
+if not pathlib.Path(config.ASI_DATA_DIR, 'rego').exists():
+    pathlib.Path(config.ASI_DATA_DIR, 'rego').mkdir()
 
 
-def download(day: Union[datetime, str], station: str, download_minute: bool=True):
+def download(day: Union[datetime, str], station: str, download_hour: bool=True,
+            force_download: bool=False, test_flag: bool=False):
     """
     The wrapper to download the REGO data given the day, station name,
-    and a flag to download a single minute file or the entire hour. The images
+    and a flag to download a single hour file or the entire day. The images
     are saved to the config.ASI_DATA_DIR / 'rego' directory. 
 
     Parameters
@@ -31,9 +36,11 @@ def download(day: Union[datetime, str], station: str, download_minute: bool=True
         object.
     station: str
         The station id to download the data from.
-    download_minute: bool (optinal)
-        If True, will download only one minute of image data, otherwise it will
-        download image data from the entire hour.
+    download_hour: bool (optinal)
+        If True, will download only one hour of image data, otherwise it will
+        download image data from the entire day.
+    force_download: bool (optional)
+        If True, download the file even if it already exists.
 
     Returns
     -------
@@ -47,35 +54,67 @@ def download(day: Union[datetime, str], station: str, download_minute: bool=True
     """
     if isinstance(day, str):
         day = dateutil.parser.parse(day)
-    # Add the year/month/day url folders onto the url
-    url = BASE_URL + f'{day.year}/{str(day.month).zfill(2)}/{str(day.day).zfill(2)}/'
+    # Add the station/year/month url folders onto the url
+    url = BASE_URL + f'{station.lower()}/{day.year}/{str(day.month).zfill(2)}/'
 
-    # Find if the particular camera station was taking data on that day.
-    station_url = search_hrefs(url, search_pattern=station.lower())
-    # Append the station url directory and the UTC hour to the url.
-    url +=  f'{station_url[0]}ut{str(day.hour).zfill(2)}/'
-
-    # Make the REGO directory if doesn't exist.
-    if not pathlib.Path(config.ASI_DATA_DIR, 'rego').exists():
-        pathlib.Path(config.ASI_DATA_DIR, 'rego').mkdir()
-
-    if download_minute:
-        # Find an image file for the one minute.
-        file_names = search_hrefs(url, search_pattern=day.strftime('%Y%m%d_%H%M'))
+    if download_hour:
+        # Find an image file for the hour.
+        search_pattern = f'{station.lower()}_{day.strftime("%Y%m%d%H")}'
+        file_names = search_hrefs(url, search_pattern=search_pattern)
+        
         # Download file
-        r = requests.get(url + file_names[0], allow_redirects=False)
-        with open(config.ASI_DATA_DIR / 'rego' / file_names[0], 'wb') as f:
-            f.write(r.content)
+        download_url = url + file_names[0]  # On the server
+        download_path = pathlib.Path(config.ASI_DATA_DIR, 'rego', file_names[0])  # On the local machine.
+        # Download if force_download=True or the file does not exist.
+        if force_download or (not download_path.is_file()):
+            stream_large_file(download_url, download_path, test_flag=test_flag)
+        
     else:
         # Otherwise find all of the image files for that station and UT hour.
         file_names = search_hrefs(url)
         # Download files
         for file_name in file_names:
-            r = requests.get(url + file_name, allow_redirects=False)
-            with open(config.ASI_DATA_DIR / 'rego' / file_name, 'wb') as f:
-                f.write(r.content)
+            download_url = url + file_name
+            download_path = pathlib.Path(config.ASI_DATA_DIR, 'rego', file_name)
+            # Download if force_download=True or the file does not exist.
+            if force_download or (not download_path.is_file()):
+                stream_large_file(download_url, download_path, test_flag=test_flag)
     return
 
+def stream_large_file(url, save_path, test_flag: bool=False):
+    """
+    Streams a file from url to save_path. In requests.get(), stream=True 
+    sets up a generator to download a small chuck of data at a time, 
+    instead of downloading the entire file into RAM first.
+
+    Parameters
+    ----------
+    url: str
+        The URL to the file.
+    save_path: str or pathlib.Path
+        The local save path for the file.
+    test_flag: bool (optional)
+        If True, the download will halt after one 5 Mb chunk of data is 
+        downloaded.
+    """
+    r = requests.get(url, stream=True) 
+    file_size = int(r.headers.get('content-length'))
+    downloaded_bites = 0
+
+    save_name = pathlib.Path(save_path).name
+
+    megabyte = 1024*1024
+
+    with open(save_path, 'wb') as f:
+        for data in r.iter_content(chunk_size=5*megabyte): 
+            f.write(data)
+            if test_flag:
+                return
+            # Update the downloaded % in the terminal.
+            downloaded_bites += len(data)
+            print(f'{save_name} is {round(100*downloaded_bites/file_size)}% downloaded', end='\r')
+    print()  # Add a newline 
+    return
 
 def search_hrefs(url: str, search_pattern: str ='') -> List[str]:
     """
@@ -103,9 +142,14 @@ def search_hrefs(url: str, search_pattern: str ='') -> List[str]:
     soup = BeautifulSoup(request.content, 'html.parser')
 
     for href in soup.find_all('a', href=True):
-        if (href.text != '../') and (search_pattern.lower() in href.text.lower()):
-            matched_hrefs.append(href.text)
+        if (search_pattern.lower() in href['href'].lower()):
+            matched_hrefs.append(href['href'])
     if len(matched_hrefs) == 0:
         raise NotADirectoryError(f'The url {url} does not contain any hyper '
             f'references containing the search_pattern="{search_pattern}".')
     return matched_hrefs
+
+if __name__ == '__main__':
+    day = datetime(2020, 8, 1, 4)
+    station = 'Luck'
+    download(day, station, force_download=True)
