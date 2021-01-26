@@ -90,12 +90,12 @@ def load(day: Union[datetime, str], mission: str, station: str,
     # Try to download files if one is not found locally.
     if (len(matched_paths) == 0) and (mission.lower() == 'themis'):
         try:
-            download_path = download_themis.download_themis_img(day, station)
+            download_path = download_themis.download_themis_img(day, station)[0]
         except NotADirectoryError:
             raise ValueError(f'THEMIS ASI data not found for station {station} on day {day.date()}')
     elif (len(matched_paths) == 0) and (mission.lower() == 'rego'):
         try:
-            download_path = download_rego.download_rego_img(day, station)
+            download_path = download_rego.download_rego_img(day, station)[0]
         except NotADirectoryError:
             raise ValueError(f'REGO ASI data not found for station {station} on day {day.date()}')
     else:
@@ -105,4 +105,5 @@ def load(day: Union[datetime, str], mission: str, station: str,
     return cdflib.CDF(download_path)
 
 if __name__ == '__main__':
-    rego_data = load(datetime(2016, 10, 29, 4), 'REGO', 'GILL')
+    # rego_data = load(datetime(2016, 10, 29, 4), 'REGO', 'GILL')
+    rego_data = load(datetime(2017, 12, 1, 1), 'REGO', 'KAKT')
