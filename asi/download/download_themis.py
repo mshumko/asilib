@@ -1,118 +1,176 @@
-# This script downloads the THEMIS asi data using the themisasi
-# API.
-
-import numpy as np
-import pandas as pd
-import pathlib
-import urllib.request
+import requests
 from datetime import datetime
+from typing import List, Union
+import dateutil.parser
+import pathlib
+
 from bs4 import BeautifulSoup
-import re
 
 from asi import config
 
-frame_base_url = 'http://themis.ssl.berkeley.edu/data/themis/thg/l1/asi/'
-cal_base_url = 'http://themis.ssl.berkeley.edu/data/themis/thg/l2/asi/cal/'
+"""
+This program contains the download() function to download the Red-line Emission Geospace 
+Observatory (REGO) data from the themis.ssl.berkeley.edu server to the 
+config.ASI_DATA_DIR/rego/ directory
+"""
 
-def load_curtain_catalog(catalog_name):
-    cat_path = dirs.CATALOG_DIR / catalog_name
-    cat = pd.read_csv(cat_path, index_col=0, parse_dates=True)
-    return cat
+IMG_BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l1/asi/'
+CAL_BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l2/asi/cal/'
 
-def get_unique_stations(cat):
-    """ Get a set of unique stations from the catalog. """
-    nearby_stations = [i.split(' ') for i in cat.nearby_stations]
-    flattened_stations = [item for sublist in nearby_stations for item in sublist]
-    stations = list(set(flattened_stations))
-    return stations
+# Check and make a config.ASI_DATA_DIR/themis/ directory if doesn't already exist.
+if not pathlib.Path(config.ASI_DATA_DIR, 'themis').exists():
+    pathlib.Path(config.ASI_DATA_DIR, 'themis').mkdir()
 
-def download_asi_calibration_wrapper(cat, overwrite=False):
-    """ 
-    Wrapper to find all unique stations in the catalog and 
-    download that data. 
+
+def download_themis_img(day: Union[datetime, str], station: str, download_hour: bool=True,
+            force_download: bool=False, test_flag: bool=False):
     """
-    stations = get_unique_stations(cat)
-    for station in stations:
-        download_asi_calibration(station, overwrite=overwrite)
-    return
+    The wrapper to download the THEMIS ASI data given the day, station name,
+    and a flag to download a single hour file or the entire day. The images
+    are saved to the config.ASI_DATA_DIR / 'themis' directory. 
 
-def download_asi_frames_wrapper(cat, overwrite=False):
-    """ 
-    Loops over the curtain catalog and downloads the 
-    ASI image data 
+    Parameters
+    ----------
+    day: datetime.datetime or str
+        The date and time to download the data from. If day is string, 
+        dateutil.parser.parse will attempt to parse it into a datetime
+        object.
+    station: str
+        The station id to download the data from.
+    download_hour: bool (optinal)
+        If True, will download only one hour of image data, otherwise it will
+        download image data from the entire day.
+    force_download: bool (optional)
+        If True, download the file even if it already exists.
+
+    Returns
+    -------
+    None
+
+    Example
+    -------
+    day = datetime(2017, 4, 13, 5)
+    station = 'LUCK'
+    download(day, station)  # Will download to the aurora_asi/data/themis/ folder.
     """
-    for t, row in cat.iterrows():
-        # Figure out if you need to loop over multiple stations that were
-        nearby_stations = row.nearby_stations.split()
+    if isinstance(day, str):
+        day = dateutil.parser.parse(day)
+    # Add the station/year/month url folders onto the url
+    url = IMG_BASE_URL + f'{station.lower()}/{day.year}/{str(day.month).zfill(2)}/'
+
+    if download_hour:
+        # Find an image file for the hour.
+        search_pattern = f'{station.lower()}_{day.strftime("%Y%m%d%H")}'
+        file_names = search_hrefs(url, search_pattern=search_pattern)
         
-        # Loop over the stations (or just one station) and download the data.
-        # Continue if the data does not exist.
-        for station in nearby_stations:
-            try:
-                download_asi_frames(t, station, overwrite=overwrite)
-            except urllib.error.HTTPError as err:
-                if 'HTTP Error 404: Not Found' == str(err):
-                    continue
-                else:
-                    raise
-    return
-
-def download_asi_calibration(station, overwrite=False):
-    """
-    Scrape the ASI calibration website and download all cdf 
-    calibration files from the station.
-    """
-    # Find all cdf files with the station name
-    html = urllib.request.urlopen(cal_base_url).read().decode('utf-8')
-    # Scrape the HTML
-    soup = BeautifulSoup(html, 'html.parser')
-    # Extract all cdf files
-    file_name_html = soup.findAll(href=re.compile("\.cdf$"))
-    # Extract all hyperlinks (href) filenames with the station name.
-    file_names = [file_name.get('href') for file_name in file_name_html 
-                    if station.lower() in file_name.get('href')]
-    # Download data
-    for file_name in file_names:
-        # Skip if overwite is false and file is already downloaded
-        if not overwrite and pathlib.Path(dirs.ASI_DIR, file_name).is_file():
-            print(f'Skipping {file_name}')
-        else:
-            print(f'Downloading {file_name}')
-        urllib.request.urlretrieve(cal_base_url + file_name, 
-                                dirs.ASI_DIR / file_name)
-    return
-
-def download_asi_frames(time, station, overwrite=False):
-    """ 
-    Download the ASI image data from a date + hour in the datetime 
-    time object and a particular station.
-    """
-    station_url = (f'{station.lower()}/{time.year}/{time.strftime("%m")}/')
-    file_name = f'thg_l1_asf_{station.lower()}_{time.strftime("%Y%m%d%H")}_v01.cdf'
-
-    if not overwrite and pathlib.Path(dirs.ASI_DIR, file_name).is_file():
-        print(f'Skipping {file_name}')
-        return
+        # Download file
+        download_url = url + file_names[0]  # On the server
+        download_path = pathlib.Path(config.ASI_DATA_DIR, 'themis', file_names[0])  # On the local machine.
+        # Download if force_download=True or the file does not exist.
+        if force_download or (not download_path.is_file()):
+            stream_large_file(download_url, download_path, test_flag=test_flag)
+        
     else:
-        print(f'Downloading {file_name}')
-
-    try:
-        urllib.request.urlretrieve(frame_base_url + station_url + file_name, 
-                                dirs.ASI_DIR / file_name)
-    except urllib.error.HTTPError as err:
-        if '404' in str(err):
-            print(frame_base_url + station_url + file_name)
-            raise
-        else:
-            raise
+        # Otherwise find all of the image files for that station and UT hour.
+        file_names = search_hrefs(url)
+        # Download files
+        for file_name in file_names:
+            download_url = url + file_name
+            download_path = pathlib.Path(config.ASI_DATA_DIR, 'themis', file_name)
+            # Download if force_download=True or the file does not exist.
+            if force_download or (not download_path.is_file()):
+                stream_large_file(download_url, download_path, test_flag=test_flag)
     return
+
+def download_themis_cal(station: str, force_download: bool=False):
+    """
+    This function downloads the latest calibration cdf files for the
+    THEMIS ASIs.
+
+    Parameters
+    ----------
+    station: str
+        The station name, case insensitive
+    force_download: bool (optional)
+        If True, download the file even if it already exists.
+    
+    Returns
+    -------
+    None
+    """
+
+    return
+
+def stream_large_file(url, save_path, test_flag: bool=False):
+    """
+    Streams a file from url to save_path. In requests.get(), stream=True 
+    sets up a generator to download a small chuck of data at a time, 
+    instead of downloading the entire file into RAM first.
+
+    Parameters
+    ----------
+    url: str
+        The URL to the file.
+    save_path: str or pathlib.Path
+        The local save path for the file.
+    test_flag: bool (optional)
+        If True, the download will halt after one 5 Mb chunk of data is 
+        downloaded.
+    """
+    r = requests.get(url, stream=True) 
+    file_size = int(r.headers.get('content-length'))
+    downloaded_bites = 0
+
+    save_name = pathlib.Path(save_path).name
+
+    megabyte = 1024*1024
+
+    with open(save_path, 'wb') as f:
+        for data in r.iter_content(chunk_size=5*megabyte): 
+            f.write(data)
+            if test_flag:
+                return
+            # Update the downloaded % in the terminal.
+            downloaded_bites += len(data)
+            print(f'{save_name} is {round(100*downloaded_bites/file_size)}% downloaded', end='\r')
+    print()  # Add a newline 
+    return
+
+def search_hrefs(url: str, search_pattern: str ='') -> List[str]:
+    """
+    Given a url string, this function returns all of the 
+    hyper references (hrefs, or hyperlinks) if search_pattern=='',
+    or a specific href that contains the search_pattern. If search_pattern
+    is not found, this function raises a NotADirectoryError. The 
+    search is case-insensitive, and it doesn't return the '../' href.
+
+    Parameters
+    ----------
+    url: str
+        A url in string format
+    search_pattern: str (optional)
+        Find the exact search_pattern text contained in the hrefs.
+
+    Returns
+    -------
+    hrefs: List(str)
+        A list of hrefs that contain the search_pattern.
+    """
+    matched_hrefs = []
+
+    request = requests.get(url)
+    # request.status_code
+    soup = BeautifulSoup(request.content, 'html.parser')
+
+    for href in soup.find_all('a', href=True):
+        if (search_pattern.lower() in href['href'].lower()):
+            matched_hrefs.append(href['href'])
+    if len(matched_hrefs) == 0:
+        raise NotADirectoryError(f'The url {url} does not contain any hyper '
+            f'references containing the search_pattern="{search_pattern}".')
+    return matched_hrefs
 
 if __name__ == '__main__':
-    catalog_name = 'AC6_curtains_themis_asi_15deg.csv'
-    cat = load_curtain_catalog(catalog_name)
-
-    # Download the calibration data.
-    download_asi_calibration_wrapper(cat)
-
-    # Download the frame data
-    download_asi_frames_wrapper(cat)
+    day = datetime(2016, 10, 1, 2)
+    station = 'AtHa'
+    download_themis_img(day, station, force_download=True)
