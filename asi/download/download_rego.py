@@ -14,14 +14,15 @@ Observatory (REGO) data from the themis.ssl.berkeley.edu server to the
 config.ASI_DATA_DIR/rego/ directory
 """
 
-BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/'
+IMG_BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/'
+CAL_BASE_URL = 'https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/'
 
 # Check and make a config.ASI_DATA_DIR/rego/ directory if doesn't already exist.
 if not pathlib.Path(config.ASI_DATA_DIR, 'rego').exists():
     pathlib.Path(config.ASI_DATA_DIR, 'rego').mkdir()
 
 
-def download(day: Union[datetime, str], station: str, download_hour: bool=True,
+def download_rego_img(day: Union[datetime, str], station: str, download_hour: bool=True,
             force_download: bool=False, test_flag: bool=False):
     """
     The wrapper to download the REGO data given the day, station name,
@@ -48,14 +49,14 @@ def download(day: Union[datetime, str], station: str, download_hour: bool=True,
 
     Example
     -------
-    day = datetime(2017, 4, 13, 5, 10)
+    day = datetime(2017, 4, 13, 5)
     station = 'LUCK'
     download(day, station)  # Will download to the aurora_asi/data/rego/ folder.
     """
     if isinstance(day, str):
         day = dateutil.parser.parse(day)
     # Add the station/year/month url folders onto the url
-    url = BASE_URL + f'{station.lower()}/{day.year}/{str(day.month).zfill(2)}/'
+    url = IMG_BASE_URL + f'{station.lower()}/{day.year}/{str(day.month).zfill(2)}/'
 
     if download_hour:
         # Find an image file for the hour.
@@ -79,6 +80,24 @@ def download(day: Union[datetime, str], station: str, download_hour: bool=True,
             # Download if force_download=True or the file does not exist.
             if force_download or (not download_path.is_file()):
                 stream_large_file(download_url, download_path, test_flag=test_flag)
+    return
+
+def download_rego_cal(station: str, force_download: bool=False):
+    """
+    This function downloads the latest calibration (skymap) IDL .sav files.
+
+    Parameters
+    ----------
+    station: str
+        The station name, case insensitive
+    force_download: bool (optional)
+        If True, download the file even if it already exists.
+    
+    Returns
+    -------
+    None
+    """
+
     return
 
 def stream_large_file(url, save_path, test_flag: bool=False):
@@ -139,6 +158,7 @@ def search_hrefs(url: str, search_pattern: str ='') -> List[str]:
     matched_hrefs = []
 
     request = requests.get(url)
+    # request.status_code
     soup = BeautifulSoup(request.content, 'html.parser')
 
     for href in soup.find_all('a', href=True):

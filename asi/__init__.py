@@ -12,8 +12,8 @@ if not pathlib.Path(here / 'config.py').is_file():
                 'Did you run "python3 -m aurora_asi init"?')
 
 # Import download programs.
-from asi.download import download_rego
-from asi.download import download_themis
+from asi.download.download_rego import download_rego_img, download_rego_cal
+# from asi.download.download_themis import download_themis
 
 # Import the image plotting programs.
 # from asi import plot_frame

@@ -38,7 +38,7 @@ class TestDownloadRego(unittest.TestCase):
         matched_hrefs = download_rego.search_hrefs(self.url, search_pattern=search_pattern)
         self.assertTrue(matched_hrefs[0], 'clg_l1_rgf_luck_2020080104_v01.cdf')
 
-    def test_download(self):
+    def test_download_img(self):
         """ 
         Test the full REGO data downloader to download a chunk of an hour file
         clg_l1_rgf_luck_2020080104_v01.cdf to ./rego/.
@@ -47,7 +47,7 @@ class TestDownloadRego(unittest.TestCase):
         temp_image_path = temp_image_dir / 'clg_l1_rgf_luck_2020080104_v01.cdf'
         temp_image_dir.mkdir(parents=True, exist_ok=True)
 
-        download_rego.download(self.day, self.station, test_flag=True, force_download=True)
+        download_rego.download_rego_img(self.day, self.station, test_flag=True, force_download=True)
 
         self.assertTrue(temp_image_path.is_file())
         
