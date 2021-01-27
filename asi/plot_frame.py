@@ -44,7 +44,7 @@ def get_frame(time: Union[datetime, str], mission: str, station: str,
     
     Example
     -------
-    t0, frame = get_frame(datetime(2016, 10, 29, 4, 15), 'REGO', 'GILL')
+    time, frame = get_frame(datetime(2016, 10, 29, 4, 15), 'REGO', 'GILL')
     """
     # Try to convert time to datetime object if it is a string.
     if isinstance(time, str):
@@ -67,7 +67,9 @@ def get_frame(time: Union[datetime, str], mission: str, station: str,
         (epoch < time + timedelta(seconds=time_thresh_s))
         )[0]
     assert len(idx) == 1, (f'{len(idx)} number of time stamps were found '
-                        f'within {time_thresh_s} seconds of {time}.')
+                        f'within {time_thresh_s} seconds of {time}.'
+                        f'You can change the time_thresh_s kwarg to find a '
+                        f'time stamp further away.')
     return epoch[idx[0]], cdf_obj.varget(frame_key)[idx[0], :, :]
 
 def load(time: Union[datetime, str], mission: str, station: str, 
@@ -126,4 +128,4 @@ def load(time: Union[datetime, str], mission: str, station: str,
     return cdflib.CDF(download_path)
 
 if __name__ == '__main__':
-    rego_data = get_frame(datetime(2016, 10, 29, 4, 15), 'REGO', 'GILL')
+    time, frame = get_frame(datetime(2016, 10, 29, 4, 15), 'REGO', 'GILL')
