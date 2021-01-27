@@ -1,6 +1,6 @@
 import pathlib
 from datetime import datetime, timedelta
-import dateutil
+import dateutil.parser
 from typing import List, Union
 
 import matplotlib.pyplot as plt
