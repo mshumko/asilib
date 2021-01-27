@@ -44,6 +44,7 @@ def plot_frame(day: Union[datetime, str], mission: str, station: str,
     
     Example
     -------
+    t0, frame = plot_frame(datetime(2016, 10, 29, 4), 'REGO', 'GILL')
     """
     # Try to convert day to datetime object if it is a string.
     if isinstance(day, str):
@@ -85,7 +86,7 @@ def load(day: Union[datetime, str], mission: str, station: str,
     
     Example
     -------
-
+    rego_data = load(datetime(2016, 10, 29, 4), 'REGO', 'GILL')
     """
     # Try to convert day to datetime object if it is a string.
     if isinstance(day, str):
