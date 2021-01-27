@@ -1,6 +1,6 @@
 import pathlib
-from datetime import datetime
-import dateutil.parser
+from datetime import datetime, timedelta
+import dateutil
 from typing import List, Union
 
 import matplotlib.pyplot as plt
@@ -12,17 +12,17 @@ import asi.download.download_rego as download_rego
 import asi.download.download_themis as download_themis
 import asi.config as config
 
-def plot_frame(day: Union[datetime, str], mission: str, station: str, 
+def get_frame(time: Union[datetime, str], mission: str, station: str, 
             force_download: bool=False, time_thresh_s: float=3) -> Union[datetime, np.ndarray]:
     """
-    Plots the ASI frame from the mission (THEMIS or REGO), from a
+    Gets the ASI frame from the mission (THEMIS or REGO), from a
     station on a day. If a file does not locally exist, it will attempt
     to download it.
 
     Parameters
     ----------
-    day: datetime.datetime or str
-        The date and time to download the data from. If day is string, 
+    time: datetime.datetime or str
+        The date and time to download the data from. If time is string, 
         dateutil.parser.parse will attempt to parse it into a datetime
         object. Must contain the date and the UT hour.
     station: str
@@ -31,7 +31,7 @@ def plot_frame(day: Union[datetime, str], mission: str, station: str,
         If True, download the file even if it already exists.
     time_thresh_s: float
         The maximum allowed time difference between a frame's time stamp
-        and the day argument in seconds. Will raise a ValueError if no 
+        and the time argument in seconds. Will raise a ValueError if no 
         image time stamp is within the threshold. 
 
     Returns
@@ -40,35 +40,45 @@ def plot_frame(day: Union[datetime, str], mission: str, station: str,
         The frame timestamp.
     frame: np.ndarray
         A 2D array of the ASI image at the date-time nearest to the
-        day argument.
+        time argument.
     
     Example
     -------
-    t0, frame = plot_frame(datetime(2016, 10, 29, 4), 'REGO', 'GILL')
+    t0, frame = get_frame(datetime(2016, 10, 29, 4, 15), 'REGO', 'GILL')
     """
-    # Try to convert day to datetime object if it is a string.
-    if isinstance(day, str):
-        day = dateutil.parser.parse(day)
+    # Try to convert time to datetime object if it is a string.
+    if isinstance(time, str):
+        time = dateutil.parser.parse(time)
 
-    cdf_obj = load(day, mission, station, force_download=force_download)
+    cdf_obj = load(time, mission, station, force_download=force_download)
 
     if mission.lower() == 'rego':
         frame_key = f'clg_rgf_{station.lower()}'
-        # time_key  = f'clg_rgf_{station.lower()}_time' # USe datetime.fromtimestamp
+        time_key  = f'clg_rgf_{station.lower()}_epoch'
     elif mission.lower() == 'themis':
         raise NotImplementedError
 
-    return
+    # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00) 
+    # to datetime objects.
+    epoch = np.array(cdflib.cdfepoch.to_datetime(cdf_obj.varget(time_key)))
+    # Find the closest time stamp to time
+    idx = np.where(
+        (epoch >= time) & 
+        (epoch < time + timedelta(seconds=time_thresh_s))
+        )[0]
+    assert len(idx) == 1, (f'{len(idx)} number of time stamps were found '
+                        f'within {time_thresh_s} seconds of {time}.')
+    return epoch[idx[0]], cdf_obj.varget(frame_key)[idx[0], :, :]
 
-def load(day: Union[datetime, str], mission: str, station: str, 
+def load(time: Union[datetime, str], mission: str, station: str, 
             force_download: bool=False):
     """
     Loads the REGO or THEMIS ASI CDF file.
 
     Parameters
     ----------
-    day: datetime.datetime or str
-        The date and time to download the data from. If day is string, 
+    time: datetime.datetime or str
+        The date and time to download the data from. If time is string, 
         dateutil.parser.parse will attempt to parse it into a datetime
         object. Must contain the date and the UT hour.
     station: str
@@ -88,27 +98,27 @@ def load(day: Union[datetime, str], mission: str, station: str,
     -------
     rego_data = load(datetime(2016, 10, 29, 4), 'REGO', 'GILL')
     """
-    # Try to convert day to datetime object if it is a string.
-    if isinstance(day, str):
-        day = dateutil.parser.parse(day)
+    # Try to convert time to datetime object if it is a string.
+    if isinstance(time, str):
+        time = dateutil.parser.parse(time)
 
     # Check if the REGO or THEMIS data is already saved locally.
     search_path = pathlib.Path(config.ASI_DATA_DIR, mission.lower())
-    search_pattern = f'*{station.lower()}*{day.strftime("%Y%m%d%H")}*'
+    search_pattern = f'*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
     matched_paths = list(search_path.rglob(search_pattern))
     # Try to download files if one is not found locally.
     if (len(matched_paths) == 0) and (mission.lower() == 'themis'):
         try:
-            download_path = download_themis.download_themis_img(day, station, 
+            download_path = download_themis.download_themis_img(time, station, 
                             force_download=force_download)[0]
         except NotADirectoryError:
-            raise ValueError(f'THEMIS ASI data not found for station {station} on day {day.date()}')
+            raise ValueError(f'THEMIS ASI data not found for station {station} on day {time.date()}')
     elif (len(matched_paths) == 0) and (mission.lower() == 'rego'):
         try:
-            download_path = download_rego.download_rego_img(day, station,
+            download_path = download_rego.download_rego_img(time, station,
                             force_download=force_download)[0]
         except NotADirectoryError:
-            raise ValueError(f'REGO ASI data not found for station {station} on day {day.date()}')
+            raise ValueError(f'REGO ASI data not found for station {station} on day {time.date()}')
     else:
         download_path = matched_paths[0]
 
@@ -116,4 +126,4 @@ def load(day: Union[datetime, str], mission: str, station: str,
     return cdflib.CDF(download_path)
 
 if __name__ == '__main__':
-    rego_data = load(datetime(2016, 10, 29, 4), 'REGO', 'GILL')
+    rego_data = get_frame(datetime(2016, 10, 29, 4, 15), 'REGO', 'GILL')
