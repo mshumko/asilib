@@ -1,9 +1,10 @@
 import pathlib
 from datetime import datetime, timedelta
 import dateutil.parser
-from typing import List, Union
+from typing import List, Union, Optional, Sequence
 
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 import pandas as pd
 import numpy as np
 import cdflib
@@ -12,19 +13,89 @@ import asi.download.download_rego as download_rego
 import asi.download.download_themis as download_themis
 import asi.config as config
 
-def get_frame(time: Union[datetime, str], mission: str, station: str, 
-            force_download: bool=False, time_thresh_s: float=3) -> Union[datetime, np.ndarray]:
+def plot_frame(time: Union[datetime, str], mission: str, station: str, 
+            force_download: bool=False, time_thresh_s: float=3, 
+            ax: plt.subplot=None, add_label: bool=True, color_map: str='gnuplot2',
+            color_bounds: Union[List[float], None]=None, log_norm: bool=True) -> plt.subplot:
     """
-    Gets the ASI frame from the mission (THEMIS or REGO), from a
-    station on a day. If a file does not locally exist, it will attempt
-    to download it.
+    Plots one ASI image frame given the mission (THEMIS or REGO), station, and 
+    the day date-time parameters. If a file does not locally exist, the load()
+    function will attempt to download it.
 
     Parameters
     ----------
     time: datetime.datetime or str
         The date and time to download the data from. If time is string, 
         dateutil.parser.parse will attempt to parse it into a datetime
-        object. Must contain the date and the UT hour.
+        object. The user must specify the UT hour and the first argument
+        is assumed to be the start_time and is not checked.
+    station: str
+        The station id to download the data from.
+    force_download: bool (optional)
+        If True, download the file even if it already exists.
+    time_thresh_s: float
+        The maximum allowed time difference between a frame's time stamp
+        and the time argument in seconds. Will raise a ValueError if no 
+        image time stamp is within the threshold. 
+    ax: plt.subplot
+        The subplot to plot the frame on. If None, this function will 
+        create one.
+    add_label: bool
+        Flag to add the "mission/station/frame_time" text to the plot.
+    color_map: str
+        The matplotlib colormap to use. See 
+        https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html
+    color_bounds: List[float] or None
+        The lower and upper values of the color scale. If None, will 
+        automatically set it to low=1st_quartile and 
+        high=min(3rd_quartile, 10*1st_quartile)
+    log_norm: bool
+        Flag to set the logarithmic or linear color normalization.
+
+    Returns
+    -------
+    ax: plt.subplot
+        Same subplot object if ax was passed as an argument, or a new
+        subplot object contaning the frame.
+    
+    Example
+    -------
+    """
+    if ax is None:
+        _, ax = plt.subplots()
+
+    frame_time, frame = get_frame(time, mission, station, 
+        force_download=force_download, time_thresh_s=time_thresh_s)
+    
+    if color_bounds is None:
+        # Figure out the color_bounds from the frame data.
+        q1, q3 = np.quantile(frame, (0.25, 0.75))
+        color_bounds = [q1, np.min([q3, 10*q1])]
+    if log_norm:
+        norm=colors.LogNorm(vmin=color_bounds[0], vmax=color_bounds[1])
+    else:
+        norm=colors.NoNorm(vmin=color_bounds[0], vmax=color_bounds[1])
+
+    ax.imshow(frame, cmap=color_map, norm=norm)
+    ax.text(0, 0, f"{mission}/{station}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}", 
+            va='bottom', transform=ax.transAxes, color='white')
+    return ax
+    
+
+def get_frame(time: Union[datetime, str], mission: str, station: str, 
+            force_download: bool=False, time_thresh_s: float=3) -> Union[datetime, np.ndarray]:
+    """
+    Gets one ASI image frame given the mission (THEMIS or REGO), station, and 
+    the day date-time parameters. If a file does not locally exist, this 
+    function will attempt to download it.
+
+    Parameters
+    ----------
+    time: datetime.datetime or str
+        The date and time to download the data from. If time is string, 
+        dateutil.parser.parse will attempt to parse it into a datetime
+        object. The user must specify the UT hour and the first argument
+        is assumed to be the start_time and is not checked.
     station: str
         The station id to download the data from.
     force_download: bool (optional)
@@ -72,8 +143,73 @@ def get_frame(time: Union[datetime, str], mission: str, station: str,
                         f'time stamp further away.')
     return epoch[idx[0]], cdf_obj.varget(frame_key)[idx[0], :, :]
 
+
+def get_frames(time_range: List[Union[datetime, str]], mission: str, station: str, 
+            force_download: bool=False) -> Union[datetime, np.ndarray]:
+    """
+    Gets multiple ASI image frames given the mission (THEMIS or REGO), station, and 
+    the time_range date-time parameters. If a file does not locally exist, this 
+    function will attempt to download it.
+
+    Parameters
+    ----------
+    time_range: List[Union[datetime, str]]
+        A list with len(2) == 2 of the start and end time to get the
+        frames. If either start or end time is a string, 
+        dateutil.parser.parse will attempt to parse it into a datetime
+        object. The user must specify the UT hour and the first argument
+        is assumed to be the start_time and is not checked.
+    station: str
+        The station id to download the data from.
+    force_download: bool (optional)
+        If True, download the file even if it already exists.
+    time_thresh_s: float
+        The maximum allowed time difference between a frame's time stamp
+        and the time argument in seconds. Will raise a ValueError if no 
+        image time stamp is within the threshold. 
+
+    Returns
+    -------
+    frame_time: datetime
+        The frame timestamps contained in time_range, inclduing the start 
+        and end times.
+    frame: np.ndarray
+        An (nTime x nPixelRows x nPixelCols) array containing the ASI images
+        for times contained in time_range.
+
+    Example
+    -------
+    time_range = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
+    times, frames = get_frames(time_range, 'REGO', 'GILL')
+    """
+    # Run a few checks to make sure that the time_range parameter has length 2 and
+    # convert time_range to datetime objects if it is a string.
+    assert len(time_range) == 2, (f'len(time_range) = {len(time_range)} is not 2.')
+    for i, t_i in enumerate(time_range):
+        if isinstance(t_i, str):
+            time_range[i] = dateutil.parser.parse(t_i)
+
+    cdf_obj = load(time_range[0], mission, station, force_download=force_download)
+
+    # Figure out the data keys to load.
+    if mission.lower() == 'rego':
+        frame_key = f'clg_rgf_{station.lower()}'
+        time_key  = f'clg_rgf_{station.lower()}_epoch'
+    elif mission.lower() == 'themis':
+        raise NotImplementedError
+
+    # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00) 
+    # to datetime objects.
+    epoch = np.array(cdflib.cdfepoch.to_datetime(cdf_obj.varget(time_key)))
+    # Find the time stamps in between time_range.
+    idx = np.where((epoch >= time_range[0]) & (epoch <= time_range[1]))[0]
+    assert len(idx), (f'{len(idx)} number of time stamps were found '
+                      f'in time_range={time_range}')
+    return epoch[idx], cdf_obj.varget(frame_key)[idx, :, :]
+
+
 def load(time: Union[datetime, str], mission: str, station: str, 
-            force_download: bool=False):
+            force_download: bool=False) -> cdflib.cdfread.CDF:
     """
     Loads the REGO or THEMIS ASI CDF file.
 
@@ -128,4 +264,9 @@ def load(time: Union[datetime, str], mission: str, station: str,
     return cdflib.CDF(download_path)
 
 if __name__ == '__main__':
-    time, frame = get_frame(datetime(2016, 10, 29, 4, 15), 'REGO', 'GILL')
+    # time, frame = get_frame(datetime(2016, 10, 29, 4, 15), 'REGO', 'GILL')
+    # rego_data = load(datetime(2016, 10, 29, 4), 'REGO', 'GILL')
+    # time_range: List[datetime] = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
+    # times, frames = get_frames(time_range, 'REGO', 'GILL')
+    ax = plot_frame(datetime(2016, 10, 29, 4, 15), 'REGO', 'GILL')
+    plt.show()
