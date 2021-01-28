@@ -50,7 +50,6 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
     frame_times, frames = get_frames(time_range, mission, station, 
                                     force_download=force_download)
     _, ax = plt.subplots()
-    plt.axis('off')
 
     # Create the movie directory inside config.ASI_DATA_DIR if it does 
     # not exist.
@@ -81,7 +80,8 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
                      f'{frame_time.strftime("%Y%m%d_%H%M%S")}.png')
         plt.savefig(save_dir / save_name)
         ax.clear()
+        plt.axis('off')
     
 if __name__ == "__main__":
-    plot_movie((datetime(2015, 4, 9, 7, 35, 0), datetime(2015, 4, 9, 7, 35, 30)),
+    plot_movie((datetime(2017, 3, 31, 8, 43, 30), datetime(2017, 3, 31, 8, 44, 0)),
             'REGO', 'FSMI', color_norm='lin')

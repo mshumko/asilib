@@ -5,3 +5,4 @@ __pycache__/
 *.pgm.gz
 *.cdf
 asi/config.py
+*png
