@@ -62,8 +62,9 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
 
     Example
     -------
-    ax, im = plot_frame(datetime(2016, 10, 29, 4, 15), 'REGO', 'GILL', color_norm='log')
+    ax, im = plot_frame(datetime(2015, 4, 9, 7, 35, 6), 'REGO', 'FSMI', color_norm='lin')
     plt.colorbar(im)
+    plt.axis('off')
     plt.show()
     """
     if ax is None:
@@ -152,7 +153,7 @@ def get_frame(time: Union[datetime, str], mission: str, station: str,
     return epoch[idx[0]], cdf_obj.varget(frame_key)[idx[0], :, :]
 
 
-def get_frames(time_range: List[Union[datetime, str]], mission: str, station: str, 
+def get_frames(time_range: Sequence[Union[datetime, str]], mission: str, station: str, 
             force_download: bool=False) -> Union[datetime, np.ndarray]:
     """
     Gets multiple ASI image frames given the mission (THEMIS or REGO), station, and 
@@ -167,6 +168,8 @@ def get_frames(time_range: List[Union[datetime, str]], mission: str, station: st
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
+    mission: str
+        The mission id, can be either THEMIS or REGO.
     station: str
         The station id to download the data from.
     force_download: bool (optional)
@@ -276,7 +279,7 @@ if __name__ == '__main__':
     # rego_data = load(datetime(2016, 10, 29, 4), 'REGO', 'GILL')
     # time_range: List[datetime] = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
     # times, frames = get_frames(time_range, 'REGO', 'GILL')
-    ax, im = plot_frame(datetime(2015, 4, 9, 7, 35, 6), 'REGO', 'FSMI', color_norm='log')
+    ax, im = plot_frame(datetime(2015, 4, 9, 7, 35, 6), 'REGO', 'FSMI', color_norm='lin')
     plt.colorbar(im)
     plt.axis('off')
     plt.show()

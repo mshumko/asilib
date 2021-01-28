@@ -1,0 +1,88 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "python3.8",
+            "type": "shell",
+            "command": "python3.8",
+            "args": ["${file}"],
+
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+
+            "presentation": {
+                "echo": true,
+                "reveal": "never",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "python3.8 interactive",
+            "type": "shell",
+            "command": "python3.8",
+            "args": [
+                "-i",
+                "${file}"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+    ]
+  }
+
+// {
+//     // See https://go.microsoft.com/fwlink/?LinkId=733558
+//     // for the documentation about the tasks.json format
+//     "version": "2.0.0",
+//     "label": "launch python",
+//     //"type": "shell",
+//     "isShellCommand": true,
+//     "command": "source /home/mike/research/ac6_curtains/env/bin/activate && python3.8",
+//     "showOutput": "always",
+//     "args": [
+//         //"-i",
+//         "${file}"
+//     ],
+//     "problemMatchers": []
+// }
+
+// {
+//     "version": "2.0.0",
+//     "command": "bash",
+//     "isShellCommand": true,
+//     "showOutput": "always",
+//     "args": [
+//         "-c"
+//     ],
+//     "tasks": [
+//         {
+//             "label": "python3.8 in venv",
+//             "args": [
+//                 "source ~/research/ac6_curtains/env/bin/activate",
+//                 "python3.8",
+//                 "${file}"
+//             ],
+//             "problemMatcher": [],
+//             "group": {
+//                 "kind": "build",
+//                 "isDefault": true
+//             }
+//         },
+//         {
+//             "label": "My Python task",
+//             "args": [
+//                 "/usr/bin/python ${file}"
+//             ]
+//         }
+//     ]
+// }
