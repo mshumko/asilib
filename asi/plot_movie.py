@@ -59,6 +59,8 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
         print(f'Created a {save_dir} directory')
 
     for frame_time, frame in zip(frame_times, frames):
+        ax.clear()
+        plt.axis('off')
         # Figure out the color_bounds from the frame data.
         if color_bounds is None:
             lower, upper = np.quantile(frame, (0.25, 0.98))
@@ -79,8 +81,6 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
         save_name = (f'{mission.lower()}_{station.lower()}_'
                      f'{frame_time.strftime("%Y%m%d_%H%M%S")}.png')
         plt.savefig(save_dir / save_name)
-        ax.clear()
-        plt.axis('off')
     
 if __name__ == "__main__":
     plot_movie((datetime(2017, 3, 31, 8, 43, 30), datetime(2017, 3, 31, 8, 44, 0)),
