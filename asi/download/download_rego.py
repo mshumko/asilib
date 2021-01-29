@@ -18,8 +18,9 @@ IMG_BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/'
 CAL_BASE_URL = 'https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/'
 
 # Check and make a config.ASI_DATA_DIR/rego/ directory if doesn't already exist.
-if not pathlib.Path(config.ASI_DATA_DIR, 'rego').exists():
-    pathlib.Path(config.ASI_DATA_DIR, 'rego').mkdir()
+rego_dir = pathlib.Path(config.ASI_DATA_DIR, 'rego')
+if not rego_dir.exists():
+    rego_dir.mkdir()
 
 
 def download_rego_img(day: Union[datetime, str], station: str, download_hour: bool=True,
@@ -88,7 +89,8 @@ def download_rego_img(day: Union[datetime, str], station: str, download_hour: bo
 
 def download_rego_cal(station: str, force_download: bool=False):
     """
-    This function downloads the latest calibration (skymap) IDL .sav files.
+    Download the latest calibration (skymap) IDL .sav file and save
+    it to config.ASI_DATA_DIR/rego/cal/ directory.
 
     Parameters
     ----------
@@ -111,8 +113,16 @@ def download_rego_cal(station: str, force_download: bool=False):
     
     # Look for all of the hyperlinks to the calibration file and download the
     # latest one.
-    cal_hrefs = search_hrefs(url, search_pattern=station.lower())
-    print(cal_hrefs)
+    cal_time_tagged_hrefs = search_hrefs(url, search_pattern=station.lower())
+    url = url + cal_time_tagged_hrefs[-1]  # Last href is the latest one.
+    # Lastly, research for the skymap .sav file.
+    cal_hrefs = search_hrefs(url, search_pattern=f'rego_skymap_{station.lower()}')
+    cal_name = cal_hrefs[0].replace('-%2B', '')  # Replace the code for '+'.
+
+    # Download if force_download=True or the file does not exist.
+    download_path = pathlib.Path(save_dir, cal_name)
+    if force_download or (not download_path.is_file()):
+        stream_large_file(url+cal_hrefs[0], download_path)
     return
 
 def stream_large_file(url, save_path, test_flag: bool=False):
@@ -188,4 +198,4 @@ def search_hrefs(url: str, search_pattern: str ='') -> List[str]:
 if __name__ == '__main__':
     day = datetime(2020, 8, 1, 4)
     station = 'Luck'
-    download_rego_cal(station, force_download=True)
+    download_rego_cal(station, force_download=False)
