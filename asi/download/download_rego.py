@@ -101,7 +101,18 @@ def download_rego_cal(station: str, force_download: bool=False):
     -------
     None
     """
+    # Create the calibration directory in data/rego/cal
+    save_dir = config.ASI_DATA_DIR / 'rego' / 'cal'
+    if not save_dir.is_dir():
+        save_dir.mkdir()
+        print(f'Made directory at {save_dir}')
 
+    url = CAL_BASE_URL + f'{station.lower()}/'
+    
+    # Look for all of the hyperlinks to the calibration file and download the
+    # latest one.
+    cal_hrefs = search_hrefs(url, search_pattern=station.lower())
+    print(cal_hrefs)
     return
 
 def stream_large_file(url, save_path, test_flag: bool=False):
@@ -177,4 +188,4 @@ def search_hrefs(url: str, search_pattern: str ='') -> List[str]:
 if __name__ == '__main__':
     day = datetime(2020, 8, 1, 4)
     station = 'Luck'
-    download_rego_img(day, station, force_download=True)
+    download_rego_cal(station, force_download=True)

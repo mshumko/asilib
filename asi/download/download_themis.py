@@ -4,8 +4,6 @@ from typing import List, Union
 import dateutil.parser
 import pathlib
 
-from bs4 import BeautifulSoup
-
 from asi import config
 from asi.download import download_rego
 
@@ -87,6 +85,7 @@ def download_themis_img(day: Union[datetime, str], station: str, download_hour: 
                 download_rego.stream_large_file(download_url, download_path, test_flag=test_flag)
         return download_paths
 
+
 def download_themis_cal(station: str, force_download: bool=False):
     """
     This function downloads the calibration cdf files for the
@@ -109,13 +108,26 @@ def download_themis_cal(station: str, force_download: bool=False):
         save_dir.mkdir()
         print(f'Made directory at {save_dir}')
     
-    # 
-    
+    # Search all of the skymap files with the macthing station name.
+    search_pattern = f'themis_skymap_{station.lower()}'
+    file_names = download_rego.search_hrefs(CAL_BASE_URL, search_pattern=search_pattern)
 
-    return
+    # Download the skymap files
+    download_paths = []
+    for file_name in file_names:
+        download_url = CAL_BASE_URL + file_name
+        download_path = pathlib.Path(save_dir, file_name)
+        download_paths.append(download_path)
+        # Download if force_download=True or the file does not exist.
+        if force_download or (not download_path.is_file()):
+            download_rego.stream_large_file(download_url, download_path)
+    return download_paths
 
 
 if __name__ == '__main__':
-    day = datetime(2016, 10, 1, 2)
+    # day = datetime(2016, 10, 1, 2)
+    # station = 'AtHa'
+    # download_themis_img(day, station, force_download=True)
+
     station = 'AtHa'
-    download_themis_img(day, station, force_download=True)
+    download_themis_cal(station, force_download=True)
