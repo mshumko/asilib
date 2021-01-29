@@ -173,7 +173,8 @@ def search_hrefs(url: str, search_pattern: str ='') -> List[str]:
             f'references containing the search_pattern="{search_pattern}".')
     return matched_hrefs
 
+
 if __name__ == '__main__':
     day = datetime(2020, 8, 1, 4)
     station = 'Luck'
-    download(day, station, force_download=True)
+    download_rego_img(day, station, force_download=True)

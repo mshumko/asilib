@@ -7,6 +7,7 @@ import pathlib
 from bs4 import BeautifulSoup
 
 from asi import config
+from asi.download import download_rego
 
 """
 This program contains the download() function to download the Red-line Emission Geospace 
@@ -63,18 +64,18 @@ def download_themis_img(day: Union[datetime, str], station: str, download_hour: 
     if download_hour:
         # Find an image file for the hour.
         search_pattern = f'{station.lower()}_{day.strftime("%Y%m%d%H")}'
-        file_names = search_hrefs(url, search_pattern=search_pattern)
+        file_names = download_rego.search_hrefs(url, search_pattern=search_pattern)
         
         # Download file
         download_url = url + file_names[0]  # On the server
         download_path = pathlib.Path(config.ASI_DATA_DIR, 'themis', file_names[0])  # On the local machine.
         # Download if force_download=True or the file does not exist.
         if force_download or (not download_path.is_file()):
-            stream_large_file(download_url, download_path, test_flag=test_flag)
+            download_rego.stream_large_file(download_url, download_path, test_flag=test_flag)
         return [download_path]
     else:
         # Otherwise find all of the image files for that station and UT hour.
-        file_names = search_hrefs(url)
+        file_names = download_rego.search_hrefs(url)
         download_paths = []
         # Download files
         for file_name in file_names:
@@ -83,13 +84,13 @@ def download_themis_img(day: Union[datetime, str], station: str, download_hour: 
             download_paths.append(download_path)
             # Download if force_download=True or the file does not exist.
             if force_download or (not download_path.is_file()):
-                stream_large_file(download_url, download_path, test_flag=test_flag)
+                download_rego.stream_large_file(download_url, download_path, test_flag=test_flag)
         return download_paths
 
 def download_themis_cal(station: str, force_download: bool=False):
     """
-    This function downloads the latest calibration cdf files for the
-    THEMIS ASIs.
+    This function downloads the calibration cdf files for the
+    station THEMIS ASI.
 
     Parameters
     ----------
@@ -102,77 +103,17 @@ def download_themis_cal(station: str, force_download: bool=False):
     -------
     None
     """
+    # Create the calibration directory in data/themis/cal
+    save_dir = config.ASI_DATA_DIR / 'themis' / 'cal'
+    if not save_dir.is_dir():
+        save_dir.mkdir()
+        print(f'Made directory at {save_dir}')
+    
+    # 
+    
 
     return
 
-def stream_large_file(url, save_path, test_flag: bool=False):
-    """
-    Streams a file from url to save_path. In requests.get(), stream=True 
-    sets up a generator to download a small chuck of data at a time, 
-    instead of downloading the entire file into RAM first.
-
-    Parameters
-    ----------
-    url: str
-        The URL to the file.
-    save_path: str or pathlib.Path
-        The local save path for the file.
-    test_flag: bool (optional)
-        If True, the download will halt after one 5 Mb chunk of data is 
-        downloaded.
-    """
-    r = requests.get(url, stream=True) 
-    file_size = int(r.headers.get('content-length'))
-    downloaded_bites = 0
-
-    save_name = pathlib.Path(save_path).name
-
-    megabyte = 1024*1024
-
-    with open(save_path, 'wb') as f:
-        for data in r.iter_content(chunk_size=5*megabyte): 
-            f.write(data)
-            if test_flag:
-                return
-            # Update the downloaded % in the terminal.
-            downloaded_bites += len(data)
-            print(f'{save_name} is {round(100*downloaded_bites/file_size)}% downloaded', end='\r')
-    print()  # Add a newline 
-    return
-
-def search_hrefs(url: str, search_pattern: str ='') -> List[str]:
-    """
-    Given a url string, this function returns all of the 
-    hyper references (hrefs, or hyperlinks) if search_pattern=='',
-    or a specific href that contains the search_pattern. If search_pattern
-    is not found, this function raises a NotADirectoryError. The 
-    search is case-insensitive, and it doesn't return the '../' href.
-
-    Parameters
-    ----------
-    url: str
-        A url in string format
-    search_pattern: str (optional)
-        Find the exact search_pattern text contained in the hrefs.
-
-    Returns
-    -------
-    hrefs: List(str)
-        A list of hrefs that contain the search_pattern.
-    """
-    matched_hrefs = []
-
-    request = requests.get(url)
-    # request.status_code
-    soup = BeautifulSoup(request.content, 'html.parser')
-
-    for href in soup.find_all('a', href=True):
-        if (search_pattern.lower() in href['href'].lower()):
-            matched_hrefs.append(href['href'])
-    if len(matched_hrefs) == 0:
-        raise NotADirectoryError(f'The url {url} does not contain any hyper '
-            f'references containing the search_pattern="{search_pattern}".')
-    return matched_hrefs
 
 if __name__ == '__main__':
     day = datetime(2016, 10, 1, 2)
