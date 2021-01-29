@@ -83,5 +83,5 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
         plt.savefig(save_dir / save_name)
     
 if __name__ == "__main__":
-    plot_movie((datetime(2017, 3, 31, 8, 43, 30), datetime(2017, 3, 31, 8, 44, 0)),
-            'REGO', 'FSMI', color_norm='lin')
+    plot_movie((datetime(2016, 10, 16, 5, 43, 0), datetime(2016, 10, 16, 5, 44, 0)), 
+                'THEMIS', 'RANK', color_norm='log')

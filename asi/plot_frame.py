@@ -136,7 +136,8 @@ def get_frame(time: Union[datetime, str], mission: str, station: str,
         frame_key = f'clg_rgf_{station.lower()}'
         time_key  = f'clg_rgf_{station.lower()}_epoch'
     elif mission.lower() == 'themis':
-        raise NotImplementedError
+        frame_key = f'thg_asf_{station.lower()}'
+        time_key  = f'thg_asf_{station.lower()}_epoch'
 
     # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00) 
     # to datetime objects.
@@ -207,7 +208,8 @@ def get_frames(time_range: Sequence[Union[datetime, str]], mission: str, station
         frame_key = f'clg_rgf_{station.lower()}'
         time_key  = f'clg_rgf_{station.lower()}_epoch'
     elif mission.lower() == 'themis':
-        raise NotImplementedError
+        frame_key = f'thg_asf_{station.lower()}'
+        time_key  = f'thg_asf_{station.lower()}_epoch'
 
     # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00) 
     # to datetime objects.
@@ -275,11 +277,8 @@ def load(time: Union[datetime, str], mission: str, station: str,
     return cdflib.CDF(download_path)
 
 if __name__ == '__main__':
-    # time, frame = get_frame(datetime(2016, 10, 29, 4, 15), 'REGO', 'GILL')
-    # rego_data = load(datetime(2016, 10, 29, 4), 'REGO', 'GILL')
-    # time_range: List[datetime] = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
-    # times, frames = get_frames(time_range, 'REGO', 'GILL')
-    ax, im = plot_frame(datetime(2017, 3, 21, 8, 43, 42), 'REGO', 'FSMI', color_norm='log', force_download=True)
+    ax, im = plot_frame(datetime(2016, 10, 16, 5, 43, 42), 'THEMIS', 'RANK', 
+                        color_norm='log', force_download=True)
     plt.colorbar(im)
     plt.axis('off')
     plt.show()
