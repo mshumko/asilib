@@ -123,7 +123,7 @@ def download_rego_cal(station: str, force_download: bool=False):
     download_path = pathlib.Path(save_dir, cal_name)
     if force_download or (not download_path.is_file()):
         stream_large_file(url+cal_hrefs[0], download_path)
-    return
+    return download_path
 
 def stream_large_file(url, save_path, test_flag: bool=False):
     """

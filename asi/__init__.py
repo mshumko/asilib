@@ -14,11 +14,9 @@ if not pathlib.Path(here / 'config.py').is_file():
 # Import download programs.
 from asi.download.download_rego import download_rego_img, download_rego_cal
 from asi.download.download_themis import download_themis_img, download_themis_cal
-# from asi.download.download_themis import download_themis
 
-# Import the image plotting programs.
-# from asi import plot_frame
-# from asi import plot_movie
+from asi.load import load_img_file
+from asi.load import load_cal_file
 
 # Import the magnetic field mapping 
 # from asi import lla2azel

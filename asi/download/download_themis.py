@@ -112,16 +112,13 @@ def download_themis_cal(station: str, force_download: bool=False):
     search_pattern = f'themis_skymap_{station.lower()}'
     file_names = download_rego.search_hrefs(CAL_BASE_URL, search_pattern=search_pattern)
 
-    # Download the skymap files
-    download_paths = []
-    for file_name in file_names:
-        download_url = CAL_BASE_URL + file_name
-        download_path = pathlib.Path(save_dir, file_name)
-        download_paths.append(download_path)
-        # Download if force_download=True or the file does not exist.
-        if force_download or (not download_path.is_file()):
-            download_rego.stream_large_file(download_url, download_path)
-    return download_paths
+    # Download the latest skymap file
+    download_url = CAL_BASE_URL + file_names[-1]
+    download_path = pathlib.Path(save_dir, file_names[-1])
+    # Download if force_download=True or the file does not exist.
+    if force_download or (not download_path.is_file()):
+        download_rego.stream_large_file(download_url, download_path)
+    return download_path
 
 
 if __name__ == '__main__':
