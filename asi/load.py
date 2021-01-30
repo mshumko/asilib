@@ -5,10 +5,13 @@ from typing import List, Union, Optional, Sequence
 
 import numpy as np
 import cdflib
+import scipy.io
+import matplotlib.pyplot as plt
 
 import asi.download.download_rego as download_rego
 import asi.download.download_themis as download_themis
 import asi.config as config
+
 
 def load_img_file(time: Union[datetime, str], mission: str, station: str, 
             force_download: bool=False) -> cdflib.cdfread.CDF:
@@ -38,7 +41,7 @@ def load_img_file(time: Union[datetime, str], mission: str, station: str,
     
     Example
     -------
-    rego_data = load_img(datetime(2016, 10, 29, 4), 'REGO', 'GILL')
+    rego_data = load_img_file(datetime(2016, 10, 29, 4), 'REGO', 'GILL')
     """
     # Try to convert time to datetime object if it is a string.
     if isinstance(time, str):
@@ -73,8 +76,25 @@ def load_cal_file(mission: str, station: str, force_download: bool=False):
     Loads the latest callibration file for the mission/station and downloads
     one if one is not found in the config.ASI_DATA_DIR/mission/cal/ folder.
     """
-    raise NotImplementedError
-    return
+    cal_dir = config.ASI_DATA_DIR / mission.lower() / 'cal'
+    cal_paths = sorted(list(cal_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
+    
+    # If no THEMIS cal files found, download the lastest one.
+    if len(cal_paths) == 0 and mission.lower() == 'themis':
+        cal_path = download_themis.download_themis_cal(station)
+    # If no REGO cal files found, download the lastest one.
+    elif len(cal_paths) == 0 and mission.lower() == 'rego':
+        cal_path = download_rego.download_rego_cal(station)
+    else:
+        cal_path = cal_paths[-1]
+
+    # Load the calibration file and convert it to a dictionary.
+    cal_file = scipy.io.readsav(cal_path, python_dict=True)['skymap']
+    cal_dict = {key:cal_file[key][0] for key in cal_file.dtype.names}
+    # Map longitude from 0 - 360 to -180 - 180.
+    cal_dict['SITE_MAP_LONGITUDE'] = np.mod(cal_dict['SITE_MAP_LONGITUDE'] + 180, 360) - 180
+    cal_dict['FULL_MAP_LONGITUDE'] = np.mod(cal_dict['FULL_MAP_LONGITUDE'] + 180, 360) - 180
+    return cal_dict
 
 
 def get_frame(time: Union[datetime, str], mission: str, station: str, 
@@ -118,7 +138,7 @@ def get_frame(time: Union[datetime, str], mission: str, station: str,
     if isinstance(time, str):
         time = dateutil.parser.parse(time)
 
-    cdf_obj = load_img(time, mission, station, force_download=force_download)
+    cdf_obj = load_img_file(time, mission, station, force_download=force_download)
 
     if mission.lower() == 'rego':
         frame_key = f'clg_rgf_{station.lower()}'
@@ -136,7 +156,7 @@ def get_frame(time: Union[datetime, str], mission: str, station: str,
         (epoch < time + timedelta(seconds=time_thresh_s))
         )[0]
     assert len(idx) == 1, (f'{len(idx)} number of time stamps were found '
-                        f'within {time_thresh_s} seconds of {time}.'
+                        f'within {time_thresh_s} seconds of {time}. '
                         f'You can change the time_thresh_s kwarg to find a '
                         f'time stamp further away.')
     return epoch[idx[0]], cdf_obj.varget(frame_key)[idx[0], :, :]
@@ -189,7 +209,7 @@ def get_frames(time_range: Sequence[Union[datetime, str]], mission: str, station
         if isinstance(t_i, str):
             time_range[i] = dateutil.parser.parse(t_i)
 
-    cdf_obj = load_img(time_range[0], mission, station, force_download=force_download)
+    cdf_obj = load_img_file(time_range[0], mission, station, force_download=force_download)
 
     # Figure out the data keys to load.
     if mission.lower() == 'rego':
@@ -207,3 +227,6 @@ def get_frames(time_range: Sequence[Union[datetime, str]], mission: str, station
     assert len(idx), (f'{len(idx)} number of time stamps were found '
                       f'in time_range={time_range}')
     return epoch[idx], cdf_obj.varget(frame_key)[idx, :, :]
+
+if __name__ == "__main__":
+    load_cal_file('REGO', 'GILL')
