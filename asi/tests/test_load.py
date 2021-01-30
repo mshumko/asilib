@@ -7,12 +7,12 @@ import cdflib
 from asi import load
 import asi.config as config
 
+"""
+Most of these tests just makes sure that the functions run correctly
+and it doesn't validate the output.
+"""
 
 class TestPlotFrame(unittest.TestCase):
-    """
-    Many of these tests just makes sure that the functions run correctly
-    and it doesn't validate the output.
-    """
     def setUp(self):
         self.load_date = datetime(2016, 10, 29, 4)
         self.station = 'GILL'

@@ -17,7 +17,7 @@ class TestDownloadRego(unittest.TestCase):
         # http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/luck/2020/08/clg_l1_rgf_luck_2020080104_v01.cdf
         self.day = datetime(2020, 8, 1, 4)
         self.station = 'Luck'
-        self.url = (download_rego.BASE_URL + 
+        self.url = (download_rego.IMG_BASE_URL + 
             f'{self.station.lower()}/{self.day.year}/{str(self.day.month).zfill(2)}/')
         config.ASI_DATA_DIR = pathlib.Path(__file__).parent.resolve() # Overwrite the data directory to here.
         return
