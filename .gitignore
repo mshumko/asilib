@@ -6,4 +6,5 @@ __pycache__/
 *.cdf
 asi/config.py
 *.png
+*.mp4
 *.sav

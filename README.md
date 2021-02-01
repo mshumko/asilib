@@ -14,6 +14,11 @@ python3 -m pip install -e .  # (don't forget the .)
 pip3 install -r requirements.txt
 ```
 
+### ffmpeg dependency
+To make .mp4 movies you'll need to install the ffmpeg library.
+ - **Ubuntu**: ```apt install ffmpeg```
+ - **Mac**: ```brew install ffmpeg```
+
 ## User Guide
 This package needs to be configured before you download or analyze ASI data. After the package is installed, run ```python3 -m asi config``` to set up the data directory where the image, calibration, and movie files will be saved.
 
@@ -42,6 +47,8 @@ There are two modules that plot a single frame or a series of frames.
 * `asi.plot_movie()`: Similar to `asi.plot_frame()`, given a mission/station and a ```time_range``` arguments, this function calls `asi.get_frames()` and plots one multiple ASI frames and saves them to ```/data/movies/```. Movie file creation, such as an `mp4` or `gif`, is not implemented yet because I have not found a movie writer that is available between Windows/Linux/Mac.
 
 * `plot_movie_generator()` TBD
+
+* `plot_collage()`: Similar to `asi.plot_movie()` in that the arguments are the same, but this function returns a collage of images with the time stamps annotated.
 
 ### Mapping satellite position to the skyfield
 * `asi.map_skyfield()`: maps the satellite coordinates from LLA (latitude, longitude, altitudes) to the ASI image x and y pixel indices. This function relies on the azimuth and elevation calibration files that can be downloaded via `asi.load_cal_file()`. 
