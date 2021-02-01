@@ -14,7 +14,7 @@ import asi.load as load
 
 def plot_frame(time: Union[datetime, str], mission: str, station: str, 
             force_download: bool=False, time_thresh_s: float=3, 
-            ax: plt.subplot=None, add_label: bool=True, color_map: str='hot',
+            ax: plt.subplot=None, add_label: bool=True, color_map: str='auto',
             color_bounds: Union[List[float], None]=None, color_norm: str='log') -> plt.subplot:
     """
     Plots one ASI image frame given the mission (THEMIS or REGO), station, and 
@@ -42,7 +42,9 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
     add_label: bool
         Flag to add the "mission/station/frame_time" text to the plot.
     color_map: str
-        The matplotlib colormap to use. See 
+        The matplotlib colormap to use. If 'auto', will default to a 
+        black-red colormap for REGO and black-white colormap for THEMIS. 
+        For more information See 
         https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html
     color_bounds: List[float] or None
         The lower and upper values of the color scale. If None, will 
@@ -76,6 +78,13 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
     if color_bounds is None:
         lower, upper = np.quantile(frame, (0.25, 0.98))
         color_bounds = [lower, np.min([upper, lower*10])]
+    
+    if (color_map == 'auto') and (mission.lower() == 'themis'):
+        color_map = 'Greys_r'
+    elif (color_map == 'auto') and (mission.lower() == 'rego'):
+        color_map = colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
+    else:
+        raise NotImplementedError('color_map == "auto" but the mission is unsupported')
 
     if color_norm == 'log':
         norm=colors.LogNorm(vmin=color_bounds[0], vmax=color_bounds[1])
@@ -91,8 +100,8 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
 
 
 if __name__ == '__main__':
-    ax, im = plot_frame(datetime(2015, 8, 12, 6, 0), 'REGO', 'FSIM', 
-                        color_norm='log', force_download=False)
+    ax, im = plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 
+                        color_norm='log', force_download=True)
     plt.colorbar(im)
     plt.axis('off')
     plt.show()

@@ -47,25 +47,44 @@ def load_img_file(time: Union[datetime, str], mission: str, station: str,
     if isinstance(time, str):
         time = dateutil.parser.parse(time)
 
+    # Download data if force_download == True:
     # Check if the REGO or THEMIS data is already saved locally.
     search_path = pathlib.Path(config.ASI_DATA_DIR, mission.lower())
     search_pattern = f'*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
     matched_paths = list(search_path.rglob(search_pattern))
     # Try to download files if one is not found locally.
-    if (len(matched_paths) == 0) and (mission.lower() == 'themis'):
-        try:
+    
+    if (len(matched_paths) == 1) and (not force_download):
+        # If a local file was found and the user does not want to force the download.
+        download_path = matched_paths[0]
+
+    elif (len(matched_paths) == 1) and (force_download):
+        # If a local file was found and the user does want to force the download.
+        # These downloaders are guaranteed to find a matching file unless the server
+        # lost the file.
+        if mission.lower() == 'themis':    
             download_path = download_themis.download_themis_img(time, station, 
                             force_download=force_download)[0]
-        except NotADirectoryError:
-            raise ValueError(f'THEMIS ASI data not found for station {station} on day {time.date()}')
-    elif (len(matched_paths) == 0) and (mission.lower() == 'rego'):
-        try:
+        elif mission.lower() == 'rego':
             download_path = download_rego.download_rego_img(time, station,
                             force_download=force_download)[0]
-        except NotADirectoryError:
-            raise ValueError(f'REGO ASI data not found for station {station} on day {time.date()}')
+
+    elif len(matched_paths) == 0:
+        # Now if no local files were found, try to download it. 
+        if mission.lower() == 'themis':
+            try:
+                download_path = download_themis.download_themis_img(time, station, 
+                                force_download=force_download)[0]
+            except NotADirectoryError:
+                raise ValueError(f'THEMIS ASI data not found for station {station} on day {time.date()}')
+        elif mission.lower() == 'rego':
+            try:
+                download_path = download_rego.download_rego_img(time, station,
+                                force_download=force_download)[0]
+            except NotADirectoryError:
+                raise ValueError(f'REGO ASI data not found for station {station} on day {time.date()}')
     else:
-        download_path = matched_paths[0]
+        raise ValueError(f"Not sure what happend here. I found {matched_paths} mathching paths.")
 
     # If we made it here, we either found a local file, or downloaded one
     return cdflib.CDF(download_path)
