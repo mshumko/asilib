@@ -8,16 +8,16 @@ import pathlib
 # Check that the package has been configured and config.py file exists.
 here = pathlib.Path(__file__).parent.resolve()
 if not pathlib.Path(here / 'config.py').is_file():
-    raise ImportError('config.py file with the ASI data directory not found. '
-                'Did you run "python3 -m aurora_asi init"?')
+    print('config.py file with the ASI data directory not found. '
+                'Did you run "python3 -m asi config"?')
+else:
+    # Import download programs.
+    from asi.download.download_rego import download_rego_img, download_rego_cal
+    from asi.download.download_themis import download_themis_img, download_themis_cal
 
-# Import download programs.
-from asi.download.download_rego import download_rego_img, download_rego_cal
-from asi.download.download_themis import download_themis_img, download_themis_cal
+    from asi.load import load_img_file
+    from asi.load import load_cal_file
 
-from asi.load import load_img_file
-from asi.load import load_cal_file
-
-# Import the magnetic field mapping 
-# from asi import lla2azel
-# from asi import map_satellite
+    # Import the magnetic field mapping 
+    # from asi import lla2azel
+    # from asi import map_satellite

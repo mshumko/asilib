@@ -2,7 +2,7 @@ import sys
 import pathlib
 
 # Run the configuration script when the user runs 
-# python3 -m asi [init, config, or configure]
+# python3 -m asi [init, initialize, config, or configure]
 
 here = pathlib.Path(__file__).parent.resolve()
 
@@ -41,4 +41,4 @@ else:
     print('This is a configuration script to set up config.py file. The config '
         'file will contain the aurora data directory, and the base project '
         'directory (here). To get the prompt after this package is installed, run '
-        'python3 -m asi init')
+        'python3 -m asi config')
