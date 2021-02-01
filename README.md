@@ -37,11 +37,11 @@ file specified by the date-time, mission, and station. See the [cdflib](https://
 ### Plot ASI Data
 There are two modules that plot a single frame or a series of frames.
 
-* `asi.plot_frame()` Given a mission/station and a date-time arguments, this function calls `asi.get_frame()` and plots one ASI frame. By default, the color map is black-white for THEMIS and black-red for REGO, the color scale is logarthmic, and color map limits are automatically set as ```(25th percentile, min(98th percentile, 10x25th percentile))```. This ensures a good dynamic range for each frame. The subplot object, the frame time, and the ```plt.imshow()``` objects are returned so the user can add to the subplot.
+* `asi.plot_frame()`: Given a mission/station and a date-time arguments, this function calls `asi.get_frame()` and plots one ASI frame. By default, the color map is black-white for THEMIS and black-red for REGO, the color scale is logarthmic, and color map limits are automatically set as ```(25th percentile, min(98th percentile, 10x25th percentile))```. This ensures a good dynamic range for each frame. The subplot object, the frame time, and the ```plt.imshow()``` objects are returned so the user can add to the subplot.
 
-* plot_movie()
+* `asi.plot_movie()`: Similar to `asi.plot_frame()`, given a mission/station and a ```time_range``` arguments, this function calls `asi.get_frames()` and plots one multiple ASI frames and saves them to ```/data/movies/```. Movie file creation, such as an `mp4` or `gif`, is not implemented yet because I have not found a movie writer that is available between Windows/Linux/Mac.
 
-* plot_
+* `plot_movie_generator()` TBD
 
 ### Mapping satellite position to the skyfield
 * `asi.map_skyfield()`: maps the satellite coordinates from LLA (latitude, longitude, altitudes) to the ASI image x and y pixel indices. This function relies on the azimuth and elevation calibration files that can be downloaded via `asi.load_cal_file()`. 
