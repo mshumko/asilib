@@ -63,7 +63,10 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
 
     Example
     -------
-    ax, im = plot_frame(datetime(2015, 4, 9, 7, 35, 6), 'REGO', 'FSMI', color_norm='lin')
+    # A beautiful arc that was analyzed by Imajo et al., 2021 "Active 
+    # auroral arc powered by accelerated electrons from very high altitudes"
+    ax, im = plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 
+                        color_norm='log', force_download=False)
     plt.colorbar(im)
     plt.axis('off')
     plt.show()
@@ -101,7 +104,7 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
 
 if __name__ == '__main__':
     ax, im = plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 
-                        color_norm='log', force_download=True)
+                        color_norm='log', force_download=False)
     plt.colorbar(im)
     plt.axis('off')
     plt.show()
