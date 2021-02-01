@@ -63,9 +63,15 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
 
     Example
     -------
+    from datetime import datetime
+    
+    import matplotlib.pyplot as plt
+
+    import asi
+
     # A beautiful arc that was analyzed by Imajo et al., 2021 "Active 
     # auroral arc powered by accelerated electrons from very high altitudes"
-    ax, im = plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 
+    ax, im = asi.plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 
                         color_norm='log', force_download=False)
     plt.colorbar(im)
     plt.axis('off')

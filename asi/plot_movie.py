@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 
-from asi.plot_frame import get_frames
+from asi.load import get_frames
 import asi.config as config
 
 
@@ -76,7 +76,7 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
         im = ax.imshow(frame, cmap=color_map, norm=norm)
         ax.text(0, 0, f"{mission}/{station}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}", 
                 va='bottom', transform=ax.transAxes, color='white')
-
+        yield frame_time, im, ax
         # Save the file and clear the subplot for next frame.
         save_name = (f'{mission.lower()}_{station.lower()}_'
                      f'{frame_time.strftime("%Y%m%d_%H%M%S")}.png')
