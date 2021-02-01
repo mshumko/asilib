@@ -18,6 +18,9 @@ else:
     from asi.load import load_img_file
     from asi.load import load_cal_file
 
+    from asi.plot_frame import plot_frame
+    from asi.plot_movie import plot_movie
+
     # Import the magnetic field mapping 
     # from asi import lla2azel
     # from asi import map_satellite

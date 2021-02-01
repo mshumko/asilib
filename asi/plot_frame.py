@@ -64,7 +64,7 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
     Example
     -------
     from datetime import datetime
-    
+
     import matplotlib.pyplot as plt
 
     import asi
@@ -105,7 +105,7 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
     im = ax.imshow(frame, cmap=color_map, norm=norm)
     ax.text(0, 0, f"{mission}/{station}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}", 
             va='bottom', transform=ax.transAxes, color='white')
-    return ax, im
+    return ax, frame_time, im
 
 
 if __name__ == '__main__':

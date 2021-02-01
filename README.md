@@ -28,14 +28,25 @@ To download ASI data, the programs in the ```asi/download/``` search for and dow
 ### Load ASI Data
 There are a few data loading functions that automaticaly call the download programs if a file is not found on the local computer or the user explicitly passes ```force_download = True``` to force the download. These functions are in `config.py`.
 
-* `load_img_file()`: Returns an `cdflib.CDF()` file object for an ASI
+* `asi.load_img_file()`: Returns an `cdflib.CDF()` file object for an ASI
 file specified by the date-time, mission, and station. See the [cdflib](https://github.com/MAVENSDC/cdflib) documentaion for the CDF interface.
-* `load_cal_file()`: Returns an dictionary containing the latest calibration data from a specified mission/station. Be aware that the longitude is mapped from 0 to 360 to -180 to 180 degrees.
-* `get_frame()`: Given a mission/station and a date-time, this function calls `load_img_file()` and returns the time stamp and one image (frame) with a time stamp within ```time_thresh_s = 3``` seconds (optional kwarg), otherwise an AssertionError is raised if a ASI time stamp is not found.
-* `get_frames()`: Given a mission/station and a date-time ```time_range```, this function calls `load_img_file()` and returns an array of time stamps and images observed at times inside the ```time_range```.
-
+* `asi.load_cal_file()`: Returns an dictionary containing the latest calibration data from a specified mission/station. Be aware that the longitude is mapped from 0 to 360 to -180 to 180 degrees.
+* `asi.get_frame()`: Given a mission/station and a date-time, this function calls `asi.load_img_file()` and returns the time stamp and one image (frame) with a time stamp within ```time_thresh_s = 3``` seconds (optional kwarg), otherwise an AssertionError is raised if a ASI time stamp is not found.
+* `asi.get_frames()`: Given a mission/station and a date-time ```time_range```, this function calls `asi.load_img_file()` and returns an array of time stamps and images observed at times inside the ```time_range```.
 
 ### Plot ASI Data
-There are two modules that plot a single aurora frame or 
+There are two modules that plot a single frame or a series of frames.
 
-- Mention that the map_skyfield.py maps the (latitude, longitude, altitudes) coordinates and not the mapped coordinates!  
+* `asi.plot_frame()` Given a mission/station and a date-time arguments, this function calls `asi.get_frame()` and plots one ASI frame. By default, the color map is black-white for THEMIS and black-red for REGO, the color scale is logarthmic, and color map limits are automatically set as ```(25th percentile, min(98th percentile, 10x25th percentile))```. This ensures a good dynamic range for each frame. The subplot object, the frame time, and the ```plt.imshow()``` objects are returned so the user can add to the subplot.
+
+* plot_movie()
+
+* plot_
+
+### Mapping satellite position to the skyfield
+* `asi.map_skyfield()`: maps the satellite coordinates from LLA (latitude, longitude, altitudes) to the ASI image x and y pixel indices. This function relies on the azimuth and elevation calibration files that can be downloaded via `asi.load_cal_file()`. 
+
+  This function does **not** map the satellite position along the magnetic field line. That task is left for the user. Hopefully in the near future IRBEM will be added as a dependency and a magnetic field mapping function added.
+
+## Testing
+Each module has a corresponding `test_module.py` module in ```asi/tests/```. Run these tests to confirm that the downloading, loading, plotting, and mapping functions work correctly. If a test fails, please submit an Issue. To help me fix the bug, please run the unit tests in verbose mode, i.e. ```python3 test_module.py -v```.
