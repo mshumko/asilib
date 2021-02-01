@@ -5,14 +5,16 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
+import ffmpeg
 
 from asi.load import get_frames
 import asi.config as config
 
 
 def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station: str, 
-            force_download: bool=False, add_label: bool=True, color_map: str='hot',
-            color_bounds: Union[List[float], None]=None, color_norm: str='log'):
+            force_download: bool=False, add_label: bool=True, color_map: str='auto',
+            color_bounds: Union[List[float], None]=None, color_norm: str='log', 
+            clean_pngs: bool=True):
     """
     Make a series of ASI plots that can be later combined into a movie using
     QuickTime or mencoder. For reference, see 
@@ -35,7 +37,9 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
     add_label: bool
         Flag to add the "mission/station/frame_time" text to the plot.
     color_map: str
-        The matplotlib colormap to use. See 
+        The matplotlib colormap to use. If 'auto', will default to a 
+        black-red colormap for REGO and black-white colormap for THEMIS. 
+        For more information See 
         https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html
     color_bounds: List[float] or None
         The lower and upper values of the color scale. If None, will 
@@ -43,6 +47,8 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
         high=min(3rd_quartile, 10*1st_quartile)
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
+    clean_pngs: bool
+        Remove the intermediate png files created for the ffmpeg library.
 
     Returns
     -------
@@ -53,10 +59,19 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
 
     # Create the movie directory inside config.ASI_DATA_DIR if it does 
     # not exist.
-    save_dir = config.ASI_DATA_DIR / 'movies'
+    save_dir = config.ASI_DATA_DIR / 'movies' / 'temp'
     if not save_dir.is_dir():
-        save_dir.mkdir()
+        save_dir.mkdir(parents=True)
         print(f'Created a {save_dir} directory')
+
+    if (color_map == 'auto') and (mission.lower() == 'themis'):
+        color_map = 'Greys_r'
+    elif (color_map == 'auto') and (mission.lower() == 'rego'):
+        color_map = colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
+    else:
+        raise NotImplementedError('color_map == "auto" but the mission is unsupported')
+
+    save_paths = []
 
     for frame_time, frame in zip(frame_times, frames):
         ax.clear()
@@ -76,12 +91,26 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
         im = ax.imshow(frame, cmap=color_map, norm=norm)
         ax.text(0, 0, f"{mission}/{station}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}", 
                 va='bottom', transform=ax.transAxes, color='white')
-        yield frame_time, im, ax
+        # yield frame_time, im, ax
         # Save the file and clear the subplot for next frame.
         save_name = (f'{mission.lower()}_{station.lower()}_'
                      f'{frame_time.strftime("%Y%m%d_%H%M%S")}.png')
         plt.savefig(save_dir / save_name)
+        save_paths.append(save_dir / save_name)
+
+    # Make the movie
+    movie_file_name = (f'{mission.lower()}_{station.lower()}_'
+                       f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}'
+                       f'{frame_times[1].strftime("%Y%m%d_%H%M%S")}.mp4')
+    movie_obj = ffmpeg.input(str(save_dir) + f'/{mission.lower()}_{station.lower()}_*.png', 
+                pattern_type='glob', framerate=10)
+    movie_obj.output(str(save_dir.parent / movie_file_name)).run()
+    # Clean up.
+    if clean_pngs:
+        [path.unlink() for path in save_paths]
+    return
+
     
 if __name__ == "__main__":
-    plot_movie((datetime(2016, 10, 16, 5, 43, 0), datetime(2016, 10, 16, 5, 44, 0)), 
+    plot_movie((datetime(2017, 9, 15, 2, 34, 0), datetime(2017, 9, 15, 2, 36, 0)), 
                 'THEMIS', 'RANK', color_norm='log')
