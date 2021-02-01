@@ -156,7 +156,9 @@ def stream_large_file(url, save_path, test_flag: bool=False):
                 return
             # Update the downloaded % in the terminal.
             downloaded_bites += len(data)
-            print(f'{save_name} is {round(100*downloaded_bites/file_size)}% downloaded', end='\r')
+            download_percent = round(100*downloaded_bites/file_size)
+            download_str = "#"*(download_percent//5)
+            print(f'Downloading {save_name}: |{download_str:<20}| {download_percent}%', end='\r')
     print()  # Add a newline 
     return
 
