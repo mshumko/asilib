@@ -94,6 +94,15 @@ def load_cal_file(mission: str, station: str, force_download: bool=False):
     """
     Loads the latest callibration file for the mission/station and downloads
     one if one is not found in the config.ASI_DATA_DIR/mission/cal/ folder.
+
+    Parameters
+    ----------
+    mission: str
+        The mission id, can be either THEMIS or REGO.
+    station: str
+        The station id to download the data from.
+    force_download: bool (optional)
+        If True, download the file even if it already exists.
     """
     cal_dir = config.ASI_DATA_DIR / mission.lower() / 'cal'
     cal_paths = sorted(list(cal_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
