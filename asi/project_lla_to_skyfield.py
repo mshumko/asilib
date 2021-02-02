@@ -1,4 +1,5 @@
 from datetime import datetime
+from contextlib import closing
 import pathlib
 
 import numpy as np
@@ -55,36 +56,37 @@ def lla_to_skyfield(mission, station, sat_lla,
     cal_dict = load_cal_file(mission, station, force_download=force_download)
 
     # Set up the ground station object.
-    earth = skyfield.api.load('de421.bsp')['earth']
-    station = earth + skyfield.api.Topos(
-                            latitude_degrees=cal_dict['SITE_MAP_LATITUDE'], 
-                            longitude_degrees=cal_dict['SITE_MAP_LONGITUDE'], 
-                            elevation_m=cal_dict['SITE_MAP_ALTITUDE'])
-    ts = skyfield.api.load.timescale()
-    t = ts.utc(datetime.now().year)  # This argument should not matter.
+    with closing(skyfield.api.load('de421.bsp')) as planets:
+        earth = planets['earth']
+        station = earth + skyfield.api.Topos(
+                                latitude_degrees=cal_dict['SITE_MAP_LATITUDE'], 
+                                longitude_degrees=cal_dict['SITE_MAP_LONGITUDE'], 
+                                elevation_m=cal_dict['SITE_MAP_ALTITUDE'])
+        ts = skyfield.api.load.timescale()
+        t = ts.utc(datetime.now().year)  # This argument should not matter.
 
-    sat_azel = np.nan*np.zeros((sat_lla.shape[0], 2))
+        sat_azel = np.nan*np.zeros((sat_lla.shape[0], 2))
 
-    for i, (lat_i, lon_i, alt_km_i) in enumerate(sat_lla):
-        # Check if lat, lon, or alt is nan or -1E31 
-        # (the error value in the IRBEM library).
-        any_nan = bool(len(
-            np.where(np.isnan([lat_i, lon_i, alt_km_i]))[0]
-            ))
-        any_neg = bool(len(
-            np.where([lat_i, lon_i, alt_km_i] == -1E31)[0]
-            ))
-        if any_nan or any_neg:
-            continue
-        sat_i = earth + skyfield.api.Topos(
-                            latitude_degrees=lat_i, 
-                            longitude_degrees=lon_i, 
-                            elevation_m=1E3*alt_km_i
-                            )
-        astro = station.at(t).observe(sat_i)
-        app = astro.apparent()
-        el_i, az_i, _ = app.altaz()
-        sat_azel[i, :] = az_i.degrees, el_i.degrees
+        for i, (lat_i, lon_i, alt_km_i) in enumerate(sat_lla):
+            # Check if lat, lon, or alt is nan or -1E31 
+            # (the error value in the IRBEM library).
+            any_nan = bool(len(
+                np.where(np.isnan([lat_i, lon_i, alt_km_i]))[0]
+                ))
+            any_neg = bool(len(
+                np.where([lat_i, lon_i, alt_km_i] == -1E31)[0]
+                ))
+            if any_nan or any_neg:
+                continue
+            sat_i = earth + skyfield.api.Topos(
+                                latitude_degrees=lat_i, 
+                                longitude_degrees=lon_i, 
+                                elevation_m=1E3*alt_km_i
+                                )
+            astro = station.at(t).observe(sat_i)
+            app = astro.apparent()
+            el_i, az_i, _ = app.altaz()
+            sat_azel[i, :] = az_i.degrees, el_i.degrees
 
     # Now find the corresponding x- and y-axis pixel indices.
     asi_azel_index = _map_azel_to_azel_index(sat_azel, cal_dict)
