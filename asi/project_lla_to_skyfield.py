@@ -99,7 +99,7 @@ def lla_to_skyfield(mission, station, sat_lla,
     else:
         return sat_azel, asi_azel_index
 
-def _map_azel_to_azel_index(sat_azel, cal_dict, deg_thresh=1):
+def _map_azel_to_azel_index(sat_azel, cal_dict):
     """
     Given the 2d array of the satellite's azimuth and elevation, locate 
     the nearest ASI calibration x- and y-axis pixel indices. Note that the 
@@ -112,9 +112,7 @@ def _map_azel_to_azel_index(sat_azel, cal_dict, deg_thresh=1):
         A 1d or 2d array of satelite azimuth and elevation points.
         If 2d, the rows correspons to time.
     cal_dict: dict
-        The calibration file dictionary containing 
-    deg_thresh : float (optional)
-        The degree threshold first used to find the ASI calibration pixel.
+        The calibration file dictionary
 
     Returns
     -------
