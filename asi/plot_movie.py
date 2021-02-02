@@ -48,6 +48,9 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
         The optional subplot that will be drawn on.
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
+    movie_format: str
+        The movie format: mp4 has better compression but avi can be 
+        opened by the VLC player.
     clean_pngs: bool
         Remove the intermediate png files created for the ffmpeg library.
 
