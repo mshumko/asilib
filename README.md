@@ -24,6 +24,8 @@ This package needs to be configured before you download or analyze ASI data. Aft
 
 **Note** These are top-level descriptions: The full parameter list and an example for each function is accessible via the built-in ```help()``` function. 
 
+**Note** The longitude units are converted from 0->360 to -180->180 degrees in the calibration files.
+
 ### Download ASI Data
 To download ASI data, the programs in the ```asi/download/``` search for and download the THEMIS and REGO image and calibration data.
 
