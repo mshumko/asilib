@@ -74,7 +74,7 @@ def lla_to_skyfield(mission, station, sat_lla,
                 np.where(np.isnan([lat_i, lon_i, alt_km_i]))[0]
                 ))
             any_neg = bool(len(
-                np.where([lat_i, lon_i, alt_km_i] == -1E31)[0]
+                np.where(np.array([lat_i, lon_i, alt_km_i]) == -1E31)[0]
                 ))
             if any_nan or any_neg:
                 continue
