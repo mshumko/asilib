@@ -121,7 +121,10 @@ def load_cal_file(mission: str, station: str, force_download: bool=False):
     cal_dict = {key:cal_file[key][0] for key in cal_file.dtype.names}
     # Map longitude from 0 - 360 to -180 - 180.
     cal_dict['SITE_MAP_LONGITUDE'] = np.mod(cal_dict['SITE_MAP_LONGITUDE'] + 180, 360) - 180
-    cal_dict['FULL_MAP_LONGITUDE'] = np.mod(cal_dict['FULL_MAP_LONGITUDE'] + 180, 360) - 180
+    # Don't take the modulus of NaNs
+    valid_val_idx = np.where(~np.isnan(cal_dict['FULL_MAP_LONGITUDE']))
+    cal_dict['FULL_MAP_LONGITUDE'][valid_val_idx] = \
+        np.mod(cal_dict['FULL_MAP_LONGITUDE'][valid_val_idx] + 180, 360) - 180
     return cal_dict
 
 

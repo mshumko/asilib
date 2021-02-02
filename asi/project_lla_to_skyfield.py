@@ -68,8 +68,8 @@ def lla_to_skyfield(mission, station, sat_lla,
     for i, (lat_i, lon_i, alt_km_i) in enumerate(sat_lla):
         # Check if lat, lon, or alt is nan or -1E31 
         # (the error value in the IRBEM library).
-        any_nan = any(np.isnan([lat_i, lon_i, alt_km_i]))
-        any_neg = any(np.where([lat_i, lon_i, alt_km_i] == -1E31))
+        any_nan = len(np.where(np.isnan([lat_i, lon_i, alt_km_i]))[0])
+        any_neg = len(np.where([lat_i, lon_i, alt_km_i] == -1E31)[0])
         if any_nan or any_neg:
             continue
         sat_i = earth + skyfield.api.Topos(
