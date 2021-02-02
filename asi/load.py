@@ -2,6 +2,7 @@ import pathlib
 from datetime import datetime, timedelta
 import dateutil.parser
 from typing import List, Union, Optional, Sequence
+from copy import copy
 
 import numpy as np
 import cdflib
@@ -118,7 +119,7 @@ def load_cal_file(mission: str, station: str, force_download: bool=False):
 
     # Load the calibration file and convert it to a dictionary.
     cal_file = scipy.io.readsav(cal_path, python_dict=True)['skymap']
-    cal_dict = {key:cal_file[key][0] for key in cal_file.dtype.names}
+    cal_dict = {key:copy(cal_file[key][0]) for key in cal_file.dtype.names}
     # Map longitude from 0 - 360 to -180 - 180.
     cal_dict['SITE_MAP_LONGITUDE'] = np.mod(cal_dict['SITE_MAP_LONGITUDE'] + 180, 360) - 180
     # Don't take the modulus of NaNs
