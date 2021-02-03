@@ -61,8 +61,18 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
         from the same mission/station, those pngs will all be written to one
         movie.
 
-    Returns
+    Example
     -------
+    from datetime import datetime
+
+    import asi
+
+    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+    asi.plot_movie(time_range, 'THEMIS', 'FSMI')
+
+    Return
+    -------
+    None
     """
     movie_generator = plot_movie_generator(time_range, mission, station, **kwargs)
 
@@ -121,7 +131,7 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
         from the same mission/station, those pngs will all be written to one
         movie.
 
-    Yields
+    Return
     ------
     frame_time: datetime.datetime
         The time of the current frame.

@@ -1,6 +1,37 @@
 # aurora_asi
 This project downloads and analyzes the aurora all sky imager (ASI) data. The two supported camera systems (missions) are: Red-line Emission Geospace Observatory (REGO) and Time History of Events and Macroscale Interactions during Substorms (THEMIS).
 
+## Examples
+### Example 1
+This example shows how to use this library to visualize a bright auroral arc.
+```python
+from datetime import datetime
+
+import matplotlib.pyplot as plt
+
+import asi
+
+# A bright auroral arc that was analyzed by Imajo et al., 2021 "Active 
+# auroral arc powered by accelerated electrons from very high altitudes"
+frame_time, ax, im = asi.plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 
+                    color_norm='log', force_download=False)
+plt.colorbar(im)
+ax.axis('off')
+plt.show()
+```
+
+### Example 2
+This example makes a 5 minute movie of an auroral arc brightening right as a meteor burns up at zenith!
+
+```python
+from datetime import datetime
+
+import asi
+
+time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+asi.plot_movie(time_range, 'THEMIS', 'FSMI')
+```
+
 ## Installation
 Run these shell commands to install the dependencies into a virtual environment and configure the data paths:
 

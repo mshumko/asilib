@@ -7,3 +7,4 @@ requests==2.25.1
 scipy==1.6.0
 ffmpeg-python==0.2.0
 skyfield==1.36
+sphinx-rtd-theme==0.5.1  # For making the documentation html.
