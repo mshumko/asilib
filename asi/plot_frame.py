@@ -69,12 +69,12 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
 
     import asi
 
-    # A beautiful arc that was analyzed by Imajo et al., 2021 "Active 
+    # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active 
     # auroral arc powered by accelerated electrons from very high altitudes"
-    ax, im = asi.plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 
+    frame_time, ax, im = asi.plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 
                         color_norm='log', force_download=False)
     plt.colorbar(im)
-    plt.axis('off')
+    ax.axis('off')
     plt.show()
     """
     if ax is None:
@@ -105,7 +105,7 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
     im = ax.imshow(frame, cmap=color_map, norm=norm)
     ax.text(0, 0, f"{mission}/{station}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}", 
             va='bottom', transform=ax.transAxes, color='white')
-    return ax, frame_time, im
+    return frame_time, ax, im
 
 
 if __name__ == '__main__':
