@@ -46,13 +46,20 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
         high=min(3rd_quartile, 10*1st_quartile)
     ax: plt.subplot()
         The optional subplot that will be drawn on.
-    color_norm: str
-        Sets the 'lin' linear or 'log' logarithmic color normalization.
     movie_format: str
         The movie format: mp4 has better compression but avi can be 
         opened by the VLC player.
-    clean_pngs: bool
+    frame_rate: int
+        The movie frame rate.
+    color_norm: str
+        Sets the 'lin' linear or 'log' logarithmic color normalization.
+    delete_pngs: bool
         Remove the intermediate png files created for the ffmpeg library.
+        Be careful that if you call this function multiple times without
+        removing the png files, the files used in the movies come from the
+        search pattern mission_station. So if there are multiple times
+        from the same mission/station, those pngs will all be written to one
+        movie.
 
     Returns
     -------
@@ -67,7 +74,8 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
 def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: str, station: str, 
             force_download: bool=False, add_label: bool=True, color_map: str='auto',
             color_bounds: Union[List[float], None]=None, color_norm: str='log', 
-            ax: plt.subplot=None, movie_format: str='mp4', clean_pngs: bool=True):
+            ax: plt.subplot=None, movie_format: str='mp4', frame_rate=10, 
+            delete_pngs: bool=True):
     """
     A generator function that yields ASI images, frame by frame.
 
@@ -101,10 +109,17 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
     movie_format: str
         The movie format: mp4 has better compression but avi can be 
         opened by the VLC player.
+    frame_rate: int
+        The movie frame rate.
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
-    clean_pngs: bool
+    delete_pngs: bool
         Remove the intermediate png files created for the ffmpeg library.
+        Be careful that if you call this function multiple times without
+        removing the png files, the files used in the movies come from the
+        search pattern mission_station. So if there are multiple times
+        from the same mission/station, those pngs will all be written to one
+        movie.
 
     Yields
     ------
@@ -171,10 +186,10 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
                        f'{frame_times[1].strftime("%Y%m%dT%H%M%S")}_'
                        f'{mission.lower()}_{station.lower()}.{movie_format}')
     movie_obj = ffmpeg.input(str(save_dir) + f'/*{mission.lower()}_{station.lower()}.png', 
-                pattern_type='glob', framerate=10)
+                pattern_type='glob', framerate=frame_rate)
     movie_obj.output(str(save_dir.parent / movie_file_name)).run()
     # Clean up.
-    if clean_pngs:
+    if delete_pngs:
         for path in save_paths:
             path.unlink()
     return
