@@ -85,7 +85,7 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
             force_download: bool=False, add_label: bool=True, color_map: str='auto',
             color_bounds: Union[List[float], None]=None, color_norm: str='log', 
             ax: plt.subplot=None, movie_format: str='mp4', frame_rate=10, 
-            delete_pngs: bool=True):
+            overwrite_output: bool=False, delete_pngs: bool=True):
     """
     A generator function that yields ASI images, frame by frame.
 
@@ -123,6 +123,9 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
         The movie frame rate.
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
+    overwrite_output: bool
+        If true, the output will be overwritten automatically. If false it will
+        prompt the user to answer y/n.
     delete_pngs: bool
         Remove the intermediate png files created for the ffmpeg library.
         Be careful that if you call this function multiple times without
@@ -197,7 +200,7 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
                        f'{mission.lower()}_{station.lower()}.{movie_format}')
     movie_obj = ffmpeg.input(str(save_dir) + f'/*{mission.lower()}_{station.lower()}.png', 
                 pattern_type='glob', framerate=frame_rate)
-    movie_obj.output(str(save_dir.parent / movie_file_name)).run()
+    movie_obj.output(str(save_dir.parent / movie_file_name)).run(overwrite_output=overwrite_output)
     # Clean up.
     if delete_pngs:
         for path in save_paths:
