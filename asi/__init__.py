@@ -19,7 +19,7 @@ else:
     from asi.load import load_cal_file
 
     from asi.plot_frame import plot_frame
-    from asi.plot_movie import plot_movie
+    from asi.plot_movie import plot_movie, plot_movie_generator
 
     # Import the magnetic field mapping 
     from asi.project_lla_to_skyfield import lla_to_skyfield
