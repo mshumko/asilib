@@ -161,16 +161,16 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
         yield frame_time, im, ax
 
         # Save the file and clear the subplot for next frame.
-        save_name = (f'{mission.lower()}_{station.lower()}_'
-                     f'{frame_time.strftime("%Y%m%d_%H%M%S")}.png')
+        save_name = (f'{frame_time.strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_'
+                     f'{station.lower()}.png')
         plt.savefig(save_dir / save_name)
         save_paths.append(save_dir / save_name)
 
     # Make the movie
-    movie_file_name = (f'{mission.lower()}_{station.lower()}_'
-                       f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}'
-                       f'{frame_times[1].strftime("%Y%m%d_%H%M%S")}.{movie_format}')
-    movie_obj = ffmpeg.input(str(save_dir) + f'/{mission.lower()}_{station.lower()}_*.png', 
+    movie_file_name = (f'{frame_times[0].strftime("%Y%m%dT%H%M%S")}_'
+                       f'{frame_times[1].strftime("%Y%m%dT%H%M%S")}_'
+                       f'{mission.lower()}_{station.lower()}.{movie_format}')
+    movie_obj = ffmpeg.input(str(save_dir) + f'/*{mission.lower()}_{station.lower()}.png', 
                 pattern_type='glob', framerate=10)
     movie_obj.output(str(save_dir.parent / movie_file_name)).run()
     # Clean up.
