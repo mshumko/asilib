@@ -22,5 +22,4 @@ else:
     from asi.plot_movie import plot_movie
 
     # Import the magnetic field mapping 
-    # from asi import lla2azel
-    # from asi import map_satellite
+    from asi.project_lla_to_skyfield import lla_to_skyfield

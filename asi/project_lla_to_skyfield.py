@@ -43,6 +43,19 @@ def lla_to_skyfield(mission, station, sat_lla,
 
     Example
     -------
+    import numpy as np
+    
+    from asi import lla_to_skyfield
+
+    # THEMIS/ATHA's LLA coordinates are (54.72, -113.301, 676 (meters)).
+    # The LLA is a North-South pass right above ATHA..
+    n = 50
+    lats = np.linspace(60, 50, n)
+    lons = -113.64*np.ones(n)
+    alts = 500**np.ones(n)
+    lla = np.array([lats, lons, alts]).T
+
+    azel, pixels = lla_to_skyfield('REGO', 'ATHA', lla)
     """
 
     # Check the sat_lla input parameter to make sure it is of the correct shape
@@ -147,21 +160,4 @@ def _map_azel_to_pixel(sat_azel, cal_dict):
                                     cal_dict['FULL_AZIMUTH'].shape[1])
     pixel_index[:, 1] = np.floor_divide(idx_min_dist, 
                                     cal_dict['FULL_AZIMUTH'].shape[1])
-    return pixel_index
-
-if __name__ == '__main__':
-    # # THEMIS/ATHA's LLA coordinates are (54.72, -113.301, 676 (meters)).
-    # lla = np.array([54.72, -113.301, 500])
-    # azel, azel_index = lla_to_skyfield('THEMIS', 'ATHA', lla)
-
-    n = 50
-    lats = np.linspace(60, 50, n)
-    lons = -113.64*np.ones(n)
-    alts = 500**np.ones(n)
-    lla = np.array([lats, lons, alts]).T
-
-    azel, pixels = lla_to_skyfield('REGO', 'ATHA', lla)
-
-    import matplotlib.pyplot as plt
-    plt.plot(pixels[:, 0], pixels[:, 1])
-    plt.show()
+    return pixel_index    

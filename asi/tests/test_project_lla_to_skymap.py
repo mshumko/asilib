@@ -19,14 +19,14 @@ class TestProjectLLAtoSkyfield(unittest.TestCase):
         station (elevation ~ 90 degrees) and (az_index, el_index) ~= (127, 127).
         """
         lla = np.array([54.72, -113.301, 500])
-        azel, azel_index = lla_to_skyfield('THEMIS', 'ATHA', lla)
+        azel, pixel_index = lla_to_skyfield('THEMIS', 'ATHA', lla)
 
         # Test the El values
         self.assertEqual(round(azel[1]), 90)
 
         # Test the AzEl indices
-        self.assertEqual(azel_index[0], 126)
-        self.assertEqual(azel_index[1], 127)
+        self.assertEqual(pixel_index[0], 126)
+        self.assertEqual(pixel_index[1], 127)
         return
 
     def test_rego_lla_to_azel(self):
@@ -35,15 +35,15 @@ class TestProjectLLAtoSkyfield(unittest.TestCase):
         (elevation ~ 90 degrees) and (az_index, el_index) ~= (127, 127).
         """
         lla = np.array([54.60, -113.64, 500])
-        azel, azel_index = lla_to_skyfield('REGO', 'ATHA', lla)
+        azel, pixel_index = lla_to_skyfield('REGO', 'ATHA', lla)
 
         # Test the AzEl values
         self.assertEqual(round(azel[0]), 137)
         self.assertEqual(round(azel[1]), 90)
 
         # Test that the AzEl indices are within 20 pixels of zenith.
-        self.assertTrue(abs(azel_index[0] - 256) < 20)
-        self.assertTrue(abs(azel_index[0] - 256) < 20)
+        self.assertTrue(abs(pixel_index[0] - 256) < 20)
+        self.assertTrue(abs(pixel_index[0] - 256) < 20)
         return
 
     def test_rego_lla_to_azel_track(self):
@@ -57,8 +57,7 @@ class TestProjectLLAtoSkyfield(unittest.TestCase):
         alts = 500**np.ones(n)
         lla = np.array([lats, lons, alts]).T
 
-        azel, azel_index = lla_to_skyfield('REGO', 'ATHA', lla)
-        print(azel, azel_index)
+        azel, pixel_index = lla_to_skyfield('REGO', 'ATHA', lla)
         return
 
 
