@@ -14,8 +14,9 @@ def lla_to_skyfield(mission, station, sat_lla,
                         force_download: bool=False):
     """
     This function projects, i.e. maps, a satellite's latitude, longitude, and altitude 
-    (LLA) coordinates to the ASI's azimuth and elevation coordinates and index. 
-    This function is useful to plot a satellite's location in the ASI image.
+    (LLA) coordinates to the ASI's azimuth and elevation coordinates and pixel index. 
+    This function is useful to plot a satellite's location in the ASI image using the 
+    pixel indices.
 
     Parameters
     ----------
@@ -36,7 +37,7 @@ def lla_to_skyfield(mission, station, sat_lla,
     sat_azel: np.ndarray
         An array with shape (nPosition, 2) of the satellite's azimuth and 
         elevation coordinates.
-    sat_azel_index: np.ndarray
+    asi_pixels: np.ndarray
         An array with shape (nPosition, 2) of the x- and y-axis pixel 
         indices for the ASI image.  
 
@@ -89,17 +90,17 @@ def lla_to_skyfield(mission, station, sat_lla,
             sat_azel[i, :] = az_i.degrees, el_i.degrees
 
     # Now find the corresponding x- and y-axis pixel indices.
-    asi_azel_index = _map_azel_to_azel_index(sat_azel, cal_dict)
+    asi_pixels = _map_azel_to_pixel(sat_azel, cal_dict)
     
-    # If len(inuput_shape) == 1, a 1d array, flatten the (1x3) sat_azel and 
-    # sat_azel_index arrays into a (3,) array. This way the input and output
+    # If len(input_shape) == 1, a 1d array, flatten the (1x3) sat_azel and 
+    # asi_pizels arrays into a (3,) array. This way the input and output
     # lla arrays have the same number of dimentions.
     if len(input_shape) == 1:
-        return sat_azel.flatten(), asi_azel_index.flatten()
+        return sat_azel.flatten(), asi_pixels.flatten()
     else:
-        return sat_azel, asi_azel_index
+        return sat_azel, asi_pixels
 
-def _map_azel_to_azel_index(sat_azel, cal_dict):
+def _map_azel_to_pixel(sat_azel, cal_dict):
     """
     Given the 2d array of the satellite's azimuth and elevation, locate 
     the nearest ASI calibration x- and y-axis pixel indices. Note that the 
@@ -116,7 +117,7 @@ def _map_azel_to_azel_index(sat_azel, cal_dict):
 
     Returns
     -------
-    asi_azel_index: np.ndarray
+    pixel_index: np.ndarray
         An array with the same shape as sat_azel, but representing the
         x- and y-axis pixel indices in the ASI image.
     """
@@ -141,18 +142,26 @@ def _map_azel_to_azel_index(sat_azel, cal_dict):
     idx_min_dist[idx_min_dist==0] = np.nan
     # For use the 1D index for the flattened ASI calibration
     # to get out the azimuth and elevation pixels.
-    asi_azel_index = np.nan*np.ones_like(sat_azel)
-    asi_azel_index[:, 0] = np.remainder(idx_min_dist, 
+    pixel_index = np.nan*np.ones_like(sat_azel)
+    pixel_index[:, 0] = np.remainder(idx_min_dist, 
                                     cal_dict['FULL_AZIMUTH'].shape[1])
-    asi_azel_index[:, 1] = np.floor_divide(idx_min_dist, 
+    pixel_index[:, 1] = np.floor_divide(idx_min_dist, 
                                     cal_dict['FULL_AZIMUTH'].shape[1])
-    return asi_azel_index
+    return pixel_index
 
 if __name__ == '__main__':
-    # ATHA's LLA coordintaes are (54.72, -113.301, 676 (meters)).
-    lla = np.array([54.72, -113.301, 500])
-    azel, azel_index = lla_to_skyfield('THEMIS', 'ATHA', lla)
+    # # THEMIS/ATHA's LLA coordinates are (54.72, -113.301, 676 (meters)).
+    # lla = np.array([54.72, -113.301, 500])
+    # azel, azel_index = lla_to_skyfield('THEMIS', 'ATHA', lla)
 
-    lla_2 = np.array([[54.72, -113.301, 500], [54.72, -113.301, 500]])
-    azel, azel_index = lla_to_skyfield('THEMIS', 'ATHA', lla_2)
-    print(azel, azel_index)
+    n = 50
+    lats = np.linspace(60, 50, n)
+    lons = -113.64*np.ones(n)
+    alts = 500**np.ones(n)
+    lla = np.array([lats, lons, alts]).T
+
+    azel, pixels = lla_to_skyfield('REGO', 'ATHA', lla)
+
+    import matplotlib.pyplot as plt
+    plt.plot(pixels[:, 0], pixels[:, 1])
+    plt.show()
