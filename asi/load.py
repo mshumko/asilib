@@ -284,7 +284,6 @@ def get_frames(time_range: Sequence[Union[datetime, str]], mission: str, station
                                         freq='H'
                                         )
         for hour_date_time in hourly_date_times:
-            print(hour_date_time)
             cdf_obj = load_img_file(hour_date_time, mission, station, force_download=force_download)
 
             # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00) 
