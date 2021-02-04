@@ -143,8 +143,16 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
     ax: plt.subplot
         The subplot object to modify the axis, labels, etc.
     """
-    frame_times, frames = get_frames(time_range, mission, station, 
-                                    force_download=force_download)
+    try:
+        frame_times, frames = get_frames(time_range, mission, station, 
+                                        force_download=force_download)
+    except AssertionError as err:
+        if '0 number of time stamps were found in time_range' in str(err):  
+            print(f'The file exists for {mission}/{station}, but no data '
+                  f'between {time_range}.')
+            raise
+        else:
+            raise
     if ax is None:
         _, ax = plt.subplots()
 
@@ -165,6 +173,9 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
     save_paths = []
 
     for frame_time, frame in zip(frame_times, frames):
+        # If the frame is all 0s we have a bad frame and we need to skip it.
+        if np.all(frame==0):
+            continue
         ax.clear()
         plt.axis('off')
         # Figure out the color_bounds from the frame data.
@@ -195,8 +206,8 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
         save_paths.append(save_dir / save_name)
 
     # Make the movie
-    movie_file_name = (f'{frame_times[0].strftime("%Y%m%dT%H%M%S")}_'
-                       f'{frame_times[1].strftime("%Y%m%dT%H%M%S")}_'
+    movie_file_name = (f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_'
+                       f'{frame_times[1].strftime("%H%M%S")}_'
                        f'{mission.lower()}_{station.lower()}.{movie_format}')
     movie_obj = ffmpeg.input(str(save_dir) + f'/*{mission.lower()}_{station.lower()}.png', 
                 pattern_type='glob', framerate=frame_rate)

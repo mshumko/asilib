@@ -4,6 +4,7 @@ import dateutil.parser
 from typing import List, Union, Optional, Sequence
 from copy import copy
 
+import pandas as pd
 import numpy as np
 import cdflib
 import scipy.io
@@ -240,8 +241,9 @@ def get_frames(time_range: Sequence[Union[datetime, str]], mission: str, station
     for i, t_i in enumerate(time_range):
         if isinstance(t_i, str):
             time_range[i] = dateutil.parser.parse(t_i)
-
-    cdf_obj = load_img_file(time_range[0], mission, station, force_download=force_download)
+    
+    # Sort time_range if the user passed it in out of order.
+    time_range = sorted(time_range)
 
     # Figure out the data keys to load.
     if mission.lower() == 'rego':
@@ -251,14 +253,48 @@ def get_frames(time_range: Sequence[Union[datetime, str]], mission: str, station
         frame_key = f'thg_asf_{station.lower()}'
         time_key  = f'thg_asf_{station.lower()}_epoch'
 
-    # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00) 
-    # to datetime objects.
-    epoch = np.array(cdflib.cdfepoch.to_datetime(cdf_obj.varget(time_key)))
+    # Determine if we need to load in one hour or multiple hours worth of data.
+    start_time_rounded = time_range[0].replace(minute=0, second=0, microsecond=0)
+    end_time_rounded = time_range[1].replace(minute=0, second=0, microsecond=0)
+    if start_time_rounded == end_time_rounded:
+        # If the start/end date-hour are the same than load one data file, otherwise
+        # load however many is necessary and concatinate the frames and times.
+        cdf_obj = load_img_file(time_range[0], mission, station, force_download=force_download)
+
+        # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00) 
+        # to datetime objects.
+        epoch = np.array(cdflib.cdfepoch.to_datetime(cdf_obj.varget(time_key)))
+
+        # Get the frames 3d array
+        frames = cdf_obj.varget(frame_key)
+    else:
+        # If the time_range is across two or more hours
+        epoch = np.array([])
+        if mission.lower() == 'themis':
+            frames = np.ones((0, 256, 256))
+        elif mission.lower() == 'rego':
+            frames = np.ones((0, 512, 512))
+        else:
+            raise NotImplementedError
+
+        # The timedelta offset is needed to include the time_range[1] hour.
+        hourly_date_times = pd.date_range(
+                                        start=time_range[0], 
+                                        end=time_range[1]+pd.Timedelta(hours=1),
+                                        freq='H'
+                                        )
+        for hour_date_time in hourly_date_times:
+            print(hour_date_time)
+            cdf_obj = load_img_file(hour_date_time, mission, station, force_download=force_download)
+
+            # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00) 
+            # to datetime objects.
+            epoch =  np.append(epoch, np.array(cdflib.cdfepoch.to_datetime(cdf_obj.varget(time_key))))
+            # Get the frames 3d array and concatenate.
+            frames = np.concatenate((frames, cdf_obj.varget(frame_key)), axis=0)
+
     # Find the time stamps in between time_range.
     idx = np.where((epoch >= time_range[0]) & (epoch <= time_range[1]))[0]
-    assert len(idx), (f'{len(idx)} number of time stamps were found '
-                      f'in time_range={time_range}')
-    return epoch[idx], cdf_obj.varget(frame_key)[idx, :, :]
-
-if __name__ == "__main__":
-    load_cal_file('REGO', 'GILL')
+    assert len(idx) > 0, (f'{len(idx)} number of time stamps were found '
+                    f'in time_range={time_range}')
+    return epoch[idx], frames[idx, :, :]
