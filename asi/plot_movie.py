@@ -207,7 +207,7 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
 
     # Make the movie
     movie_file_name = (f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_'
-                       f'{frame_times[1].strftime("%H%M%S")}_'
+                       f'{frame_times[-1].strftime("%H%M%S")}_'
                        f'{mission.lower()}_{station.lower()}.{movie_format}')
     movie_obj = ffmpeg.input(str(save_dir) + f'/*{mission.lower()}_{station.lower()}.png', 
                 pattern_type='glob', framerate=frame_rate)
