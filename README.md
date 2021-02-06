@@ -84,9 +84,8 @@ There are two modules that plot a single frame or a series of frames.
 * `plot_collage()`: Similar to `asi.plot_movie()` in that the arguments are the same, but this function returns a collage of images with the time stamps annotated.
 
 ### Mapping satellite position to the skyfield
-* `asi.map_skyfield()`: maps the satellite coordinates from LLA (latitude, longitude, altitudes) to the ASI image x and y pixel indices. This function relies on the azimuth and elevation calibration files that can be downloaded via `asi.load_cal_file()`. 
-
-  This function does **not** map the satellite position along the magnetic field line. That task is left for the user. Hopefully in the near future IRBEM will be added as a dependency and a magnetic field mapping function added.
+* `asi.map_skyfield()`: maps the satellite coordinates from LLA (latitude, longitude, altitudes) to the ASI image x and y pixel indices. This function relies on the azimuth and elevation calibration files that can be downloaded via `asi.load_cal_file()`. This function does **not** map the satellite position along the magnetic field line, that is done by `map_along_magnetic_field.py` and requires IRBEM-Lib to be installed (beyond the scope of this user guide).
+* `map_along_magnetic_field.py`: magnetically maps the satellite LLA coordinates with time stamps to a specified altitude. The hemisphere of the mapping can be: same, opposite, northern, or southern. 
 
 ## Testing
 Each module has a corresponding `test_module.py` module in ```asi/tests/```. Run these tests to confirm that the downloading, loading, plotting, and mapping functions work correctly. If a test fails, please submit an Issue. To help me fix the bug, please run the unit tests in verbose mode, i.e. ```python3 test_module.py -v```.

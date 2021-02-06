@@ -23,3 +23,4 @@ else:
 
     # Import the magnetic field mapping 
     from asi.project_lla_to_skyfield import lla_to_skyfield
+    from asi.map_along_magnetic_field import map_along_magnetic_field
