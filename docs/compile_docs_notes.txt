@@ -1,0 +1,7 @@
+To compile the documentation with sphinx, run 
+
+sphinx-apidoc -o . ../asilib ../asilib/tests/ ../asilib/config.py
+
+The last two parameters exclude the tests/ folder and config.py
+
+Then run "make html", the html file is located in _build/html/index.html
