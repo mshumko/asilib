@@ -7,7 +7,7 @@ import skyfield.api
 import cdflib
 import scipy.spatial
 
-from asi.load import load_cal_file
+from asilib.load import load_cal_file
 
 
 def lla_to_skyfield(mission, station, sat_lla, 
@@ -45,7 +45,7 @@ def lla_to_skyfield(mission, station, sat_lla,
     -------
     import numpy as np
     
-    from asi import lla_to_skyfield
+    from asilib import lla_to_skyfield
 
     # THEMIS/ATHA's LLA coordinates are (54.72, -113.301, 676 (meters)).
     # The LLA is a North-South pass right above ATHA..

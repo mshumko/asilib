@@ -10,9 +10,9 @@ import cdflib
 import scipy.io
 import matplotlib.pyplot as plt
 
-import asi.download.download_rego as download_rego
-import asi.download.download_themis as download_themis
-import asi.config as config
+from asilib.download.download_rego import download_rego
+from asilib.download.download_themis import download_themis
+from asilib import config
 
 
 def load_img_file(time: Union[datetime, str], mission: str, station: str, 

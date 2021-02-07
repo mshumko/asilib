@@ -3,8 +3,8 @@ import requests
 import pathlib
 from datetime import datetime
 
-from asi.download import download_rego
-import asi.config as config
+from asilib.download import download_rego
+from asilib import config
 
 """
 Unit tests to check that the functions in download_rego.py are working correctly.

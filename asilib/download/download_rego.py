@@ -6,7 +6,7 @@ import pathlib
 
 from bs4 import BeautifulSoup
 
-from asi import config
+from asilib import config
 
 """
 This program contains the download() function to download the Red-line Emission Geospace 

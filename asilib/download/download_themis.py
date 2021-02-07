@@ -4,8 +4,8 @@ from typing import List, Union
 import dateutil.parser
 import pathlib
 
-from asi import config
-from asi.download import download_rego
+from asilib import config
+from asilib.download import download_rego
 
 """
 This program contains the download() function to download the Red-line Emission Geospace 

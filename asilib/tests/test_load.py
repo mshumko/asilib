@@ -4,8 +4,8 @@ from datetime import datetime
 
 import cdflib
 
-from asi import load
-import asi.config as config
+from asilib import load
+from asilib import config
 
 """
 Most of these tests just makes sure that the functions run correctly

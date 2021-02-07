@@ -7,8 +7,8 @@ import matplotlib.colors as colors
 import numpy as np
 import ffmpeg
 
-from asi.load import get_frames
-import asi.config as config
+from asilib.load import get_frames
+import asilib.config as config
 
 
 def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station: str, **kwargs):
@@ -65,10 +65,10 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
     -------
     from datetime import datetime
 
-    import asi
+    import asilib
 
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    asi.plot_movie(time_range, 'THEMIS', 'FSMI')
+    asilib.plot_movie(time_range, 'THEMIS', 'FSMI')
 
     Return
     -------

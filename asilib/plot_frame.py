@@ -8,8 +8,8 @@ import matplotlib.colors as colors
 import numpy as np
 import cdflib
 
-import asi.config as config
-import asi.load as load
+from asilib import config
+from asilib import load
 
 
 def plot_frame(time: Union[datetime, str], mission: str, station: str, 
@@ -67,11 +67,11 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
 
     import matplotlib.pyplot as plt
 
-    import asi
+    import asilib
 
     # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active 
     # auroral arc powered by accelerated electrons from very high altitudes"
-    frame_time, ax, im = asi.plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 
+    frame_time, ax, im = asilib.plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 
                         color_norm='log', force_download=False)
     plt.colorbar(im)
     ax.axis('off')

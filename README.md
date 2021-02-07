@@ -61,7 +61,7 @@ To make  movies you'll also need to install the ffmpeg library.
 ## User Guide
 **Note** These are top-level descriptions: The full parameter list and an example for each function is accessible via the built-in ```help()``` function. 
 
-**Note** The longitude units are converted from 0->360 to -180->180 degrees in the calibration files.
+**Note 2** The longitude units are converted from 0->360 to -180->180 degrees in the calibration files.
 
 ### Download ASI Data
 To download ASI data, the programs in the ```asi-lib/download/``` search for and download the THEMIS and REGO image and calibration data.

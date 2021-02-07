@@ -4,7 +4,7 @@ from datetime import datetime
 
 import numpy as np
 
-from asi.project_lla_to_skyfield import lla_to_skyfield
+from asilib.project_lla_to_skyfield import lla_to_skyfield
 
 """
 Tests that the LLA to AzEl projecting (mapping) returns correct outputs

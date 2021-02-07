@@ -9,7 +9,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import re
 
-from asi import config
+from asilib import config
 
 frame_base_url = 'http://themis.ssl.berkeley.edu/data/themis/thg/l1/asi/'
 cal_base_url = 'http://themis.ssl.berkeley.edu/data/themis/thg/l2/asi/cal/'
