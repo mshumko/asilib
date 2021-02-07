@@ -94,4 +94,4 @@ There are two modules that plot a single frame or a series of frames.
 * `map_along_magnetic_field.py`: magnetically maps the satellite LLA coordinates with time stamps to a specified altitude. The hemisphere of the mapping can be: same, opposite, northern, or southern. 
 
 ## Testing
-Each module has a corresponding `test_module.py` module in ```asilib/tests/```. Run these tests to confirm that the downloading, loading, plotting, and mapping functions work correctly. If a test fails, please submit an Issue. To help me fix the bug, please run the unit tests in verbose mode, i.e. ```python3 test_module.py -v```.
+To run the asilib unit tests, change directory into `asi-lib` and run ```python3 -m unittest discover -v```. These tests take a few minutes to run because it will download REGO and THEMIS image files.

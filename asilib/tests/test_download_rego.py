@@ -19,7 +19,6 @@ class TestDownloadRego(unittest.TestCase):
         self.station = 'Luck'
         self.url = (download_rego.IMG_BASE_URL + 
             f'{self.station.lower()}/{self.day.year}/{str(self.day.month).zfill(2)}/')
-        config.ASI_DATA_DIR = pathlib.Path(__file__).parent.resolve() # Overwrite the data directory to here.
         return
 
     def test_server_response(self):
@@ -40,20 +39,15 @@ class TestDownloadRego(unittest.TestCase):
 
     def test_download_img(self):
         """ 
-        Test the full REGO data downloader to download a chunk of an hour file
+        Test the full REGO data downloader and download an hour file
         clg_l1_rgf_luck_2020080104_v01.cdf to ./rego/.
         """
         temp_image_dir = pathlib.Path(config.ASI_DATA_DIR, 'rego')
         temp_image_path = temp_image_dir / 'clg_l1_rgf_luck_2020080104_v01.cdf'
-        temp_image_dir.mkdir(parents=True, exist_ok=True)
 
-        download_rego.download_rego_img(self.day, self.station, test_flag=True, force_download=True)
+        download_rego.download_rego_img(self.day, self.station, force_download=True)
 
         self.assertTrue(temp_image_path.is_file())
-        
-        # Remove the temp folder and image file.
-        temp_image_path.unlink(missing_ok=True)
-        temp_image_path.parent.rmdir()
         return
 
 

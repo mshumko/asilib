@@ -18,7 +18,6 @@ class TestDownloadThemis(unittest.TestCase):
         self.station = 'Gill'
         self.url = (download_themis.IMG_BASE_URL + 
             f'{self.station.lower()}/{self.day.year}/{str(self.day.month).zfill(2)}/')
-        config.ASI_DATA_DIR = pathlib.Path(__file__).parent.resolve() # Overwrite the data directory to here.
         return
 
     def test_server_response(self):
@@ -33,20 +32,15 @@ class TestDownloadThemis(unittest.TestCase):
 
     def test_download_img(self):
         """ 
-        Test the full THEMIS data downloader to download a chunk of an hour file
+        Test the full THEMIS data downloader and download an hour file
         clg_l1_rgf_luck_2020080104_v01.cdf to ./themis/.
         """
         temp_image_dir = pathlib.Path(config.ASI_DATA_DIR, 'themis')
         temp_image_path = temp_image_dir / 'thg_l1_asf_gill_2016102904_v01.cdf'
-        temp_image_dir.mkdir(parents=True, exist_ok=True)
 
-        download_themis.download_themis_img(self.day, self.station, test_flag=True, force_download=True)
+        download_themis.download_themis_img(self.day, self.station, force_download=True)
 
         self.assertTrue(temp_image_path.is_file())
-        
-        # Remove the temp folder and image file.
-        temp_image_path.unlink(missing_ok=True)
-        temp_image_path.parent.rmdir()
         return
 
 
