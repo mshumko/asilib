@@ -9,9 +9,10 @@ from bs4 import BeautifulSoup
 from asilib import config
 
 """
-This program contains the download() function to download the Red-line Emission Geospace 
-Observatory (REGO) data from the themis.ssl.berkeley.edu server to the 
-config.ASI_DATA_DIR/rego/ directory
+This program contains the Red-line Emission Geospace Observatory (REGO) download functions
+that stream image data from the themis.ssl.berkeley.edu server and the calibration data 
+from the ucalgary.ca server and saves the files to the asilib.config.ASI_DATA_DIR/rego/ 
+directory.
 """
 
 IMG_BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/'
@@ -52,9 +53,13 @@ def download_rego_img(day: Union[datetime, str], station: str, download_hour: bo
 
     Example
     -------
+    from datetime import datetime
+
+    import asilib
+
     day = datetime(2017, 4, 13, 5)
     station = 'LUCK'
-    download(day, station)  # Will download to the aurora_asi/data/rego/ folder.
+    asilib.download_rego_img(day, station) 
     """
     if isinstance(day, str):
         day = dateutil.parser.parse(day)
@@ -87,7 +92,7 @@ def download_rego_img(day: Union[datetime, str], station: str, download_hour: bo
                 stream_large_file(download_url, download_path, test_flag=test_flag)
         return download_paths
 
-def download_rego_cal(station: str, force_download: bool=False):
+def download_rego_cal(station: str, force_download: bool=False) -> pathlib.Path:
     """
     Download the latest calibration (skymap) IDL .sav file and save
     it to config.ASI_DATA_DIR/rego/cal/ directory.
@@ -102,6 +107,13 @@ def download_rego_cal(station: str, force_download: bool=False):
     Returns
     -------
     None
+
+    Example
+    -------
+    import asilib
+
+    station = 'LUCK'
+    asilib.download_rego_cal(station) 
     """
     # Create the calibration directory in data/rego/cal
     save_dir = config.ASI_DATA_DIR / 'rego' / 'cal'
@@ -140,6 +152,10 @@ def stream_large_file(url, save_path, test_flag: bool=False):
     test_flag: bool (optional)
         If True, the download will halt after one 5 Mb chunk of data is 
         downloaded.
+
+    Returns
+    -------
+    None
     """
     r = requests.get(url, stream=True) 
     file_size = int(r.headers.get('content-length'))
@@ -195,9 +211,3 @@ def search_hrefs(url: str, search_pattern: str ='') -> List[str]:
         raise NotADirectoryError(f'The url {url} does not contain any hyper '
             f'references containing the search_pattern="{search_pattern}".')
     return matched_hrefs
-
-
-if __name__ == '__main__':
-    day = datetime(2020, 8, 1, 4)
-    station = 'Luck'
-    download_rego_cal(station, force_download=False)

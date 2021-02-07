@@ -8,9 +8,10 @@ from asilib import config
 from asilib.download import download_rego
 
 """
-This program contains the download() function to download the Red-line Emission Geospace 
-Observatory (REGO) data from the themis.ssl.berkeley.edu server to the 
-config.ASI_DATA_DIR/rego/ directory
+This program contains the Time History of Events and Macroscale Interactions during 
+Substorms (THEMIS) download functions that stream image and calibration data from the 
+themis.ssl.berkeley.edu server and saves the files to the 
+asilib.config.ASI_DATA_DIR/themis/ directory.
 """
 
 IMG_BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l1/asi/'
@@ -24,7 +25,7 @@ if not pathlib.Path(config.ASI_DATA_DIR, 'themis').exists():
 def download_themis_img(day: Union[datetime, str], station: str, download_hour: bool=True,
             force_download: bool=False, test_flag: bool=False) -> List[pathlib.Path]:
     """
-    The wrapper to download the THEMIS ASI data given the day, station name,
+    This function downloads the THEMIS ASI image data given the day, station name,
     and a flag to download a single hour file or the entire day. The images
     are saved to the config.ASI_DATA_DIR / 'themis' directory. 
 
@@ -50,9 +51,13 @@ def download_themis_img(day: Union[datetime, str], station: str, download_hour: 
 
     Example
     -------
+    from datetime import datetime
+
+    import asilib
+
     day = datetime(2017, 4, 13, 5)
     station = 'LUCK'
-    download(day, station)  # Will download to the aurora_asi/data/themis/ folder.
+    asilib.download_themis_img(day, station) 
     """
     if isinstance(day, str):
         day = dateutil.parser.parse(day)
@@ -101,6 +106,13 @@ def download_themis_cal(station: str, force_download: bool=False):
     Returns
     -------
     None
+
+    Example
+    -------
+    import asilib
+
+    station = 'LUCK'
+    asilib.download_themis_cal(station) 
     """
     # Create the calibration directory in data/themis/cal
     save_dir = config.ASI_DATA_DIR / 'themis' / 'cal'
@@ -119,12 +131,3 @@ def download_themis_cal(station: str, force_download: bool=False):
     if force_download or (not download_path.is_file()):
         download_rego.stream_large_file(download_url, download_path)
     return download_path
-
-
-if __name__ == '__main__':
-    # day = datetime(2016, 10, 1, 2)
-    # station = 'AtHa'
-    # download_themis_img(day, station, force_download=True)
-
-    station = 'AtHa'
-    download_themis_cal(station, force_download=True)
