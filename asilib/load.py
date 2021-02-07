@@ -1,7 +1,7 @@
 import pathlib
 from datetime import datetime, timedelta
 import dateutil.parser
-from typing import List, Union, Optional, Sequence
+from typing import List, Union, Sequence, Tuple
 from copy import copy
 
 import pandas as pd
@@ -10,15 +10,16 @@ import cdflib
 import scipy.io
 import matplotlib.pyplot as plt
 
-from asilib.download.download_rego import download_rego
-from asilib.download.download_themis import download_themis
+from asilib.download import download_rego
+from asilib.download import download_themis
 from asilib import config
 
 
 def load_img_file(time: Union[datetime, str], mission: str, station: str, 
             force_download: bool=False) -> cdflib.cdfread.CDF:
     """
-    Loads the REGO or THEMIS ASI CDF file.
+    Loads the REGO or THEMIS ASI CDF file and downloads one if it doesn't
+    exist on the local computer.
 
     Parameters
     ----------
@@ -43,7 +44,8 @@ def load_img_file(time: Union[datetime, str], mission: str, station: str,
     
     Example
     -------
-    rego_data = load_img_file(datetime(2016, 10, 29, 4), 'REGO', 'GILL')
+    import asilib
+    rego_data = asilib.load_img_file('2016-10-29T04', 'REGO', 'GILL')
     """
     # Try to convert time to datetime object if it is a string.
     if isinstance(time, str):
@@ -92,7 +94,7 @@ def load_img_file(time: Union[datetime, str], mission: str, station: str,
     return cdflib.CDF(download_path)
 
 
-def load_cal_file(mission: str, station: str, force_download: bool=False):
+def load_cal_file(mission: str, station: str, force_download: bool=False) -> dict:
     """
     Loads the latest callibration file for the mission/station and downloads
     one if one is not found in the config.ASI_DATA_DIR/mission/cal/ folder.
@@ -105,6 +107,18 @@ def load_cal_file(mission: str, station: str, force_download: bool=False):
         The station id to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
+
+    Returns
+    -------
+    cal_dict: dict
+        A calibration dictionary with longitudes mapped from -180 to 180
+        degrees.
+
+    Example
+    -------
+    import asilib
+
+    rego_cal = asilib.load_cal_file('REGO', 'GILL')
     """
     cal_dir = config.ASI_DATA_DIR / mission.lower() / 'cal'
     cal_paths = sorted(list(cal_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
@@ -131,7 +145,7 @@ def load_cal_file(mission: str, station: str, force_download: bool=False):
 
 
 def get_frame(time: Union[datetime, str], mission: str, station: str, 
-            force_download: bool=False, time_thresh_s: float=3) -> Union[datetime, np.ndarray]:
+            force_download: bool=False, time_thresh_s: float=3) -> Tuple[datetime, np.ndarray]:
     """
     Gets one ASI image frame given the mission (THEMIS or REGO), station, and 
     the day date-time parameters. If a file does not locally exist, this 
@@ -165,7 +179,9 @@ def get_frame(time: Union[datetime, str], mission: str, station: str,
     
     Example
     -------
-    time, frame = get_frame(datetime(2016, 10, 29, 4, 15), 'REGO', 'GILL')
+    import asilib
+    
+    time, frame = asilib.get_frame('2016-10-29T04:15:00', 'REGO', 'GILL')
     """
     # Try to convert time to datetime object if it is a string.
     if isinstance(time, str):
@@ -196,7 +212,7 @@ def get_frame(time: Union[datetime, str], mission: str, station: str,
 
 
 def get_frames(time_range: Sequence[Union[datetime, str]], mission: str, station: str, 
-            force_download: bool=False) -> Union[datetime, np.ndarray]:
+            force_download: bool=False) -> Tuple[np.ndarray, np.ndarray]:
     """
     Gets multiple ASI image frames given the mission (THEMIS or REGO), station, and 
     the time_range date-time parameters. If a file does not locally exist, this 
@@ -232,8 +248,12 @@ def get_frames(time_range: Sequence[Union[datetime, str]], mission: str, station
 
     Example
     -------
+    from datetime import datetime
+
+    import asilib
+
     time_range = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
-    times, frames = get_frames(time_range, 'REGO', 'GILL')
+    times, frames = asilib.get_frames(time_range, 'REGO', 'GILL')
     """
     # Run a few checks to make sure that the time_range parameter has length 2 and
     # convert time_range to datetime objects if it is a string.

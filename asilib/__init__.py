@@ -13,6 +13,8 @@ else:
 
     from asilib.load import load_img_file
     from asilib.load import load_cal_file
+    from asilib.load import get_frame
+    from asilib.load import get_frames
 
     from asilib.plot_frame import plot_frame
     from asilib.plot_movie import plot_movie, plot_movie_generator
