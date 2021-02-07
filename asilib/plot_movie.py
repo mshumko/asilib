@@ -87,7 +87,10 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
             ax: plt.subplot=None, movie_format: str='mp4', frame_rate=10, 
             overwrite_output: bool=False, delete_pngs: bool=True):
     """
-    A generator function that yields ASI images, frame by frame.
+    A generator function that loads the ASI data and then yields individual ASI images, 
+    frame by frame. This allows the user to add content to each frame, such as the
+    spacecraft position, and that will convert it to a movie. If you just want to make
+    an ASI movie, use the wrapper for this function, plot_movie().
 
     Parameters
     ----------
@@ -134,7 +137,7 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
         from the same mission/station, those pngs will all be written to one
         movie.
 
-    Return
+    Yields
     ------
     frame_time: datetime.datetime
         The time of the current frame.
@@ -142,6 +145,19 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
         The plt.imshow object. Common use for im is to add a colorbar.
     ax: plt.subplot
         The subplot object to modify the axis, labels, etc.
+
+    Example
+    -------
+    from datetime import datetime
+
+    import asilib
+
+    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+    movie_generator = asilib.plot_movie_generator(time_range, 'THEMIS, 'FSMI')
+
+    for frame_time, im, ax in movie_generator:
+        # The code that modifies each frame here.
+        pass
     """
     try:
         frame_times, frames = get_frames(time_range, mission, station, 
