@@ -42,9 +42,9 @@ asilib.plot_movie(time_range, 'THEMIS', 'FSMI')
 Run these terminal commands to install the dependencies into a virtual environment and configure the data paths:
 
 ```shell
-# cd into the asi-lib (not the child asilib) directory
-python3 -m venv env
-source env/bin/activate
+
+git clone git@github.com:mshumko/aurora-asi-lib.git
+cd aurora-asi-lib
 
 python3 -m pip install .  # (don't forget the .)
 #  or 
