@@ -11,7 +11,7 @@ if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'con
     print('Running the configuration script.')
     # SAMPEX Data dir
     s = (f'What is the aurora data directory? Press enter to not specify. '
-         f'If the directory is not specified, /asi-lib/data/ folder will be created.')
+         f'If the directory is not specified, /aurora-asi-lib/data/ folder will be created.')
     asi_data_dir = input(s)
     
     # If the user specified the directory, check that the ASI directory already exists 
@@ -23,7 +23,7 @@ if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'con
         else:
             print(f'aurora_asi data directory at {pathlib.Path(asi_data_dir)} already exists.')
     else:
-        # If the user did not specify the directory, make one at /asilib/data/
+        # If the user did not specify the directory, make one at /aurora-asi-lib/data/
         asi_data_dir = here.parents[0] / 'data'
         if not asi_data_dir.exists():
             asi_data_dir.mkdir()
