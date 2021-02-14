@@ -102,14 +102,14 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    im = ax.imshow(frame, cmap=color_map, norm=norm)
+    im = ax.imshow(frame[::-1, :], cmap=color_map, norm=norm)
     ax.text(0, 0, f"{mission}/{station}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}", 
             va='bottom', transform=ax.transAxes, color='white')
     return frame_time, ax, im
 
 
 if __name__ == '__main__':
-    ax, im = plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 
+    time, ax, im = plot_frame(datetime(2017, 9, 15, 2, 36, 36), 'THEMIS', 'RANK', 
                         color_norm='log', force_download=False)
     plt.colorbar(im)
     plt.axis('off')
