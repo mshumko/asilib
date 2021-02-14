@@ -1,0 +1,289 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Readme File &mdash; asilib  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="asilib package" href="asilib.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> asilib
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="modules.html">asilib</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Readme File</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">asilib</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Readme File</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/readme_link.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="readme-file">
+<h1>Readme File<a class="headerlink" href="#readme-file" title="Permalink to this headline">¶</a></h1>
+<p># asi-lib
+Easily download, plot, animate, and analyze aurora all sky imager (ASI) data. Currently the two supported camera systems (missions) are:
+* Red-line Emission Geospace Observatory (REGO)
+* Time History of Events and Macroscale Interactions during Substorms (THEMIS).</p>
+<p>Feel free to contact me to add other ASI missions to this library.</p>
+<p>## Examples
+Before you can run these examples you will need to configure the ASI data and movie directory via <code class="docutils literal notranslate"><span class="pre">`python3</span> <span class="pre">-m</span> <span class="pre">asilib</span> <span class="pre">config`</span></code> (see the installation steps below).</p>
+<p>### Example 1
+This example uses asilib to visualize a bright auroral arc.
+<a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
+from datetime import datetime</p>
+<p>import matplotlib.pyplot as plt</p>
+<p>import asilib</p>
+<p># A bright auroral arc that was analyzed by Imajo et al., 2021 “Active
+# auroral arc powered by accelerated electrons from very high altitudes”
+frame_time, ax, im = asilib.plot_frame(datetime(2017, 9, 15, 2, 34, 0), ‘THEMIS’, ‘RANK’,</p>
+<blockquote>
+<div><p>color_norm=’log’, force_download=False)</p>
+</div></blockquote>
+<p>plt.colorbar(im)
+ax.axis(‘off’)
+plt.show()
+<a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
+<p>### Example 2
+This example uses asilib to make a 5 minute movie of an auroral arc brightening right as a meteor burns up at zenith!</p>
+<p><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>python
+from datetime import datetime</p>
+<p>import asilib</p>
+<p>time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+asilib.plot_movie(time_range, ‘THEMIS’, ‘FSMI’)
+<a href="#id13"><span class="problematic" id="id14">``</span></a><a href="#id15"><span class="problematic" id="id16">`</span></a></p>
+<p>## Installation
+Run these terminal commands to install the dependencies into a virtual environment and configure the data paths:</p>
+<p><a href="#id17"><span class="problematic" id="id18">``</span></a><a href="#id19"><span class="problematic" id="id20">`</span></a>shell
+# cd into the asi-lib (not the child asilib) directory
+python3 -m venv env
+source env/bin/activate</p>
+<p>python3 -m pip install .  # (don’t forget the .)
+#  or
+pip3 install -r requirements.txt
+<a href="#id21"><span class="problematic" id="id22">``</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a></p>
+<p>You’ll need to configure your system paths to tell asilib where to save the ASI data and movies. Run <code class="docutils literal notranslate"><span class="pre">`python3</span> <span class="pre">-m</span> <span class="pre">asilib</span> <span class="pre">config`</span></code> to set up the data directory where the image, calibration, and movie files will be saved. Your settings wll be stored in <cite>config.py</cite></p>
+<p>### ffmpeg dependency
+To make  movies you’ll also need to install the ffmpeg library.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>Ubuntu</strong>: <code class="docutils literal notranslate"><span class="pre">`apt</span> <span class="pre">install</span> <span class="pre">ffmpeg`</span></code></p></li>
+<li><p><strong>Mac</strong>: <code class="docutils literal notranslate"><span class="pre">`brew</span> <span class="pre">install</span> <span class="pre">ffmpeg`</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>## User Guide
+<strong>Note</strong> These are top-level descriptions: The full parameter list and an example for each function is accessible via the built-in <code class="docutils literal notranslate"><span class="pre">`help()`</span></code> function.</p>
+<p><strong>Note 2</strong> The longitude units are converted from 0-&gt;360 to -180-&gt;180 degrees in the calibration files.</p>
+<p>### Download ASI Data
+To download ASI data, the programs in the <code class="docutils literal notranslate"><span class="pre">`asi-lib/download/`</span></code> search for and download the THEMIS and REGO image and calibration data.</p>
+<ul class="simple">
+<li><p><cite>asilib.download_themis_img()</cite> and <cite>asilib.download_rego_img()</cite>: downloads the THEMIS and REGO images in the common data format (CDF) files.</p></li>
+<li><p><cite>asilib.download_themis_cal()</cite> and <cite>asilib.download_rego_cal()</cite>: downloads the THEMIS and REGO images in the common data format (CDF) files.</p></li>
+</ul>
+<p>### Load ASI Data
+There are a few data loading functions that automaticaly call the download programs if a file is not found on the local computer or the user explicitly passes <code class="docutils literal notranslate"><span class="pre">`force_download</span> <span class="pre">=</span> <span class="pre">True`</span></code> to force the download. These functions are in <cite>config.py</cite>.</p>
+<ul class="simple">
+<li><p><cite>asilib.load_img_file()</cite>: Returns an <cite>cdflib.CDF()</cite> file object for an ASI</p></li>
+</ul>
+<p>file specified by the date-time, mission, and station. See the [cdflib](<a class="reference external" href="https://github.com/MAVENSDC/cdflib">https://github.com/MAVENSDC/cdflib</a>) documentaion for the CDF interface.
+* <cite>asilib.load_cal_file()</cite>: Returns an dictionary containing the latest calibration data from a specified mission/station. Be aware that the longitude is mapped from 0 to 360 to -180 to 180 degrees.
+* <cite>asilib.get_frame()</cite>: Given a mission/station and a date-time, this function calls <cite>asilib.load_img_file()</cite> and returns the time stamp and one image (frame) with a time stamp within <code class="docutils literal notranslate"><span class="pre">`time_thresh_s</span> <span class="pre">=</span> <span class="pre">3`</span></code> seconds (optional kwarg), otherwise an AssertionError is raised if a ASI time stamp is not found.
+* <cite>asilib.get_frames()</cite>: Given a mission/station and a date-time <code class="docutils literal notranslate"><span class="pre">`time_range`</span></code>, this function calls <cite>asilib.load_img_file()</cite> and returns an array of time stamps and images observed at times inside the <code class="docutils literal notranslate"><span class="pre">`time_range`</span></code>.</p>
+<p>### Plot ASI Data
+There are two modules that plot a single frame or a series of frames.</p>
+<ul class="simple">
+<li><p><cite>asilib.plot_frame()</cite>: Given a mission/station and a date-time arguments, this function calls <cite>asilib.get_frame()</cite> and plots one ASI frame. By default, the color map is black-white for THEMIS and black-red for REGO, the color scale is logarthmic, and color map limits are automatically set as <code class="docutils literal notranslate"><span class="pre">`(25th</span> <span class="pre">percentile,</span> <span class="pre">min(98th</span> <span class="pre">percentile,</span> <span class="pre">10x25th</span> <span class="pre">percentile))`</span></code>. This ensures a good dynamic range for each frame. The subplot object, the frame time, and the <code class="docutils literal notranslate"><span class="pre">`plt.imshow()`</span></code> objects are returned so the user can add to the subplot.</p></li>
+<li><p><cite>asilib.plot_movie()</cite>: Similar to <cite>asilib.plot_frame()</cite>, given a mission/station and a <code class="docutils literal notranslate"><span class="pre">`time_range`</span></code> arguments, this function calls <cite>asilib.get_frames()</cite> and plots one multiple ASI frames and saves them to <code class="docutils literal notranslate"><span class="pre">`/data/movies/`</span></code>. Movie file creation, such as an <cite>mp4</cite> or <cite>gif</cite>, is not implemented yet because I have not found a movie writer that is available between Windows/Linux/Mac.</p></li>
+<li><p><cite>plot_movie_generator()</cite> TBD</p></li>
+<li><p><cite>plot_collage()</cite>: Similar to <cite>asilib.plot_movie()</cite> in that the arguments are the same, but this function returns a collage of images with the time stamps annotated.</p></li>
+</ul>
+<p>### Mapping satellite position to the skyfield
+* <cite>asilib.map_skyfield()</cite>: maps the satellite coordinates from LLA (latitude, longitude, altitudes) to the ASI image x and y pixel indices. This function relies on the azimuth and elevation calibration files that can be downloaded via <cite>asilib.load_cal_file()</cite>. This function does <strong>not</strong> map the satellite position along the magnetic field line, that is done by <cite>map_along_magnetic_field.py</cite> and requires IRBEM-Lib to be installed (beyond the scope of this user guide).
+* <cite>map_along_magnetic_field.py</cite>: magnetically maps the satellite LLA coordinates with time stamps to a specified altitude. The hemisphere of the mapping can be: same, opposite, northern, or southern.</p>
+<p>## Testing
+To run the asilib unit tests, change directory into <cite>asi-lib</cite> and run <code class="docutils literal notranslate"><span class="pre">`python3</span> <span class="pre">-m</span> <span class="pre">unittest</span> <span class="pre">discover</span> <span class="pre">-v`</span></code>. These tests take a few minutes to run because it will download REGO and THEMIS image files.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="asilib.html" class="btn btn-neutral float-left" title="asilib package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Mykhaylo Shumko.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

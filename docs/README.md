@@ -1,4 +1,4 @@
-# aurora-asi-lib
+# asi-lib
 Easily download, plot, animate, and analyze aurora all sky imager (ASI) data. Currently the two supported camera systems (missions) are: 
 * Red-line Emission Geospace Observatory (REGO)
 * Time History of Events and Macroscale Interactions during Substorms (THEMIS).
@@ -42,9 +42,9 @@ asilib.plot_movie(time_range, 'THEMIS', 'FSMI')
 Run these terminal commands to install the dependencies into a virtual environment and configure the data paths:
 
 ```shell
-
-git clone git@github.com:mshumko/aurora-asi-lib.git
-cd aurora-asi-lib
+# cd into the asi-lib (not the child asilib) directory
+python3 -m venv env
+source env/bin/activate
 
 python3 -m pip install .  # (don't forget the .)
 #  or 
