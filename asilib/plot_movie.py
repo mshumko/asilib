@@ -1,5 +1,5 @@
 import pathlib
-from typing import List, Union, Optional, Sequence
+from typing import List, Union, Optional, Sequence, Generator
 from datetime import datetime
 
 import matplotlib.pyplot as plt
@@ -85,7 +85,8 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
             force_download: bool=False, add_label: bool=True, color_map: str='auto',
             color_bounds: Union[List[float], None]=None, color_norm: str='log', 
             ax: plt.subplot=None, movie_format: str='mp4', frame_rate=10, 
-            overwrite_output: bool=False, delete_pngs: bool=True):
+            overwrite_output: bool=False, delete_pngs: bool=True) -> 
+            Generator[datetime.datetime, plt.Axes, plt.AxesImage]:
     """
     A generator function that loads the ASI data and then yields individual ASI images, 
     frame by frame. This allows the user to add content to each frame, such as the
@@ -213,7 +214,7 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
         
         # Give the user the control of the subplot, image object, and return the frame time
         # so that the user can manipulate the image to add, for example, the satellite track. 
-        yield frame_time, im, ax
+        yield frame_time, ax, im
 
         # Save the file and clear the subplot for next frame.
         save_name = (f'{frame_time.strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_'
