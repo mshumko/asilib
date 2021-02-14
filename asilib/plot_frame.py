@@ -1,8 +1,9 @@
 import pathlib
 from datetime import datetime, timedelta
 import dateutil.parser
-from typing import List, Union, Optional, Sequence
+from typing import List, Union, Optional, Sequence, Tuple
 
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
@@ -15,7 +16,8 @@ from asilib import load
 def plot_frame(time: Union[datetime, str], mission: str, station: str, 
             force_download: bool=False, time_thresh_s: float=3, 
             ax: plt.subplot=None, add_label: bool=True, color_map: str='auto',
-            color_bounds: Union[List[float], None]=None, color_norm: str='log') -> plt.subplot:
+            color_bounds: Union[List[float], None]=None, color_norm: str='log') -> \
+            Tuple[datetime, plt.Axes, matplotlib.image.AxesImage]:
     """
     Plots one ASI image frame given the mission (THEMIS or REGO), station, and 
     the day date-time parameters. If a file does not locally exist, the load_img()
@@ -55,12 +57,13 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
 
     Returns
     -------
-    ax: plt.subplot
-        Same subplot object if ax was passed as an argument, or a new
-        subplot object contaning the frame.
-    im: plt.imshow
-        The plt.imshow object that can be used to add a colorbar.
-
+    frame_time: datetime.datetime
+        The time of the current frame.
+    ax: plt.Axes
+        The subplot object to modify the axis, labels, etc.
+    im: plt.AxesImage
+        The plt.imshow object. Common use for im is to add a colorbar.
+        
     Example
     -------
     from datetime import datetime

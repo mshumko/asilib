@@ -2,6 +2,7 @@ import pathlib
 from typing import List, Union, Optional, Sequence, Generator
 from datetime import datetime
 
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
@@ -85,8 +86,8 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
             force_download: bool=False, add_label: bool=True, color_map: str='auto',
             color_bounds: Union[List[float], None]=None, color_norm: str='log', 
             ax: plt.subplot=None, movie_format: str='mp4', frame_rate=10, 
-            overwrite_output: bool=False, delete_pngs: bool=True) -> 
-            Generator[datetime.datetime, plt.Axes, plt.AxesImage]:
+            overwrite_output: bool=False, delete_pngs: bool=True) -> \
+            Generator[datetime, plt.Axes, matplotlib.image.AxesImage]:
     """
     A generator function that loads the ASI data and then yields individual ASI images, 
     frame by frame. This allows the user to add content to each frame, such as the
@@ -142,10 +143,10 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
     ------
     frame_time: datetime.datetime
         The time of the current frame.
-    im: plt.imshow
-        The plt.imshow object. Common use for im is to add a colorbar.
-    ax: plt.subplot
+    ax: plt.Axes
         The subplot object to modify the axis, labels, etc.
+    im: plt.AxesImage
+        The plt.imshow object. Common use for im is to add a colorbar.
 
     Example
     -------
