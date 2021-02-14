@@ -127,9 +127,9 @@ def _map_azel_to_pixel(sat_azel, cal_dict):
         An array with the same shape as sat_azel, but representing the
         x- and y-axis pixel indices in the ASI image.
     """
-    az_coords = cal_dict['FULL_AZIMUTH'].ravel()
+    az_coords = cal_dict['FULL_AZIMUTH'][::-1, ::-1].ravel()
     az_coords[np.isnan(az_coords)] = -10000
-    el_coords = cal_dict['FULL_ELEVATION'].ravel()
+    el_coords = cal_dict['FULL_ELEVATION'][::-1, ::-1].ravel()
     el_coords[np.isnan(el_coords)] = -10000
     asi_azel_cal = np.stack((az_coords, el_coords), axis=-1)
 
