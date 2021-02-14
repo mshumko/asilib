@@ -16,7 +16,8 @@ from asilib import load
 def plot_frame(time: Union[datetime, str], mission: str, station: str, 
             force_download: bool=False, time_thresh_s: float=3, 
             ax: plt.subplot=None, add_label: bool=True, color_map: str='auto',
-            color_bounds: Union[List[float], None]=None, color_norm: str='log') -> \
+            color_bounds: Union[List[float], None]=None, color_norm: str='log',
+            azel_contours: bool=False) -> \
             Tuple[datetime, plt.Axes, matplotlib.image.AxesImage]:
     """
     Plots one ASI image frame given the mission (THEMIS or REGO), station, and 
@@ -54,6 +55,8 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
         high=min(3rd_quartile, 10*1st_quartile)
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
+    azel_contours: bool
+        Switch azimuth and elevation contours on or off.
 
     Returns
     -------
@@ -62,7 +65,10 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
     ax: plt.Axes
         The subplot object to modify the axis, labels, etc.
     im: plt.AxesImage
-        The plt.imshow object. Common use for im is to add a colorbar.
+        The plt.imshow image object. Common use for im is to add a colorbar.
+        The image is oriented in the map orientation (north is up, south is down, 
+        east is right, and west is left), contrary to the camera orientation where
+        the east/west directions are flipped. Set azel_contours=True to confirm.
         
     Example
     -------
@@ -105,15 +111,26 @@ def plot_frame(time: Union[datetime, str], mission: str, station: str,
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    im = ax.imshow(frame[::-1, :], cmap=color_map, norm=norm)
+    im = ax.imshow(frame[:,:], cmap=color_map, norm=norm, origin="lower")
     ax.text(0, 0, f"{mission}/{station}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}", 
             va='bottom', transform=ax.transAxes, color='white')
+    if azel_contours:
+        cal_dict = load.load_cal_file(mission, station, force_download=force_download)
+
+        az_contours = ax.contour(cal_dict['FULL_AZIMUTH'][::-1, ::-1], colors='yellow', 
+                        linestyles='dotted', levels=np.arange(0, 361, 90), alpha=1)
+        el_contours = ax.contour(cal_dict['FULL_ELEVATION'][::-1, ::-1], colors='yellow', 
+                        linestyles='dotted', levels=np.arange(0, 91, 30), alpha=1)
+        plt.clabel(az_contours, inline=True, fontsize=8)
+        plt.clabel(el_contours, inline=True, fontsize=8, rightside_up=True)
     return frame_time, ax, im
 
 
 if __name__ == '__main__':
+    # time, ax, im = plot_frame(datetime(2017, 9, 15, 2, 30, 0), 'THEMIS', 'RANK', 
+    #                     color_norm='log', force_download=False, azel_contours=True)
     time, ax, im = plot_frame(datetime(2017, 9, 15, 2, 36, 36), 'THEMIS', 'RANK', 
-                        color_norm='log', force_download=False)
+                        color_norm='log', force_download=False, azel_contours=True)
     plt.colorbar(im)
     plt.axis('off')
     plt.show()
