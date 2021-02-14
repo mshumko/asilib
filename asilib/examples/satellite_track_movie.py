@@ -14,7 +14,7 @@ from asilib import load_cal_file
 mission = 'THEMIS'
 station = 'RANK'
 time_range = (datetime(2017, 9, 15, 2, 34, 0), datetime(2017, 9, 15, 2, 36, 0))
-# time_range = (datetime(2021, 9, 15, 2, 34, 0), datetime(2021, 9, 15, 2, 36, 0))
+
 # Load the calibration data to get the ASI LLA
 cal_dict = load_cal_file(mission, station)
 
