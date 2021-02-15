@@ -53,6 +53,9 @@ pip3 install -r requirements.txt
 
 You'll need to configure your system paths to tell asilib where to save the ASI data and movies. Run ```python3 -m asilib config``` to set up the data directory where the image, calibration, and movie files will be saved. Your settings wll be stored in `config.py`
 
+__NOTES__
+- If you get the "ERROR: Could not build wheels for pymap3d which use PEP 517 and cannot be installed directly" error when installing, you need to upgrade your pip, setuptools, and wheel libaries via ```python3 -m pip install --upgrade pip setuptools wheel```.
+
 ### ffmpeg dependency
 To make  movies you'll also need to install the ffmpeg library.
  - **Ubuntu**: ```apt install ffmpeg```
