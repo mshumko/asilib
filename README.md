@@ -96,6 +96,8 @@ There are two modules that plot a single frame or a series of frames.
 # Contributing
 I welcome collaboration on this project. I need the most help with keeping up with documentation, writing more unittests, and adding other ASI missions. Please contact me or start a Pull Request with your suggestions. 
 
+To install the developer dependencies, clone this repo, `cd aurora-asi-lib` and then run `python3 -m pip install -r requirements.txt -e .`
+
 ## Testing
 To run the asilib unit tests, change directory into `asi-lib` and run ```python3 -m unittest discover -v```. These tests take a few minutes to run because it must download REGO and THEMIS image files. 
 
@@ -105,3 +107,6 @@ These tests are continously intergrated when the `main` branch is updated by a G
 I adoped the [black](https://pypi.org/project/black/) style with two modifications: line length is set to 100 characters, and I suppress the double-quote string setting. To run black from the `aurora-asi-lib` directory, run 
 
 ```python3 -m black -l 100 -S asilib/```.
+
+## Change version
+To change the version you will need to 
