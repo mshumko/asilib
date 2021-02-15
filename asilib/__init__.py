@@ -11,15 +11,17 @@ else:
     from asilib.download.download_rego import download_rego_img, download_rego_cal
     from asilib.download.download_themis import download_themis_img, download_themis_cal
 
+    # Import the loading functions.
     from asilib.load import load_img_file
     from asilib.load import load_cal_file
     from asilib.load import get_frame
     from asilib.load import get_frames
 
+    # Import the plotting and animating functions.
     from asilib.plot_frame import plot_frame
     from asilib.plot_movie import plot_movie, plot_movie_generator
 
-    # Import the magnetic field mapping 
+    # Import the skyfield and magnetic field mapping functions. 
     from asilib.project_lla_to_skyfield import lla_to_skyfield
     try:
         from asilib.map_along_magnetic_field import map_along_magnetic_field

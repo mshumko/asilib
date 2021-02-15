@@ -1,13 +1,14 @@
 import pathlib
-from typing import List, Union, Optional, Sequence
+from typing import List, Union, Optional, Sequence, Generator
 from datetime import datetime
 
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 import ffmpeg
 
-from asilib.load import get_frames
+import asilib.load as load
 import asilib.config as config
 
 
@@ -46,6 +47,8 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
         high=min(3rd_quartile, 10*1st_quartile)
     ax: plt.subplot()
         The optional subplot that will be drawn on.
+    azel_contours: bool
+        Switch azimuth and elevation contours on or off.
     movie_format: str
         The movie format: mp4 has better compression but avi can be 
         opened by the VLC player.
@@ -84,8 +87,9 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
 def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: str, station: str, 
             force_download: bool=False, add_label: bool=True, color_map: str='auto',
             color_bounds: Union[List[float], None]=None, color_norm: str='log', 
-            ax: plt.subplot=None, movie_format: str='mp4', frame_rate=10, 
-            overwrite_output: bool=False, delete_pngs: bool=True):
+            azel_contours: bool=False, ax: plt.subplot=None, movie_format: str='mp4', 
+            frame_rate=10, overwrite_output: bool=False, delete_pngs: bool=True) -> \
+            Generator[datetime, plt.Axes, matplotlib.image.AxesImage]:
     """
     A generator function that loads the ASI data and then yields individual ASI images, 
     frame by frame. This allows the user to add content to each frame, such as the
@@ -126,6 +130,8 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
         The movie frame rate.
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
+    azel_contours: bool
+        Switch azimuth and elevation contours on or off.
     overwrite_output: bool
         If true, the output will be overwritten automatically. If false it will
         prompt the user to answer y/n.
@@ -141,10 +147,13 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
     ------
     frame_time: datetime.datetime
         The time of the current frame.
-    im: plt.imshow
-        The plt.imshow object. Common use for im is to add a colorbar.
-    ax: plt.subplot
+    ax: plt.Axes
         The subplot object to modify the axis, labels, etc.
+    im: plt.AxesImage
+        The plt.imshow image object. Common use for im is to add a colorbar.
+        The image is oriented in the map orientation (north is up, south is down, 
+        east is right, and west is left), contrary to the camera orientation where
+        the east/west directions are flipped. Set azel_contours=True to confirm.
 
     Example
     -------
@@ -160,7 +169,7 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
         pass
     """
     try:
-        frame_times, frames = get_frames(time_range, mission, station, 
+        frame_times, frames = load.get_frames(time_range, mission, station, 
                                         force_download=force_download)
     except AssertionError as err:
         if '0 number of time stamps were found in time_range' in str(err):  
@@ -206,14 +215,24 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
         else:
             raise ValueError('color_norm must be either "log" or "lin".')
 
-        im = ax.imshow(frame, cmap=color_map, norm=norm)
+        im = ax.imshow(frame, cmap=color_map, norm=norm, origin='lower')
         if add_label:
             ax.text(0, 0, f"{mission}/{station}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}", 
                     va='bottom', transform=ax.transAxes, color='white')
+
+        if azel_contours:
+            cal_dict = load.load_cal_file(mission, station, force_download=force_download)
+
+            az_contours = ax.contour(cal_dict['FULL_AZIMUTH'][::-1, ::-1], colors='yellow', 
+                            linestyles='dotted', levels=np.arange(0, 361, 90), alpha=1)
+            el_contours = ax.contour(cal_dict['FULL_ELEVATION'][::-1, ::-1], colors='yellow', 
+                            linestyles='dotted', levels=np.arange(0, 91, 30), alpha=1)
+            plt.clabel(az_contours, inline=True, fontsize=8)
+            plt.clabel(el_contours, inline=True, fontsize=8, rightside_up=True)
         
         # Give the user the control of the subplot, image object, and return the frame time
         # so that the user can manipulate the image to add, for example, the satellite track. 
-        yield frame_time, im, ax
+        yield frame_time, ax, im
 
         # Save the file and clear the subplot for next frame.
         save_name = (f'{frame_time.strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_'
@@ -237,4 +256,4 @@ def plot_movie_generator(time_range: Sequence[Union[datetime, str]], mission: st
     
 if __name__ == "__main__":
     plot_movie((datetime(2017, 9, 15, 2, 34, 0), datetime(2017, 9, 15, 2, 36, 0)), 
-                'THEMIS', 'RANK', color_norm='log')
+                'THEMIS', 'RANK', color_norm='log', azel_contours=True)

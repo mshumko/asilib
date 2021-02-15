@@ -50,14 +50,46 @@ class TestProjectLLAtoSkyfield(unittest.TestCase):
         """
         Tests that the input LLA track corresponds to a north-south 
         path other REGO/ATHA.
+
+        ATHA is at lon=-113, and the satellite track is lon=-112
+        (the pass is to the east). The azimuth values should go
+        0 -> 90 -> 180 degrees and not 0 -> 270 -> 180 degrees
         """
-        n = 50
+        n = 10
         lats = np.linspace(60, 50, n)
-        lons = -113.64*np.ones(n)
-        alts = 500**np.ones(n)
+        lons = -112.64*np.ones(n)
+        alts = 500*np.ones(n)
         lla = np.array([lats, lons, alts]).T
 
-        azel, pixel_index = lla_to_skyfield('REGO', 'ATHA', lla)
+        sat_azel, asi_pixels = lla_to_skyfield('REGO', 'ATHA', lla)
+
+        reference_sat_azel = np.array(
+            [[  5.32950314,  35.80304471],
+            [  6.91647509,  42.82120867],
+            [  9.58464224,  51.65418672],
+            [ 14.9730986 ,  62.57537388],
+            [ 30.74319057,  74.99556918],
+            [104.74451595,  81.72800427],
+            [154.58750264,  71.34691226],
+            [165.44993506,  59.1799343 ],
+            [169.72328434,  48.8782155 ],
+            [171.98265159,  40.62183087]]
+            )
+
+        reference_asi_pixels = np.array(
+            [[235., 116.],
+            [233., 134.],
+            [231., 158.],
+            [229., 188.],
+            [227., 223.],
+            [226., 262.],
+            [225., 300.],
+            [224., 335.],
+            [225., 363.],
+            [225., 385.]]
+            )
+        np.testing.assert_array_almost_equal(sat_azel, reference_sat_azel)
+        np.testing.assert_array_almost_equal(asi_pixels, reference_asi_pixels)
         return
 
 

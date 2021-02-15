@@ -1,21 +1,18 @@
-from datetime import datetime
-from contextlib import closing
-import pathlib
+from typing import Sequence, Tuple
 
 import numpy as np
-import skyfield.api
-import cdflib
+import pymap3d
 import scipy.spatial
 
 from asilib.load import load_cal_file
 
 
 def lla_to_skyfield(mission, station, sat_lla, 
-                        force_download: bool=False):
+                    force_download: bool=False) -> Tuple[np.ndarray, np.ndarray]:
     """
     This function projects, i.e. maps, a satellite's latitude, longitude, and altitude 
     (LLA) coordinates to the ASI's azimuth and elevation coordinates and pixel index. 
-    This function is useful to plot a satellite's location in the ASI image using the 
+    This function is useful to plot a satellite's location in the ASI image using the
     pixel indices.
 
     Parameters
@@ -69,38 +66,29 @@ def lla_to_skyfield(mission, station, sat_lla,
     # Load the catalog
     cal_dict = load_cal_file(mission, station, force_download=force_download)
 
-    # Set up the ground station object.
-    with closing(skyfield.api.load('de421.bsp')) as planets:
-        earth = planets['earth']
-        station = earth + skyfield.api.Topos(
-                                latitude_degrees=cal_dict['SITE_MAP_LATITUDE'], 
-                                longitude_degrees=cal_dict['SITE_MAP_LONGITUDE'], 
-                                elevation_m=cal_dict['SITE_MAP_ALTITUDE'])
-        ts = skyfield.api.load.timescale()
-        t = ts.utc(datetime.now().year)  # This argument should not matter.
+    sat_azel = np.nan*np.zeros((sat_lla.shape[0], 2))
 
-        sat_azel = np.nan*np.zeros((sat_lla.shape[0], 2))
+    # Loop over every set of LLA coordinates and use pymap3d.geodetic2aer
+    # to map to the azimuth and elevation.
+    for i, (lat_i, lon_i, alt_km_i) in enumerate(sat_lla):
+        # Check if lat, lon, or alt is nan or -1E31 
+        # (the error value in the IRBEM library).
+        any_nan = bool(len(
+            np.where(np.isnan([lat_i, lon_i, alt_km_i]))[0]
+            ))
+        any_neg = bool(len(
+            np.where(np.array([lat_i, lon_i, alt_km_i]) == -1E31)[0]
+            ))
+        if any_nan or any_neg:
+            continue
 
-        for i, (lat_i, lon_i, alt_km_i) in enumerate(sat_lla):
-            # Check if lat, lon, or alt is nan or -1E31 
-            # (the error value in the IRBEM library).
-            any_nan = bool(len(
-                np.where(np.isnan([lat_i, lon_i, alt_km_i]))[0]
-                ))
-            any_neg = bool(len(
-                np.where(np.array([lat_i, lon_i, alt_km_i]) == -1E31)[0]
-                ))
-            if any_nan or any_neg:
-                continue
-            sat_i = earth + skyfield.api.Topos(
-                                latitude_degrees=lat_i, 
-                                longitude_degrees=lon_i, 
-                                elevation_m=1E3*alt_km_i
-                                )
-            astro = station.at(t).observe(sat_i)
-            app = astro.apparent()
-            el_i, az_i, _ = app.altaz()
-            sat_azel[i, :] = az_i.degrees, el_i.degrees
+        az, el, _ = pymap3d.geodetic2aer(
+            lat_i, lon_i, 1E3*alt_km_i, 
+            cal_dict['SITE_MAP_LATITUDE'], 
+            cal_dict['SITE_MAP_LONGITUDE'], 
+            cal_dict['SITE_MAP_ALTITUDE']
+            )
+        sat_azel[i, :] = [az, el]
 
     # Now find the corresponding x- and y-axis pixel indices.
     asi_pixels = _map_azel_to_pixel(sat_azel, cal_dict)
@@ -113,7 +101,7 @@ def lla_to_skyfield(mission, station, sat_lla,
     else:
         return sat_azel, asi_pixels
 
-def _map_azel_to_pixel(sat_azel, cal_dict):
+def _map_azel_to_pixel(sat_azel: np.ndarray, cal_dict: dict) -> np.ndarray:
     """
     Given the 2d array of the satellite's azimuth and elevation, locate 
     the nearest ASI calibration x- and y-axis pixel indices. Note that the 
@@ -134,9 +122,9 @@ def _map_azel_to_pixel(sat_azel, cal_dict):
         An array with the same shape as sat_azel, but representing the
         x- and y-axis pixel indices in the ASI image.
     """
-    az_coords = cal_dict['FULL_AZIMUTH'].ravel()
+    az_coords = cal_dict['FULL_AZIMUTH'][::-1, ::-1].ravel()
     az_coords[np.isnan(az_coords)] = -10000
-    el_coords = cal_dict['FULL_ELEVATION'].ravel()
+    el_coords = cal_dict['FULL_ELEVATION'][::-1, ::-1].ravel()
     el_coords[np.isnan(el_coords)] = -10000
     asi_azel_cal = np.stack((az_coords, el_coords), axis=-1)
 

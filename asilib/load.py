@@ -80,13 +80,13 @@ def load_img_file(time: Union[datetime, str], mission: str, station: str,
                 download_path = download_themis.download_themis_img(time, station, 
                                 force_download=force_download)[0]
             except NotADirectoryError:
-                raise ValueError(f'THEMIS ASI data not found for station {station} on day {time.date()}')
+                raise FileNotFoundError(f'THEMIS ASI data not found for station {station} on day {time.date()}')
         elif mission.lower() == 'rego':
             try:
                 download_path = download_rego.download_rego_img(time, station,
                                 force_download=force_download)[0]
             except NotADirectoryError:
-                raise ValueError(f'REGO ASI data not found for station {station} on day {time.date()}')
+                raise FileNotFoundError(f'REGO ASI data not found for station {station} on day {time.date()}')
     else:
         raise ValueError(f"Not sure what happend here. I found {matched_paths} mathching paths.")
 
