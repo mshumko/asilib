@@ -109,4 +109,4 @@ I adoped the [black](https://pypi.org/project/black/) style with two modificatio
 ```python3 -m black -l 100 -S asilib/```.
 
 ## Change version
-To change the version you will need to 
+To change the version you will need to use `bumpversion` to bump the version by a major X.0.0, minor, 0.X.0, or patch 0.0.X (where X is incremented). Call ```bumpversion [major|minor|patch]``` in the command line to increment the version number.
