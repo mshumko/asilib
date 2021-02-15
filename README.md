@@ -93,5 +93,15 @@ There are two modules that plot a single frame or a series of frames.
 * `asilib.map_skyfield()`: maps the satellite coordinates from LLA (latitude, longitude, altitudes) to the ASI image x and y pixel indices. This function relies on the azimuth and elevation calibration files that can be downloaded via `asilib.load_cal_file()`. This function does **not** map the satellite position along the magnetic field line, that is done by `map_along_magnetic_field.py` and requires IRBEM-Lib to be installed (beyond the scope of this user guide).
 * `map_along_magnetic_field.py`: magnetically maps the satellite LLA coordinates with time stamps to a specified altitude. The hemisphere of the mapping can be: same, opposite, northern, or southern. 
 
+# Contributing
+I welcome collaboration on this project. I need the most help with keeping up with documentation, writing more unittests, and adding other ASI missions. Please contact me or start a Pull Request with your suggestions. 
+
 ## Testing
-To run the asilib unit tests, change directory into `asi-lib` and run ```python3 -m unittest discover -v```. These tests take a few minutes to run because it will download REGO and THEMIS image files.
+To run the asilib unit tests, change directory into `asi-lib` and run ```python3 -m unittest discover -v```. These tests take a few minutes to run because it must download REGO and THEMIS image files. 
+
+These tests are continously intergrated when the `main` branch is updated by a GitHub runner (virtual machine) using `pytest` and the configuration is saved in `.github/workflows/ci.yml`.
+
+## Styling with black
+I adoped the [black](https://pypi.org/project/black/) style with two modifications: line length is set to 100 characters, and I suppress the double-quote string setting. To run black from the `aurora-asi-lib` directory, run 
+
+```python3 -m black -l 100 -S asilib/```.
