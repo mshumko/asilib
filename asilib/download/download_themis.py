@@ -22,17 +22,22 @@ if not pathlib.Path(config.ASI_DATA_DIR, 'themis').exists():
     pathlib.Path(config.ASI_DATA_DIR, 'themis').mkdir()
 
 
-def download_themis_img(day: Union[datetime, str], station: str, download_hour: bool=True,
-            force_download: bool=False, test_flag: bool=False) -> List[pathlib.Path]:
+def download_themis_img(
+    day: Union[datetime, str],
+    station: str,
+    download_hour: bool = True,
+    force_download: bool = False,
+    test_flag: bool = False,
+) -> List[pathlib.Path]:
     """
     This function downloads the THEMIS ASI image data given the day, station name,
     and a flag to download a single hour file or the entire day. The images
-    are saved to the config.ASI_DATA_DIR / 'themis' directory. 
+    are saved to the config.ASI_DATA_DIR / 'themis' directory.
 
     Parameters
     ----------
     day: datetime.datetime or str
-        The date and time to download the data from. If day is string, 
+        The date and time to download the data from. If day is string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object.
     station: str
@@ -57,7 +62,7 @@ def download_themis_img(day: Union[datetime, str], station: str, download_hour: 
 
     day = datetime(2017, 4, 13, 5)
     station = 'LUCK'
-    asilib.download_themis_img(day, station) 
+    asilib.download_themis_img(day, station)
     """
     if isinstance(day, str):
         day = dateutil.parser.parse(day)
@@ -68,10 +73,12 @@ def download_themis_img(day: Union[datetime, str], station: str, download_hour: 
         # Find an image file for the hour.
         search_pattern = f'{station.lower()}_{day.strftime("%Y%m%d%H")}'
         file_names = download_rego.search_hrefs(url, search_pattern=search_pattern)
-        
+
         # Download file
         download_url = url + file_names[0]  # On the server
-        download_path = pathlib.Path(config.ASI_DATA_DIR, 'themis', file_names[0])  # On the local machine.
+        download_path = pathlib.Path(
+            config.ASI_DATA_DIR, 'themis', file_names[0]
+        )  # On the local machine.
         # Download if force_download=True or the file does not exist.
         if force_download or (not download_path.is_file()):
             download_rego.stream_large_file(download_url, download_path, test_flag=test_flag)
@@ -91,7 +98,7 @@ def download_themis_img(day: Union[datetime, str], station: str, download_hour: 
         return download_paths
 
 
-def download_themis_cal(station: str, force_download: bool=False):
+def download_themis_cal(station: str, force_download: bool = False):
     """
     This function downloads the calibration cdf files for the
     station THEMIS ASI.
@@ -102,7 +109,7 @@ def download_themis_cal(station: str, force_download: bool=False):
         The station name, case insensitive
     force_download: bool (optional)
         If True, download the file even if it already exists.
-    
+
     Returns
     -------
     None
@@ -112,14 +119,14 @@ def download_themis_cal(station: str, force_download: bool=False):
     import asilib
 
     station = 'LUCK'
-    asilib.download_themis_cal(station) 
+    asilib.download_themis_cal(station)
     """
     # Create the calibration directory in data/themis/cal
     save_dir = config.ASI_DATA_DIR / 'themis' / 'cal'
     if not save_dir.is_dir():
         save_dir.mkdir()
         print(f'Made directory at {save_dir}')
-    
+
     # Search all of the skymap files with the macthing station name.
     search_pattern = f'themis_skymap_{station.lower()}'
     file_names = download_rego.search_hrefs(CAL_BASE_URL, search_pattern=search_pattern)

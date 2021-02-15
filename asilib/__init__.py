@@ -4,8 +4,10 @@ import pathlib
 # Check that the package has been configured and config.py file exists.
 here = pathlib.Path(__file__).parent.resolve()
 if not pathlib.Path(here / 'config.py').is_file():
-    warnings.warn('config.py file with the ASI data directory not found. '
-                'Did you run "python3 -m asi config"?')
+    warnings.warn(
+        'config.py file with the ASI data directory not found. '
+        'Did you run "python3 -m asi config"?'
+    )
 else:
     # Import download programs.
     from asilib.download.download_rego import download_rego_img, download_rego_cal
@@ -21,10 +23,13 @@ else:
     from asilib.plot_frame import plot_frame
     from asilib.plot_movie import plot_movie, plot_movie_generator
 
-    # Import the skyfield and magnetic field mapping functions. 
+    # Import the skyfield and magnetic field mapping functions.
     from asilib.project_lla_to_skyfield import lla_to_skyfield
+
     try:
         from asilib.map_along_magnetic_field import map_along_magnetic_field
     except ImportError:
-        warnings.warn("The IRBEM-Lib magnetic field library is not installed: "
-                    "map_along_magnetic_field() won't work.")
+        warnings.warn(
+            "The IRBEM-Lib magnetic field library is not installed: "
+            "map_along_magnetic_field() won't work."
+        )

@@ -1,7 +1,7 @@
 import sys
 import pathlib
 
-# Run the configuration script when the user runs 
+# Run the configuration script when the user runs
 # python3 -m asilib [init, initialize, config, or configure]
 
 here = pathlib.Path(__file__).parent.resolve()
@@ -10,11 +10,13 @@ here = pathlib.Path(__file__).parent.resolve()
 if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'configure']):
     print('Running the configuration script.')
     # SAMPEX Data dir
-    s = (f'What is the aurora data directory? Press enter to not specify. '
-         f'If the directory is not specified, /aurora-asi-lib/data/ folder will be created.')
+    s = (
+        f'What is the aurora data directory? Press enter to not specify. '
+        f'If the directory is not specified, /aurora-asi-lib/data/ folder will be created.'
+    )
     asi_data_dir = input(s)
-    
-    # If the user specified the directory, check that the ASI directory already exists 
+
+    # If the user specified the directory, check that the ASI directory already exists
     # and make that directory if it does not.
     if asi_data_dir != '':
         if not pathlib.Path(asi_data_dir).exists():
@@ -38,7 +40,9 @@ if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'con
         f.write(f'ASI_DATA_DIR = pathlib.Path("{asi_data_dir}")\n')
 
 else:
-    print('This is a configuration script to set up config.py file. The config '
+    print(
+        'This is a configuration script to set up config.py file. The config '
         'file contains the aurora data directory, and the base asilib '
         'directory (here). To get the prompt after this package is installed, run '
-        'python3 -m asilib config')
+        'python3 -m asilib config'
+    )

@@ -11,14 +11,17 @@ Unit tests to check that the functions in download_rego.py are working correctly
 Run with "python3 test_download_rego.py -v" for the verbose output.
 """
 
+
 class TestDownloadRego(unittest.TestCase):
     def setUp(self):
         """ Set up a few variables. """
         # http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/luck/2020/08/clg_l1_rgf_luck_2020080104_v01.cdf
         self.day = datetime(2020, 8, 1, 4)
         self.station = 'Luck'
-        self.url = (download_rego.IMG_BASE_URL + 
-            f'{self.station.lower()}/{self.day.year}/{str(self.day.month).zfill(2)}/')
+        self.url = (
+            download_rego.IMG_BASE_URL
+            + f'{self.station.lower()}/{self.day.year}/{str(self.day.month).zfill(2)}/'
+        )
         return
 
     def test_server_response(self):
@@ -27,8 +30,8 @@ class TestDownloadRego(unittest.TestCase):
         status_code = r.status_code
         # Check that the server status code is not
         # between 400-599 (error).
-        self.assertNotEqual(status_code//100, 4)
-        self.assertNotEqual(status_code//100, 5)
+        self.assertNotEqual(status_code // 100, 4)
+        self.assertNotEqual(status_code // 100, 5)
         return
 
     def test_href_is_found(self):
@@ -38,7 +41,7 @@ class TestDownloadRego(unittest.TestCase):
         self.assertTrue(matched_hrefs[0], 'clg_l1_rgf_luck_2020080104_v01.cdf')
 
     def test_download_img(self):
-        """ 
+        """
         Test the full REGO data downloader and download an hour file
         clg_l1_rgf_luck_2020080104_v01.cdf to ./rego/.
         """
