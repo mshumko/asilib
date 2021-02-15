@@ -24,9 +24,9 @@ class TestProjectLLAtoSkyfield(unittest.TestCase):
         # Test the El values
         self.assertEqual(round(azel[1]), 90)
 
-        # Test the AzEl indices
-        self.assertEqual(pixel_index[0], 126)
-        self.assertEqual(pixel_index[1], 127)
+        # Test that the AzEl indices are witin 3 pixels of zenith.
+        self.assertTrue(abs(pixel_index[0]-128) < 3)
+        self.assertTrue(abs(pixel_index[0]-128) < 3)
         return
 
     def test_rego_lla_to_azel(self):
@@ -41,9 +41,9 @@ class TestProjectLLAtoSkyfield(unittest.TestCase):
         self.assertEqual(round(azel[0]), 137)
         self.assertEqual(round(azel[1]), 90)
 
-        # Test that the AzEl indices are within 20 pixels of zenith.
-        self.assertTrue(abs(pixel_index[0] - 256) < 20)
-        self.assertTrue(abs(pixel_index[0] - 256) < 20)
+        # Test that the AzEl indices are within 15 pixels of zenith.
+        self.assertTrue(abs(pixel_index[0] - 256) < 15)
+        self.assertTrue(abs(pixel_index[0] - 256) < 15)
         return
 
     def test_rego_lla_to_azel_track(self):
@@ -56,7 +56,7 @@ class TestProjectLLAtoSkyfield(unittest.TestCase):
         0 -> 90 -> 180 degrees and not 0 -> 270 -> 180 degrees
         """
         n = 10
-        lats = np.linspace(60, 50, n)
+        lats = np.linspace(70, 40, n)
         lons = -112.64*np.ones(n)
         alts = 500*np.ones(n)
         lla = np.array([lats, lons, alts]).T
@@ -64,29 +64,29 @@ class TestProjectLLAtoSkyfield(unittest.TestCase):
         sat_azel, asi_pixels = lla_to_skyfield('REGO', 'ATHA', lla)
 
         reference_sat_azel = np.array(
-            [[  5.32950314,  35.80304471],
-            [  6.91647509,  42.82120867],
-            [  9.58464224,  51.65418672],
+            [[  1.29535674,   7.86276448],
+            [  1.9053143 ,  13.57476298],
+            [  2.97096799,  21.86606296],
+            [  5.32950314,  35.80304471],
             [ 14.9730986 ,  62.57537388],
-            [ 30.74319057,  74.99556918],
-            [104.74451595,  81.72800427],
             [154.58750264,  71.34691226],
-            [165.44993506,  59.1799343 ],
-            [169.72328434,  48.8782155 ],
-            [171.98265159,  40.62183087]]
+            [171.98265159,  40.62183087],
+            [175.0067123 ,  24.4947799 ],
+            [176.25685658,  15.2649472 ],
+            [176.94287565,   9.09964082]]
             )
 
         reference_asi_pixels = np.array(
-            [[235., 116.],
-            [233., 134.],
-            [231., 158.],
-            [229., 188.],
-            [227., 223.],
-            [226., 262.],
-            [225., 300.],
-            [224., 335.],
-            [225., 363.],
-            [225., 385.]]
+            [[268., 469.],
+            [270., 454.],
+            [272., 432.],
+            [276., 395.],
+            [282., 323.],
+            [286., 211.],
+            [286., 126.],
+            [284.,  84.],
+            [283.,  59.],
+            [282.,  43.]]
             )
         np.testing.assert_array_almost_equal(sat_azel, reference_sat_azel)
         np.testing.assert_array_almost_equal(asi_pixels, reference_asi_pixels)
