@@ -21,7 +21,7 @@ import IRBEM
 
 def map_along_magnetic_field(
     space_time:np.ndarray, map_alt:float, b_model: str='OPQ77', 
-    maginput: dict={}, hemisphere: int=0
+    maginput: dict=None, hemisphere: int=0
     ) -> np.ndarray:
     """
     This function uses the IRBEM-Lib library to map the spacecraft's position: 
