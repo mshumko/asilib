@@ -21,4 +21,8 @@ else:
 
     # Import the magnetic field mapping 
     from asilib.project_lla_to_skyfield import lla_to_skyfield
-    from asilib.map_along_magnetic_field import map_along_magnetic_field
+    try:
+        from asilib.map_along_magnetic_field import map_along_magnetic_field
+    except ImportError:
+        warnings.warn("The IRBEM-Lib magnetic field library is not installed: "
+                    "map_along_magnetic_field() won't work.")
