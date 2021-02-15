@@ -1,23 +1,18 @@
-from datetime import datetime
-from contextlib import closing
-import pathlib
 from typing import Sequence, Tuple
 
 import numpy as np
-import skyfield.api
 import pymap3d
-import cdflib
 import scipy.spatial
 
 from asilib.load import load_cal_file
 
 
 def lla_to_skyfield(mission, station, sat_lla, 
-                        force_download: bool=False) -> Tuple[np.ndarray, np.ndarray]:
+                    force_download: bool=False) -> Tuple[np.ndarray, np.ndarray]:
     """
     This function projects, i.e. maps, a satellite's latitude, longitude, and altitude 
     (LLA) coordinates to the ASI's azimuth and elevation coordinates and pixel index. 
-    This function is useful to plot a satellite's location in the ASI image using the 
+    This function is useful to plot a satellite's location in the ASI image using the
     pixel indices.
 
     Parameters
@@ -106,7 +101,7 @@ def lla_to_skyfield(mission, station, sat_lla,
     else:
         return sat_azel, asi_pixels
 
-def _map_azel_to_pixel(sat_azel, cal_dict):
+def _map_azel_to_pixel(sat_azel: np.ndarray, cal_dict: dict) -> np.ndarray:
     """
     Given the 2d array of the satellite's azimuth and elevation, locate 
     the nearest ASI calibration x- and y-axis pixel indices. Note that the 
