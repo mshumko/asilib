@@ -1,3 +1,4 @@
+![Test python package](https://github.com/mshumko/aurora-asi-lib/workflows/Test%20python%20package/badge.svg)
 # aurora-asi-lib
 Easily download, plot, animate, and analyze aurora all sky imager (ASI) data. Currently the two supported camera systems (missions) are: 
 * Red-line Emission Geospace Observatory (REGO)
