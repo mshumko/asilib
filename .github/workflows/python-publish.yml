@@ -33,7 +33,7 @@ jobs:
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
-        password: ${{ secrets.TWINE_TEST_TOKEN }}
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
         repository_url: https://test.pypi.org/legacy/
   
     - name: Publish distribution to PyPI
@@ -41,4 +41,4 @@ jobs:
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
-        password: ${{ secrets.TWINE_TEST_TOKEN }}
+        password: ${{ secrets.PYPI_API_TOKEN }}
