@@ -10,3 +10,5 @@ config.py
 *.sav
 de421.bsp
 movies/
+build/
+dist/
