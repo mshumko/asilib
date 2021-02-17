@@ -147,7 +147,7 @@ def plot_frame(
         )
         plt.clabel(az_contours, inline=True, fontsize=8)
         plt.clabel(el_contours, inline=True, fontsize=8, rightside_up=True)
-    return frame_time, ax, im
+    return frame_time, ax, im  # TODO: Add the image array return statement and update docs.
 
 
 if __name__ == '__main__':

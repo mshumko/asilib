@@ -258,7 +258,7 @@ def plot_movie_generator(
 
         # Give the user the control of the subplot, image object, and return the frame time
         # so that the user can manipulate the image to add, for example, the satellite track.
-        yield frame_time, ax, im
+        yield frame_time, ax, im  # TODO: Add the image array return statement and update docs.
 
         # Save the file and clear the subplot for next frame.
         save_name = (
@@ -268,6 +268,7 @@ def plot_movie_generator(
         save_paths.append(save_dir / save_name)
 
     # Make the movie
+    # TODO: Add a temp/ subfolder with the start time to save the png files.
     movie_file_name = (
         f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_'
         f'{frame_times[-1].strftime("%H%M%S")}_'
