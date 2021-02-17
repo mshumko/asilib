@@ -40,27 +40,30 @@ asilib.plot_movie(time_range, 'THEMIS', 'FSMI')
 ```
 
 ## Installation
-Run these terminal commands to install the dependencies into a virtual environment and configure the data paths:
+To install this package as a user, run:
 
 ```shell
+python3 -m pip install aurora-asi-lib
+```
 
+To install this package as a developer, run:
+
+```shell
 git clone git@github.com:mshumko/aurora-asi-lib.git
 cd aurora-asi-lib
-
-python3 -m pip install .  # (don't forget the .)
-#  or 
 pip3 install -r requirements.txt
 ```
 
-You'll need to configure your system paths to tell asilib where to save the ASI data and movies. Run ```python3 -m asilib config``` to set up the data directory where the image, calibration, and movie files will be saved. Your settings wll be stored in `config.py`
 
-__NOTES__
-- If you get the "ERROR: Could not build wheels for pymap3d which use PEP 517 and cannot be installed directly" error when installing, you need to upgrade your pip, setuptools, and wheel libaries via ```python3 -m pip install --upgrade pip setuptools wheel```.
+In either case, you'll need to configure your system paths to tell `asilib` (the import name) where to save the ASI data and movies. Run ```python3 -m asilib config``` to set up the data directory where the image, calibration, and movie files will be saved. Your settings will be stored in `config.py`. If you configure `asilib`, but don't specify a data directory, a default directory in `~/asilib-data` will be created if it doesn't exist.
 
 ### ffmpeg dependency
 To make  movies you'll also need to install the ffmpeg library.
  - **Ubuntu**: ```apt install ffmpeg```
  - **Mac**: ```brew install ffmpeg```
+
+__NOTES__
+- If you get the "ERROR: Could not build wheels for pymap3d which use PEP 517 and cannot be installed directly" error when installing, you need to upgrade your pip, setuptools, and wheel libaries via ```python3 -m pip install --upgrade pip setuptools wheel```.
 
 ## User Guide
 **Note** These are top-level descriptions: The full parameter list and an example for each function is accessible via the built-in ```help()``` function. 
