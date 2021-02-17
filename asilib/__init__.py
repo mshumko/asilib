@@ -8,7 +8,7 @@ here = pathlib.Path(__file__).parent.resolve()
 if not pathlib.Path(here / 'config.py').is_file():
     warnings.warn(
         'config.py file with the ASI data directory not found. '
-        'Did you run "python3 -m asi config"?'
+        'Did you run "python3 -m asilib config"?'
     )
 else:
     # Import download programs.
@@ -32,6 +32,6 @@ else:
         from asilib.map_along_magnetic_field import map_along_magnetic_field
     except ImportError:
         warnings.warn(
-            "The IRBEM-Lib magnetic field library is not installed: "
-            "map_along_magnetic_field() won't work."
+            "The IRBEM-Lib magnetic field library is not installed so "
+            "asilib.map_along_magnetic_field() won't work."
         )
