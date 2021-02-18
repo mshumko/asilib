@@ -116,4 +116,6 @@ I adoped the [black](https://pypi.org/project/black/) style with two modificatio
 ```python3 -m black -l 100 -S asilib/```.
 
 ## Change version
-To change the version you will need to use `bumpversion` to bump the version by a major X.0.0, minor, 0.X.0, or patch 0.0.X (where X is incremented). Call ```bumpversion [major|minor|patch]``` in the command line to increment the version number.
+Read this entire section before running `bumpversion`. To change the version you will need to use `bumpversion` to bump the version by a major X.0.0, minor, 0.X.0, or patch 0.0.X (where X is incremented). Call ```bumpversion [major|minor|patch]``` in the command line to increment the version number. When you run this command, you should push the automatically created tag (`git push origin tag vX.Y.Z`,) commit to GitHub, and create a new release on GitHub to trigger an upload to 
+
+__CAUTION:__ before you run bumpversion, delete `config.py`. You need to do this to avoid packaging config.py in the PyPI source distribution and wheel. If you use `MANIFEST.in` to exclude `config.py` from the packaging, the source distribution will not have config.py __but__ the wheel will. This is a [bug](https://github.com/pypa/setuptools/issues/511). 
