@@ -55,7 +55,7 @@ def load_img_file(
     # Download data if force_download == True:
     # Check if the REGO or THEMIS data is already saved locally.
     search_path = pathlib.Path(config.ASI_DATA_DIR, mission.lower())
-    search_pattern = f'*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
+    search_pattern = f'*asf*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
     matched_paths = list(search_path.rglob(search_pattern))
     # Try to download files if one is not found locally.
 
