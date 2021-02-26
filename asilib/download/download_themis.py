@@ -44,7 +44,10 @@ def download_themis_img(
         The station id to download the data from.
     download_hour: bool (optinal)
         If True, will download only one hour of image data, otherwise it will
-        download image data from the entire day.
+        download image data from the entire folder (typically a month)
+        from URL = IMG_BASE_URL/station/year/month. This kwarg is useful if you
+        need to download recently-uploaded data that is not fully processed
+        and has the YYYYMMDD (not YYYYMMDDHH) date string in the filename. 
     force_download: bool (optional)
         If True, download the file even if it already exists.
 
