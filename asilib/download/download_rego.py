@@ -188,13 +188,14 @@ def stream_large_file(url, save_path, test_flag: bool = False):
     return
 
 
-def search_hrefs(url: str, search_pattern: str = '') -> List[str]:
+def search_hrefs(url: str, search_pattern: str = '.cdf') -> List[str]:
     """
     Given a url string, this function returns all of the
-    hyper references (hrefs, or hyperlinks) if search_pattern=='',
-    or a specific href that contains the search_pattern. If search_pattern
-    is not found, this function raises a NotADirectoryError. The
-    search is case-insensitive, and it doesn't return the '../' href.
+    hyper references (hrefs, or hyperlinks). If search_pattern is not 
+    specified, a default '.cdf' value is assumed and this function
+    will return all hrefs with the CDF extension. If no hrefs containing
+    search_pattern are found, this function raises a NotADirectoryError. 
+    The search is case-insensitive.
 
     Parameters
     ----------
@@ -202,6 +203,7 @@ def search_hrefs(url: str, search_pattern: str = '') -> List[str]:
         A url in string format
     search_pattern: str (optional)
         Find the exact search_pattern text contained in the hrefs.
+        By default all hrefs matching the extension ".cdf" are returned.
 
     Returns
     -------
