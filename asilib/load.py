@@ -19,8 +19,8 @@ def load_img_file(
     time: Union[datetime, str], mission: str, station: str, force_download: bool = False
 ) -> cdflib.cdfread.CDF:
     """
-    Loads the REGO or THEMIS ASI CDF file and downloads one if it doesn't
-    exist on the local computer.
+    Loads the REGO or THEMIS ASI full image (ASF) CDF files and downloads one if it 
+    doesn't exist locally.
 
     Parameters
     ----------
@@ -97,7 +97,7 @@ def load_img_file(
                     f'REGO ASI data not found for station {station} on day {time.date()}'
                 )
     else:
-        raise ValueError(f"Not sure what happend here. I found {matched_paths} mathching paths.")
+        raise ValueError(f"Not sure what happend here. I found {matched_paths} matching paths.")
 
     # If we made it here, we either found a local file, or downloaded one
     return cdflib.CDF(download_path)
