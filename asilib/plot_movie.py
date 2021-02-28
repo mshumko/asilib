@@ -182,7 +182,7 @@ def plot_movie_generator(
     # not exist.
     save_dir = pathlib.Path(config.ASI_DATA_DIR, 'movies', 'frames',
         f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_'
-        f'{station.lower()}.png') 
+        f'{station.lower()}') 
     if not save_dir.is_dir():
         save_dir.mkdir(parents=True)
         print(f'Created a {save_dir} directory')
