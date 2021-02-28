@@ -99,23 +99,3 @@ There are two modules that plot a single frame or a series of frames.
 ### Mapping satellite position to the skyfield
 * `asilib.map_skyfield()`: maps the satellite coordinates from LLA (latitude, longitude, altitudes) to the ASI image x and y pixel indices. This function relies on the azimuth and elevation calibration files that can be downloaded via `asilib.load_cal_file()`. This function does **not** map the satellite position along the magnetic field line, that is done by `map_along_magnetic_field.py` and requires IRBEM-Lib to be installed (beyond the scope of this user guide).
 * `map_along_magnetic_field.py`: magnetically maps the satellite LLA coordinates with time stamps to a specified altitude. The hemisphere of the mapping can be: same, opposite, northern, or southern. 
-
-# Contributing
-I welcome collaboration on this project. I need the most help with keeping up with documentation, writing more unittests, and adding other ASI missions. Please contact me or start a Pull Request with your suggestions. 
-
-To install the developer dependencies, clone this repo, `cd aurora-asi-lib` and then run `python3 -m pip install -r requirements.txt -e .`
-
-## Testing
-To run the asilib unit tests, change directory into `asi-lib` and run ```python3 -m unittest discover -v```. These tests take a few minutes to run because it must download REGO and THEMIS image files. 
-
-These tests are continously intergrated when the `main` branch is updated by a GitHub runner (virtual machine) using `pytest` and the configuration is saved in `.github/workflows/ci.yml`.
-
-## Styling with black
-I adoped the [black](https://pypi.org/project/black/) style with two modifications: line length is set to 100 characters, and I suppress the double-quote string setting. To run black from the `aurora-asi-lib` directory, run 
-
-```python3 -m black -l 100 -S asilib/```.
-
-## Change version
-Read this entire section before running `bumpversion`. To change the version you will need to use `bumpversion` to bump the version by a major X.0.0, minor, 0.X.0, or patch 0.0.X (where X is incremented). Call ```bumpversion [major|minor|patch]``` in the command line to increment the version number. When you run this command, you should push the automatically created tag (`git push origin tag vX.Y.Z`,) commit to GitHub, and create a new release on GitHub to trigger an upload to 
-
-__CAUTION:__ before you run bumpversion, delete `config.py`. You need to do this to avoid packaging config.py in the PyPI source distribution and wheel. If you use `MANIFEST.in` to exclude `config.py` from the packaging, the source distribution will not have config.py __but__ the wheel will. This is a [bug](https://github.com/pypa/setuptools/issues/511). 
