@@ -1,5 +1,5 @@
 import pathlib
-from typing import List, Union, Optional, Sequence, Generator
+from typing import List, Union, Optional, Sequence, Generator, Tuple
 from datetime import datetime
 
 import matplotlib
@@ -56,13 +56,6 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
         The movie frame rate.
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
-    delete_pngs: bool
-        Remove the intermediate png files created for the ffmpeg library.
-        Be careful that if you call this function multiple times without
-        removing the png files, the files used in the movies come from the
-        search pattern mission_station. So if there are multiple times
-        from the same mission/station, those pngs will all be written to one
-        movie.
 
     Example
     -------
@@ -97,9 +90,8 @@ def plot_movie_generator(
     ax: plt.Axes = None,
     movie_format: str = 'mp4',
     frame_rate=10,
-    overwrite_output: bool = False,
-    delete_pngs: bool = True,
-    ) -> Generator[datetime, np.array, plt.Axes, matplotlib.image.AxesImage]:
+    overwrite_output: bool = False
+    ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
     """
     A generator function that loads the ASI data and then yields individual ASI images,
     frame by frame. This allows the user to add content to each frame, such as the
@@ -145,13 +137,6 @@ def plot_movie_generator(
     overwrite_output: bool
         If true, the output will be overwritten automatically. If false it will
         prompt the user to answer y/n.
-    delete_pngs: bool
-        Remove the intermediate png files created for the ffmpeg library.
-        Be careful that if you call this function multiple times without
-        removing the png files, the files used in the movies come from the
-        search pattern mission_station. So if there are multiple times
-        from the same mission/station, those pngs will all be written to one
-        movie.
 
     Yields
     ------
@@ -174,7 +159,7 @@ def plot_movie_generator(
     import asilib
 
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    movie_generator = asilib.plot_movie_generator(time_range, 'THEMIS, 'FSMI')
+    movie_generator = asilib.plot_movie_generator(time_range, 'THEMIS', 'FSMI')
 
     for frame_time, frame, im, ax in movie_generator:
         # The code that modifies each frame here.
@@ -195,7 +180,9 @@ def plot_movie_generator(
 
     # Create the movie directory inside config.ASI_DATA_DIR if it does
     # not exist.
-    save_dir = config.ASI_DATA_DIR / 'movies' / 'temp'
+    save_dir = pathlib.Path(config.ASI_DATA_DIR, 'movies', 'frames',
+        f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_'
+        f'{station.lower()}.png') 
     if not save_dir.is_dir():
         save_dir.mkdir(parents=True)
         print(f'Created a {save_dir} directory')
@@ -229,13 +216,9 @@ def plot_movie_generator(
 
         im = ax.imshow(frame, cmap=color_map, norm=norm, origin='lower')
         if add_label:
-            ax.text(
-                0,
-                0,
+            ax.text(0, 0,
                 f"{mission}/{station}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}",
-                va='bottom',
-                transform=ax.transAxes,
-                color='white',
+                va='bottom', transform=ax.transAxes, color='white',
             )
 
         if azel_contours:
@@ -253,22 +236,14 @@ def plot_movie_generator(
         save_paths.append(save_dir / save_name)
 
     # Make the movie
-    # TODO: Add a temp/ subfolder with the start time to save the png files.
     movie_file_name = (
         f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_'
         f'{frame_times[-1].strftime("%H%M%S")}_'
         f'{mission.lower()}_{station.lower()}.{movie_format}'
     )
-    movie_obj = ffmpeg.input(
-        str(save_dir) + f'/*{mission.lower()}_{station.lower()}.png',
-        pattern_type='glob',
-        framerate=frame_rate,
+    movie_obj = ffmpeg.input(str(save_dir) + f'/*.png', pattern_type='glob', framerate=frame_rate,
     )
-    movie_obj.output(str(save_dir.parent / movie_file_name)).run(overwrite_output=overwrite_output)
-    # Clean up.
-    if delete_pngs:
-        for path in save_paths:
-            path.unlink()
+    movie_obj.output(str(save_dir.parents[1] / movie_file_name)).run(overwrite_output=overwrite_output)
     return
 
 def _add_azel_contours(mission: str, station: str, ax: plt.Axes, 
