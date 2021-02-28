@@ -1,7 +1,7 @@
 import warnings
 import pathlib
 
-__version__ = '0.1.4'
+__version__ = '0.2.0'
 
 # Check that the package has been configured and config.py file exists.
 here = pathlib.Path(__file__).parent.resolve()
