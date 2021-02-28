@@ -19,7 +19,7 @@ def load_img_file(
     time: Union[datetime, str], mission: str, station: str, force_download: bool = False
 ) -> cdflib.cdfread.CDF:
     """
-    Loads the REGO or THEMIS ASI full image (ASF) CDF files and downloads one if it 
+    Loads the REGO or THEMIS ASI full image (ASF) CDF files and downloads one if it
     doesn't exist locally.
 
     Parameters

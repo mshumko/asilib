@@ -47,7 +47,7 @@ def download_themis_img(
         download image data from the entire folder (typically a month)
         from URL = IMG_BASE_URL/station/year/month. This kwarg is useful if you
         need to download recently-uploaded data that is not fully processed
-        and has the YYYYMMDD (not YYYYMMDDHH) date string in the filename. 
+        and has the YYYYMMDD (not YYYYMMDDHH) date string in the filename.
     force_download: bool (optional)
         If True, download the file even if it already exists.
 

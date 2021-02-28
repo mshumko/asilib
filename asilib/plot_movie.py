@@ -12,7 +12,9 @@ import asilib.load as load
 import asilib.config as config
 
 
-def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station: str, **kwargs) -> None:
+def plot_movie(
+    time_range: Sequence[Union[datetime, str]], mission: str, station: str, **kwargs
+) -> None:
     """
     A wrapper for plot_movie_generator() generator function. This function calls
     plot_movie_generator() in a for loop, nothing more. The two function's arguments
@@ -93,8 +95,8 @@ def plot_movie_generator(
     ax: plt.Axes = None,
     movie_format: str = 'mp4',
     frame_rate=10,
-    overwrite: bool = False
-    ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
+    overwrite: bool = False,
+) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
     """
     A generator function that loads the ASI data and then yields individual ASI images,
     frame by frame. This allows the user to add content to each frame, such as the
@@ -183,9 +185,12 @@ def plot_movie_generator(
 
     # Create the movie directory inside config.ASI_DATA_DIR if it does
     # not exist.
-    save_dir = pathlib.Path(config.ASI_DATA_DIR, 'movies', 'frames',
-        f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_'
-        f'{station.lower()}') 
+    save_dir = pathlib.Path(
+        config.ASI_DATA_DIR,
+        'movies',
+        'frames',
+        f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_' f'{station.lower()}',
+    )
     if not save_dir.is_dir():
         save_dir.mkdir(parents=True)
         print(f'Created a {save_dir} directory')
@@ -219,9 +224,13 @@ def plot_movie_generator(
 
         im = ax.imshow(frame, cmap=color_map, norm=norm, origin='lower')
         if add_label:
-            ax.text(0, 0,
+            ax.text(
+                0,
+                0,
                 f"{mission}/{station}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}",
-                va='bottom', transform=ax.transAxes, color='white',
+                va='bottom',
+                transform=ax.transAxes,
+                color='white',
             )
 
         if azel_contours:
@@ -244,14 +253,18 @@ def plot_movie_generator(
         f'{frame_times[-1].strftime("%H%M%S")}_'
         f'{mission.lower()}_{station.lower()}.{movie_format}'
     )
-    movie_obj = ffmpeg.input(str(save_dir) + f'/*.png', pattern_type='glob', framerate=frame_rate,
+    movie_obj = ffmpeg.input(
+        str(save_dir) + f'/*.png',
+        pattern_type='glob',
+        framerate=frame_rate,
     )
     movie_obj.output(str(save_dir.parents[1] / movie_file_name)).run(overwrite_output=overwrite)
     return
 
-def _add_azel_contours(mission: str, station: str, ax: plt.Axes, 
-                    force_download: bool, color: str='yellow'
-                    ) -> None:
+
+def _add_azel_contours(
+    mission: str, station: str, ax: plt.Axes, force_download: bool, color: str = 'yellow'
+) -> None:
     """
     Adds contours of azimuth and elevation to the movie frame.
 
@@ -261,7 +274,7 @@ def _add_azel_contours(mission: str, station: str, ax: plt.Axes,
         The mission id, can be either THEMIS or REGO.
     station: str
         The station id to download the data from.
-    ax: plt.Axes   
+    ax: plt.Axes
         The subplot that will be drawn on.
     force_download: bool
         If True, download the file even if it already exists.
@@ -287,6 +300,7 @@ def _add_azel_contours(mission: str, station: str, ax: plt.Axes,
     plt.clabel(az_contours, inline=True, fontsize=8, colors=color)
     plt.clabel(el_contours, inline=True, fontsize=8, colors=color, rightside_up=True)
     return
+
 
 if __name__ == "__main__":
     plot_movie(
