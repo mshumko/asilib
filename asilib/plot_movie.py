@@ -52,6 +52,9 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
     movie_format: str
         The movie format: mp4 has better compression but avi can be
         opened by the VLC player.
+    overwrite: bool
+        If true, the output will be overwritten automatically. If false it will
+        prompt the user to answer y/n.
     frame_rate: int
         The movie frame rate.
     color_norm: str
@@ -90,7 +93,7 @@ def plot_movie_generator(
     ax: plt.Axes = None,
     movie_format: str = 'mp4',
     frame_rate=10,
-    overwrite_output: bool = False
+    overwrite: bool = False
     ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
     """
     A generator function that loads the ASI data and then yields individual ASI images,
@@ -134,7 +137,7 @@ def plot_movie_generator(
         Sets the 'lin' linear or 'log' logarithmic color normalization.
     azel_contours: bool
         Switch azimuth and elevation contours on or off.
-    overwrite_output: bool
+    overwrite: bool
         If true, the output will be overwritten automatically. If false it will
         prompt the user to answer y/n.
 
@@ -243,7 +246,7 @@ def plot_movie_generator(
     )
     movie_obj = ffmpeg.input(str(save_dir) + f'/*.png', pattern_type='glob', framerate=frame_rate,
     )
-    movie_obj.output(str(save_dir.parents[1] / movie_file_name)).run(overwrite_output=overwrite_output)
+    movie_obj.output(str(save_dir.parents[1] / movie_file_name)).run(overwrite_output=overwrite)
     return
 
 def _add_azel_contours(mission: str, station: str, ax: plt.Axes, 
