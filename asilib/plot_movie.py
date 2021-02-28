@@ -12,9 +12,9 @@ import asilib.load as load
 import asilib.config as config
 
 
-def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station: str, **kwargs):
+def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station: str, **kwargs) -> None:
     """
-    A warpper for plot_movie_generator() generator function. This function calls
+    A wrapper for plot_movie_generator() generator function. This function calls
     plot_movie_generator() in a for loop, nothing more. The two function's arguments
     and keyword arguments are identical.
 
@@ -34,7 +34,7 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
         The station id to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
-    add_label: bool
+    add_label: boolsubplot
         Flag to add the "mission/station/frame_time" text to the plot.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
@@ -45,7 +45,7 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
         The lower and upper values of the color scale. If None, will
         automatically set it to low=1st_quartile and
         high=min(3rd_quartile, 10*1st_quartile)
-    ax: plt.subplot()
+    ax: plt.Axes
         The optional subplot that will be drawn on.
     azel_contours: bool
         Switch azimuth and elevation contours on or off.
@@ -79,7 +79,7 @@ def plot_movie(time_range: Sequence[Union[datetime, str]], mission: str, station
     """
     movie_generator = plot_movie_generator(time_range, mission, station, **kwargs)
 
-    for frame_time, im, ax in movie_generator:
+    for frame_time, frame, im, ax in movie_generator:
         pass
     return
 
@@ -94,12 +94,12 @@ def plot_movie_generator(
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
     azel_contours: bool = False,
-    ax: plt.subplot = None,
+    ax: plt.Axes = None,
     movie_format: str = 'mp4',
     frame_rate=10,
     overwrite_output: bool = False,
     delete_pngs: bool = True,
-) -> Generator[datetime, plt.Axes, matplotlib.image.AxesImage]:
+    ) -> Generator[datetime, np.array, plt.Axes, matplotlib.image.AxesImage]:
     """
     A generator function that loads the ASI data and then yields individual ASI images,
     frame by frame. This allows the user to add content to each frame, such as the
@@ -131,7 +131,7 @@ def plot_movie_generator(
         The lower and upper values of the color scale. If None, will
         automatically set it to low=1st_quartile and
         high=min(3rd_quartile, 10*1st_quartile)
-    ax: plt.subplot()
+    ax: plt.Axes
         The optional subplot that will be drawn on.
     movie_format: str
         The movie format: mp4 has better compression but avi can be
@@ -157,6 +157,8 @@ def plot_movie_generator(
     ------
     frame_time: datetime.datetime
         The time of the current frame.
+    frame: np.ndarray
+        A 2d image array of the frame corresponding to frame_time
     ax: plt.Axes
         The subplot object to modify the axis, labels, etc.
     im: plt.AxesImage
@@ -174,7 +176,7 @@ def plot_movie_generator(
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     movie_generator = asilib.plot_movie_generator(time_range, 'THEMIS, 'FSMI')
 
-    for frame_time, im, ax in movie_generator:
+    for frame_time, frame, im, ax in movie_generator:
         # The code that modifies each frame here.
         pass
     """
@@ -237,28 +239,11 @@ def plot_movie_generator(
             )
 
         if azel_contours:
-            cal_dict = load.load_cal_file(mission, station, force_download=force_download)
-
-            az_contours = ax.contour(
-                cal_dict['FULL_AZIMUTH'][::-1, ::-1],
-                colors='yellow',
-                linestyles='dotted',
-                levels=np.arange(0, 361, 90),
-                alpha=1,
-            )
-            el_contours = ax.contour(
-                cal_dict['FULL_ELEVATION'][::-1, ::-1],
-                colors='yellow',
-                linestyles='dotted',
-                levels=np.arange(0, 91, 30),
-                alpha=1,
-            )
-            plt.clabel(az_contours, inline=True, fontsize=8)
-            plt.clabel(el_contours, inline=True, fontsize=8, rightside_up=True)
+            _add_azel_contours(mission, station, ax, force_download)
 
         # Give the user the control of the subplot, image object, and return the frame time
         # so that the user can manipulate the image to add, for example, the satellite track.
-        yield frame_time, ax, im  # TODO: Add the image array return statement and update docs.
+        yield frame_time, frame, ax, im
 
         # Save the file and clear the subplot for next frame.
         save_name = (
@@ -286,6 +271,44 @@ def plot_movie_generator(
             path.unlink()
     return
 
+def _add_azel_contours(mission: str, station: str, ax: plt.Axes, 
+                    force_download: bool, color: str='yellow'
+                    ) -> None:
+    """
+    Adds contours of azimuth and elevation to the movie frame.
+
+    Parameters
+    ----------
+    mission: str
+        The mission id, can be either THEMIS or REGO.
+    station: str
+        The station id to download the data from.
+    ax: plt.Axes   
+        The subplot that will be drawn on.
+    force_download: bool
+        If True, download the file even if it already exists.
+    color: str (optional)
+        The contour color.
+    """
+    cal_dict = load.load_cal_file(mission, station, force_download=force_download)
+
+    az_contours = ax.contour(
+        cal_dict['FULL_AZIMUTH'][::-1, ::-1],
+        colors=color,
+        linestyles='dotted',
+        levels=np.arange(0, 361, 90),
+        alpha=1,
+    )
+    el_contours = ax.contour(
+        cal_dict['FULL_ELEVATION'][::-1, ::-1],
+        colors=color,
+        linestyles='dotted',
+        levels=np.arange(0, 91, 30),
+        alpha=1,
+    )
+    plt.clabel(az_contours, inline=True, fontsize=8, colors=color)
+    plt.clabel(el_contours, inline=True, fontsize=8, colors=color, rightside_up=True)
+    return
 
 if __name__ == "__main__":
     plot_movie(

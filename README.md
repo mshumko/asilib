@@ -92,7 +92,7 @@ There are two modules that plot a single frame or a series of frames.
 
 * `asilib.plot_movie()`: Similar to `asilib.plot_frame()`, given a mission/station and a ```time_range``` arguments, this function calls `asilib.get_frames()` and plots one multiple ASI frames and saves them to ```/data/movies/```. Movie file creation, such as an `mp4` or `gif`, is not implemented yet because I have not found a movie writer that is available between Windows/Linux/Mac.
 
-* `plot_movie_generator()` TBD
+* `plot_movie_generator()`: The generator function that allows the user to overlay other plots on the movie.
 
 * `plot_collage()`: Similar to `asilib.plot_movie()` in that the arguments are the same, but this function returns a collage of images with the time stamps annotated.
 

@@ -36,7 +36,7 @@ movie_generator = plot_movie_generator(
     time_range, mission, station, azel_contours=True, overwrite_output=True
 )
 
-for i, (frame, ax, im) in enumerate(movie_generator):
+for i, (time, frame, ax, im) in enumerate(movie_generator):
     # Plot the entire satellite track
     ax.plot(sat_azel_pixels[:, 0], sat_azel_pixels[:, 1], 'red')
     ax.scatter(sat_azel_pixels[i, 0], sat_azel_pixels[i, 1], c='red', marker='x', s=100)
