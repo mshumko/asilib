@@ -1,5 +1,6 @@
 import warnings
 import pathlib
+import importlib.util
 
 __version__ = '0.2.1'
 
@@ -28,10 +29,15 @@ else:
     # Import the skyfield and magnetic field mapping functions.
     from asilib.project_lla_to_skyfield import lla_to_skyfield
 
-    try:
+    # If the IRBEM module exists, import map_along_magnetic_field.
+    # This is better than a try-except block because the ImportError
+    # exception can be raised from another map_along_magnetic_field 
+    # dependency but we want to specifically check for IRBEM and let
+    # it crash if something else is wrong.
+    if importlib.util.find_spec('IRBEM'):
         from asilib.map_along_magnetic_field import map_along_magnetic_field
-    except ImportError:
+    else:
         warnings.warn(
-            "The IRBEM-Lib magnetic field library is not installed so "
-            "asilib.map_along_magnetic_field() won't work."
+            "The IRBEM magnetic field library is not installed and is "
+            "a dependency of asilib.map_along_magnetic_field()."
         )
