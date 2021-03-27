@@ -5,7 +5,7 @@ import dateutil.parser
 import pathlib
 
 from asilib import config
-from asilib.download import download_rego
+from asilib.io import download_rego
 
 """
 This program contains the Time History of Events and Macroscale Interactions during 

@@ -13,8 +13,8 @@ if not pathlib.Path(here / 'config.py').is_file():
     )
 else:
     # Import download programs.
-    from asilib.download.download_rego import download_rego_img, download_rego_cal
-    from asilib.download.download_themis import download_themis_img, download_themis_cal
+    from asilib.io.download_rego import download_rego_img, download_rego_cal
+    from asilib.io.download_themis import download_themis_img, download_themis_cal
 
     # Import the loading functions.
     from asilib.load import load_img_file

@@ -10,8 +10,8 @@ import cdflib
 import scipy.io
 import matplotlib.pyplot as plt
 
-from asilib.download import download_rego
-from asilib.download import download_themis
+from asilib.io import download_rego
+from asilib.io import download_themis
 from asilib import config
 
 
