@@ -1,6 +1,7 @@
 import pathlib
 from typing import List, Union, Optional, Sequence, Generator, Tuple
 from datetime import datetime
+import collections
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -10,7 +11,7 @@ import ffmpeg
 
 import asilib.io.load as load
 import asilib.config as config
-
+from asilib.utils.start_generator import start_generator
 
 def plot_movie(
     time_range: Sequence[Union[datetime, str]], mission: str, station: str, **kwargs
@@ -81,7 +82,9 @@ def plot_movie(
         pass
     return
 
+Frames = collections.namedtuple('Frames', ['time', 'frames'])
 
+@start_generator
 def plot_movie_generator(
     time_range: Sequence[Union[datetime, str]],
     mission: str,
@@ -203,6 +206,12 @@ def plot_movie_generator(
         raise NotImplementedError('color_map == "auto" but the mission is unsupported')
 
     save_paths = []
+    # With the @start_generator decorator, when this generator first gets called, it 
+    # will halt here. This way the errors due to missing data will be raised up front.
+    user_input = yield
+    # user_input can be used to get the frame_times and frames out of the generator.
+    if user_input == 'get_frame_data':
+        yield Frames(frame_times, frames)
 
     for frame_time, frame in zip(frame_times, frames):
         # If the frame is all 0s we have a bad frame and we need to skip it.
@@ -300,13 +309,3 @@ def _add_azel_contours(
     plt.clabel(az_contours, inline=True, fontsize=8, colors=color)
     plt.clabel(el_contours, inline=True, fontsize=8, colors=color, rightside_up=True)
     return
-
-
-if __name__ == "__main__":
-    plot_movie(
-        (datetime(2017, 9, 15, 2, 34, 0), datetime(2017, 9, 15, 2, 36, 0)),
-        'THEMIS',
-        'RANK',
-        color_norm='log',
-        azel_contours=True,
-    )
