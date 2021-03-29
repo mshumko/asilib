@@ -4,7 +4,7 @@ import numpy as np
 import pymap3d
 import scipy.spatial
 
-from asilib.load import load_cal_file
+from asilib.io.load import load_cal_file
 
 
 def lla_to_skyfield(

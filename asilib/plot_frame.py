@@ -10,7 +10,7 @@ import numpy as np
 import cdflib
 
 from asilib import config
-from asilib import load
+from asilib.io import load
 
 
 def plot_frame(

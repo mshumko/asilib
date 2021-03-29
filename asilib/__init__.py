@@ -17,10 +17,10 @@ else:
     from asilib.io.download_themis import download_themis_img, download_themis_cal
 
     # Import the loading functions.
-    from asilib.load import load_img_file
-    from asilib.load import load_cal_file
-    from asilib.load import get_frame
-    from asilib.load import get_frames
+    from asilib.io.load import load_img_file
+    from asilib.io.load import load_cal_file
+    from asilib.io.load import get_frame
+    from asilib.io.load import get_frames
 
     # Import the plotting and animating functions.
     from asilib.plot_frame import plot_frame

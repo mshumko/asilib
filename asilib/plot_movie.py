@@ -8,7 +8,7 @@ import matplotlib.colors as colors
 import numpy as np
 import ffmpeg
 
-import asilib.load as load
+import asilib.io.load as load
 import asilib.config as config
 
 
