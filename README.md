@@ -4,7 +4,11 @@ Easily download, plot, animate, and analyze aurora all sky imager (ASI) data. Cu
 * Red-line Emission Geospace Observatory (REGO)
 * Time History of Events and Macroscale Interactions during Substorms (THEMIS).
 
-Feel free to contact me to add other ASI missions to this library.
+![Aurora plot from example 1.](images/example_1.png)
+
+
+
+Feel free to contact me and request that I add other ASI missions to `asilib`.
 
 ## Examples
 Before you can run these examples you will need to configure the ASI data and movie directory via ```python3 -m asilib config``` (see the installation steps below). These example scripts are also located in `asilib/examples/`.
@@ -131,7 +135,7 @@ __NOTES__
 **Note 2** The longitude units are converted from 0->360 to -180->180 degrees in the calibration files.
 
 ### Download ASI Data
-To download ASI data, the programs in the ```asi-lib/download/``` search for and download the THEMIS and REGO image and calibration data.
+To download ASI data, the programs in the ```asilib/io/``` search for and download the THEMIS and REGO image and calibration data.
 
 * `asilib.download_themis_img()` and `asilib.download_rego_img()`: downloads the THEMIS and REGO images in the common data format (CDF) files.
 * `asilib.download_themis_cal()` and `asilib.download_rego_cal()`: downloads the THEMIS and REGO images in the common data format (CDF) files.
