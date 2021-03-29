@@ -4,7 +4,7 @@ from datetime import datetime
 
 import cdflib
 
-from asilib import load
+from asilib.io import load
 from asilib import config
 
 """

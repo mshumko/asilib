@@ -27,7 +27,7 @@ else:
     from asilib.plot_movie import plot_movie, plot_movie_generator
 
     # Import the skyfield and magnetic field mapping functions.
-    from asilib.project_lla_to_skyfield import lla_to_skyfield
+    from asilib.utils.project_lla_to_skyfield import lla_to_skyfield
 
     # If the IRBEM module exists, import map_along_magnetic_field.
     # This is better than a try-except block because the ImportError
@@ -35,7 +35,7 @@ else:
     # dependency but we want to specifically check for IRBEM and let
     # it crash if something else is wrong.
     if importlib.util.find_spec('IRBEM'):
-        from asilib.map_along_magnetic_field import map_along_magnetic_field
+        from asilib.utils.map_along_magnetic_field import map_along_magnetic_field
     else:
         warnings.warn(
             "The IRBEM magnetic field library is not installed and is "

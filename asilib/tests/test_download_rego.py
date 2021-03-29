@@ -3,7 +3,7 @@ import requests
 import pathlib
 from datetime import datetime
 
-from asilib.download import download_rego
+from asilib.io import download_rego
 from asilib import config
 
 """
