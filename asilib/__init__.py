@@ -7,7 +7,7 @@ __version__ = '0.2.1'
 # Check that the package has been configured and config.py file exists.
 here = pathlib.Path(__file__).parent.resolve()
 if not pathlib.Path(here / 'config.py').is_file():
-    warnings.warn(
+    raise RuntimeError(
         'config.py file with the ASI data directory not found. '
         'Did you run "python3 -m asilib config"?'
     )
