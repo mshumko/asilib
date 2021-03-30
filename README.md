@@ -11,7 +11,7 @@ Easily download, plot, animate, and analyze aurora all sky imager (ASI) data. Cu
 Feel free to contact me and request that I add other ASI missions to `asilib`.
 
 ## Examples
-Before you can run these examples you will need to configure the ASI data and movie directory via ```python3 -m asilib config``` (see the installation steps below). These example scripts are also located in `asilib/examples/`.
+Before you can run these examples, make sure that `asilib` is configured with the installation steps below. These examples, and more, are in the `asilib/examples/` folder.
 
 ### Example 1
 This example uses asilib to plot one frame of a bright auroral arc.
