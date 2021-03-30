@@ -4,7 +4,7 @@ Easily download, plot, animate, and analyze aurora all sky imager (ASI) data. Cu
 * Red-line Emission Geospace Observatory (REGO)
 * Time History of Events and Macroscale Interactions during Substorms (THEMIS).
 
-![Aurora plot from example 1.](images/example_1.png)
+![Aurora plot from example 1.](https://github.com/mshumko/aurora-asi-lib/blob/main/images/example_1.png?raw=true)
 
 
 
