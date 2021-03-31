@@ -218,7 +218,7 @@ def plot_movie_generator(
         if np.all(frame == 0):
             continue
         ax.clear()
-        plt.axis('off')
+        ax.axis('off')
         # Figure out the color_bounds from the frame data.
         if color_bounds is None:
             lower, upper = np.quantile(frame, (0.25, 0.98))
