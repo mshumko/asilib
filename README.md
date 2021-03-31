@@ -6,6 +6,9 @@ Easily download, plot, animate, and analyze aurora all sky imager (ASI) data. Cu
 
 ![Aurora plot from example 1.](https://github.com/mshumko/aurora-asi-lib/blob/main/images/example_1.png?raw=true)
 
+![Aurora plot from example 4.](images/20170915_023400_023557_themis_rank.gif)
+
+
 
 
 Feel free to contact me and request that I add other ASI missions to `asilib`.
