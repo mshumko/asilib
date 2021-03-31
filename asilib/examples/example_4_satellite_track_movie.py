@@ -16,7 +16,7 @@ mission = 'THEMIS'
 station = 'RANK'
 time_range = (datetime(2017, 9, 15, 2, 34, 0), datetime(2017, 9, 15, 2, 36, 0))
 
-fig, ax = plt.subplots(2, 1, figsize=(7, 10), gridspec_kw={'height_ratios':[4, 1]})
+fig, ax = plt.subplots(2, 1, figsize=(7, 10), gridspec_kw={'height_ratios':[4, 1]}, constrained_layout=True)
 
 # Load the calibration data. This is only necessary to create a fake satellite track.
 cal_dict = load_cal_file(mission, station)
