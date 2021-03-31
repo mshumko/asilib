@@ -188,15 +188,15 @@ def plot_movie_generator(
 
     # Create the movie directory inside config.ASI_DATA_DIR if it does
     # not exist.
-    save_dir = pathlib.Path(
+    frame_save_dir = pathlib.Path(
         config.ASI_DATA_DIR,
         'movies',
         'frames',
         f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_' f'{station.lower()}',
     )
-    if not save_dir.is_dir():
-        save_dir.mkdir(parents=True)
-        print(f'Created a {save_dir} directory')
+    if not frame_save_dir.is_dir():
+        frame_save_dir.mkdir(parents=True)
+        print(f'Created a {frame_save_dir} directory')
 
     if (color_map == 'auto') and (mission.lower() == 'themis'):
         color_map = 'Greys_r'
@@ -205,7 +205,6 @@ def plot_movie_generator(
     else:
         raise NotImplementedError('color_map == "auto" but the mission is unsupported')
 
-    save_paths = []
     # With the @start_generator decorator, when this generator first gets called, it 
     # will halt here. This way the errors due to missing data will be raised up front.
     user_input = yield
@@ -253,8 +252,7 @@ def plot_movie_generator(
         save_name = (
             f'{frame_time.strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_' f'{station.lower()}.png'
         )
-        plt.savefig(save_dir / save_name)
-        save_paths.append(save_dir / save_name)
+        plt.savefig(frame_save_dir / save_name)
 
     # Make the movie
     movie_file_name = (
@@ -262,12 +260,35 @@ def plot_movie_generator(
         f'{frame_times[-1].strftime("%H%M%S")}_'
         f'{mission.lower()}_{station.lower()}.{movie_format}'
     )
+    _write_movie(frame_save_dir, frame_rate, movie_file_name, overwrite)
+    return
+
+def _write_movie(frame_save_dir, frame_rate, movie_file_name, overwrite):
+    """
+    Helper function to write a movie using ffmpeg.
+
+    Parameters
+    ----------
+    frame_save_dir: pathlib.Path
+        The directory where the individual frames are saved to. 
+    frame_rate: int
+        Movie frame rate.
+    movie_file_name: str 
+        The movie file name.
+    overwrite: bool
+        Overwrite the movie.
+
+    """
+    movie_save_path = frame_save_dir.parents[1] / movie_file_name
     movie_obj = ffmpeg.input(
-        str(save_dir) + f'/*.png',
+        str(frame_save_dir) + f'/*.png',
         pattern_type='glob',
         framerate=frame_rate,
     )
-    movie_obj.output(str(save_dir.parents[1] / movie_file_name)).run(overwrite_output=overwrite)
+    # More info about pix_fmt='yuv420p'. It allows movies to be viewed by Windows, Mac and Linux.
+    # https://superuser.com/questions/704744/video-produced-from-images-only-plays-in-vlc-but-no-other-players
+    movie = movie_obj.output(str(movie_save_path), pix_fmt='yuv420p')
+    movie.run(overwrite_output=overwrite)
     return
 
 
