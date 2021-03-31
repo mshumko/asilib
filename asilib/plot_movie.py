@@ -173,16 +173,9 @@ def plot_movie_generator(
         # The code that modifies each frame here.
         pass
     """
-    try:
-        frame_times, frames = load.get_frames(
-            time_range, mission, station, force_download=force_download
-        )
-    except AssertionError as err:
-        if '0 number of time stamps were found in time_range' in str(err):
-            print(f'The file exists for {mission}/{station}, but no data ' f'between {time_range}.')
-            raise
-        else:
-            raise
+    frame_times, frames = load.get_frames(
+        time_range, mission, station, force_download=force_download
+    )
     if ax is None:
         _, ax = plt.subplots()
 

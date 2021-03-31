@@ -332,7 +332,6 @@ def get_frames(
 
     # Find the time stamps in between time_range.
     idx = np.where((epoch >= time_range[0]) & (epoch <= time_range[1]))[0]
-    assert len(idx) > 0, (
-        f'{len(idx)} number of time stamps were found ' f'in time_range={time_range}'
-    )
+    assert len(idx) > 0, (f'The data exists for {mission}/{station}, but no '
+                        f'data between {time_range}')
     return epoch[idx], frames[idx, :, :]
