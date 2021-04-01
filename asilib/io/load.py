@@ -43,6 +43,16 @@ def load_img_file(
         A 2D array of the ASI image at the date-time nearest to the
         day argument.
 
+    Raises
+    ------
+    FileNotFoundError
+        Catches the NotADirectoryError raised by download.py, and raises
+        this FileNotFoundError that clearly conveys that the file was not
+        found in the file system or online.
+    ValueError
+        Raised if there is an error with the file finding logic (ideally 
+        should not be raised).
+
     Example
     -------
     import asilib
@@ -192,6 +202,12 @@ def get_frame(
         A 2D array of the ASI image at the date-time nearest to the
         time argument.
 
+    Raises
+    ------
+    AssertionError
+        If a unique time stamp was not found within time_thresh_s of 
+        time.
+
     Example
     -------
     import asilib
@@ -264,6 +280,15 @@ def get_frames(
         An (nTime x nPixelRows x nPixelCols) array containing the ASI images
         for times contained in time_range.
 
+    Raises
+    ------
+    NotImplementedError
+        If the image dimensions are not specified for an ASI mission.
+    AssertionError
+        If the data file exists with no time stamps contained in time_range.
+    AssertionError
+        If len(time_range) != 2.
+        
     Example
     -------
     from datetime import datetime

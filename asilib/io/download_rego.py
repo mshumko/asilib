@@ -209,6 +209,12 @@ def search_hrefs(url: str, search_pattern: str = '.cdf') -> List[str]:
     -------
     hrefs: List(str)
         A list of hrefs that contain the search_pattern.
+
+    Raises
+    ------
+    NotADirectoryError
+        If a hyper reference (a folder or a file) is not found on the 
+        server. This is raised if the data does not exist.
     """
     matched_hrefs = []
 

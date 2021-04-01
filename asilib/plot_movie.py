@@ -63,6 +63,18 @@ def plot_movie(
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
 
+    Returns
+    -------
+    None
+    
+    Raises
+    ------
+    NotImplementedError
+        If the colormap is unspecified ('auto' by default) and the
+        auto colormap is undefined for an ASI mission.
+    ValueError
+        If the color_norm kwarg is not "log" or "lin".
+
     Example
     -------
     from datetime import datetime
@@ -71,10 +83,6 @@ def plot_movie(
 
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     asilib.plot_movie(time_range, 'THEMIS', 'FSMI')
-
-    Return
-    -------
-    None
     """
     movie_generator = plot_movie_generator(time_range, mission, station, **kwargs)
 
@@ -159,6 +167,14 @@ def plot_movie_generator(
         The image is oriented in the map orientation (north is up, south is down,
         east is right, and west is left), contrary to the camera orientation where
         the east/west directions are flipped. Set azel_contours=True to confirm.
+
+    Raises
+    ------
+    NotImplementedError
+        If the colormap is unspecified ('auto' by default) and the
+        auto colormap is undefined for an ASI mission.
+    ValueError
+        If the color_norm kwarg is not "log" or "lin".
 
     Example
     -------
