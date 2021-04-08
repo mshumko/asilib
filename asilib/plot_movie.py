@@ -296,7 +296,7 @@ def _write_movie(frame_save_dir, frame_rate, movie_file_name, overwrite):
     )
     # More info about pix_fmt='yuv420p'. It allows movies to be viewed by Windows, Mac and Linux.
     # https://superuser.com/questions/704744/video-produced-from-images-only-plays-in-vlc-but-no-other-players
-    movie = movie_obj.output(str(movie_save_path), pix_fmt='yuv420p')
+    movie = movie_obj.output(str(movie_save_path), pix_fmt='yuv420p', vcodec='libx264')
     movie.run(overwrite_output=overwrite)
     return
 
