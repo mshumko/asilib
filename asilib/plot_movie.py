@@ -37,7 +37,7 @@ def plot_movie(
         The station id to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
-    add_label: boolsubplot
+    add_label: bool
         Flag to add the "mission/station/frame_time" text to the plot.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
@@ -84,6 +84,14 @@ def plot_movie(
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     asilib.plot_movie(time_range, 'THEMIS', 'FSMI')
     """
+
+    # Create a subplot object if one is not passed.
+    ax = kwargs.get('ax', None)
+    if ax is None:
+        _, ax = plt.subplots(figsize=(6,6))
+        kwargs['ax'] = ax
+        plt.tight_layout()
+
     movie_generator = plot_movie_generator(time_range, mission, station, **kwargs)
 
     for frame_time, frame, im, ax in movie_generator:
@@ -167,7 +175,7 @@ def plot_movie_generator(
         The image is oriented in the map orientation (north is up, south is down,
         east is right, and west is left), contrary to the camera orientation where
         the east/west directions are flipped. Set azel_contours=True to confirm.
-
+    
     Raises
     ------
     NotImplementedError
@@ -189,9 +197,16 @@ def plot_movie_generator(
         # The code that modifies each frame here.
         pass
     """
-    frame_times, frames = load.get_frames(
-        time_range, mission, station, force_download=force_download
-    )
+    try:
+        frame_times, frames = load.get_frames(
+            time_range, mission, station, force_download=force_download
+        )
+    except AssertionError as err:
+        if '0 number of time stamps were found in time_range' in str(err):
+            print(f'The file exists for {mission}/{station}, but no data ' f'between {time_range}.')
+            raise
+        else:
+            raise
     if ax is None:
         _, ax = plt.subplots()
 
@@ -244,7 +259,7 @@ def plot_movie_generator(
             ax.text(
                 0,
                 0,
-                f"{mission}/{station}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}",
+                f"{mission.upper()}/{station.upper()}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}",
                 va='bottom',
                 transform=ax.transAxes,
                 color='white',
@@ -269,7 +284,7 @@ def plot_movie_generator(
         f'{frame_times[-1].strftime("%H%M%S")}_'
         f'{mission.lower()}_{station.lower()}.{movie_format}'
     )
-    _write_movie(frame_save_dir, frame_rate, movie_file_name, overwrite)
+        _write_movie(frame_save_dir, frame_rate, movie_file_name, overwrite)
     return
 
 def _write_movie(frame_save_dir, frame_rate, movie_file_name, overwrite):
@@ -294,10 +309,9 @@ def _write_movie(frame_save_dir, frame_rate, movie_file_name, overwrite):
         pattern_type='glob',
         framerate=frame_rate,
     )
-    # More info about pix_fmt='yuv420p'. It allows movies to be viewed by Windows, Mac and Linux.
-    # https://superuser.com/questions/704744/video-produced-from-images-only-plays-in-vlc-but-no-other-players
-    movie = movie_obj.output(str(movie_save_path), pix_fmt='yuv420p', vcodec='libx264')
-    movie.run(overwrite_output=overwrite)
+    movie_obj.output(str(movie_save_path), crf=25, 
+                    preset='slower', vcodec='libx264', pix_fmt='yuv420p').run(
+                        overwrite_output=overwrite)
     return
 
 
@@ -336,6 +350,6 @@ def _add_azel_contours(
         levels=np.arange(0, 91, 30),
         alpha=1,
     )
-    plt.clabel(az_contours, inline=True, fontsize=8, colors=color)
-    plt.clabel(el_contours, inline=True, fontsize=8, colors=color, rightside_up=True)
+    plt.clabel(az_contours, inline=True, fontsize=12, colors=color)
+    plt.clabel(el_contours, inline=True, fontsize=12, colors=color, rightside_up=True)
     return
