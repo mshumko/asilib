@@ -284,7 +284,7 @@ def plot_movie_generator(
         f'{frame_times[-1].strftime("%H%M%S")}_'
         f'{mission.lower()}_{station.lower()}.{movie_format}'
     )
-        _write_movie(frame_save_dir, frame_rate, movie_file_name, overwrite)
+    _write_movie(frame_save_dir, frame_rate, movie_file_name, overwrite)
     return
 
 def _write_movie(frame_save_dir, frame_rate, movie_file_name, overwrite):
