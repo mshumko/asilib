@@ -342,7 +342,7 @@ def get_frames(
 
         # The timedelta offset is needed to include the time_range[1] hour.
         hourly_date_times = pd.date_range(
-            start=time_range[0], end=time_range[1] + pd.Timedelta(hours=1), freq='H'
+            start=time_range[0], end=time_range[1]+pd.Timedelta(hours=1), freq='H'
         )
         for hour_date_time in hourly_date_times:
             cdf_obj = load_img_file(hour_date_time, mission, station, force_download=force_download)
