@@ -52,9 +52,10 @@ def plot_movie(
         The optional subplot that will be drawn on.
     azel_contours: bool
         Switch azimuth and elevation contours on or off.
-    movie_format: str
-        The movie format: mp4 has better compression but avi can be
-        opened by the VLC player.
+    movie_container: str
+        The movie container: mp4 has better compression but avi was determined
+        to be the official container for preserving digital video by the 
+        National Archives and Records Administration.
     overwrite: bool
         If true, the output will be overwritten automatically. If false it will
         prompt the user to answer y/n.
@@ -112,7 +113,7 @@ def plot_movie_generator(
     color_norm: str = 'log',
     azel_contours: bool = False,
     ax: plt.Axes = None,
-    movie_format: str = 'mp4',
+    movie_container: str = 'mp4',
     frame_rate=10,
     overwrite: bool = False,
 ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
@@ -149,9 +150,10 @@ def plot_movie_generator(
         high=min(3rd_quartile, 10*1st_quartile)
     ax: plt.Axes
         The optional subplot that will be drawn on.
-    movie_format: str
-        The movie format: mp4 has better compression but avi can be
-        opened by the VLC player.
+    movie_container: str
+        The movie container: mp4 has better compression but avi was determined
+        to be the official container for preserving digital video by the 
+        National Archives and Records Administration.
     frame_rate: int
         The movie frame rate.
     color_norm: str
@@ -282,7 +284,7 @@ def plot_movie_generator(
     movie_file_name = (
         f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_'
         f'{frame_times[-1].strftime("%H%M%S")}_'
-        f'{mission.lower()}_{station.lower()}.{movie_format}'
+        f'{mission.lower()}_{station.lower()}.{movie_container}'
     )
     _write_movie(frame_save_dir, frame_rate, movie_file_name, overwrite)
     return
