@@ -56,11 +56,12 @@ def plot_movie(
         The movie container: mp4 has better compression but avi was determined
         to be the official container for preserving digital video by the 
         National Archives and Records Administration.
+    ffmpeg_output_params: dict
+        The additional/overwitten ffmpeg output prameters. The default parameters are:
+        framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
     overwrite: bool
         If true, the output will be overwritten automatically. If false it will
         prompt the user to answer y/n.
-    frame_rate: int
-        The movie frame rate.
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
 
@@ -114,7 +115,7 @@ def plot_movie_generator(
     azel_contours: bool = False,
     ax: plt.Axes = None,
     movie_container: str = 'mp4',
-    frame_rate=10,
+    ffmpeg_output_params={},
     overwrite: bool = False,
 ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
     """
@@ -154,8 +155,9 @@ def plot_movie_generator(
         The movie container: mp4 has better compression but avi was determined
         to be the official container for preserving digital video by the 
         National Archives and Records Administration.
-    frame_rate: int
-        The movie frame rate.
+    ffmpeg_output_params: dict
+        The additional/overwitten ffmpeg output parameters. The default parameters are:
+        framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
     azel_contours: bool
@@ -286,10 +288,10 @@ def plot_movie_generator(
         f'{frame_times[-1].strftime("%H%M%S")}_'
         f'{mission.lower()}_{station.lower()}.{movie_container}'
     )
-    _write_movie(frame_save_dir, frame_rate, movie_file_name, overwrite)
+    _write_movie(frame_save_dir, ffmpeg_output_params, movie_file_name, overwrite)
     return
 
-def _write_movie(frame_save_dir, frame_rate, movie_file_name, overwrite):
+def _write_movie(frame_save_dir, ffmpeg_output_params, movie_file_name, overwrite):
     """
     Helper function to write a movie using ffmpeg.
 
@@ -297,22 +299,33 @@ def _write_movie(frame_save_dir, frame_rate, movie_file_name, overwrite):
     ----------
     frame_save_dir: pathlib.Path
         The directory where the individual frames are saved to. 
-    frame_rate: int
-        Movie frame rate.
+    ffmpeg_output_params: dict
+        The additional/overwitten ffmpeg output parameters. The default parameters are:
+        framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
     movie_file_name: str 
         The movie file name.
     overwrite: bool
         Overwrite the movie.
 
     """
+    ffmpeg_params = {
+        'framerate':10,
+        'crf':25,
+        'vcodec':'libx264',
+        'pix_fmt':'yuv420p',
+        'preset':'slower'
+    }
+    # Add or change the ffmpeg_params's key:values with ffmpeg_output_params
+    ffmpeg_params.update(ffmpeg_output_params)
+
     movie_save_path = frame_save_dir.parents[1] / movie_file_name
     movie_obj = ffmpeg.input(
         str(frame_save_dir) + f'/*.png',
         pattern_type='glob',
-        framerate=frame_rate,
+        # Use pop so it won't be passed into movie_obj.output().
+        framerate=ffmpeg_params.pop('framerate')
     )
-    movie_obj.output(str(movie_save_path), crf=25, 
-                    preset='slower', vcodec='libx264', pix_fmt='yuv420p').run(
+    movie_obj.output(str(movie_save_path), **ffmpeg_params).run(
                         overwrite_output=overwrite)
     return
 
