@@ -65,4 +65,6 @@ def map_along_magnetic_field(
         X = {'datetime': time, 'x1': alt, 'x2': lat, 'x3': lon}
         m_output = m.find_foot_point(X, maginput, map_alt, hemisphere)
         mapped_footprint[i, :] = m_output['XFOOT']
+    # Map from IRBEM's (alt, lat, lon) -> (lat, lon, alt)
+    mapped_footprint[:, [2, 0, 1]] = mapped_footprint[:, [0, 1, 2]]
     return mapped_footprint
