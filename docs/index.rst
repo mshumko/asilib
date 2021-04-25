@@ -9,6 +9,8 @@
    :maxdepth: 1
    :caption: Contents:
 
+   asilib.io
+   asilib.utils
    modules
 
 Indices and tables
