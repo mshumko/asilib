@@ -39,7 +39,7 @@ from asilib.utils.project_lla_to_skyfield import lla_to_skyfield
 if importlib.util.find_spec('IRBEM'):
     from asilib.utils.map_along_magnetic_field import map_along_magnetic_field
 else:
-    if config['Warnings'].getboolean('IRBEM'):
+    if settings['Warnings'].getboolean('IRBEM'):
         warnings.warn(
             "The IRBEM magnetic field library is not installed and is "
             "a dependency of asilib.map_along_magnetic_field()."
