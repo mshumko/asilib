@@ -62,8 +62,8 @@ def download_rego_img(
 
     import asilib
 
-    day = datetime(2017, 4, 13, 5)
-    station = 'LUCK'
+    day = datetime(2017, 4, 13, 5)\n
+    station = 'LUCK'\n
     asilib.download_rego_img(day, station)
     """
     if isinstance(day, str):
@@ -120,7 +120,7 @@ def download_rego_cal(station: str, force_download: bool = False) -> pathlib.Pat
     -------
     import asilib
 
-    station = 'LUCK'
+    station = 'LUCK'\n
     asilib.download_rego_cal(station)
     """
     # Create the calibration directory in data/rego/cal
