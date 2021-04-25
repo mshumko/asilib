@@ -32,15 +32,16 @@ if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'con
             print(f'aurora_asi data directory at {pathlib.Path(ASI_DATA_DIR)} already exists.')
     else:
         # If the user did not specify the directory, make one at ~/asilib-data
-        # and save ASI_DATA_DIR as None. Then __init__ will replace the None with
-        # pathlib.Path.home() / 'asilib-data'
-        ASI_DATA_DIR = pathlib.Path.home() / 'asilib-data'
-        if not ASI_DATA_DIR.exists():
-            ASI_DATA_DIR.mkdir()
-            print(f'asilib directory at {ASI_DATA_DIR} created.')
+        # and don't save ASI_DATA_DIR. Then configparser in __init__.py will 
+        # try to load ASI_DATA_DIR and default to pathlib.Path.home() / 'asilib-data'
+        # if it doesn't exist.
+        DEFAULT_ASI_DATA_DIR = pathlib.Path.home() / 'asilib-data'
+        if not DEFAULT_ASI_DATA_DIR.exists():
+            DEFAULT_ASI_DATA_DIR.mkdir()
+            print(f'asilib directory at {DEFAULT_ASI_DATA_DIR} created.')
         else:
-            print(f'asilib directory at {ASI_DATA_DIR} already exists.')
-        ASI_DATA_DIR = 'None'
+            print(f'asilib directory at {DEFAULT_ASI_DATA_DIR} already exists.')
+
 
     # Check that the IRBEM_WARNING input is correct.
     if ('y' in IRBEM_WARNING.lower()) or ('true' in IRBEM_WARNING.lower()):
@@ -53,20 +54,18 @@ if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'con
         raise ValueError(f'Unknown input to IRBEM_WARNING = {IRBEM_WARNING}. It must be'
                         f' one of the following: [y, n, yes, no, True, False]')
 
+
     # Create a configparser object and add the user configuration. 
     config = configparser.ConfigParser()
 
-    config['Paths'] = {'ASI_DATA_DIR':ASI_DATA_DIR} 
+    if ASI_DATA_DIR != '':
+        config['Paths'] = {'ASI_DATA_DIR':ASI_DATA_DIR, 'HERE':here} 
+    else:
+        config['Paths'] = {'HERE':here}
     config['Warnings'] = {'IRBEM':IRBEM_WARNING}
 
     with open(here / 'config.ini', 'w') as f:
        config.write(f)
-
-    # # Finally write the Python code to be later imported.
-    # with open(pathlib.Path(here, 'config.ini'), 'w') as f:
-    #     f.write('import pathlib\n\n')
-    #     f.write(f'PROJECT_DIR = pathlib.Path("{here}")\n')
-    #     f.write(f'ASI_DATA_DIR = pathlib.Path("{ASI_DATA_DIR}")\n')
 
 else:
     print(

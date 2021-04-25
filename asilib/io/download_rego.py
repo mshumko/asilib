@@ -6,20 +6,20 @@ import pathlib
 
 from bs4 import BeautifulSoup
 
-from asilib import config
+import asilib
 
 """
 This program contains the Red-line Emission Geospace Observatory (REGO) download functions
 that stream image data from the themis.ssl.berkeley.edu server and the calibration data 
-from the ucalgary.ca server and saves the files to the asilib.config.ASI_DATA_DIR/rego/ 
+from the ucalgary.ca server and saves the files to the asilib.config['ASI_DATA_DIR']/rego/ 
 directory.
 """
 
 IMG_BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/'
 CAL_BASE_URL = 'https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/'
 
-# Check and make a config.ASI_DATA_DIR/rego/ directory if doesn't already exist.
-rego_dir = pathlib.Path(config.ASI_DATA_DIR, 'rego')
+# Check and make a asilib.config['ASI_DATA_DIR']/rego/ directory if doesn't already exist.
+rego_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'rego')
 if not rego_dir.exists():
     rego_dir.mkdir()
 
@@ -34,7 +34,7 @@ def download_rego_img(
     """
     The wrapper to download the REGO data given the day, station name,
     and a flag to download a single hour file or the entire day. The images
-    are saved to the config.ASI_DATA_DIR / 'rego' directory.
+    are saved to the asilib.config['ASI_DATA_DIR'] / 'rego' directory.
 
     Parameters
     ----------
@@ -79,7 +79,7 @@ def download_rego_img(
         # Download file
         download_url = url + file_names[0]  # On the server
         download_path = pathlib.Path(
-            config.ASI_DATA_DIR, 'rego', file_names[0]
+            asilib.config['ASI_DATA_DIR'], 'rego', file_names[0]
         )  # On the local machine.
         # Download if force_download=True or the file does not exist.
         if force_download or (not download_path.is_file()):
@@ -92,7 +92,7 @@ def download_rego_img(
         # Download files
         for file_name in file_names:
             download_url = url + file_name
-            download_path = pathlib.Path(config.ASI_DATA_DIR, 'rego', file_name)
+            download_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'rego', file_name)
             download_paths.append(download_path)
             # Download if force_download=True or the file does not exist.
             if force_download or (not download_path.is_file()):
@@ -103,7 +103,7 @@ def download_rego_img(
 def download_rego_cal(station: str, force_download: bool = False) -> pathlib.Path:
     """
     Download the latest calibration (skymap) IDL .sav file and save
-    it to config.ASI_DATA_DIR/rego/cal/ directory.
+    it to asilib.config['ASI_DATA_DIR']/rego/cal/ directory.
 
     Parameters
     ----------
@@ -124,7 +124,7 @@ def download_rego_cal(station: str, force_download: bool = False) -> pathlib.Pat
     asilib.download_rego_cal(station)
     """
     # Create the calibration directory in data/rego/cal
-    save_dir = config.ASI_DATA_DIR / 'rego' / 'cal'
+    save_dir = asilib.config['ASI_DATA_DIR'] / 'rego' / 'cal'
     if not save_dir.is_dir():
         save_dir.mkdir()
         print(f'Made directory at {save_dir}')

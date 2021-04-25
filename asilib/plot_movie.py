@@ -9,8 +9,8 @@ import matplotlib.colors as colors
 import numpy as np
 import ffmpeg
 
+import asilib
 import asilib.io.load as load
-import asilib.config as config
 from asilib.utils.start_generator import start_generator
 
 def plot_movie(
@@ -214,10 +214,10 @@ def plot_movie_generator(
     if ax is None:
         _, ax = plt.subplots()
 
-    # Create the movie directory inside config.ASI_DATA_DIR if it does
+    # Create the movie directory inside asilib.config['ASI_DATA_DIR'] if it does
     # not exist.
     frame_save_dir = pathlib.Path(
-        config.ASI_DATA_DIR,
+        asilib.config['ASI_DATA_DIR'],
         'movies',
         'frames',
         f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_' f'{station.lower()}',

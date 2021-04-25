@@ -4,7 +4,7 @@ import pathlib
 from datetime import datetime
 
 from asilib.io import download_themis
-from asilib import config
+import asilib
 
 """
 Unit tests to check that the functions in download_themis.py are working correctly.
@@ -38,7 +38,7 @@ class TestDownloadThemis(unittest.TestCase):
         Test the full THEMIS data downloader and download an hour file
         clg_l1_rgf_luck_2020080104_v01.cdf to ./themis/.
         """
-        temp_image_dir = pathlib.Path(config.ASI_DATA_DIR, 'themis')
+        temp_image_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'themis')
         temp_image_path = temp_image_dir / 'thg_l1_asf_gill_2016102904_v01.cdf'
 
         download_themis.download_themis_img(self.day, self.station, force_download=True)

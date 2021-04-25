@@ -4,7 +4,6 @@ __pycache__/
 .DS_Store
 *.pgm.gz
 *.cdf
-config.py
 *.png
 *.mp4
 *.sav
