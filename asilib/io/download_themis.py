@@ -18,8 +18,9 @@ IMG_BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l1/asi/'
 CAL_BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l2/asi/cal/'
 
 # Check and make a asilib.config['ASI_DATA_DIR']/themis/ directory if doesn't already exist.
-if not pathlib.Path(asilib.config['ASI_DATA_DIR'], 'themis').exists():
-    pathlib.Path(asilib.config['ASI_DATA_DIR'], 'themis').mkdir()
+themis_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'themis')
+if not themis_dir.exists():
+    themis_dir.mkdir(parents=True)
 
 
 def download_themis_img(
@@ -93,7 +94,7 @@ def download_themis_img(
         # Download files
         for file_name in file_names:
             download_url = url + file_name
-            download_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'themis', file_name)
+            download_path = pathlib.Path(themis_dir, file_name)
             download_paths.append(download_path)
             # Download if force_download=True or the file does not exist.
             if force_download or (not download_path.is_file()):

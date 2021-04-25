@@ -21,7 +21,7 @@ CAL_BASE_URL = 'https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/sky
 # Check and make a asilib.config['ASI_DATA_DIR']/rego/ directory if doesn't already exist.
 rego_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'rego')
 if not rego_dir.exists():
-    rego_dir.mkdir()
+    rego_dir.mkdir(parents=True)
 
 
 def download_rego_img(
@@ -78,9 +78,7 @@ def download_rego_img(
 
         # Download file
         download_url = url + file_names[0]  # On the server
-        download_path = pathlib.Path(
-            asilib.config['ASI_DATA_DIR'], 'rego', file_names[0]
-        )  # On the local machine.
+        download_path = pathlib.Path(rego_dir, file_names[0])  # On the local machine.
         # Download if force_download=True or the file does not exist.
         if force_download or (not download_path.is_file()):
             stream_large_file(download_url, download_path, test_flag=test_flag)
@@ -92,7 +90,7 @@ def download_rego_img(
         # Download files
         for file_name in file_names:
             download_url = url + file_name
-            download_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'rego', file_name)
+            download_path = pathlib.Path(rego_dir, file_name)
             download_paths.append(download_path)
             # Download if force_download=True or the file does not exist.
             if force_download or (not download_path.is_file()):
