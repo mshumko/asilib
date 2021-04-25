@@ -5,10 +5,10 @@ from datetime import datetime
 
 import numpy as np
 
+import asilib
 from asilib import plot_movie_generator
 from asilib import lla_to_skyfield
 from asilib import load_cal_file
-
 
 # ASI parameters
 mission = 'THEMIS'
@@ -53,3 +53,5 @@ for i, (time, frame, ax, im) in enumerate(movie_generator):
     satellite_str = f'Satellite LLA=({lla[i, 0]:.2f}, {lla[i, 1]:.2f}, {lla[i, 2]:.2f})'
     ax.text(0, 1, station_str + '\n' + satellite_str, va='top', 
             transform=ax.transAxes, color='red')
+
+print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
