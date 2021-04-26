@@ -6,6 +6,7 @@ from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 
+import asilib
 from asilib import plot_movie_generator
 from asilib import lla_to_skyfield
 from asilib import load_cal_file
@@ -86,3 +87,5 @@ for i, (time, frame, _, im) in enumerate(movie_generator):
     ax[0].text(0, 1, station_str + '\n' + satellite_str, va='top', 
             transform=ax[0].transAxes, color='red')
     ax[1].set(xlabel='Time', ylabel='Mean ASI intensity [counts]')
+
+print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')

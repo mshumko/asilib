@@ -4,22 +4,23 @@ from typing import List, Union
 import dateutil.parser
 import pathlib
 
-from asilib import config
+import asilib
 from asilib.io import download_rego
 
 """
 This program contains the Time History of Events and Macroscale Interactions during 
 Substorms (THEMIS) download functions that stream image and calibration data from the 
 themis.ssl.berkeley.edu server and saves the files to the 
-asilib.config.ASI_DATA_DIR/themis/ directory.
+asilib.config['ASI_DATA_DIR']/themis/ directory.
 """
 
 IMG_BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l1/asi/'
 CAL_BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l2/asi/cal/'
 
-# Check and make a config.ASI_DATA_DIR/themis/ directory if doesn't already exist.
-if not pathlib.Path(config.ASI_DATA_DIR, 'themis').exists():
-    pathlib.Path(config.ASI_DATA_DIR, 'themis').mkdir()
+# Check and make a asilib.config['ASI_DATA_DIR']/themis/ directory if doesn't already exist.
+themis_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'themis')
+if not themis_dir.exists():
+    themis_dir.mkdir(parents=True)
 
 
 def download_themis_img(
@@ -32,7 +33,7 @@ def download_themis_img(
     """
     This function downloads the THEMIS ASI image data given the day, station name,
     and a flag to download a single hour file or the entire day. The images
-    are saved to the config.ASI_DATA_DIR / 'themis' directory.
+    are saved to the asilib.config['ASI_DATA_DIR'] / 'themis' directory.
 
     Parameters
     ----------
@@ -80,7 +81,7 @@ def download_themis_img(
         # Download file
         download_url = url + file_names[0]  # On the server
         download_path = pathlib.Path(
-            config.ASI_DATA_DIR, 'themis', file_names[0]
+            asilib.config['ASI_DATA_DIR'], 'themis', file_names[0]
         )  # On the local machine.
         # Download if force_download=True or the file does not exist.
         if force_download or (not download_path.is_file()):
@@ -93,7 +94,7 @@ def download_themis_img(
         # Download files
         for file_name in file_names:
             download_url = url + file_name
-            download_path = pathlib.Path(config.ASI_DATA_DIR, 'themis', file_name)
+            download_path = pathlib.Path(themis_dir, file_name)
             download_paths.append(download_path)
             # Download if force_download=True or the file does not exist.
             if force_download or (not download_path.is_file()):
@@ -125,7 +126,7 @@ def download_themis_cal(station: str, force_download: bool = False):
     asilib.download_themis_cal(station)
     """
     # Create the calibration directory in data/themis/cal
-    save_dir = config.ASI_DATA_DIR / 'themis' / 'cal'
+    save_dir = asilib.config['ASI_DATA_DIR'] / 'themis' / 'cal'
     if not save_dir.is_dir():
         save_dir.mkdir()
         print(f'Made directory at {save_dir}')

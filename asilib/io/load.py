@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 from asilib.io import download_rego
 from asilib.io import download_themis
-from asilib import config
+import asilib
 
 
 def load_img_file(
@@ -64,7 +64,7 @@ def load_img_file(
 
     # Download data if force_download == True:
     # Check if the REGO or THEMIS data is already saved locally.
-    search_path = pathlib.Path(config.ASI_DATA_DIR, mission.lower())
+    search_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower())
     search_pattern = f'*asf*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
     matched_paths = list(search_path.rglob(search_pattern))
     # Try to download files if one is not found locally.
@@ -116,7 +116,7 @@ def load_img_file(
 def load_cal_file(mission: str, station: str, force_download: bool = False) -> dict:
     """
     Loads the latest callibration file for the mission/station and downloads
-    one if one is not found in the config.ASI_DATA_DIR/mission/cal/ folder.
+    one if one is not found in the asilib.config['ASI_DATA_DIR']/mission/cal/ folder.
 
     Parameters
     ----------
@@ -139,7 +139,7 @@ def load_cal_file(mission: str, station: str, force_download: bool = False) -> d
 
     rego_cal = asilib.load_cal_file('REGO', 'GILL')
     """
-    cal_dir = config.ASI_DATA_DIR / mission.lower() / 'cal'
+    cal_dir = asilib.config['ASI_DATA_DIR'] / mission.lower() / 'cal'
     cal_paths = sorted(list(cal_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
 
     # If no THEMIS cal files found, download the lastest one.
