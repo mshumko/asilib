@@ -54,8 +54,7 @@ def plot_frame(
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
-        For more information See
-        https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html
+        For more information See https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html
     color_bounds: List[float] or None
         The lower and upper values of the color scale. If None, will
         automatically set it to low=1st_quartile and
