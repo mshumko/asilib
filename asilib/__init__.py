@@ -10,8 +10,19 @@ here = pathlib.Path(__file__).parent.resolve()
 settings = configparser.ConfigParser()
 settings.read(here / 'config.ini')
 
+try:
+    ASI_DATA_DIR = settings['Paths'].get('ASI_DATA_DIR', 
+        pathlib.Path.home() / 'asilib-data')
+except KeyError:  # Raised if config.ini does not have Paths.
+    ASI_DATA_DIR = pathlib.Path.home() / 'asilib-data'
+
+try:
+    IRBEM_WARNING = settings['Warnings'].getboolean('IRBEM')
+except KeyError: # Raised if config.ini does not have Warnings.
+    IRBEM_WARNING = True
+
 config = {
-    'ASI_DATA_DIR':settings['Paths'].get('ASI_DATA_DIR', pathlib.Path.home() / 'asilib-data')
+    'ASI_DATA_DIR': ASI_DATA_DIR, 'IRBEM_WARNING':IRBEM_WARNING
 }
 
 # Import download programs.
@@ -39,7 +50,7 @@ from asilib.utils.project_lla_to_skyfield import lla_to_skyfield
 if importlib.util.find_spec('IRBEM'):
     from asilib.utils.map_along_magnetic_field import map_along_magnetic_field
 else:
-    if settings['Warnings'].getboolean('IRBEM'):
+    if config['IRBEM_WARNING']:
         warnings.warn(
             "The IRBEM magnetic field library is not installed and is "
             "a dependency of asilib.map_along_magnetic_field()."

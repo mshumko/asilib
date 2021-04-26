@@ -13,7 +13,7 @@ if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'con
     # ASI Data dir
     s = (
         f'What is the aurora data directory? Press enter for the default '
-        f'directory at ~/asilib-data folder will be created. '
+        f'directory at ~/asilib-data folder will be created.\n'
     )
     ASI_DATA_DIR = input(s)
 
@@ -59,9 +59,7 @@ if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'con
     config = configparser.ConfigParser()
 
     if ASI_DATA_DIR != '':
-        config['Paths'] = {'ASI_DATA_DIR':ASI_DATA_DIR, 'HERE':here} 
-    else:
-        config['Paths'] = {'HERE':here}
+        config['Paths'] = {'ASI_DATA_DIR':ASI_DATA_DIR} 
     config['Warnings'] = {'IRBEM':IRBEM_WARNING}
 
     with open(here / 'config.ini', 'w') as f:
