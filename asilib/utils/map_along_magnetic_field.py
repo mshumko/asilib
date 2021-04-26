@@ -1,23 +1,19 @@
-"""
-This script maps the AC6 data location, along Earth's magnetic field lines
-(assumed IGRF + ext_model), to map_alt in km.
-
-Parameters
-__________
-ext_model: string
-    The external magnetic field model. The internal model is IGRF.
-map_alt: float
-    The AC6 mapping altitude in kilometers.
-catalog_name: str
-    The catalog (or data) name to load
-catalog_dir: str
-    The catalog directory to load the data from.
-"""
 import pathlib
+import warnings
 
 import pandas as pd
 import numpy as np
-import IRBEM
+
+import asilib
+
+try:
+    import IRBEM
+except ImportError:
+    if asilib.config['IRBEM_WARNING']:
+        warnings.warn(
+            "The IRBEM magnetic field library is not installed and is "
+            "a dependency of asilib.map_along_magnetic_field()."
+        )
 
 
 def map_along_magnetic_field(
