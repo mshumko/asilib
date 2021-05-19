@@ -32,6 +32,101 @@
          cy="100.7562"
          r="5.7904043" />
     </clipPath>
+    <filter
+       style="color-interpolation-filters:sRGB;"
+       inkscape:label="Colorize"
+       id="filter1481">
+      <feComposite
+         in2="SourceGraphic"
+         operator="arithmetic"
+         k1="0.7"
+         k2="0.355191"
+         result="composite1"
+         id="feComposite1467" />
+      <feColorMatrix
+         in="composite1"
+         values="1"
+         type="saturate"
+         result="colormatrix1"
+         id="feColorMatrix1469" />
+      <feFlood
+         flood-opacity="1"
+         flood-color="rgb(34,255,0)"
+         result="flood1"
+         id="feFlood1471" />
+      <feBlend
+         in="flood1"
+         in2="colormatrix1"
+         mode="multiply"
+         result="blend1"
+         id="feBlend1473" />
+      <feBlend
+         in2="blend1"
+         mode="screen"
+         result="blend2"
+         id="feBlend1475" />
+      <feColorMatrix
+         in="blend2"
+         values="1"
+         type="saturate"
+         result="colormatrix2"
+         id="feColorMatrix1477" />
+      <feComposite
+         in="colormatrix2"
+         in2="SourceGraphic"
+         operator="in"
+         k2="1"
+         result="fbSourceGraphic"
+         id="feComposite1479" />
+      <feColorMatrix
+         result="fbSourceGraphicAlpha"
+         in="fbSourceGraphic"
+         values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"
+         id="feColorMatrix1483" />
+      <feComposite
+         in2="fbSourceGraphic"
+         id="feComposite1485"
+         operator="arithmetic"
+         k1="0.7"
+         k2="0.4"
+         result="composite1"
+         in="fbSourceGraphic" />
+      <feColorMatrix
+         id="feColorMatrix1487"
+         in="composite1"
+         values="1"
+         type="saturate"
+         result="colormatrix1" />
+      <feFlood
+         id="feFlood1489"
+         flood-opacity="1"
+         flood-color="rgb(34,255,0)"
+         result="flood1" />
+      <feBlend
+         in2="colormatrix1"
+         id="feBlend1491"
+         in="flood1"
+         mode="multiply"
+         result="blend1" />
+      <feBlend
+         in2="blend1"
+         id="feBlend1493"
+         mode="screen"
+         result="blend2" />
+      <feColorMatrix
+         id="feColorMatrix1495"
+         in="blend2"
+         values="1"
+         type="saturate"
+         result="colormatrix2" />
+      <feComposite
+         in2="fbSourceGraphic"
+         id="feComposite1497"
+         in="colormatrix2"
+         operator="in"
+         k2="1"
+         result="composite2" />
+    </filter>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -40,15 +135,15 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="330.30905"
-     inkscape:cy="740.39858"
+     inkscape:zoom="2.8"
+     inkscape:cx="372.62009"
+     inkscape:cy="844.48457"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1920"
-     inkscape:window-height="1016"
-     inkscape:window-x="0"
+     inkscape:window-height="1056"
+     inkscape:window-x="1920"
      inkscape:window-y="0"
      inkscape:window-maximized="1">
     <inkscape:grid
@@ -99,7 +194,7 @@
        y="94.59375"
        clip-path="url(#clipPath3898)"
        transform="matrix(1.1022477,0,0,1.1022477,76.53697,-31.615726)"
-       style="opacity:0.75;fill:#535353;fill-opacity:0.56502632;stroke-width:4.53618526;stroke-miterlimit:4;stroke-dasharray:none" />
+       style="opacity:0.75;fill:#535353;fill-opacity:0.56502632;stroke-width:4.53618526;stroke-miterlimit:4;stroke-dasharray:none;filter:url(#filter1481)" />
     <flowRoot
        xml:space="preserve"
        id="flowRoot827"
@@ -121,7 +216,7 @@
            height="124.28571"
            x="325"
            y="271.80542" /></flowRegion><flowPara
-         id="flowPara841"></flowPara></flowRoot>    <flowRoot
+         id="flowPara841" /></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot843"
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
