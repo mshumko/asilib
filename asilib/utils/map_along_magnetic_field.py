@@ -54,9 +54,15 @@ def map_along_magnetic_field(
         +1   = northern magnetic hemisphere
         -1   = southern magnetic hemisphere
         +2   = opposite magnetic hemisphere as starting point
+    
+    Returns
+    -------
+    magnetic_footprint: np.ndarray
+        A numpy.array with size (n_times, 3) with lat, lon, alt
+        columns representing the magnetic footprint coordinates. 
     """
 
-    mapped_footprint = np.nan * np.zeros((space_time.shape[0], 3))
+    magnetic_footprint = np.nan * np.zeros((space_time.shape[0], 3))
 
     m = IRBEM.MagFields(kext=b_model)  # Initialize the IRBEM model.
 
@@ -64,5 +70,7 @@ def map_along_magnetic_field(
     for i, (time, lat, lon, alt) in enumerate(space_time):
         X = {'datetime': time, 'x1': alt, 'x2': lat, 'x3': lon}
         m_output = m.find_foot_point(X, maginput, map_alt, hemisphere)
-        mapped_footprint[i, :] = m_output['XFOOT']
-    return mapped_footprint
+        magnetic_footprint[i, :] = m_output['XFOOT']
+    # Map from IRBEM's (alt, lat, lon) -> (lat, lon, alt)
+    magnetic_footprint[:, [2, 0, 1]] = magnetic_footprint[:, [0, 1, 2]]
+    return magnetic_footprint

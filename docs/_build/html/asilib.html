@@ -38,7 +38,6 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Readme File" href="readme_link.html" />
     <link rel="prev" title="asilib" href="modules.html" /> 
 </head>
 
@@ -86,20 +85,16 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="asilib.io.html">asilib.io package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="asilib.utils.html">asilib.utils package</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">asilib</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">asilib package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-asilib.load">asilib.load module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#asilib-map-along-magnetic-field-module">asilib.map_along_magnetic_field module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-asilib.plot_frame">asilib.plot_frame module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-asilib.plot_movie">asilib.plot_movie module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-asilib.project_lla_to_skyfield">asilib.project_lla_to_skyfield module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-asilib">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="asilib.io.html">asilib.io package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="asilib.utils.html">asilib.utils package</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="readme_link.html">Readme File</a></li>
 </ul>
 
             
@@ -171,152 +166,31 @@
             
   <div class="section" id="asilib-package">
 <h1>asilib package<a class="headerlink" href="#asilib-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="asilib.io.html">asilib.io package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="asilib.io.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="asilib.io.html#module-asilib.io.download_rego">asilib.io.download_rego module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="asilib.io.html#module-asilib.io.download_themis">asilib.io.download_themis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="asilib.io.html#module-asilib.io.load">asilib.io.load module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="asilib.io.html#module-asilib.io">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="asilib.utils.html">asilib.utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="asilib.utils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="asilib.utils.html#module-asilib.utils.map_along_magnetic_field">asilib.utils.map_along_magnetic_field module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="asilib.utils.html#module-asilib.utils.project_lla_to_skyfield">asilib.utils.project_lla_to_skyfield module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="asilib.utils.html#module-asilib.utils.start_generator">asilib.utils.start_generator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="asilib.utils.html#module-asilib.utils">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-asilib.load">
-<span id="asilib-load-module"></span><h2>asilib.load module<a class="headerlink" href="#module-asilib.load" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt id="asilib.load.get_frame">
-<code class="sig-prename descclassname"><span class="pre">asilib.load.</span></code><code class="sig-name descname"><span class="pre">get_frame</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.datetime</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mission</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_download</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_thresh_s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.datetime</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#asilib.load.get_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets one ASI image frame given the mission (THEMIS or REGO), station, and
-the day date-time parameters. If a file does not locally exist, this
-function will attempt to download it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>time</strong> (<em>datetime.datetime</em><em> or </em><em>str</em>) – The date and time to download the data from. If time is string,
-dateutil.parser.parse will attempt to parse it into a datetime
-object. The user must specify the UT hour and the first argument
-is assumed to be the start_time and is not checked.</p></li>
-<li><p><strong>mission</strong> (<em>str</em>) – The mission id, can be either THEMIS or REGO.</p></li>
-<li><p><strong>station</strong> (<em>str</em>) – The station id to download the data from.</p></li>
-<li><p><strong>force_download</strong> (<em>bool</em><em> (</em><em>optional</em><em>)</em>) – If True, download the file even if it already exists.</p></li>
-<li><p><strong>time_thresh_s</strong> (<em>float</em>) – The maximum allowed time difference between a frame’s time stamp
-and the time argument in seconds. Will raise a ValueError if no
-image time stamp is within the threshold.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>frame_time</strong> (<em>datetime</em>) – The frame timestamp.</p></li>
-<li><p><strong>frame</strong> (<em>np.ndarray</em>) – A 2D array of the ASI image at the date-time nearest to the
-time argument.</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-<div class="admonition-example admonition">
-<p class="admonition-title">Example</p>
-<p>import asilib</p>
-<p>time, frame = asilib.get_frame(‘2016-10-29T04:15:00’, ‘REGO’, ‘GILL’)</p>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt id="asilib.load.get_frames">
-<code class="sig-prename descclassname"><span class="pre">asilib.load.</span></code><code class="sig-name descname"><span class="pre">get_frames</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.datetime</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mission</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_download</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#asilib.load.get_frames" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets multiple ASI image frames given the mission (THEMIS or REGO), station, and
-the time_range date-time parameters. If a file does not locally exist, this
-function will attempt to download it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>time_range</strong> (<em>List</em><em>[</em><em>Union</em><em>[</em><em>datetime</em><em>, </em><em>str</em><em>]</em><em>]</em>) – A list with len(2) == 2 of the start and end time to get the
-frames. If either start or end time is a string,
-dateutil.parser.parse will attempt to parse it into a datetime
-object. The user must specify the UT hour and the first argument
-is assumed to be the start_time and is not checked.</p></li>
-<li><p><strong>mission</strong> (<em>str</em>) – The mission id, can be either THEMIS or REGO.</p></li>
-<li><p><strong>station</strong> (<em>str</em>) – The station id to download the data from.</p></li>
-<li><p><strong>force_download</strong> (<em>bool</em><em> (</em><em>optional</em><em>)</em>) – If True, download the file even if it already exists.</p></li>
-<li><p><strong>time_thresh_s</strong> (<em>float</em>) – The maximum allowed time difference between a frame’s time stamp
-and the time argument in seconds. Will raise a ValueError if no
-image time stamp is within the threshold.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>frame_time</strong> (<em>datetime</em>) – The frame timestamps contained in time_range, inclduing the start
-and end times.</p></li>
-<li><p><strong>frame</strong> (<em>np.ndarray</em>) – An (nTime x nPixelRows x nPixelCols) array containing the ASI images
-for times contained in time_range.</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-<div class="admonition-example admonition">
-<p class="admonition-title">Example</p>
-<p>from datetime import datetime</p>
-<p>import asilib</p>
-<p>time_range = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
-times, frames = asilib.get_frames(time_range, ‘REGO’, ‘GILL’)</p>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt id="asilib.load.load_cal_file">
-<code class="sig-prename descclassname"><span class="pre">asilib.load.</span></code><code class="sig-name descname"><span class="pre">load_cal_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mission</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_download</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="headerlink" href="#asilib.load.load_cal_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads the latest callibration file for the mission/station and downloads
-one if one is not found in the config.ASI_DATA_DIR/mission/cal/ folder.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mission</strong> (<em>str</em>) – The mission id, can be either THEMIS or REGO.</p></li>
-<li><p><strong>station</strong> (<em>str</em>) – The station id to download the data from.</p></li>
-<li><p><strong>force_download</strong> (<em>bool</em><em> (</em><em>optional</em><em>)</em>) – If True, download the file even if it already exists.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>cal_dict</strong> – A calibration dictionary with longitudes mapped from -180 to 180
-degrees.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>dict</p>
-</dd>
-</dl>
-<div class="admonition-example admonition">
-<p class="admonition-title">Example</p>
-<p>import asilib</p>
-<p>rego_cal = asilib.load_cal_file(‘REGO’, ‘GILL’)</p>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt id="asilib.load.load_img_file">
-<code class="sig-prename descclassname"><span class="pre">asilib.load.</span></code><code class="sig-name descname"><span class="pre">load_img_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.datetime</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mission</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_download</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">cdflib.cdfread.CDF</span><a class="headerlink" href="#asilib.load.load_img_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads the REGO or THEMIS ASI CDF file and downloads one if it doesn’t
-exist on the local computer.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>time</strong> (<em>datetime.datetime</em><em> or </em><em>str</em>) – The date and time to download the data from. If time is string,
-dateutil.parser.parse will attempt to parse it into a datetime
-object. Must contain the date and the UT hour.</p></li>
-<li><p><strong>mission</strong> (<em>str</em>) – The mission id, can be either THEMIS or REGO.</p></li>
-<li><p><strong>station</strong> (<em>str</em>) – The station id to download the data from.</p></li>
-<li><p><strong>force_download</strong> (<em>bool</em><em> (</em><em>optional</em><em>)</em>) – If True, download the file even if it already exists.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>frame_time</strong> (<em>datetime</em>) – The frame timestamp.</p></li>
-<li><p><strong>frame</strong> (<em>np.ndarray</em>) – A 2D array of the ASI image at the date-time nearest to the
-day argument.</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-<div class="admonition-example admonition">
-<p class="admonition-title">Example</p>
-<p>import asilib
-rego_data = asilib.load_img_file(‘2016-10-29T04’, ‘REGO’, ‘GILL’)</p>
-</div>
-</dd></dl>
-
-</div>
-<div class="section" id="asilib-map-along-magnetic-field-module">
-<h2>asilib.map_along_magnetic_field module<a class="headerlink" href="#asilib-map-along-magnetic-field-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-asilib.plot_frame">
 <span id="asilib-plot-frame-module"></span><h2>asilib.plot_frame module<a class="headerlink" href="#module-asilib.plot_frame" title="Permalink to this headline">¶</a></h2>
@@ -363,6 +237,13 @@ the east/west directions are flipped. Set azel_contours=True to confirm.</p></li
 </ul>
 </p>
 </dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>NotImplementedError</strong> – If the colormap is unspecified (‘auto’ by default) and the
+    auto colormap is undefined for an ASI mission.</p></li>
+<li><p><strong>ValueError</strong> – If the color_norm kwarg is not “log” or “lin”.</p></li>
+</ul>
+</dd>
 </dl>
 <div class="admonition-example admonition">
 <p class="admonition-title">Example</p>
@@ -384,10 +265,28 @@ plt.show()</p>
 </div>
 <div class="section" id="module-asilib.plot_movie">
 <span id="asilib-plot-movie-module"></span><h2>asilib.plot_movie module<a class="headerlink" href="#module-asilib.plot_movie" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="asilib.plot_movie.Frames">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asilib.plot_movie.</span></code><code class="sig-name descname"><span class="pre">Frames</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asilib.plot_movie.Frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="asilib.plot_movie.Frames.frames">
+<code class="sig-name descname"><span class="pre">frames</span></code><a class="headerlink" href="#asilib.plot_movie.Frames.frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="asilib.plot_movie.Frames.time">
+<code class="sig-name descname"><span class="pre">time</span></code><a class="headerlink" href="#asilib.plot_movie.Frames.time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt id="asilib.plot_movie.plot_movie">
-<code class="sig-prename descclassname"><span class="pre">asilib.plot_movie.</span></code><code class="sig-name descname"><span class="pre">plot_movie</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.datetime</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mission</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asilib.plot_movie.plot_movie" title="Permalink to this definition">¶</a></dt>
-<dd><p>A warpper for plot_movie_generator() generator function. This function calls
+<code class="sig-prename descclassname"><span class="pre">asilib.plot_movie.</span></code><code class="sig-name descname"><span class="pre">plot_movie</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.datetime</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mission</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#asilib.plot_movie.plot_movie" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for plot_movie_generator() generator function. This function calls
 plot_movie_generator() in a for loop, nothing more. The two function’s arguments
 and keyword arguments are identical.</p>
 <p>To make movies, you’ll need to install ffmpeg in your operating system.</p>
@@ -410,18 +309,29 @@ For more information See
 <li><p><strong>color_bounds</strong> (<em>List</em><em>[</em><em>float</em><em>] or </em><em>None</em>) – The lower and upper values of the color scale. If None, will
 automatically set it to low=1st_quartile and
 high=min(3rd_quartile, 10*1st_quartile)</p></li>
-<li><p><strong>ax</strong> (<em>plt.subplot</em><em>(</em><em>)</em>) – The optional subplot that will be drawn on.</p></li>
+<li><p><strong>ax</strong> (<em>plt.Axes</em>) – The optional subplot that will be drawn on.</p></li>
 <li><p><strong>azel_contours</strong> (<em>bool</em>) – Switch azimuth and elevation contours on or off.</p></li>
-<li><p><strong>movie_format</strong> (<em>str</em>) – The movie format: mp4 has better compression but avi can be
-opened by the VLC player.</p></li>
-<li><p><strong>frame_rate</strong> (<em>int</em>) – The movie frame rate.</p></li>
+<li><p><strong>movie_container</strong> (<em>str</em>) – The movie container: mp4 has better compression but avi was determined
+to be the official container for preserving digital video by the
+National Archives and Records Administration.</p></li>
+<li><p><strong>ffmpeg_output_params</strong> (<em>dict</em>) – The additional/overwitten ffmpeg output prameters. The default parameters are:
+framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – If true, the output will be overwritten automatically. If false it will
+prompt the user to answer y/n.</p></li>
 <li><p><strong>color_norm</strong> (<em>str</em>) – Sets the ‘lin’ linear or ‘log’ logarithmic color normalization.</p></li>
-<li><p><strong>delete_pngs</strong> (<em>bool</em>) – Remove the intermediate png files created for the ffmpeg library.
-Be careful that if you call this function multiple times without
-removing the png files, the files used in the movies come from the
-search pattern mission_station. So if there are multiple times
-from the same mission/station, those pngs will all be written to one
-movie.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>NotImplementedError</strong> – If the colormap is unspecified (‘auto’ by default) and the
+    auto colormap is undefined for an ASI mission.</p></li>
+<li><p><strong>ValueError</strong> – If the color_norm kwarg is not “log” or “lin”.</p></li>
 </ul>
 </dd>
 </dl>
@@ -431,128 +341,6 @@ movie.</p></li>
 <p>import asilib</p>
 <p>time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
 asilib.plot_movie(time_range, ‘THEMIS’, ‘FSMI’)</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="asilib.plot_movie.plot_movie_generator">
-<code class="sig-prename descclassname"><span class="pre">asilib.plot_movie.</span></code><code class="sig-name descname"><span class="pre">plot_movie_generator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.datetime</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mission</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_download</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_label</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_map</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_bounds</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_norm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azel_contours</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">matplotlib.pyplot.subplot</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">movie_format</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mp4'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_pngs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.datetime</span><span class="p"><span class="pre">,</span> </span><span class="pre">matplotlib.axes._axes.Axes</span><span class="p"><span class="pre">,</span> </span><span class="pre">matplotlib.image.AxesImage</span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#asilib.plot_movie.plot_movie_generator" title="Permalink to this definition">¶</a></dt>
-<dd><p>A generator function that loads the ASI data and then yields individual ASI images,
-frame by frame. This allows the user to add content to each frame, such as the
-spacecraft position, and that will convert it to a movie. If you just want to make
-an ASI movie, use the wrapper for this function, plot_movie().</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>time_range</strong> (<em>List</em><em>[</em><em>Union</em><em>[</em><em>datetime</em><em>, </em><em>str</em><em>]</em><em>]</em>) – A list with len(2) == 2 of the start and end time to get the
-frames. If either start or end time is a string,
-dateutil.parser.parse will attempt to parse it into a datetime
-object. The user must specify the UT hour and the first argument
-is assumed to be the start_time and is not checked.</p></li>
-<li><p><strong>mission</strong> (<em>str</em>) – The mission id, can be either THEMIS or REGO.</p></li>
-<li><p><strong>station</strong> (<em>str</em>) – The station id to download the data from.</p></li>
-<li><p><strong>force_download</strong> (<em>bool</em><em> (</em><em>optional</em><em>)</em>) – If True, download the file even if it already exists.</p></li>
-<li><p><strong>add_label</strong> (<em>bool</em>) – Flag to add the “mission/station/frame_time” text to the plot.</p></li>
-<li><p><strong>color_map</strong> (<em>str</em>) – The matplotlib colormap to use. If ‘auto’, will default to a
-black-red colormap for REGO and black-white colormap for THEMIS.
-For more information See
-<a class="reference external" href="https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html">https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html</a></p></li>
-<li><p><strong>color_bounds</strong> (<em>List</em><em>[</em><em>float</em><em>] or </em><em>None</em>) – The lower and upper values of the color scale. If None, will
-automatically set it to low=1st_quartile and
-high=min(3rd_quartile, 10*1st_quartile)</p></li>
-<li><p><strong>ax</strong> (<em>plt.subplot</em><em>(</em><em>)</em>) – The optional subplot that will be drawn on.</p></li>
-<li><p><strong>movie_format</strong> (<em>str</em>) – The movie format: mp4 has better compression but avi can be
-opened by the VLC player.</p></li>
-<li><p><strong>frame_rate</strong> (<em>int</em>) – The movie frame rate.</p></li>
-<li><p><strong>color_norm</strong> (<em>str</em>) – Sets the ‘lin’ linear or ‘log’ logarithmic color normalization.</p></li>
-<li><p><strong>azel_contours</strong> (<em>bool</em>) – Switch azimuth and elevation contours on or off.</p></li>
-<li><p><strong>overwrite_output</strong> (<em>bool</em>) – If true, the output will be overwritten automatically. If false it will
-prompt the user to answer y/n.</p></li>
-<li><p><strong>delete_pngs</strong> (<em>bool</em>) – Remove the intermediate png files created for the ffmpeg library.
-Be careful that if you call this function multiple times without
-removing the png files, the files used in the movies come from the
-search pattern mission_station. So if there are multiple times
-from the same mission/station, those pngs will all be written to one
-movie.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Yields</dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>frame_time</strong> (<em>datetime.datetime</em>) – The time of the current frame.</p></li>
-<li><p><strong>ax</strong> (<em>plt.Axes</em>) – The subplot object to modify the axis, labels, etc.</p></li>
-<li><p><strong>im</strong> (<em>plt.AxesImage</em>) – The plt.imshow image object. Common use for im is to add a colorbar.
-The image is oriented in the map orientation (north is up, south is down,
-east is right, and west is left), contrary to the camera orientation where
-the east/west directions are flipped. Set azel_contours=True to confirm.</p></li>
-</ul>
-</dd>
-</dl>
-<div class="admonition-example admonition">
-<p class="admonition-title">Example</p>
-<p>from datetime import datetime</p>
-<p>import asilib</p>
-<p>time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-movie_generator = asilib.plot_movie_generator(time_range, ‘THEMIS, ‘FSMI’)</p>
-<dl class="simple">
-<dt>for frame_time, im, ax in movie_generator:</dt><dd><p># The code that modifies each frame here.
-pass</p>
-</dd>
-</dl>
-</div>
-</dd></dl>
-
-</div>
-<div class="section" id="module-asilib.project_lla_to_skyfield">
-<span id="asilib-project-lla-to-skyfield-module"></span><h2>asilib.project_lla_to_skyfield module<a class="headerlink" href="#module-asilib.project_lla_to_skyfield" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt id="asilib.project_lla_to_skyfield.lla_to_skyfield">
-<code class="sig-prename descclassname"><span class="pre">asilib.project_lla_to_skyfield.</span></code><code class="sig-name descname"><span class="pre">lla_to_skyfield</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mission</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sat_lla</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_download</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#asilib.project_lla_to_skyfield.lla_to_skyfield" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function projects, i.e. maps, a satellite’s latitude, longitude, and altitude
-(LLA) coordinates to the ASI’s azimuth and elevation coordinates and pixel index.
-This function is useful to plot a satellite’s location in the ASI image using the
-pixel indices.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mission</strong> (<em>str</em>) – The mission id, can be either THEMIS or REGO.</p></li>
-<li><p><strong>station</strong> (<em>str</em>) – The station id to download the data from.</p></li>
-<li><p><strong>sat_lla</strong> (<em>np.ndarray</em><em> or </em><em>pd.DataFrame</em>) – The satellite’s latitude, longitude, and altitude coordinates in a 2d array
-with shape (nPosition, 3) where each row is the number of satellite positions
-to map, and the columns correspond to latitude, longitude, and altitude,
-respectively. The altitude is in kilometer units.</p></li>
-<li><p><strong>force_download</strong> (<em>bool</em><em> (</em><em>optional</em><em>)</em>) – If True, download the calibration file even if it already exists.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>sat_azel</strong> (<em>np.ndarray</em>) – An array with shape (nPosition, 2) of the satellite’s azimuth and
-elevation coordinates.</p></li>
-<li><p><strong>asi_pixels</strong> (<em>np.ndarray</em>) – An array with shape (nPosition, 2) of the x- and y-axis pixel
-indices for the ASI image.</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-<div class="admonition-example admonition">
-<p class="admonition-title">Example</p>
-<p>import numpy as np</p>
-<p>from asilib import lla_to_skyfield</p>
-<p># THEMIS/ATHA’s LLA coordinates are (54.72, -113.301, 676 (meters)).
-# The LLA is a North-South pass right above ATHA..
-n = 50
-lats = np.linspace(60, 50, n)
-lons = -113.64*np.ones(n)
-alts = 500**np.ones(n)
-lla = np.array([lats, lons, alts]).T</p>
-<p>azel, pixels = lla_to_skyfield(‘REGO’, ‘ATHA’, lla)</p>
 </div>
 </dd></dl>
 
@@ -568,7 +356,6 @@ lla = np.array([lats, lons, alts]).T</p>
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="readme_link.html" class="btn btn-neutral float-right" title="Readme File" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="modules.html" class="btn btn-neutral float-left" title="asilib" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 

@@ -3,6 +3,11 @@ I welcome collaboration on this project. I need the most help with keeping up wi
 
 To install the developer dependencies, clone this repo, `cd aurora-asi-lib` and then run `python3 -m pip install -r requirements.txt -e .`
 
+# Build HTML documentation from scratch
+Install Python 3's Sphinx using `apt-get install python3-sphinx`. The `sphinx-rtd-theme` dependency is defined in `requirements.txt`. Before you update the documentation, if README.md changed, convert it to README.rst using `m2r2 README.md`.
+
+To compile the documentation with sphinx, `make html` in the `aurora-asi-lib/docs` directory. The overall documentation configuration is in `conf.py` and `index.rst` contains the reStructuredText instructions that are translated by Sphinx into `docs/_build/html/index.html.`
+
 # PyPI Release Checklist
 - [ ] Commit your latest changes:
 - [ ] Style with black:

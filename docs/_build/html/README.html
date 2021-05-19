@@ -1,0 +1,385 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>aurora-asi-lib &mdash; asilib  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> asilib
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="asilib.io.html">asilib.io package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="asilib.utils.html">asilib.utils package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">asilib</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="asilib.html">asilib package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="asilib.io.html">asilib.io package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="asilib.utils.html">asilib.utils package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">asilib</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>aurora-asi-lib</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/README.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <a class="reference external image-reference" href="https://github.com/mshumko/aurora-asi-lib/workflows/Test%20python%20package/badge.svg"><img alt="Test python package" src="https://github.com/mshumko/aurora-asi-lib/workflows/Test%20python%20package/badge.svg" /></a>
+<div class="section" id="aurora-asi-lib">
+<h1>aurora-asi-lib<a class="headerlink" href="#aurora-asi-lib" title="Permalink to this headline">¶</a></h1>
+<p>Easily download, plot, animate, and analyze aurora all sky imager (ASI) data. Currently the two supported camera systems (missions) are:</p>
+<ul class="simple">
+<li><p>Red-line Emission Geospace Observatory (REGO)</p></li>
+<li><p>Time History of Events and Macroscale Interactions during Substorms (THEMIS).</p></li>
+</ul>
+<p>Easily make ASI plots (example 1)!</p>
+<a class="reference external image-reference" href="https://github.com/mshumko/aurora-asi-lib/blob/main/images/example_1.png?raw=true"><img alt="Aurora plot from example 1." src="https://github.com/mshumko/aurora-asi-lib/blob/main/images/example_1.png?raw=true" /></a>
+<p>And movies! (example4; the track and mean ASI intensity plot is a little bit more work.)</p>
+<a class="reference external image-reference" href="https://github.com/mshumko/aurora-asi-lib/blob/main/images/20170915_023400_023557_themis_rank.gif?raw=true"><img alt="Aurora movie from example 4." src="https://github.com/mshumko/aurora-asi-lib/blob/main/images/20170915_023400_023557_themis_rank.gif?raw=true" /></a>
+<p>Feel free to contact me and request that I add other ASI missions to <code class="docutils literal notranslate"><span class="pre">asilib</span></code>.</p>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>Before you can run these examples, make sure that <code class="docutils literal notranslate"><span class="pre">asilib</span></code> is configured with the installation steps below. These examples, and more, are in the <code class="docutils literal notranslate"><span class="pre">asilib/examples/</span></code> folder.</p>
+<div class="section" id="example-1">
+<h3>Example 1<a class="headerlink" href="#example-1" title="Permalink to this headline">¶</a></h3>
+<p>This example uses asilib to plot one frame of a bright auroral arc.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">import</span> <span class="nn">asilib</span>
+
+<span class="c1"># A bright auroral arc that was analyzed by Imajo et al., 2021 &quot;Active</span>
+<span class="c1"># auroral arc powered by accelerated electrons from very high altitudes&quot;</span>
+<span class="n">frame_time</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">im</span> <span class="o">=</span> <span class="n">asilib</span><span class="o">.</span><span class="n">plot_frame</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2017</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;THEMIS&#39;</span><span class="p">,</span> <span class="s1">&#39;RANK&#39;</span><span class="p">,</span>
+                    <span class="n">color_norm</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="n">force_download</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="example-2">
+<h3>Example 2<a class="headerlink" href="#example-2" title="Permalink to this headline">¶</a></h3>
+<p>This example uses asilib to plot a 5 minute movie of an auroral arc brightening right as a meteor burns up at zenith!</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">import</span> <span class="nn">asilib</span>
+
+<span class="n">time_range</span> <span class="o">=</span> <span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">26</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">26</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+<span class="n">asilib</span><span class="o">.</span><span class="n">plot_movie</span><span class="p">(</span><span class="n">time_range</span><span class="p">,</span> <span class="s1">&#39;THEMIS&#39;</span><span class="p">,</span> <span class="s1">&#39;FSMI&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Movie saved in {asilib.config.ASI_DATA_DIR / &quot;movies&quot;}&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="example-3">
+<h3>Example 3<a class="headerlink" href="#example-3" title="Permalink to this headline">¶</a></h3>
+<p>This example is longer and it shows how to superpose a hypothetical satellite path through the THEMIS camera located at Rankin Inlet.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">asilib</span> <span class="kn">import</span> <span class="n">plot_movie_generator</span>
+<span class="kn">from</span> <span class="nn">asilib</span> <span class="kn">import</span> <span class="n">lla_to_skyfield</span>
+<span class="kn">from</span> <span class="nn">asilib</span> <span class="kn">import</span> <span class="n">load_cal_file</span>
+
+
+<span class="c1"># ASI parameters</span>
+<span class="n">mission</span> <span class="o">=</span> <span class="s1">&#39;THEMIS&#39;</span>
+<span class="n">station</span> <span class="o">=</span> <span class="s1">&#39;RANK&#39;</span>
+<span class="n">time_range</span> <span class="o">=</span> <span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2017</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2017</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">36</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+<span class="c1"># Load the calibration data.</span>
+<span class="n">cal_dict</span> <span class="o">=</span> <span class="n">load_cal_file</span><span class="p">(</span><span class="n">mission</span><span class="p">,</span> <span class="n">station</span><span class="p">)</span>
+
+<span class="c1"># Create the satellite track&#39;s latitude, longitude, altitude (LLA) coordinates.</span>
+<span class="c1"># This is an imaginary north-south satellite track oriented to the east</span>
+<span class="c1"># of the THEMIS/RANK station.</span>
+<span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">time_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">time_range</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span>  <span class="c1"># 3 second cadence.</span>
+<span class="n">lats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">cal_dict</span><span class="p">[</span><span class="s2">&quot;SITE_MAP_LATITUDE&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">10</span><span class="p">,</span> <span class="n">cal_dict</span><span class="p">[</span><span class="s2">&quot;SITE_MAP_LATITUDE&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">10</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">lons</span> <span class="o">=</span> <span class="p">(</span><span class="n">cal_dict</span><span class="p">[</span><span class="s2">&quot;SITE_MAP_LONGITUDE&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">alts</span> <span class="o">=</span> <span class="mi">500</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">lla</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">lats</span><span class="p">,</span> <span class="n">lons</span><span class="p">,</span> <span class="n">alts</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+
+<span class="c1"># Map the satellite track to the station&#39;s azimuth and elevation coordinates as well as the</span>
+<span class="c1"># image pixels</span>
+<span class="c1"># The mapping is not along the magnetic field lines! You need to install IRBEM and then use</span>
+<span class="c1"># asilib.map_along_magnetic_field().</span>
+<span class="n">sat_azel</span><span class="p">,</span> <span class="n">sat_azel_pixels</span> <span class="o">=</span> <span class="n">lla_to_skyfield</span><span class="p">(</span><span class="n">mission</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">lla</span><span class="p">)</span>
+
+<span class="c1"># Initiate the movie generator function.</span>
+<span class="n">movie_generator</span> <span class="o">=</span> <span class="n">plot_movie_generator</span><span class="p">(</span>
+    <span class="n">time_range</span><span class="p">,</span> <span class="n">mission</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">azel_contours</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">im</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">movie_generator</span><span class="p">):</span>
+    <span class="c1"># Plot the entire satellite track</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sat_azel_pixels</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">sat_azel_pixels</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;red&#39;</span><span class="p">)</span>
+    <span class="c1"># Plot the current satellite position.</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">sat_azel_pixels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">sat_azel_pixels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+    <span class="c1"># Annotate the station and satellite info in the top-left corner.</span>
+    <span class="n">station_str</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{mission}</span><span class="s1">/</span><span class="si">{station}</span><span class="s1"> &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;LLA=(</span><span class="si">{cal_dict[&quot;SITE_MAP_LATITUDE&quot;]:.2f}</span><span class="s1">, &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{cal_dict[&quot;SITE_MAP_LONGITUDE&quot;]:.2f}</span><span class="s1">, </span><span class="si">{cal_dict[&quot;SITE_MAP_ALTITUDE&quot;]:.2f}</span><span class="s1">)&#39;</span>
+    <span class="p">)</span>
+    <span class="n">satellite_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Satellite LLA=(</span><span class="si">{lla[i, 0]:.2f}</span><span class="s1">, </span><span class="si">{lla[i, 1]:.2f}</span><span class="s1">, </span><span class="si">{lla[i, 2]:.2f}</span><span class="s1">)&#39;</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">station_str</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">satellite_str</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">,</span>
+            <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>To install this package as a user, run:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python3 -m pip install aurora-asi-lib
+</pre></div>
+</div>
+<p>To install this package as a developer, run:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git clone git@github.com:mshumko/aurora-asi-lib.git
+<span class="nb">cd</span> aurora-asi-lib
+python3 -m pip install -r requirements.txt <span class="c1"># or</span>
+python3 -m pip install -e .
+</pre></div>
+</div>
+<p>In either case, you’ll need to configure your system paths to tell <code class="docutils literal notranslate"><span class="pre">asilib</span></code> (the import name) where to save the ASI data and movies. Run <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">asilib</span> <span class="pre">config</span></code> to set up the data directory where the image, calibration, and movie files will be saved. Your settings will be stored in <code class="docutils literal notranslate"><span class="pre">config.py</span></code>. If you configure <code class="docutils literal notranslate"><span class="pre">asilib</span></code>, but don’t specify a data directory, a default directory in <code class="docutils literal notranslate"><span class="pre">~/asilib-data</span></code> will be created if it doesn’t exist.</p>
+<div class="section" id="ffmpeg-dependency">
+<h3>ffmpeg dependency<a class="headerlink" href="#ffmpeg-dependency" title="Permalink to this headline">¶</a></h3>
+<p>To make  movies you’ll also need to install the ffmpeg library.</p>
+<ul class="simple">
+<li><p><strong>Ubuntu</strong>: <code class="docutils literal notranslate"><span class="pre">apt</span> <span class="pre">install</span> <span class="pre">ffmpeg</span></code></p></li>
+<li><p><strong>Mac</strong>: <code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">ffmpeg</span></code></p></li>
+</ul>
+<p><strong>NOTES</strong></p>
+<ul class="simple">
+<li><p>If you get the “ERROR: Could not build wheels for pymap3d which use PEP 517 and cannot be installed directly” error when installing, you need to upgrade your pip, setuptools, and wheel libaries via <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--upgrade</span> <span class="pre">pip</span> <span class="pre">setuptools</span> <span class="pre">wheel</span></code>.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="user-guide">
+<h2>User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h2>
+<p><strong>Note</strong> These are top-level descriptions: The full parameter list and an example for each function is accessible via the built-in <code class="docutils literal notranslate"><span class="pre">help()</span></code> function.</p>
+<p><strong>Note 2</strong> The longitude units are converted from 0-&gt;360 to -180-&gt;180 degrees in the calibration files.</p>
+<div class="section" id="download-asi-data">
+<h3>Download ASI Data<a class="headerlink" href="#download-asi-data" title="Permalink to this headline">¶</a></h3>
+<p>To download ASI data, the programs in the <code class="docutils literal notranslate"><span class="pre">asilib/io/</span></code> search for and download the THEMIS and REGO image and calibration data.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">asilib.download_themis_img()</span></code> and <code class="docutils literal notranslate"><span class="pre">asilib.download_rego_img()</span></code>: downloads the THEMIS and REGO images in the common data format (CDF) files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">asilib.download_themis_cal()</span></code> and <code class="docutils literal notranslate"><span class="pre">asilib.download_rego_cal()</span></code>: downloads the THEMIS and REGO images in the common data format (CDF) files.</p></li>
+</ul>
+</div>
+<div class="section" id="load-asi-data">
+<h3>Load ASI Data<a class="headerlink" href="#load-asi-data" title="Permalink to this headline">¶</a></h3>
+<p>There are a few data loading functions that automaticaly call the download programs if a file is not found on the local computer or the user explicitly passes <code class="docutils literal notranslate"><span class="pre">force_download</span> <span class="pre">=</span> <span class="pre">True</span></code> to force the download. These functions are in <code class="docutils literal notranslate"><span class="pre">config.py</span></code>.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">asilib.load_img_file()</span></code>: Returns an <code class="docutils literal notranslate"><span class="pre">cdflib.CDF()</span></code> file object for an ASI
+file specified by the date-time, mission, and station. See the <a class="reference external" href="https://github.com/MAVENSDC/cdflib">cdflib</a> documentaion for the CDF interface.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">asilib.load_cal_file()</span></code>: Returns an dictionary containing the latest calibration data from a specified mission/station. Be aware that the longitude is mapped from 0 to 360 to -180 to 180 degrees.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">asilib.get_frame()</span></code>: Given a mission/station and a date-time, this function calls <code class="docutils literal notranslate"><span class="pre">asilib.load_img_file()</span></code> and returns the time stamp and one image (frame) with a time stamp within <code class="docutils literal notranslate"><span class="pre">time_thresh_s</span> <span class="pre">=</span> <span class="pre">3</span></code> seconds (optional kwarg), otherwise an AssertionError is raised if a ASI time stamp is not found.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">asilib.get_frames()</span></code>: Given a mission/station and a date-time <code class="docutils literal notranslate"><span class="pre">time_range</span></code>, this function calls <code class="docutils literal notranslate"><span class="pre">asilib.load_img_file()</span></code> and returns an array of time stamps and images observed at times inside the <code class="docutils literal notranslate"><span class="pre">time_range</span></code>.</p></li>
+</ul>
+</div>
+<div class="section" id="plot-asi-data">
+<h3>Plot ASI Data<a class="headerlink" href="#plot-asi-data" title="Permalink to this headline">¶</a></h3>
+<p>There are two modules that plot a single frame or a series of frames.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">asilib.plot_frame()</span></code>: Given a mission/station and a date-time arguments, this function calls <code class="docutils literal notranslate"><span class="pre">asilib.get_frame()</span></code> and plots one ASI frame. By default, the color map is black-white for THEMIS and black-red for REGO, the color scale is logarthmic, and color map limits are automatically set as <code class="docutils literal notranslate"><span class="pre">(25th</span> <span class="pre">percentile,</span> <span class="pre">min(98th</span> <span class="pre">percentile,</span> <span class="pre">10x25th</span> <span class="pre">percentile))</span></code>. This ensures a good dynamic range for each frame. The subplot object, the frame time, and the <code class="docutils literal notranslate"><span class="pre">plt.imshow()</span></code> objects are returned so the user can add to the subplot.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">asilib.plot_movie()</span></code>: Similar to <code class="docutils literal notranslate"><span class="pre">asilib.plot_frame()</span></code>, given a mission/station and a <code class="docutils literal notranslate"><span class="pre">time_range</span></code> arguments, this function calls <code class="docutils literal notranslate"><span class="pre">asilib.get_frames()</span></code> and plots one multiple ASI frames and saves them to <code class="docutils literal notranslate"><span class="pre">/data/movies/</span></code>. Movie file creation, such as an <code class="docutils literal notranslate"><span class="pre">mp4</span></code> or <code class="docutils literal notranslate"><span class="pre">gif</span></code>, is not implemented yet because I have not found a movie writer that is available between Windows/Linux/Mac.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_movie_generator()</span></code>: The generator function that allows the user to overlay other plots on the movie.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_collage()</span></code>: Similar to <code class="docutils literal notranslate"><span class="pre">asilib.plot_movie()</span></code> in that the arguments are the same, but this function returns a collage of images with the time stamps annotated.</p></li>
+</ul>
+</div>
+<div class="section" id="mapping-satellite-position-to-the-skyfield">
+<h3>Mapping satellite position to the skyfield<a class="headerlink" href="#mapping-satellite-position-to-the-skyfield" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">asilib.map_skyfield()</span></code>: maps the satellite coordinates from LLA (latitude, longitude, altitudes) to the ASI image x and y pixel indices. This function relies on the azimuth and elevation calibration files that can be downloaded via <code class="docutils literal notranslate"><span class="pre">asilib.load_cal_file()</span></code>. This function does <strong>not</strong> map the satellite position along the magnetic field line, that is done by <code class="docutils literal notranslate"><span class="pre">map_along_magnetic_field.py</span></code> and requires IRBEM-Lib to be installed (beyond the scope of this user guide).</p></li>
+<li><p><cite>map_along_magnetic_field.py</cite>: magnetically maps the satellite LLA coordinates with time stamps to a specified altitude. The hemisphere of the mapping can be: same, opposite, northern, or southern.</p></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Mykhaylo Shumko.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -4,7 +4,7 @@ import pathlib
 from datetime import datetime
 
 from asilib.io import download_rego
-from asilib import config
+import asilib
 
 """
 Unit tests to check that the functions in download_rego.py are working correctly.
@@ -45,7 +45,7 @@ class TestDownloadRego(unittest.TestCase):
         Test the full REGO data downloader and download an hour file
         clg_l1_rgf_luck_2020080104_v01.cdf to ./rego/.
         """
-        temp_image_dir = pathlib.Path(config.ASI_DATA_DIR, 'rego')
+        temp_image_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'rego')
         temp_image_path = temp_image_dir / 'clg_l1_rgf_luck_2020080104_v01.cdf'
 
         download_rego.download_rego_img(self.day, self.station, force_download=True)

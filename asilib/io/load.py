@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 from asilib.io import download_rego
 from asilib.io import download_themis
-from asilib import config
+import asilib
 
 
 def load_img_file(
@@ -43,6 +43,16 @@ def load_img_file(
         A 2D array of the ASI image at the date-time nearest to the
         day argument.
 
+    Raises
+    ------
+    FileNotFoundError
+        Catches the NotADirectoryError raised by download.py, and raises
+        this FileNotFoundError that clearly conveys that the file was not
+        found in the file system or online.
+    ValueError
+        Raised if there is an error with the file finding logic (ideally 
+        should not be raised).
+
     Example
     -------
     import asilib
@@ -54,7 +64,7 @@ def load_img_file(
 
     # Download data if force_download == True:
     # Check if the REGO or THEMIS data is already saved locally.
-    search_path = pathlib.Path(config.ASI_DATA_DIR, mission.lower())
+    search_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower())
     search_pattern = f'*asf*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
     matched_paths = list(search_path.rglob(search_pattern))
     # Try to download files if one is not found locally.
@@ -106,7 +116,7 @@ def load_img_file(
 def load_cal_file(mission: str, station: str, force_download: bool = False) -> dict:
     """
     Loads the latest callibration file for the mission/station and downloads
-    one if one is not found in the config.ASI_DATA_DIR/mission/cal/ folder.
+    one if one is not found in the asilib.config['ASI_DATA_DIR']/mission/cal/ folder.
 
     Parameters
     ----------
@@ -129,7 +139,7 @@ def load_cal_file(mission: str, station: str, force_download: bool = False) -> d
 
     rego_cal = asilib.load_cal_file('REGO', 'GILL')
     """
-    cal_dir = config.ASI_DATA_DIR / mission.lower() / 'cal'
+    cal_dir = asilib.config['ASI_DATA_DIR'] / mission.lower() / 'cal'
     cal_paths = sorted(list(cal_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
 
     # If no THEMIS cal files found, download the lastest one.
@@ -191,6 +201,12 @@ def get_frame(
     frame: np.ndarray
         A 2D array of the ASI image at the date-time nearest to the
         time argument.
+
+    Raises
+    ------
+    AssertionError
+        If a unique time stamp was not found within time_thresh_s of 
+        time.
 
     Example
     -------
@@ -264,6 +280,15 @@ def get_frames(
         An (nTime x nPixelRows x nPixelCols) array containing the ASI images
         for times contained in time_range.
 
+    Raises
+    ------
+    NotImplementedError
+        If the image dimensions are not specified for an ASI mission.
+    AssertionError
+        If the data file exists with no time stamps contained in time_range.
+    AssertionError
+        If len(time_range) != 2.
+        
     Example
     -------
     from datetime import datetime
@@ -317,7 +342,7 @@ def get_frames(
 
         # The timedelta offset is needed to include the time_range[1] hour.
         hourly_date_times = pd.date_range(
-            start=time_range[0], end=time_range[1] + pd.Timedelta(hours=1), freq='H'
+            start=time_range[0], end=time_range[1]+pd.Timedelta(hours=1), freq='H'
         )
         for hour_date_time in hourly_date_times:
             cdf_obj = load_img_file(hour_date_time, mission, station, force_download=force_download)
@@ -332,7 +357,6 @@ def get_frames(
 
     # Find the time stamps in between time_range.
     idx = np.where((epoch >= time_range[0]) & (epoch <= time_range[1]))[0]
-    assert len(idx) > 0, (
-        f'{len(idx)} number of time stamps were found ' f'in time_range={time_range}'
-    )
+    assert len(idx) > 0, (f'The data exists for {mission}/{station}, but no '
+                        f'data between {time_range}')
     return epoch[idx], frames[idx, :, :]

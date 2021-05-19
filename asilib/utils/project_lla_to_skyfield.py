@@ -39,6 +39,11 @@ def lla_to_skyfield(
         An array with shape (nPosition, 2) of the x- and y-axis pixel
         indices for the ASI image.
 
+    Raises
+    ------
+    AssertionError
+        If the sat_lla argument does not have exactly 3 columns (1st dimension).
+
     Example
     -------
     import numpy as np

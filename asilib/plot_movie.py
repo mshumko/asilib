@@ -9,8 +9,8 @@ import matplotlib.colors as colors
 import numpy as np
 import ffmpeg
 
+import asilib
 import asilib.io.load as load
-import asilib.config as config
 from asilib.utils.start_generator import start_generator
 
 def plot_movie(
@@ -37,7 +37,7 @@ def plot_movie(
         The station id to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
-    add_label: boolsubplot
+    add_label: bool
         Flag to add the "mission/station/frame_time" text to the plot.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
@@ -52,16 +52,30 @@ def plot_movie(
         The optional subplot that will be drawn on.
     azel_contours: bool
         Switch azimuth and elevation contours on or off.
-    movie_format: str
-        The movie format: mp4 has better compression but avi can be
-        opened by the VLC player.
+    movie_container: str
+        The movie container: mp4 has better compression but avi was determined
+        to be the official container for preserving digital video by the 
+        National Archives and Records Administration.
+    ffmpeg_output_params: dict
+        The additional/overwitten ffmpeg output prameters. The default parameters are:
+        framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
     overwrite: bool
         If true, the output will be overwritten automatically. If false it will
         prompt the user to answer y/n.
-    frame_rate: int
-        The movie frame rate.
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
+
+    Returns
+    -------
+    None
+    
+    Raises
+    ------
+    NotImplementedError
+        If the colormap is unspecified ('auto' by default) and the
+        auto colormap is undefined for an ASI mission.
+    ValueError
+        If the color_norm kwarg is not "log" or "lin".
 
     Example
     -------
@@ -71,11 +85,15 @@ def plot_movie(
 
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     asilib.plot_movie(time_range, 'THEMIS', 'FSMI')
-
-    Return
-    -------
-    None
     """
+
+    # Create a subplot object if one is not passed.
+    ax = kwargs.get('ax', None)
+    if ax is None:
+        _, ax = plt.subplots(figsize=(6,6))
+        kwargs['ax'] = ax
+        plt.tight_layout()
+
     movie_generator = plot_movie_generator(time_range, mission, station, **kwargs)
 
     for frame_time, frame, im, ax in movie_generator:
@@ -96,8 +114,8 @@ def plot_movie_generator(
     color_norm: str = 'log',
     azel_contours: bool = False,
     ax: plt.Axes = None,
-    movie_format: str = 'mp4',
-    frame_rate=10,
+    movie_container: str = 'mp4',
+    ffmpeg_output_params={},
     overwrite: bool = False,
 ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
     """
@@ -133,11 +151,13 @@ def plot_movie_generator(
         high=min(3rd_quartile, 10*1st_quartile)
     ax: plt.Axes
         The optional subplot that will be drawn on.
-    movie_format: str
-        The movie format: mp4 has better compression but avi can be
-        opened by the VLC player.
-    frame_rate: int
-        The movie frame rate.
+    movie_container: str
+        The movie container: mp4 has better compression but avi was determined
+        to be the official container for preserving digital video by the 
+        National Archives and Records Administration.
+    ffmpeg_output_params: dict
+        The additional/overwitten ffmpeg output parameters. The default parameters are:
+        framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
     azel_contours: bool
@@ -159,6 +179,14 @@ def plot_movie_generator(
         The image is oriented in the map orientation (north is up, south is down,
         east is right, and west is left), contrary to the camera orientation where
         the east/west directions are flipped. Set azel_contours=True to confirm.
+    
+    Raises
+    ------
+    NotImplementedError
+        If the colormap is unspecified ('auto' by default) and the
+        auto colormap is undefined for an ASI mission.
+    ValueError
+        If the color_norm kwarg is not "log" or "lin".
 
     Example
     -------
@@ -186,17 +214,17 @@ def plot_movie_generator(
     if ax is None:
         _, ax = plt.subplots()
 
-    # Create the movie directory inside config.ASI_DATA_DIR if it does
+    # Create the movie directory inside asilib.config['ASI_DATA_DIR'] if it does
     # not exist.
-    save_dir = pathlib.Path(
-        config.ASI_DATA_DIR,
+    frame_save_dir = pathlib.Path(
+        asilib.config['ASI_DATA_DIR'],
         'movies',
         'frames',
         f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_' f'{station.lower()}',
     )
-    if not save_dir.is_dir():
-        save_dir.mkdir(parents=True)
-        print(f'Created a {save_dir} directory')
+    if not frame_save_dir.is_dir():
+        frame_save_dir.mkdir(parents=True)
+        print(f'Created a {frame_save_dir} directory')
 
     if (color_map == 'auto') and (mission.lower() == 'themis'):
         color_map = 'Greys_r'
@@ -205,7 +233,6 @@ def plot_movie_generator(
     else:
         raise NotImplementedError('color_map == "auto" but the mission is unsupported')
 
-    save_paths = []
     # With the @start_generator decorator, when this generator first gets called, it 
     # will halt here. This way the errors due to missing data will be raised up front.
     user_input = yield
@@ -218,7 +245,7 @@ def plot_movie_generator(
         if np.all(frame == 0):
             continue
         ax.clear()
-        plt.axis('off')
+        ax.axis('off')
         # Figure out the color_bounds from the frame data.
         if color_bounds is None:
             lower, upper = np.quantile(frame, (0.25, 0.98))
@@ -236,7 +263,7 @@ def plot_movie_generator(
             ax.text(
                 0,
                 0,
-                f"{mission}/{station}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}",
+                f"{mission.upper()}/{station.upper()}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}",
                 va='bottom',
                 transform=ax.transAxes,
                 color='white',
@@ -253,21 +280,53 @@ def plot_movie_generator(
         save_name = (
             f'{frame_time.strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_' f'{station.lower()}.png'
         )
-        plt.savefig(save_dir / save_name)
-        save_paths.append(save_dir / save_name)
+        plt.savefig(frame_save_dir / save_name)
 
     # Make the movie
     movie_file_name = (
         f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_'
         f'{frame_times[-1].strftime("%H%M%S")}_'
-        f'{mission.lower()}_{station.lower()}.{movie_format}'
+        f'{mission.lower()}_{station.lower()}.{movie_container}'
     )
+    _write_movie(frame_save_dir, ffmpeg_output_params, movie_file_name, overwrite)
+    return
+
+def _write_movie(frame_save_dir, ffmpeg_output_params, movie_file_name, overwrite):
+    """
+    Helper function to write a movie using ffmpeg.
+
+    Parameters
+    ----------
+    frame_save_dir: pathlib.Path
+        The directory where the individual frames are saved to. 
+    ffmpeg_output_params: dict
+        The additional/overwitten ffmpeg output parameters. The default parameters are:
+        framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
+    movie_file_name: str 
+        The movie file name.
+    overwrite: bool
+        Overwrite the movie.
+
+    """
+    ffmpeg_params = {
+        'framerate':10,
+        'crf':25,
+        'vcodec':'libx264',
+        'pix_fmt':'yuv420p',
+        'preset':'slower'
+    }
+    # Add or change the ffmpeg_params's key:values with ffmpeg_output_params
+    ffmpeg_params.update(ffmpeg_output_params)
+
+    movie_save_path = frame_save_dir.parents[1] / movie_file_name
     movie_obj = ffmpeg.input(
-        str(save_dir) + f'/*.png',
+        str(frame_save_dir) + f'/*.png',
         pattern_type='glob',
-        framerate=frame_rate,
+        # Use pop so it won't be passed into movie_obj.output().
+        framerate=ffmpeg_params.pop('framerate')
     )
-    movie_obj.output(str(save_dir.parents[1] / movie_file_name)).run(overwrite_output=overwrite)
+    movie_obj.output(str(movie_save_path), **ffmpeg_params).run(
+                        overwrite_output=overwrite)
     return
 
 
@@ -306,6 +365,6 @@ def _add_azel_contours(
         levels=np.arange(0, 91, 30),
         alpha=1,
     )
-    plt.clabel(az_contours, inline=True, fontsize=8, colors=color)
-    plt.clabel(el_contours, inline=True, fontsize=8, colors=color, rightside_up=True)
+    plt.clabel(az_contours, inline=True, fontsize=12, colors=color)
+    plt.clabel(el_contours, inline=True, fontsize=12, colors=color, rightside_up=True)
     return
