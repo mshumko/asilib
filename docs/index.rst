@@ -3,9 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-===========================================
-Welcome to the aurora-asi-lib documentation
-===========================================
+.. image:: ./_static/aurora-asi-lib_logo.png
+  :alt: Alternative text
 
 **date**: |today| **version**: |version| **source**: `github`_.
 
