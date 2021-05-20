@@ -14,12 +14,15 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../'))
 
+import asilib
+
 
 # -- Project information -----------------------------------------------------
 
 project = 'asilib'
 copyright = '2021, Mykhaylo Shumko'
 author = 'Mykhaylo Shumko'
+version = str(asilib.__version__)
 
 
 # -- General configuration ---------------------------------------------------
@@ -46,7 +49,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '../asilib/tests']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = "pydata_sphinx_theme"
+html_logo = '_static/aurora-asi-lib_logo.png'
 
 html_theme_options = {
     # Toc options
