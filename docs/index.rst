@@ -24,13 +24,22 @@ Supported ASI missions
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: asilib:
 
    installation
 
-Indices and tables
-==================
+.. toctree::
+   :maxdepth: 2
+   :caption: DEVELOPMENT:
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   installation
+
+..
+   This is a comment block
+   
+   Indices and tables
+   ==================
+
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`

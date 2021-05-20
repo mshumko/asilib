@@ -49,8 +49,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '../asilib/tests']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "pydata_sphinx_theme"
-# html_theme = 'sphinx_rtd_theme'
+html_theme = "furo" # Tried these themes: sphinx_rtd_theme, pydata_sphinx_theme, furo
 
 html_logo = '_static/aurora-asi-lib_logo.png'
 
@@ -60,7 +59,8 @@ html_theme_options = {
     'sticky_navigation': True,
     'navigation_depth': 4,
     'includehidden': True,
-    'titles_only': True
+    'titles_only': True,
+    "sidebar_hide_name": True
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
