@@ -50,6 +50,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '../asilib/tests']
 # a list of builtin themes.
 #
 html_theme = "pydata_sphinx_theme"
+# html_theme = 'sphinx_rtd_theme'
+
 html_logo = '_static/aurora-asi-lib_logo.png'
 
 html_theme_options = {
