@@ -27,16 +27,19 @@ Supported ASI missions
    :caption: asilib:
 
    installation
+   tutorials
+   user_guide
+   api
 
 .. toctree::
    :maxdepth: 2
    :caption: DEVELOPMENT:
 
-   installation
+   developer_installation
 
 ..
    This is a comment block
-   
+
    Indices and tables
    ==================
 
