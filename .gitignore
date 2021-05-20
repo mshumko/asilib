@@ -12,3 +12,5 @@ movies/
 build/
 dist/
 asilib/config.ini
+docs/_build/
+.vscode/settings.json

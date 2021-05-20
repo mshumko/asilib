@@ -3,19 +3,46 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. include:: README.rst
+===========================================
+Welcome to the aurora-asi-lib documentation
+===========================================
+
+**date**: |today| **version**: |version| **source**: `github`_.
+
+.. _github: https://github.com/mshumko/aurora-asi-lib
+
+Easily download, plot, animate, and analyze auroral all sky imager (ASI) data.
+
+Supported ASI missions
+----------------------
+
+- Red-line Emission Geospace Observatory (REGO)
+- Time History of Events and Macroscale Interactions during Substorms (THEMIS).
+
+.. note::
+   While this package is named `aurora-asi-lib`, import it using the name `asilib`.
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Contents:
+   :maxdepth: 2
+   :caption: asilib:
 
-   asilib.io
-   asilib.utils
-   modules
+   installation
+   tutorials
+   user_guide
+   api
 
-Indices and tables
-==================
+.. toctree::
+   :maxdepth: 2
+   :caption: DEVELOPMENT:
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   developer_installation
+
+..
+   This is a comment block
+
+   Indices and tables
+   ==================
+
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`
