@@ -3,5 +3,6 @@
     "python.linting.mypyEnabled": true,
     "python.linting.enabled": true,
     "restructuredtext.confPath": "${workspaceFolder}/docs",
-    "python.pythonPath": "env/bin/python"
+    "python.pythonPath": "env/bin/python",
+    "restructuredtext.languageServer.disabled": true
 }
