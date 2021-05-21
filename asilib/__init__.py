@@ -43,7 +43,7 @@ from asilib.plot.plot_movie import plot_movie, plot_movie_generator
 from asilib.analysis.project_lla_to_skyfield import lla_to_skyfield
 
 # Import the equal_area function.
-from asilib.utils.equal_area import equal_area
+from asilib.analysis.equal_area import equal_area
 
 # If the IRBEM module exists, import map_along_magnetic_field.
 # This is better than a try-except block because the ImportError
