@@ -38,6 +38,8 @@ def plot_frame(
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
+    mission: str
+        The mission id, can be either THEMIS or REGO.
     station: str
         The station id to download the data from.
     force_download: bool (optional)
