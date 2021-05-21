@@ -135,9 +135,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.979899"
-     inkscape:cx="502.69866"
-     inkscape:cy="726.28896"
+     inkscape:zoom="2.8"
+     inkscape:cx="436.981"
+     inkscape:cy="746.34778"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -168,7 +168,7 @@
      inkscape:groupmode="layer"
      id="layer1">
     <path
-       style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="fill:none;stroke:#0c0c0c;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
        d="m 146.40631,87.77956 c -5.07303,0.13963 -9.31284,3.49223 -12.125,7.45898 5.49894,3.72419 12.15174,7.77484 19.03876,5.52983 5.07602,-1.1003 10.02908,-2.69182 14.93585,-4.37944 -6.36375,-4.51479 -13.80994,-8.76154 -21.84961,-8.60937 z"
        id="path12"
        inkscape:connector-curvature="0"
@@ -244,5 +244,11 @@
            y="353.23398"
            style="fill:#000000;stroke:#ff0000;stroke-width:0.37795275;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /></flowRegion><flowPara
          id="flowPara857"
-         style="font-size:17.33333397px;fill:#000000;stroke:#ff0000;stroke-width:0.37795275;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">Aurora All-Sky Imager Library</flowPara></flowRoot>  </g>
+         style="font-size:17.33333397px;fill:#000000;stroke:#ff0000;stroke-width:0.37795275;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">Aurora All-Sky Imager Library</flowPara></flowRoot>    <path
+       style="fill:none;stroke:#ff0000;stroke-width:0.25664487;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 146.42565,88.004358 c -4.92911,0.134695 -9.04865,3.368784 -11.78103,7.195311 5.34293,3.592541 11.80702,7.500011 18.49868,5.334341 4.93202,-1.061393 9.74458,-2.596651 14.51216,-4.224618 -6.18323,-4.355192 -13.4182,-8.451824 -21.22981,-8.305034 z"
+       id="path12-6"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc" />
+  </g>
 </svg>
