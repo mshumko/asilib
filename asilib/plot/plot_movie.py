@@ -11,7 +11,7 @@ import ffmpeg
 
 import asilib
 import asilib.io.load as load
-from asilib.utils.start_generator import start_generator
+from asilib.analysis.start_generator import start_generator
 
 def plot_movie(
     time_range: Sequence[Union[datetime, str]], mission: str, station: str, **kwargs

@@ -36,11 +36,11 @@ from asilib.io.load import get_frame
 from asilib.io.load import get_frames
 
 # Import the plotting and animating functions.
-from asilib.plot_frame import plot_frame
-from asilib.plot_movie import plot_movie, plot_movie_generator
+from asilib.plot.plot_frame import plot_frame
+from asilib.plot.plot_movie import plot_movie, plot_movie_generator
 
 # Import the skyfield and magnetic field mapping functions.
-from asilib.utils.project_lla_to_skyfield import lla_to_skyfield
+from asilib.analysis.project_lla_to_skyfield import lla_to_skyfield
 
 # Import the equal_area function.
 from asilib.utils.equal_area import equal_area
@@ -51,7 +51,7 @@ from asilib.utils.equal_area import equal_area
 # dependency but we want to specifically check for IRBEM and let
 # it crash if something else is wrong.
 if importlib.util.find_spec('IRBEM'):
-    from asilib.utils.map_along_magnetic_field import map_along_magnetic_field
+    from asilib.analysis.map_along_magnetic_field import map_along_magnetic_field
 else:
     if config['IRBEM_WARNING']:
         warnings.warn(
