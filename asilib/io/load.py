@@ -360,3 +360,42 @@ def get_frames(
     assert len(idx) > 0, (f'The data exists for {mission}/{station}, but no '
                         f'data between {time_range}')
     return epoch[idx], frames[idx, :, :]
+
+def get_frames_generator(time_range, mission, station, force_download=False):
+    """
+    Gets multiple ASI image frames given the mission (THEMIS or REGO), station, and
+    the time_range date-time parameters. If a file does not locally exist, this
+    function will attempt to download it. This generator yields the ASI data, file 
+    by file, bounded by time_range. This generator is useful for loading lots of data
+    for keograms.
+
+    Parameters
+    ----------
+    time_range: List[Union[datetime, str]]
+        A list with len(2) == 2 of the start and end time to get the
+        frames. If either start or end time is a string,
+        dateutil.parser.parse will attempt to parse it into a datetime
+        object. The user must specify the UT hour and the first argument
+        is assumed to be the start_time and is not checked.
+    mission: str
+        The mission id, can be either THEMIS or REGO.
+    station: str
+        The station id to download the data from.
+    force_download: bool (optional)
+        If True, download the file even if it already exists.
+    time_thresh_s: float
+        The maximum allowed time difference between a frame's time stamp
+        and the time argument in seconds. Will raise a ValueError if no
+        image time stamp is within the threshold.
+
+    Returns
+    -------
+    frame_time: datetime
+        The frame timestamps contained in time_range, inclduing the start
+        and end times.
+    frame: np.ndarray
+        An (nTime x nPixelRows x nPixelCols) array containing the ASI images
+        for times contained in time_range.
+    """
+
+    raise NotImplementedError
