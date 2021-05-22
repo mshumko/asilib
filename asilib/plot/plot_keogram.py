@@ -8,7 +8,7 @@ from asilib.io.load import get_frames, load_cal_file
 
 
 def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=None, 
-            color_norm='lin', title=True):
+            color_norm='lin', title=True, pcolormesh_kwargs={}):
     """
     Makes a keogram along the central meridian.
 
@@ -38,6 +38,10 @@ def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=No
         Sets the 'lin' linear or 'log' logarithmic color normalization.
     title: bool
         Toggles a default plot title with the format "date mission-station keogram".
+    pcolormesh_kwargs: dict
+        A dictionary of keyword arguments (kwargs) to pass directly into 
+        plt.pcolormesh. One use of this parameter is to change the colormap. For example,
+        pcolormesh_kwargs = {'cmap':'tu}
 
     Returns
     -------
@@ -102,10 +106,12 @@ def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=No
 
     if map_alt is None:
         im = ax.pcolormesh(frame_times, np.arange(keo.shape[1]), keo.T, 
-                        norm=norm, shading='auto')
+                        norm=norm, shading='flat', **pcolormesh_kwargs)
     else:
-        im = ax.pcolormesh(frame_times, keogram_latitude[::-1], keo.T, 
-                        norm=norm, shading='auto')
+        # keogram_latitude is reversed because unreversed array is 
+        # desending in latitude.  
+        im = ax.pcolormesh(frame_times, keogram_latitude[::-1], keo[:-1, :-1].T, 
+                        norm=norm, shading='flat', **pcolormesh_kwargs)
 
     if title:
         ax.set_title(f'{time_range[0].date()} | {mission.upper()}-{station.upper()}\nlkeogram')
@@ -113,6 +119,7 @@ def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=No
 
 
 if __name__ == '__main__':
-    ax, im = keogram(['2017-09-27T07:00:00', '2017-09-27T09:00:00'], 'REGO', 'LUCK', map_alt=230)
+    ax, im = keogram(['2017-09-27T07:00:00', '2017-09-27T09:00:00'], 'REGO', 'LUCK', 
+                    map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
     plt.colorbar(im)
     plt.show()
