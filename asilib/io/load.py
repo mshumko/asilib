@@ -161,6 +161,7 @@ def load_cal_file(mission: str, station: str, force_download: bool = False) -> d
     cal_dict['FULL_MAP_LONGITUDE'][valid_val_idx] = (
         np.mod(cal_dict['FULL_MAP_LONGITUDE'][valid_val_idx] + 180, 360) - 180
     )
+    cal_dict['cal_path'] = cal_path
     return cal_dict
 
 
@@ -298,15 +299,7 @@ def get_frames(
     time_range = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
     times, frames = asilib.get_frames(time_range, 'REGO', 'GILL')
     """
-    # Run a few checks to make sure that the time_range parameter has length 2 and
-    # convert time_range to datetime objects if it is a string.
-    assert len(time_range) == 2, f'len(time_range) = {len(time_range)} is not 2.'
-    for i, t_i in enumerate(time_range):
-        if isinstance(t_i, str):
-            time_range[i] = dateutil.parser.parse(t_i)
-
-    # Sort time_range if the user passed it in out of order.
-    time_range = sorted(time_range)
+    time_range = _validate_time_range(time_range)
 
     # Figure out the data keys to load.
     if mission.lower() == 'rego':
@@ -402,3 +395,48 @@ def get_frames_generator(time_range, mission, station, force_download=False):
     """
 
     raise NotImplementedError
+
+def _validate_time_range(time_range):
+    """
+    Checks that len(time_range) == 2 and that it can be converted to datetime objects,
+    if necessary.
+
+    Parameters
+    ----------
+    time_range: List[Union[datetime, str]]
+        A list with len(2) == 2 of the start and end time to get the
+        frames. If either start or end time is a string,
+        dateutil.parser.parse will attempt to parse it into a datetime
+        object. The user must specify the UT hour and the first argument
+        is assumed to be the start_time and is not checked.
+
+    Returns
+    -------
+    time_range: np.array
+        An array of length two with the sorted datetime.datetime objects.
+
+    Raises
+    ------
+    AssertionError
+        If len(time_range) != 2.
+    """
+    assert len(time_range) == 2, f'len(time_range) = {len(time_range)} is not 2.'
+
+    # Create a list version of time_range in case it is a tuple.
+    time_range_list = []
+
+    for t_i in time_range:
+        if isinstance(t_i, str):
+            # Try to parse it if passed a string.
+            time_range_list.append(dateutil.parser.parse(t_i))
+        elif isinstance(t_i, (datetime, pd.Timestamp)):
+            # If passed a the native or pandas datetime object. 
+            time_range_list.append(t_i)
+        else:
+            raise ValueError(f'Unknown time_range format. Got {time_range}. Start/end times must be '
+                            'strings that can be parsed by dateutil.parser.parse, or '
+                            'datetime.datetime, or pd.Timestamp objects.')
+
+    # Sort time_range if the user passed it in out of order.
+    time_range_list = sorted(time_range_list)
+    return time_range_list
