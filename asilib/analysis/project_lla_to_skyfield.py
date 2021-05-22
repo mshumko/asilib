@@ -4,7 +4,7 @@ import numpy as np
 import pymap3d
 import scipy.spatial
 
-from asilib.io.load import load_cal_file
+from asilib.io.load import load_cal
 
 
 def lla_to_skyfield(
@@ -70,7 +70,7 @@ def lla_to_skyfield(
     assert sat_lla.shape[1] == 3, 'sat_lla must have 3 columns.'
 
     # Load the catalog
-    cal_dict = load_cal_file(mission, station, force_download=force_download)
+    cal_dict = load_cal(mission, station, force_download=force_download)
 
     sat_azel = np.nan * np.zeros((sat_lla.shape[0], 2))
 

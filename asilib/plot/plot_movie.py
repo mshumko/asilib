@@ -349,7 +349,7 @@ def _add_azel_contours(
     color: str (optional)
         The contour color.
     """
-    cal_dict = load.load_cal_file(mission, station, force_download=force_download)
+    cal_dict = load.load_cal(mission, station, force_download=force_download)
 
     az_contours = ax.contour(
         cal_dict['FULL_AZIMUTH'][::-1, ::-1],

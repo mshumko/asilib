@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 
-from asilib.io.load import get_frames, load_cal_file, _validate_time_range
+from asilib.io.load import get_frames, load_cal, _validate_time_range
 
 
 def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=None, 
@@ -61,7 +61,7 @@ def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=No
     center_pixel = int(frames.shape[1]/2)
 
     if map_alt is not None:
-        cal = load_cal_file(mission, station)
+        cal = load_cal(mission, station)
         assert map_alt in cal['FULL_MAP_ALTITUDE']/1000, \
             f'{map_alt} km is not in calibration altitudes: {cal["FULL_MAP_ALTITUDE"]/1000} km'
         alt_index = np.where(cal['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0]
@@ -122,7 +122,7 @@ if __name__ == '__main__':
 
     # import asilib
 
-    # cal = load_cal_file('rego', 'luck')
+    # cal = load_cal('rego', 'luck')
 
     # fig, ax = plt.subplots()
     # asilib.plot_frame('2017-09-27 08', 'Rego', 'luck', ax=ax)

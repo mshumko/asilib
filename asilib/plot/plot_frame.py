@@ -139,7 +139,7 @@ def plot_frame(
         color='white',
     )
     if azel_contours:
-        cal_dict = load.load_cal_file(mission, station, force_download=force_download)
+        cal_dict = load.load_cal(mission, station, force_download=force_download)
 
         az_contours = ax.contour(
             cal_dict['FULL_AZIMUTH'][::-1, ::-1],

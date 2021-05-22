@@ -8,7 +8,7 @@ import numpy as np
 import asilib
 from asilib import plot_movie_generator
 from asilib import lla_to_skyfield
-from asilib import load_cal_file
+from asilib import load_cal
 
 # ASI parameters
 mission = 'THEMIS'
@@ -16,7 +16,7 @@ station = 'RANK'
 time_range = (datetime(2017, 9, 15, 2, 34, 0), datetime(2017, 9, 15, 2, 36, 0))
 
 # Load the calibration data.
-cal_dict = load_cal_file(mission, station)
+cal_dict = load_cal(mission, station)
 
 # Create the satellite track's latitude, longitude, altitude (LLA) coordinates.
 # This is an imaginary north-south satellite track oriented to the east

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import dateutil.parser
 from typing import List, Union, Sequence, Tuple
 from copy import copy
+import warnings
 
 import pandas as pd
 import numpy as np
@@ -15,7 +16,7 @@ from asilib.io import download_themis
 import asilib
 
 
-def load_img_file(
+def load_img(
     time: Union[datetime, str], mission: str, station: str, force_download: bool = False
 ) -> cdflib.cdfread.CDF:
     """
@@ -56,7 +57,7 @@ def load_img_file(
     Example
     -------
     import asilib
-    rego_data = asilib.load_img_file('2016-10-29T04', 'REGO', 'GILL')
+    rego_data = asilib.load_img('2016-10-29T04', 'REGO', 'GILL')
     """
     # Try to convert time to datetime object if it is a string.
     if isinstance(time, str):
@@ -112,8 +113,15 @@ def load_img_file(
     # If we made it here, we either found a local file, or downloaded one
     return cdflib.CDF(download_path)
 
+def load_img_file(time, mission: str, station: str, force_download: bool = False):
+    """
+    DEPRICATED for load_img_file()
+    """
+    warnings.warn('load_img_file is deprecated asilib.load_img() instead', DeprecationWarning)
+    return load_img(time, mission, station, force_download)
 
-def load_cal_file(mission: str, station: str, force_download: bool = False) -> dict:
+
+def load_cal(mission: str, station: str, force_download: bool = False) -> dict:
     """
     Loads the latest callibration file for the mission/station and downloads
     one if one is not found in the asilib.config['ASI_DATA_DIR']/mission/cal/ folder.
@@ -137,7 +145,7 @@ def load_cal_file(mission: str, station: str, force_download: bool = False) -> d
     -------
     import asilib
 
-    rego_cal = asilib.load_cal_file('REGO', 'GILL')
+    rego_cal = asilib.load_cal('REGO', 'GILL')
     """
     cal_dir = asilib.config['ASI_DATA_DIR'] / mission.lower() / 'cal'
     cal_paths = sorted(list(cal_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
@@ -164,6 +172,12 @@ def load_cal_file(mission: str, station: str, force_download: bool = False) -> d
     cal_dict['cal_path'] = cal_path
     return cal_dict
 
+def load_cal_file(mission: str, station: str, force_download: bool = False):
+    """
+    DEPRICATED for load_cal()
+    """
+    warnings.warn('load_cal_file is deprecated asilib.load_cal() instead', DeprecationWarning)
+    return load_cal(mission, station, force_download)
 
 def get_frame(
     time: Union[datetime, str],
@@ -219,7 +233,7 @@ def get_frame(
     if isinstance(time, str):
         time = dateutil.parser.parse(time)
 
-    cdf_obj = load_img_file(time, mission, station, force_download=force_download)
+    cdf_obj = load_img(time, mission, station, force_download=force_download)
 
     if mission.lower() == 'rego':
         frame_key = f'clg_rgf_{station.lower()}'
@@ -315,7 +329,7 @@ def get_frames(
     if start_time_rounded == end_time_rounded:
         # If the start/end date-hour are the same than load one data file, otherwise
         # load however many is necessary and concatinate the frames and times.
-        cdf_obj = load_img_file(time_range[0], mission, station, force_download=force_download)
+        cdf_obj = load_img(time_range[0], mission, station, force_download=force_download)
 
         # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
         # to datetime objects.
@@ -341,7 +355,7 @@ def get_frames(
                 start=time_range[0], end=time_range[1]+pd.Timedelta(hours=1), freq='H'
             )
         for hour_date_time in hourly_date_times:
-            cdf_obj = load_img_file(hour_date_time, mission, station, force_download=force_download)
+            cdf_obj = load_img(hour_date_time, mission, station, force_download=force_download)
 
             # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
             # to datetime objects.
