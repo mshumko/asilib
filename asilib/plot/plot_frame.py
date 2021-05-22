@@ -133,7 +133,7 @@ def plot_frame(
     ax.text(
         0,
         0,
-        f"{mission}/{station}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}",
+        f"{mission.upper()}/{station.upper()}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}",
         va='bottom',
         transform=ax.transAxes,
         color='white',

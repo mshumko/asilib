@@ -1,10 +1,8 @@
-import dateutil.parser
-
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 
-from asilib.io.load import get_frames, load_cal_file
+from asilib.io.load import get_frames, load_cal_file, _validate_time_range
 
 
 def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=None, 
@@ -56,14 +54,7 @@ def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=No
         If len(time_range) != 2. Also if map_alt does not equal the mapped 
         altitudes in the calibration mapped values.
     """
-
-    # Run a few checks to make sure that the time_range parameter has length 2 and
-    # convert time_range to datetime objects if it is a string.
-    assert len(time_range) == 2, f'len(time_range) = {len(time_range)} is not 2.'
-    for i, t_i in enumerate(time_range):
-        if isinstance(t_i, str):
-            time_range[i] = dateutil.parser.parse(t_i)
-
+    time_range = _validate_time_range(time_range)
     frame_times, frames = get_frames(time_range, mission, station)
 
     # Find the pixel at the center of the camera.
@@ -77,10 +68,13 @@ def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=No
 
         keogram_latitude = cal['FULL_MAP_LATITUDE'][alt_index, :, center_pixel]
 
-    keo = np.nan*np.zeros((frames.shape[0], frames.shape[2]))
+        # fig, bx = plt.subplots()
+        # bx.plot(cal['FULL_MAP_LATITUDE'][alt_index, :, center_pixel])
+        # bx.axvline(center_pixel, c='k')
+        # bx.axhline(cal['FULL_MAP_LATITUDE'][alt_index, center_pixel, center_pixel])
+        # bx.set(xlabel='latitude Index', ylabel='Latitude')
 
-    for i, frame in enumerate(frames):
-        keo[i, :] = frame[center_pixel, :]
+    keo = frames[:, center_pixel, :]
 
     if map_alt is not None:
         # Since keogram_latitude values are NaNs near the image edges, we want to filter
@@ -114,12 +108,27 @@ def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=No
                         norm=norm, shading='flat', **pcolormesh_kwargs)
 
     if title:
-        ax.set_title(f'{time_range[0].date()} | {mission.upper()}-{station.upper()}\nlkeogram')
+        ax.set_title(f'{time_range[0].date()} | {mission.upper()}-{station.upper()} keogram')
     return ax, im
 
 
 if __name__ == '__main__':
+    fig, ax = plt.subplots(figsize=(8, 6))
     ax, im = keogram(['2017-09-27T07:00:00', '2017-09-27T09:00:00'], 'REGO', 'LUCK', 
-                    map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
+                    ax=ax, map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
     plt.colorbar(im)
+    plt.tight_layout()
     plt.show()
+
+    # import asilib
+
+    # cal = load_cal_file('rego', 'luck')
+
+    # fig, ax = plt.subplots()
+    # asilib.plot_frame('2017-09-27 08', 'Rego', 'luck', ax=ax)
+    # ax.axvline(512/2, c='w')
+    # ax.axhline(512/2, c='w')
+    # ax.text(0, 0.9, f'SITE_MAP_LATITUDE={round(cal["SITE_MAP_LATITUDE"])}', 
+    #         transform=ax.transAxes, c='w')
+
+    # plt.show()
