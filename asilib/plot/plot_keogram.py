@@ -108,7 +108,7 @@ def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=No
                         norm=norm, shading='auto')
 
     if title:
-        ax.set_title(f'{time_range[0].date()} {mission.upper()}-{station.upper()} keogram')
+        ax.set_title(f'{time_range[0].date()} | {mission.upper()}-{station.upper()}\nlkeogram')
     return ax, im
 
 
