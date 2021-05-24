@@ -74,7 +74,7 @@ def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=No
         # bx.axhline(cal['FULL_MAP_LATITUDE'][alt_index, center_pixel, center_pixel])
         # bx.set(xlabel='latitude Index', ylabel='Latitude')
 
-    keo = frames[:, center_pixel, :]
+    keo = frames[:, :, center_pixel]
 
     if map_alt is not None:
         # Since keogram_latitude values are NaNs near the image edges, we want to filter
@@ -110,25 +110,3 @@ def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=No
     if title:
         ax.set_title(f'{time_range[0].date()} | {mission.upper()}-{station.upper()} keogram')
     return ax, im
-
-
-if __name__ == '__main__':
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax, im = keogram(['2017-09-27T07:00:00', '2017-09-27T09:00:00'], 'REGO', 'LUCK', 
-                    ax=ax, map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
-    plt.colorbar(im)
-    plt.tight_layout()
-    plt.show()
-
-    # import asilib
-
-    # cal = load_cal('rego', 'luck')
-
-    # fig, ax = plt.subplots()
-    # asilib.plot_frame('2017-09-27 08', 'Rego', 'luck', ax=ax)
-    # ax.axvline(512/2, c='w')
-    # ax.axhline(512/2, c='w')
-    # ax.text(0, 0.9, f'SITE_MAP_LATITUDE={round(cal["SITE_MAP_LATITUDE"])}', 
-    #         transform=ax.transAxes, c='w')
-
-    # plt.show()
