@@ -85,38 +85,3 @@ def plot_keogram(time_range, mission, station, map_alt=None, ax=None, color_boun
     if title:
         ax.set_title(f'{time_range[0].date()} | {mission.upper()}-{station.upper()} keogram')
     return ax, im
-
-
-if __name__ == '__main__':
-    mission='REGO'
-    station='LUCK'
-
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax, im = plot_keogram(['2017-09-27T07', '2017-09-27T09'], mission, station, 
-                    ax=ax, map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
-    plt.colorbar(im)
-    plt.tight_layout()
-    plt.show()
-
-    # mission='REGO'
-    # station='GILL'
-
-    # fig, ax = plt.subplots(figsize=(8, 6))
-    # ax, im = plot_keogram(['2015-02-02T10', '2015-02-02T11'], mission, station, 
-    #                 ax=ax, map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
-    # plt.colorbar(im)
-    # plt.tight_layout()
-    # # plt.show()
-
-    # import asilib
-
-    # cal = load_cal(mission, station)
-
-    # fig, bx = plt.subplots()
-    # asilib.plot_frame('2015-02-02T10:30', mission, station, ax=bx, azel_contours=True)
-    # bx.axvline(512/2, c='w')
-    # bx.axhline(512/2, c='w')
-    # bx.text(0, 0.9, f'SITE_MAP_LATITUDE={round(cal["SITE_MAP_LATITUDE"])}', 
-    #         transform=bx.transAxes, c='w')
-
-    # plt.show()
