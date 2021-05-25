@@ -38,9 +38,11 @@ from asilib.io.load import get_frames
 # Import the plotting and animating functions.
 from asilib.plot.plot_frame import plot_frame
 from asilib.plot.plot_movie import plot_movie, plot_movie_generator
+from asilib.plot.plot_keogram import plot_keogram
 
 # Import the skyfield and magnetic field mapping functions.
 from asilib.analysis.project_lla_to_skyfield import lla_to_skyfield
+from asilib.analysis.keogram import keogram
 
 # If the IRBEM module exists, import map_along_magnetic_field.
 # This is better than a try-except block because the ImportError
