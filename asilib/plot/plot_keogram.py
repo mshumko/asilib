@@ -74,7 +74,7 @@ def plot_keogram(time_range, mission, station, map_alt=None, ax=None, color_boun
         raise ValueError('color_norm must be either "log" or "lin".')
 
     if map_alt is None:
-        im = ax.pcolormesh(keo_df.index, keo_df.columns, keo_df.to_numpy().T, 
+        im = ax.pcolormesh(keo_df.index, keo_df.columns, keo_df.to_numpy()[:-1, :-1].T, 
                         norm=norm, shading='flat', **pcolormesh_kwargs)
     else:
         # keogram_latitude is reversed because unreversed array is 
