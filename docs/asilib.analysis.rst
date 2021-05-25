@@ -1,7 +1,7 @@
-asilib.io package
-=================
+asilib.analysis package
+=======================
 
-.. automodule:: asilib.io
+.. automodule:: asilib.analysis
    :members:
    :undoc-members:
    :show-inheritance:
@@ -10,19 +10,19 @@ Submodules
 ----------
 
 
-.. automodule:: asilib.io.download_rego
+.. automodule:: asilib.analysis.map_along_magnetic_field
    :members:
    :undoc-members:
    :show-inheritance:
 
 
-.. automodule:: asilib.io.download_themis
+.. automodule:: asilib.analysis.project_lla_to_skyfield
    :members:
    :undoc-members:
    :show-inheritance:
 
 
-.. automodule:: asilib.io.load
+.. automodule:: asilib.analysis.start_generator
    :members:
    :undoc-members:
    :show-inheritance:

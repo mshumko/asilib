@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import dateutil.parser
 from typing import List, Union, Sequence, Tuple
 from copy import copy
+import warnings
 
 import pandas as pd
 import numpy as np
@@ -15,7 +16,7 @@ from asilib.io import download_themis
 import asilib
 
 
-def load_img_file(
+def load_img(
     time: Union[datetime, str], mission: str, station: str, force_download: bool = False
 ) -> cdflib.cdfread.CDF:
     """
@@ -56,7 +57,7 @@ def load_img_file(
     Example
     -------
     import asilib
-    rego_data = asilib.load_img_file('2016-10-29T04', 'REGO', 'GILL')
+    rego_data = asilib.load_img('2016-10-29T04', 'REGO', 'GILL')
     """
     # Try to convert time to datetime object if it is a string.
     if isinstance(time, str):
@@ -112,8 +113,15 @@ def load_img_file(
     # If we made it here, we either found a local file, or downloaded one
     return cdflib.CDF(download_path)
 
+def load_img_file(time, mission: str, station: str, force_download: bool = False):
+    """
+    DEPRICATED for load_img_file()
+    """
+    warnings.warn('load_img_file is deprecated asilib.load_img() instead', DeprecationWarning)
+    return load_img(time, mission, station, force_download)
 
-def load_cal_file(mission: str, station: str, force_download: bool = False) -> dict:
+
+def load_cal(mission: str, station: str, force_download: bool = False) -> dict:
     """
     Loads the latest callibration file for the mission/station and downloads
     one if one is not found in the asilib.config['ASI_DATA_DIR']/mission/cal/ folder.
@@ -137,7 +145,7 @@ def load_cal_file(mission: str, station: str, force_download: bool = False) -> d
     -------
     import asilib
 
-    rego_cal = asilib.load_cal_file('REGO', 'GILL')
+    rego_cal = asilib.load_cal('REGO', 'GILL')
     """
     cal_dir = asilib.config['ASI_DATA_DIR'] / mission.lower() / 'cal'
     cal_paths = sorted(list(cal_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
@@ -161,8 +169,15 @@ def load_cal_file(mission: str, station: str, force_download: bool = False) -> d
     cal_dict['FULL_MAP_LONGITUDE'][valid_val_idx] = (
         np.mod(cal_dict['FULL_MAP_LONGITUDE'][valid_val_idx] + 180, 360) - 180
     )
+    cal_dict['cal_path'] = cal_path
     return cal_dict
 
+def load_cal_file(mission: str, station: str, force_download: bool = False):
+    """
+    DEPRICATED for load_cal()
+    """
+    warnings.warn('load_cal_file is deprecated asilib.load_cal() instead', DeprecationWarning)
+    return load_cal(mission, station, force_download)
 
 def get_frame(
     time: Union[datetime, str],
@@ -218,7 +233,7 @@ def get_frame(
     if isinstance(time, str):
         time = dateutil.parser.parse(time)
 
-    cdf_obj = load_img_file(time, mission, station, force_download=force_download)
+    cdf_obj = load_img(time, mission, station, force_download=force_download)
 
     if mission.lower() == 'rego':
         frame_key = f'clg_rgf_{station.lower()}'
@@ -298,15 +313,7 @@ def get_frames(
     time_range = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
     times, frames = asilib.get_frames(time_range, 'REGO', 'GILL')
     """
-    # Run a few checks to make sure that the time_range parameter has length 2 and
-    # convert time_range to datetime objects if it is a string.
-    assert len(time_range) == 2, f'len(time_range) = {len(time_range)} is not 2.'
-    for i, t_i in enumerate(time_range):
-        if isinstance(t_i, str):
-            time_range[i] = dateutil.parser.parse(t_i)
-
-    # Sort time_range if the user passed it in out of order.
-    time_range = sorted(time_range)
+    time_range = _validate_time_range(time_range)
 
     # Figure out the data keys to load.
     if mission.lower() == 'rego':
@@ -322,7 +329,7 @@ def get_frames(
     if start_time_rounded == end_time_rounded:
         # If the start/end date-hour are the same than load one data file, otherwise
         # load however many is necessary and concatinate the frames and times.
-        cdf_obj = load_img_file(time_range[0], mission, station, force_download=force_download)
+        cdf_obj = load_img(time_range[0], mission, station, force_download=force_download)
 
         # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
         # to datetime objects.
@@ -340,12 +347,15 @@ def get_frames(
         else:
             raise NotImplementedError
 
-        # The timedelta offset is needed to include the time_range[1] hour.
-        hourly_date_times = pd.date_range(
-            start=time_range[0], end=time_range[1]+pd.Timedelta(hours=1), freq='H'
-        )
+        if time_range[1].minute == 0:
+            hourly_date_times = pd.date_range(start=time_range[0], end=time_range[1], freq='H')
+        if time_range[1].minute > 0:
+            # The timedelta offset is needed to include the end hour.
+            hourly_date_times = pd.date_range(
+                start=time_range[0], end=time_range[1]+pd.Timedelta(hours=1), freq='H'
+            )
         for hour_date_time in hourly_date_times:
-            cdf_obj = load_img_file(hour_date_time, mission, station, force_download=force_download)
+            cdf_obj = load_img(hour_date_time, mission, station, force_download=force_download)
 
             # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
             # to datetime objects.
@@ -360,3 +370,87 @@ def get_frames(
     assert len(idx) > 0, (f'The data exists for {mission}/{station}, but no '
                         f'data between {time_range}')
     return epoch[idx], frames[idx, :, :]
+
+def get_frames_generator(time_range, mission, station, force_download=False):
+    """
+    Gets multiple ASI image frames given the mission (THEMIS or REGO), station, and
+    the time_range date-time parameters. If a file does not locally exist, this
+    function will attempt to download it. This generator yields the ASI data, file 
+    by file, bounded by time_range. This generator is useful for loading lots of data
+    for keograms.
+
+    Parameters
+    ----------
+    time_range: List[Union[datetime, str]]
+        A list with len(2) == 2 of the start and end time to get the
+        frames. If either start or end time is a string,
+        dateutil.parser.parse will attempt to parse it into a datetime
+        object. The user must specify the UT hour and the first argument
+        is assumed to be the start_time and is not checked.
+    mission: str
+        The mission id, can be either THEMIS or REGO.
+    station: str
+        The station id to download the data from.
+    force_download: bool (optional)
+        If True, download the file even if it already exists.
+    time_thresh_s: float
+        The maximum allowed time difference between a frame's time stamp
+        and the time argument in seconds. Will raise a ValueError if no
+        image time stamp is within the threshold.
+
+    Returns
+    -------
+    frame_time: datetime
+        The frame timestamps contained in time_range, inclduing the start
+        and end times.
+    frame: np.ndarray
+        An (nTime x nPixelRows x nPixelCols) array containing the ASI images
+        for times contained in time_range.
+    """
+
+    raise NotImplementedError
+
+def _validate_time_range(time_range):
+    """
+    Checks that len(time_range) == 2 and that it can be converted to datetime objects,
+    if necessary.
+
+    Parameters
+    ----------
+    time_range: List[Union[datetime, str]]
+        A list with len(2) == 2 of the start and end time to get the
+        frames. If either start or end time is a string,
+        dateutil.parser.parse will attempt to parse it into a datetime
+        object. The user must specify the UT hour and the first argument
+        is assumed to be the start_time and is not checked.
+
+    Returns
+    -------
+    time_range: np.array
+        An array of length two with the sorted datetime.datetime objects.
+
+    Raises
+    ------
+    AssertionError
+        If len(time_range) != 2.
+    """
+    assert len(time_range) == 2, f'len(time_range) = {len(time_range)} is not 2.'
+
+    # Create a list version of time_range in case it is a tuple.
+    time_range_list = []
+
+    for t_i in time_range:
+        if isinstance(t_i, str):
+            # Try to parse it if passed a string.
+            time_range_list.append(dateutil.parser.parse(t_i))
+        elif isinstance(t_i, (datetime, pd.Timestamp)):
+            # If passed a the native or pandas datetime object. 
+            time_range_list.append(t_i)
+        else:
+            raise ValueError(f'Unknown time_range format. Got {time_range}. Start/end times must be '
+                            'strings that can be parsed by dateutil.parser.parse, or '
+                            'datetime.datetime, or pd.Timestamp objects.')
+
+    # Sort time_range if the user passed it in out of order.
+    time_range_list = sorted(time_range_list)
+    return time_range_list

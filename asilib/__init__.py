@@ -30,17 +30,19 @@ from asilib.io.download_rego import download_rego_img, download_rego_cal
 from asilib.io.download_themis import download_themis_img, download_themis_cal
 
 # Import the loading functions.
-from asilib.io.load import load_img_file
-from asilib.io.load import load_cal_file
+from asilib.io.load import load_img
+from asilib.io.load import load_cal
 from asilib.io.load import get_frame
 from asilib.io.load import get_frames
 
 # Import the plotting and animating functions.
 from asilib.plot.plot_frame import plot_frame
 from asilib.plot.plot_movie import plot_movie, plot_movie_generator
+from asilib.plot.plot_keogram import plot_keogram
 
 # Import the skyfield and magnetic field mapping functions.
 from asilib.analysis.project_lla_to_skyfield import lla_to_skyfield
+from asilib.analysis.keogram import keogram
 
 # Import the equal_area function.
 from asilib.analysis.equal_area import equal_area

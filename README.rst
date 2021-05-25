@@ -188,11 +188,11 @@ Load ASI Data
 There are a few data loading functions that automaticaly call the download programs if a file is not found on the local computer or the user explicitly passes ``force_download = True`` to force the download. These functions are in ``config.py``.
 
 
-* ``asilib.load_img_file()``\ : Returns an ``cdflib.CDF()`` file object for an ASI
+* ``asilib.load_img()``\ : Returns an ``cdflib.CDF()`` file object for an ASI
   file specified by the date-time, mission, and station. See the `cdflib <https://github.com/MAVENSDC/cdflib>`_ documentaion for the CDF interface.
 * ``asilib.load_cal_file()``\ : Returns an dictionary containing the latest calibration data from a specified mission/station. Be aware that the longitude is mapped from 0 to 360 to -180 to 180 degrees.
-* ``asilib.get_frame()``\ : Given a mission/station and a date-time, this function calls ``asilib.load_img_file()`` and returns the time stamp and one image (frame) with a time stamp within ``time_thresh_s = 3`` seconds (optional kwarg), otherwise an AssertionError is raised if a ASI time stamp is not found.
-* ``asilib.get_frames()``\ : Given a mission/station and a date-time ``time_range``\ , this function calls ``asilib.load_img_file()`` and returns an array of time stamps and images observed at times inside the ``time_range``.
+* ``asilib.get_frame()``\ : Given a mission/station and a date-time, this function calls ``asilib.load_img()`` and returns the time stamp and one image (frame) with a time stamp within ``time_thresh_s = 3`` seconds (optional kwarg), otherwise an AssertionError is raised if a ASI time stamp is not found.
+* ``asilib.get_frames()``\ : Given a mission/station and a date-time ``time_range``\ , this function calls ``asilib.load_img()`` and returns an array of time stamps and images observed at times inside the ``time_range``.
 
 Plot ASI Data
 ^^^^^^^^^^^^^

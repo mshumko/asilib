@@ -61,7 +61,7 @@ import numpy as np
 
 from asilib import plot_movie_generator
 from asilib import lla_to_skyfield
-from asilib import load_cal_file
+from asilib import load_cal
 
 
 # ASI parameters
@@ -70,7 +70,7 @@ station = 'RANK'
 time_range = (datetime(2017, 9, 15, 2, 34, 0), datetime(2017, 9, 15, 2, 36, 0))
 
 # Load the calibration data.
-cal_dict = load_cal_file(mission, station)
+cal_dict = load_cal(mission, station)
 
 # Create the satellite track's latitude, longitude, altitude (LLA) coordinates.
 # This is an imaginary north-south satellite track oriented to the east
@@ -150,11 +150,11 @@ To download ASI data, the programs in the ```asilib/io/``` search for and downlo
 ### Load ASI Data
 There are a few data loading functions that automaticaly call the download programs if a file is not found on the local computer or the user explicitly passes ```force_download = True``` to force the download. These functions are in `config.py`.
 
-* `asilib.load_img_file()`: Returns an `cdflib.CDF()` file object for an ASI
+* `asilib.load_img()`: Returns an `cdflib.CDF()` file object for an ASI
 file specified by the date-time, mission, and station. See the [cdflib](https://github.com/MAVENSDC/cdflib) documentaion for the CDF interface.
-* `asilib.load_cal_file()`: Returns an dictionary containing the latest calibration data from a specified mission/station. Be aware that the longitude is mapped from 0 to 360 to -180 to 180 degrees.
-* `asilib.get_frame()`: Given a mission/station and a date-time, this function calls `asilib.load_img_file()` and returns the time stamp and one image (frame) with a time stamp within ```time_thresh_s = 3``` seconds (optional kwarg), otherwise an AssertionError is raised if a ASI time stamp is not found.
-* `asilib.get_frames()`: Given a mission/station and a date-time ```time_range```, this function calls `asilib.load_img_file()` and returns an array of time stamps and images observed at times inside the ```time_range```.
+* `asilib.load_cal()`: Returns an dictionary containing the latest calibration data from a specified mission/station. Be aware that the longitude is mapped from 0 to 360 to -180 to 180 degrees.
+* `asilib.get_frame()`: Given a mission/station and a date-time, this function calls `asilib.load_img()` and returns the time stamp and one image (frame) with a time stamp within ```time_thresh_s = 3``` seconds (optional kwarg), otherwise an AssertionError is raised if a ASI time stamp is not found.
+* `asilib.get_frames()`: Given a mission/station and a date-time ```time_range```, this function calls `asilib.load_img()` and returns an array of time stamps and images observed at times inside the ```time_range```.
 
 ### Plot ASI Data
 There are two modules that plot a single frame or a series of frames.
@@ -168,5 +168,5 @@ There are two modules that plot a single frame or a series of frames.
 * `plot_collage()`: Similar to `asilib.plot_movie()` in that the arguments are the same, but this function returns a collage of images with the time stamps annotated.
 
 ### Mapping satellite position to the skyfield
-* `asilib.map_skyfield()`: maps the satellite coordinates from LLA (latitude, longitude, altitudes) to the ASI image x and y pixel indices. This function relies on the azimuth and elevation calibration files that can be downloaded via `asilib.load_cal_file()`. This function does **not** map the satellite position along the magnetic field line, that is done by `map_along_magnetic_field.py` and requires IRBEM-Lib to be installed (beyond the scope of this user guide).
+* `asilib.map_skyfield()`: maps the satellite coordinates from LLA (latitude, longitude, altitudes) to the ASI image x and y pixel indices. This function relies on the azimuth and elevation calibration files that can be downloaded via `asilib.load_cal()`. This function does **not** map the satellite position along the magnetic field line, that is done by `map_along_magnetic_field.py` and requires IRBEM-Lib to be installed (beyond the scope of this user guide).
 * `map_along_magnetic_field.py`: magnetically maps the satellite LLA coordinates with time stamps to a specified altitude. The hemisphere of the mapping can be: same, opposite, northern, or southern. 
