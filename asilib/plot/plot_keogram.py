@@ -5,7 +5,7 @@ import numpy as np
 from asilib.io.load import get_frames, load_cal, _validate_time_range
 
 
-def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=None, 
+def plot_keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=None, 
             color_norm='lin', title=True, pcolormesh_kwargs={}):
     """
     Makes a keogram along the central meridian.
@@ -65,14 +65,7 @@ def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=No
         assert map_alt in cal['FULL_MAP_ALTITUDE']/1000, \
             f'{map_alt} km is not in calibration altitudes: {cal["FULL_MAP_ALTITUDE"]/1000} km'
         alt_index = np.where(cal['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0]
-
         keogram_latitude = cal['FULL_MAP_LATITUDE'][alt_index, :, center_pixel]
-
-        # fig, bx = plt.subplots()
-        # bx.plot(cal['FULL_MAP_LATITUDE'][alt_index, :, center_pixel])
-        # bx.axvline(center_pixel, c='k')
-        # bx.axhline(cal['FULL_MAP_LATITUDE'][alt_index, center_pixel, center_pixel])
-        # bx.set(xlabel='latitude Index', ylabel='Latitude')
 
     keo = frames[:, :, center_pixel]
 
@@ -110,3 +103,38 @@ def keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=No
     if title:
         ax.set_title(f'{time_range[0].date()} | {mission.upper()}-{station.upper()} keogram')
     return ax, im
+
+
+if __name__ == '__main__':
+    mission='REGO'
+    station='LUCK'
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax, im = plot_keogram(['2017-09-27T07', '2017-09-27T09'], mission, station, 
+                    ax=ax, map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
+    plt.colorbar(im)
+    plt.tight_layout()
+    plt.show()
+
+    # mission='REGO'
+    # station='GILL'
+
+    # fig, ax = plt.subplots(figsize=(8, 6))
+    # ax, im = plot_keogram(['2015-02-02T10', '2015-02-02T11'], mission, station, 
+    #                 ax=ax, map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
+    # plt.colorbar(im)
+    # plt.tight_layout()
+    # # plt.show()
+
+    # import asilib
+
+    # cal = load_cal(mission, station)
+
+    # fig, bx = plt.subplots()
+    # asilib.plot_frame('2015-02-02T10:30', mission, station, ax=bx, azel_contours=True)
+    # bx.axvline(512/2, c='w')
+    # bx.axhline(512/2, c='w')
+    # bx.text(0, 0.9, f'SITE_MAP_LATITUDE={round(cal["SITE_MAP_LATITUDE"])}', 
+    #         transform=bx.transAxes, c='w')
+
+    # plt.show()
