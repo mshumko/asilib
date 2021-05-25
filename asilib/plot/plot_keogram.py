@@ -3,6 +3,7 @@ import matplotlib.colors as colors
 import numpy as np
 
 from asilib.io.load import get_frames, load_cal, _validate_time_range
+from asilib.analysis.keogram import keogram
 
 
 def plot_keogram(time_range, mission, station, map_alt=None, ax=None, color_bounds=None, 
@@ -55,33 +56,14 @@ def plot_keogram(time_range, mission, station, map_alt=None, ax=None, color_boun
         altitudes in the calibration mapped values.
     """
     time_range = _validate_time_range(time_range)
-    frame_times, frames = get_frames(time_range, mission, station)
-
-    # Find the pixel at the center of the camera.
-    center_pixel = int(frames.shape[1]/2)
-
-    if map_alt is not None:
-        cal = load_cal(mission, station)
-        assert map_alt in cal['FULL_MAP_ALTITUDE']/1000, \
-            f'{map_alt} km is not in calibration altitudes: {cal["FULL_MAP_ALTITUDE"]/1000} km'
-        alt_index = np.where(cal['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0]
-        keogram_latitude = cal['FULL_MAP_LATITUDE'][alt_index, :, center_pixel]
-
-    keo = frames[:, :, center_pixel]
-
-    if map_alt is not None:
-        # Since keogram_latitude values are NaNs near the image edges, we want to filter
-        # out those indices from keogram_latitude and keo.
-        valid_lats = np.where(~np.isnan(keogram_latitude))[0]
-        keogram_latitude = keogram_latitude[valid_lats]
-        keo = keo[:, valid_lats]
+    keo_df = keogram(time_range, mission, station, map_alt)    
 
     if ax is None:
         _, ax = plt.subplots()
 
     # Figure out the color_bounds from the frame data.
     if color_bounds is None:
-        lower, upper = np.quantile(keo, (0.25, 0.98))
+        lower, upper = np.quantile(keo_df, (0.25, 0.98))
         color_bounds = [lower, np.min([upper, lower * 10])]
 
     if color_norm == 'log':
@@ -92,12 +74,12 @@ def plot_keogram(time_range, mission, station, map_alt=None, ax=None, color_boun
         raise ValueError('color_norm must be either "log" or "lin".')
 
     if map_alt is None:
-        im = ax.pcolormesh(frame_times, np.arange(keo.shape[1]), keo.T, 
+        im = ax.pcolormesh(keo_df.index, keo_df.columns, keo_df.to_numpy().T, 
                         norm=norm, shading='flat', **pcolormesh_kwargs)
     else:
         # keogram_latitude is reversed because unreversed array is 
         # desending in latitude.  
-        im = ax.pcolormesh(frame_times, keogram_latitude[::-1], keo[:-1, :-1].T, 
+        im = ax.pcolormesh(keo_df.index, keo_df.columns, keo_df.to_numpy()[:-1, :-1].T, 
                         norm=norm, shading='flat', **pcolormesh_kwargs)
 
     if title:
