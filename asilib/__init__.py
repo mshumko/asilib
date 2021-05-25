@@ -6,9 +6,9 @@ import configparser
 __version__ = '0.2.3'
 
 # Load the configuration settings.
-here = pathlib.Path(__file__).parent.resolve()
+HERE = pathlib.Path(__file__).parent.resolve()
 settings = configparser.ConfigParser()
-settings.read(here / 'config.ini')
+settings.read(HERE / 'config.ini')
 
 try:
     ASI_DATA_DIR = settings['Paths'].get('ASI_DATA_DIR', 
@@ -22,7 +22,9 @@ except KeyError: # Raised if config.ini does not have Warnings.
     IRBEM_WARNING = True
 
 config = {
-    'ASI_DATA_DIR': ASI_DATA_DIR, 'IRBEM_WARNING':IRBEM_WARNING
+    'ASILIB_DIR': HERE,
+    'ASI_DATA_DIR': ASI_DATA_DIR, 
+    'IRBEM_WARNING':IRBEM_WARNING
 }
 
 # Import download programs.
