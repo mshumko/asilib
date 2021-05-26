@@ -7,6 +7,7 @@ import pathlib
 
 import numpy as np
 
+import asilib
 from asilib.io.load import load_cal
 from asilib.analysis.equal_area import equal_area, _dlon, _dlat
 
@@ -52,10 +53,10 @@ class Test_keogram(unittest.TestCase):
         # Set up a north-south satellite track oriented to the east of the THEMIS/RANK 
         # station.
         n = 10
-        lats = np.linspace(cal_dict["SITE_MAP_LATITUDE"] + 10, cal_dict["SITE_MAP_LATITUDE"] - 10, n)
-        lons = (cal_dict["SITE_MAP_LONGITUDE"] + 3) * np.ones(n)
-        alts = 500 * np.ones(n)
+        lats = np.linspace(cal_dict["SITE_MAP_LATITUDE"] + 5, cal_dict["SITE_MAP_LATITUDE"] - 5, n)
+        lons = (cal_dict["SITE_MAP_LONGITUDE"]-0.5) * np.ones(n)
+        alts = 110 * np.ones(n)
         lla = np.array([lats, lons, alts]).T
 
-        
+        # np.
         return

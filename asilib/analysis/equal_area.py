@@ -34,7 +34,7 @@ def equal_area(mission, station, lla, box_km=(5, 5), alt_thresh_km=3):
     """
     assert len(box_km) == 2, 'The box_km parameter must have a length of 2.'
 
-    cal_dict = asilib.load_cal_file(mission, station)
+    cal_dict = asilib.load_cal(mission, station)
 
     # Get numpy array if pd.DataFrame passed
     if isinstance(lla, pd.DataFrame):
@@ -56,19 +56,34 @@ def equal_area(mission, station, lla, box_km=(5, 5), alt_thresh_km=3):
     lat_map = cal_dict['FULL_MAP_LATITUDE'][alt_index, :, :]
     lon_map = cal_dict['FULL_MAP_LONGITUDE'][alt_index, :, :]
 
-    pixel_mask = np.zeros((lla.shape[0], *lat_map.shape))
+    # shape[X]-1 because the lat/lon maps define the vertices.
+    pixel_mask = np.nan*np.zeros((lla.shape[0], lat_map.shape[0]-1, lat_map.shape[1]-1))
 
     dlat = _dlat(box_km[1], lla[:, -1])
     dlon = _dlon(box_km[0], lla[:, -1], lla[:, 0])
 
-    for i, (lat, lon, _), dlon_i, dlat_i in enumerate(zip(lla, dlon, dlat)):
-        idx_box = np.where(
-            (lat_map >= lat-dlat_i/2) &
-            (lat_map <= lat+dlat_i/2) &
-            (lon_map >= lon-dlon_i/2) &
-            (lon_map <= lon+dlon_i/2)
-        )
-        pixel_mask[i, idx_box] = 1
+    for i, ((lat, lon, _), dlon_i, dlat_i) in enumerate(zip(lla, dlon, dlat)):
+        # Find the indices of the box. If none were found (pixel smaller than 
+        # the box_size_km) then increase the box size until one pixel is found.
+        masked_box_len = 0
+        multiplier = 1
+        step = 0.1
+
+        while masked_box_len == 0:
+            idx_box = np.where(
+                (lat_map >= lat-multiplier*dlat_i/2) &
+                (lat_map <= lat+multiplier*dlat_i/2) &
+                (lon_map >= lon-multiplier*dlon_i/2) &
+                (lon_map <= lon+multiplier*dlon_i/2)
+            )
+
+            masked_box_len = len(idx_box[0])
+            if masked_box_len:
+                pixel_mask[i, idx_box[0], idx_box[1]] = 1
+            else:
+                multiplier += step
+
+    pixel_mask = pixel_mask[:, ::-1, ::-1]
 
     if len(initial_shape) == 1:
         return pixel_mask.reshape(lat_map.shape)
