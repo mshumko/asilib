@@ -347,9 +347,9 @@ def get_frames(
         else:
             raise NotImplementedError
 
-        if time_range[1].minute == 0:
+        if (time_range[1].minute == 0) and (time_range[1].second == 0):
             hourly_date_times = pd.date_range(start=time_range[0], end=time_range[1], freq='H')
-        if time_range[1].minute > 0:
+        else:
             # The timedelta offset is needed to include the end hour.
             hourly_date_times = pd.date_range(
                 start=time_range[0], end=time_range[1]+pd.Timedelta(hours=1), freq='H'
