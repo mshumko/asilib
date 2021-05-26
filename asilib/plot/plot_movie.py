@@ -237,7 +237,7 @@ def plot_movie_generator(
     # will halt here. This way the errors due to missing data will be raised up front.
     user_input = yield
     # user_input can be used to get the frame_times and frames out of the generator.
-    if user_input == 'get_frame_data':
+    if 'data' in user_input.lower():
         yield Frames(frame_times, frames)
 
     for frame_time, frame in zip(frame_times, frames):
@@ -276,7 +276,7 @@ def plot_movie_generator(
         # so that the user can manipulate the image to add, for example, the satellite track.
         yield frame_time, frame, ax, im
 
-        # Save the file and clear the subplot for next frame.
+        # Save the plot before the next iteration.
         save_name = (
             f'{frame_time.strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_' f'{station.lower()}.png'
         )
