@@ -39,40 +39,39 @@ def equal_area(mission, station, lla, box_km=(5, 5), alt_thresh_km=3):
     # Get numpy array if pd.DataFrame passed
     if isinstance(lla, pd.DataFrame):
         lla = lla.to_numpy()
+    elif isinstance(lla, list):
+        lla = np.array(lla)
 
     initial_shape = lla.shape
-
-    # Check that the altitudes are in the appropriate range
-    if len(initial_shape) == 1:  # 1d array
-        assert np.min(np.abs(cal_dict['FULL_MAP_ALTITUDE']/1000-lla[-1])) < alt_thresh_km , (
-            f'Got {lla[-1]} km altitude, but it must be one of these: {cal_dict["FULL_MAP_ALTITUDE"]/1000}')
-        alt_index = np.argmin(np.abs(cal_dict['FULL_MAP_ALTITUDE']/1000-lla[-1]))
+    # I want to work with 2d arrays, even if 1d array was supplied. We will reduce the dimensions
+    # at the end.
+    if len(initial_shape) == 1:
         lla = np.array([lla])
-    elif len(initial_shape) == 2:  # 2d array
-        for alt in lla[:, -1]:
-            assert np.min(np.abs(cal_dict['FULL_MAP_ALTITUDE']/1000-alt)) < alt_thresh_km , (
-                f'Got {alt} km altitude, but it must be one of these: {cal_dict["FULL_MAP_ALTITUDE"]/1000}')
-        alt_index = np.argmin(np.abs(cal_dict['FULL_MAP_ALTITUDE']/1000-alt))
 
-    pixel_mask = np.zeros((lla.shape[0], *cal_dict['FULL_MAP_LATITUDE'].shape[1:]))
+    # Check that the altitude value is in the calibration.
+    for alt in lla[:, -1]:
+        assert np.min(np.abs(cal_dict['FULL_MAP_ALTITUDE']/1000-alt)) < alt_thresh_km , (
+            f'Got {alt} km altitude, but it must be one of these: {cal_dict["FULL_MAP_ALTITUDE"]/1000}')
+    alt_index = np.argmin(np.abs(cal_dict['FULL_MAP_ALTITUDE']/1000-alt))
+    lat_map = cal_dict['FULL_MAP_LATITUDE'][alt_index, :, :]
+    lon_map = cal_dict['FULL_MAP_LONGITUDE'][alt_index, :, :]
+
+    pixel_mask = np.zeros((lla.shape[0], *lat_map.shape))
 
     dlat = _dlat(box_km[1], lla[:, -1])
     dlon = _dlon(box_km[0], lla[:, -1], lla[:, 0])
 
-    lat_map = cal_dict['FULL_MAP_LATITUDE'][alt_index, :, :]
-    lon_map = cal_dict['FULL_MAP_LONGITUDE'][alt_index, :, :]
-
-    for i, (lat, lon, _)in enumerate(lla):
+    for i, (lat, lon, _), dlon_i, dlat_i in enumerate(zip(lla, dlon, dlat)):
         idx_box = np.where(
-            (lat_map >= lat-dlat[i]/2) &
-            (lat_map <= lat+dlat[i]/2) &
-            (lon_map >= lon-dlon[i]/2) &
-            (lon_map <= lon+dlon[i]/2)
+            (lat_map >= lat-dlat_i/2) &
+            (lat_map <= lat+dlat_i/2) &
+            (lon_map >= lon-dlon_i/2) &
+            (lon_map <= lon+dlon_i/2)
         )
         pixel_mask[i, idx_box] = 1
 
     if len(initial_shape) == 1:
-        return pixel_mask.reshape(cal_dict['FULL_MAP_LATITUDE'].shape[1:])
+        return pixel_mask.reshape(lat_map.shape)
     else:
         return pixel_mask
 
@@ -80,20 +79,22 @@ def equal_area(mission, station, lla, box_km=(5, 5), alt_thresh_km=3):
 def _dlat(d, alt):
     """
     Calculate the change in latitude that correpsponds to arc length distance d at 
-    alt altitude. Input units are in kilometers.
+    alt altitude. Units are kilometers. Both d and alt must be the same length.
 
     Parameters
     ----------
     d: float or np.ndarray
-        A float or an array of arc length.
+        A float, 1d list, or 1d np.array of arc length.
     alt: float or np.ndarray
-        A float or an array of satellite altitudes.
+        A float, 1d list, or 1d np.array of satellite altitudes.
     
     Returns
     -------
     dlat: float or np.ndarray
         A float or an array of the corresponding latitude differences in degrees.
     """
+    if isinstance(alt, list):  # Don't need to cast d since it is in np.divide().
+        alt = np.array(alt)
     return np.rad2deg(np.divide(d, (earth_radius_km+alt)))
 
 
@@ -116,6 +117,8 @@ def _dlon(d, alt, lat):
     dlon: float or np.ndarray
         A float or an array of the corresponding longitude differences in degrees.
     """
+    if isinstance(alt, list):  # Don't need to cast other variables.
+        alt = np.array(alt)
 
     numerator = np.sin(d/(2*(earth_radius_km+alt)))
     denominator = np.cos(np.deg2rad(lat))
