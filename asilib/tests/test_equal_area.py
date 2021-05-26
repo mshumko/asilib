@@ -2,6 +2,7 @@
 Tests asilib/analysis.equal_area.py
 """
 
+from os import path
 import unittest
 import pathlib
 
@@ -44,7 +45,7 @@ class Test_keogram(unittest.TestCase):
         assert np.isclose(_dlon(85, 0, -40), 1, rtol=0.005)
         return
 
-    def test_equal_area(self):
+    def test_equal_area(self, gen_reference=False):
         mission='THEMIS'
         station='RANK'
         box_km = (10, 10)  # in (Lat, Lon) directions.
@@ -58,5 +59,15 @@ class Test_keogram(unittest.TestCase):
         alts = 110 * np.ones(n)
         lla = np.array([lats, lons, alts]).T
 
-        # np.
+        area_box_mask = asilib.equal_area(mission, station, lla, box_km=(20, 20))
+
+        reference_path = pathlib.Path(asilib.config['ASILIB_DIR'], 'tests', 'data', 'area_box_mask.npy')
+        if gen_reference:
+            np.save(reference_path, area_box_mask)
+        else:
+            area_box_mask_reference = np.load(reference_path)
+            assert np.array_equal(area_box_mask, area_box_mask_reference, equal_nan=True)
         return
+
+if __name__ == '__main__':
+    unittest.main()
