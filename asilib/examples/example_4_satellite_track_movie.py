@@ -45,18 +45,11 @@ movie_generator = asilib.plot_movie_generator(
 # brightness along the satellite path and in a (10x10 km) box.
 frame_data = movie_generator.send('data')
 
+# Calculate what pixels are in a box_km around the satellite, and convolve it
+# with the frames to pick out the ASI intensity in that box.
 area_box_mask = asilib.equal_area(mission, station, lla, box_km=(20, 20))
-
-asi_brightness = np.zeros_like(frame_data.time)
-
-for i, (mask, frame) in enumerate(zip(area_box_mask, frame_data.frames)):
-    # Remember! y-axis corresponds to rows, and x-axis corresponds to columns,
-    # not the other way around!
-    asi_brightness[i] = np.nanmean(
-        frame*mask
-    )
-
-area_box_mask[np.isnan(area_box_mask)] = 0
+asi_brightness = np.nanmean(frame_data.frames*area_box_mask, axis=(1,2))
+area_box_mask[np.isnan(area_box_mask)] = 0  # To play nice with plt.contour()
 
 for i, (time, frame, _, im) in enumerate(movie_generator):
     # Note that because we are drawing moving data: ASI image in ax[0] and 
