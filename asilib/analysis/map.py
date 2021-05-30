@@ -1,6 +1,7 @@
 from typing import Sequence, Tuple
 import pathlib
 import warnings
+import importlib
 
 import pandas as pd
 import numpy as np
@@ -9,15 +10,16 @@ import scipy.spatial
 
 import asilib
 
-try:
+
+if importlib.util.find_spec('IRBEM'):
     import IRBEM
-except ImportError:
+else:
     if asilib.config['IRBEM_WARNING']:
         warnings.warn(
             "The IRBEM magnetic field library is not installed and is "
-            "a dependency of asilib.lla2footprint()."
+            "a dependency of asilib.analysis.map.lla2footprint()."
         )
-
+        
 
 def lla2azel(
     mission, station, sat_lla, force_download: bool = False
