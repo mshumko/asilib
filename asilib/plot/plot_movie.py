@@ -79,12 +79,13 @@ def plot_movie(
 
     Example
     -------
-    from datetime import datetime
-
-    import asilib
-
-    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    asilib.plot_movie(time_range, 'THEMIS', 'FSMI')
+    | from datetime import datetime
+    | 
+    | import asilib
+    | 
+    | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+    | asilib.plot_movie(time_range, 'THEMIS', 'FSMI')
+    | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
     """
 
     # Create a subplot object if one is not passed.
@@ -123,6 +124,10 @@ def plot_movie_generator(
     frame by frame. This allows the user to add content to each frame, such as the
     spacecraft position, and that will convert it to a movie. If you just want to make
     an ASI movie, use the wrapper for this function, plot_movie().
+
+    Once this generator is initiated with the name `gen`, but **before** the for loop, 
+    you can get the ASI frames and times by calling `gen.send('data')`. This will yield a 
+    collections.namedtuple with `time` and `frames` attributes.
 
     Parameters
     ----------
@@ -190,16 +195,18 @@ def plot_movie_generator(
 
     Example
     -------
-    from datetime import datetime
-
-    import asilib
-
-    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    movie_generator = asilib.plot_movie_generator(time_range, 'THEMIS', 'FSMI')
-
-    for frame_time, frame, im, ax in movie_generator:
-        # The code that modifies each frame here.
-        pass
+    | from datetime import datetime
+    | 
+    | import asilib
+    | 
+    | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+    | movie_generator = asilib.plot_movie_generator(time_range, 'THEMIS', 'FSMI')
+    | 
+    | for frame_time, frame, im, ax in movie_generator:
+    |       # The code that modifies each frame here.
+    |       pass
+    |
+    | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
     """
     try:
         frame_times, frames = load.get_frames(

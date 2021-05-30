@@ -56,8 +56,9 @@ def load_img(
 
     Example
     -------
-    import asilib
-    rego_data = asilib.load_img('2016-10-29T04', 'REGO', 'GILL')
+    | import asilib
+    |
+    | rego_data = asilib.load_img('2016-10-29T04', 'REGO', 'GILL')
     """
     # Try to convert time to datetime object if it is a string.
     if isinstance(time, str):
@@ -143,9 +144,9 @@ def load_cal(mission: str, station: str, force_download: bool = False) -> dict:
 
     Example
     -------
-    import asilib
-
-    rego_cal = asilib.load_cal('REGO', 'GILL')
+    | import asilib
+    | 
+    | rego_cal = asilib.load_cal('REGO', 'GILL')
     """
     cal_dir = asilib.config['ASI_DATA_DIR'] / mission.lower() / 'cal'
     cal_paths = sorted(list(cal_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
@@ -225,9 +226,9 @@ def get_frame(
 
     Example
     -------
-    import asilib
-
-    time, frame = asilib.get_frame('2016-10-29T04:15:00', 'REGO', 'GILL')
+    | import asilib
+    | 
+    | time, frame = asilib.get_frame('2016-10-29T04:15:00', 'REGO', 'GILL')
     """
     # Try to convert time to datetime object if it is a string.
     if isinstance(time, str):
@@ -306,12 +307,12 @@ def get_frames(
         
     Example
     -------
-    from datetime import datetime
-
-    import asilib
-
-    time_range = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
-    times, frames = asilib.get_frames(time_range, 'REGO', 'GILL')
+    | from datetime import datetime
+    | 
+    | import asilib
+    | 
+    | time_range = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
+    | times, frames = asilib.get_frames(time_range, 'REGO', 'GILL')
     """
     time_range = _validate_time_range(time_range)
 

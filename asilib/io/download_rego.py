@@ -58,13 +58,13 @@ def download_rego_img(
 
     Example
     -------
-    from datetime import datetime
-
-    import asilib
-
-    day = datetime(2017, 4, 13, 5)\n
-    station = 'LUCK'\n
-    asilib.download_rego_img(day, station)
+    | from datetime import datetime
+    |
+    | import asilib
+    | 
+    | day = datetime(2017, 4, 13, 5)
+    | station = 'LUCK'
+    | asilib.download_rego_img(day, station)
     """
     if isinstance(day, str):
         day = dateutil.parser.parse(day)
@@ -116,10 +116,10 @@ def download_rego_cal(station: str, force_download: bool = False) -> pathlib.Pat
 
     Example
     -------
-    import asilib
-
-    station = 'LUCK'\n
-    asilib.download_rego_cal(station)
+    | import asilib
+    | 
+    | station = 'LUCK'
+    | asilib.download_rego_cal(station)
     """
     # Create the calibration directory in data/rego/cal
     save_dir = asilib.config['ASI_DATA_DIR'] / 'rego' / 'cal'

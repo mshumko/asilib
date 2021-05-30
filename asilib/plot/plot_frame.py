@@ -70,6 +70,8 @@ def plot_frame(
     -------
     frame_time: datetime.datetime
         The time of the current frame.
+    frame: np.array
+        The 2d ASI image corresponding to frame_time.
     ax: plt.Axes
         The subplot object to modify the axis, labels, etc.
     im: plt.AxesImage
@@ -88,19 +90,20 @@ def plot_frame(
 
     Example
     -------
-    from datetime import datetime
-
-    import matplotlib.pyplot as plt
-
-    import asilib
-
-    # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active
-    # auroral arc powered by accelerated electrons from very high altitudes"
-    frame_time, ax, im = asilib.plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK',
-                        color_norm='log', force_download=False)
-    plt.colorbar(im)
-    ax.axis('off')
-    plt.show()
+    | from datetime import datetime
+    | 
+    | import matplotlib.pyplot as plt
+    | 
+    | import asilib
+    |
+    | # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active
+    | # auroral arc powered by accelerated electrons from very high altitudes"
+    | frame_time, ax, im = asilib.plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK',
+    |     color_norm='log', force_download=False)
+    |
+    | plt.colorbar(im)
+    | ax.axis('off')
+    | plt.show()
     """
     if ax is None:
         _, ax = plt.subplots()
@@ -156,20 +159,4 @@ def plot_frame(
         )
         plt.clabel(az_contours, inline=True, fontsize=8)
         plt.clabel(el_contours, inline=True, fontsize=8, rightside_up=True)
-    return frame_time, ax, im  # TODO: Add the image array return statement and update docs.
-
-
-if __name__ == '__main__':
-    # time, ax, im = plot_frame(datetime(2017, 9, 15, 2, 30, 0), 'THEMIS', 'RANK',
-    #                     color_norm='log', force_download=False, azel_contours=True)
-    time, ax, im = plot_frame(
-        datetime(2017, 9, 15, 2, 36, 36),
-        'THEMIS',
-        'RANK',
-        color_norm='log',
-        force_download=False,
-        azel_contours=True,
-    )
-    plt.colorbar(im)
-    plt.axis('off')
-    plt.show()
+    return frame_time, frame, ax, im
