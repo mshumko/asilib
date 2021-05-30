@@ -17,7 +17,7 @@
    id="svg8"
    sodipodi:docname="aurora-asi-lib_logo.svg"
    inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
-   inkscape:export-filename="/home/mike/research/aurora-asi-lib/images/aurora-asi-lib_logo.png"
+   inkscape:export-filename="/home/mike/research/aurora-asi-lib/docs/_static/aurora-asi-lib_logo.png"
    inkscape:export-xdpi="589.88"
    inkscape:export-ydpi="589.88">
   <defs
@@ -136,8 +136,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8"
-     inkscape:cx="429.1453"
-     inkscape:cy="826.00989"
+     inkscape:cx="420.33965"
+     inkscape:cy="814.0886"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -167,6 +167,13 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
+    <rect
+       style="opacity:1;vector-effect:none;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.272;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:6.97564268;stroke-opacity:1"
+       id="rect856"
+       width="105.45536"
+       height="15.402542"
+       x="63.216515"
+       y="86.939728" />
     <path
        style="fill:none;stroke:#0c0c0c;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
        d="m 146.40631,87.77956 c -5.07303,0.13963 -9.31284,3.49223 -12.125,7.45898 5.49894,3.72419 12.15174,7.77484 19.03876,5.52983 5.07602,-1.1003 10.02908,-2.69182 14.93585,-4.37944 -6.36375,-4.51479 -13.80994,-8.76154 -21.84961,-8.60937 z"
