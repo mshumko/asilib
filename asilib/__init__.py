@@ -43,7 +43,7 @@ from asilib.plot.plot_movie import plot_movie, plot_movie_generator
 from asilib.plot.plot_keogram import plot_keogram
 
 # Import the analysis functions.
-from asilib.analysis.map import lla2azel, lla2footprint
+from asilib.analysis.map import lla2azel, lla2footprint, lla_to_skyfield, map_along_magnetic_field
 from asilib.analysis.keogram import keogram
 from asilib.analysis.equal_area import equal_area
 

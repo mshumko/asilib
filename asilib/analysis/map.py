@@ -15,16 +15,8 @@ except ImportError:
     if asilib.config['IRBEM_WARNING']:
         warnings.warn(
             "The IRBEM magnetic field library is not installed and is "
-            "a dependency of asilib.map_along_magnetic_field()."
+            "a dependency of asilib.lla2footprint()."
         )
-
-
-def lla_to_skyfield(mission, station, sat_lla, force_download=False):
-    """
-    DEPRECATED for lla_to_azel()
-    """
-    warnings.warn('lla_to_skyfield is deprecated asilib.lla_to_azel() instead', DeprecationWarning)
-    return lla2azel(mission, station, sat_lla, force_download=force_download)
 
 
 def lla2azel(
@@ -69,7 +61,7 @@ def lla2azel(
     -------
     | import numpy as np
     | 
-    | from asilib import lla_to_skyfield
+    | from asilib import lla2azel
     | 
     | # THEMIS/ATHA's LLA coordinates are (54.72, -113.301, 676 (meters)).
     | # The LLA is a North-South pass right above ATHA..
@@ -79,7 +71,7 @@ def lla2azel(
     | alts = 500**np.ones(n)
     | lla = np.array([lats, lons, alts]).T
     | 
-    | azel, pixels = lla_to_skyfield('REGO', 'ATHA', lla)
+    | azel, pixels = lla2azel('REGO', 'ATHA', lla)
     """
 
     # Check the sat_lla input parameter to make sure it is of the correct shape
@@ -126,65 +118,6 @@ def lla2azel(
     else:
         return sat_azel, asi_pixels
 
-
-def _map_azel_to_pixel(sat_azel: np.ndarray, cal_dict: dict) -> np.ndarray:
-    """
-    Given the 2d array of the satellite's azimuth and elevation, locate
-    the nearest ASI calibration x- and y-axis pixel indices. Note that the
-    scipy.spatial.KDTree() algorithm is efficient at finding nearest
-    neighbors. However it does not work in a polar coordinate system.
-
-    Parameters
-    ----------
-    sat_azel : array
-        A 1d or 2d array of satelite azimuth and elevation points.
-        If 2d, the rows correspons to time.
-    cal_dict: dict
-        The calibration file dictionary
-
-    Returns
-    -------
-    pixel_index: np.ndarray
-        An array with the same shape as sat_azel, but representing the
-        x- and y-axis pixel indices in the ASI image.
-    """
-    az_coords = cal_dict['FULL_AZIMUTH'][::-1, ::-1].ravel()
-    az_coords[np.isnan(az_coords)] = -10000
-    el_coords = cal_dict['FULL_ELEVATION'][::-1, ::-1].ravel()
-    el_coords[np.isnan(el_coords)] = -10000
-    asi_azel_cal = np.stack((az_coords, el_coords), axis=-1)
-
-    # Find the distance between the satellite azel points and
-    # the asi_azel points. dist_matrix[i,j] is the distance
-    # between ith asi_azel_cal value and jth sat_azel.
-    dist_matrix = scipy.spatial.distance.cdist(asi_azel_cal, sat_azel, metric='euclidean')
-    # Now find the minimum distance for each sat_azel.
-    idx_min_dist = np.argmin(dist_matrix, axis=0)
-    # if idx_min_dist == 0, it is very likely to be a NaN value
-    # beacause np.argmin returns 0 if a row has a NaN.
-    # NaN's arise in the first place if there is an ASI image without
-    # an AC6 data point nearby in time.
-    idx_min_dist = np.array(idx_min_dist, dtype=object)
-    idx_min_dist[idx_min_dist == 0] = np.nan
-    # For use the 1D index for the flattened ASI calibration
-    # to get out the azimuth and elevation pixels.
-    pixel_index = np.nan * np.ones_like(sat_azel)
-    pixel_index[:, 0] = np.remainder(idx_min_dist, cal_dict['FULL_AZIMUTH'].shape[1])
-    pixel_index[:, 1] = np.floor_divide(idx_min_dist, cal_dict['FULL_AZIMUTH'].shape[1])
-    return pixel_index
-
-
-def map_along_magnetic_field(
-    space_time: np.ndarray,
-    map_alt: float,
-    b_model: str = 'OPQ77',
-    maginput: dict = None,
-    hemisphere: int = 0,
-) -> np.ndarray:
-    """
-    DEPRECARED for lla2footprint()
-    """
-    return lla2footprint(space_time, map_alt, b_model=b_model, maginput=maginput, hemisphere=hemisphere)
 
 def lla2footprint(
     space_time: np.ndarray,
@@ -240,3 +173,71 @@ def lla2footprint(
     # Map from IRBEM's (alt, lat, lon) -> (lat, lon, alt)
     magnetic_footprint[:, [2, 0, 1]] = magnetic_footprint[:, [0, 1, 2]]
     return magnetic_footprint
+
+
+def lla_to_skyfield(mission, station, sat_lla, force_download=False):
+    """
+    DEPRECATED for lla2azel()
+    """
+    warnings.warn('lla_to_skyfield is deprecated asilib.lla2azel() instead', DeprecationWarning)
+    return lla2azel(mission, station, sat_lla, force_download=force_download)
+
+
+def map_along_magnetic_field(
+    space_time: np.ndarray,
+    map_alt: float,
+    b_model: str = 'OPQ77',
+    maginput: dict = None,
+    hemisphere: int = 0,
+) -> np.ndarray:
+    """
+    DEPRECARED for lla2footprint()
+    """
+    return lla2footprint(space_time, map_alt, b_model=b_model, maginput=maginput, hemisphere=hemisphere)
+
+
+def _map_azel_to_pixel(sat_azel: np.ndarray, cal_dict: dict) -> np.ndarray:
+    """
+    Given the 2d array of the satellite's azimuth and elevation, locate
+    the nearest ASI calibration x- and y-axis pixel indices. Note that the
+    scipy.spatial.KDTree() algorithm is efficient at finding nearest
+    neighbors. However it does not work in a polar coordinate system.
+
+    Parameters
+    ----------
+    sat_azel : array
+        A 1d or 2d array of satelite azimuth and elevation points.
+        If 2d, the rows correspons to time.
+    cal_dict: dict
+        The calibration file dictionary
+
+    Returns
+    -------
+    pixel_index: np.ndarray
+        An array with the same shape as sat_azel, but representing the
+        x- and y-axis pixel indices in the ASI image.
+    """
+    az_coords = cal_dict['FULL_AZIMUTH'][::-1, ::-1].ravel()
+    az_coords[np.isnan(az_coords)] = -10000
+    el_coords = cal_dict['FULL_ELEVATION'][::-1, ::-1].ravel()
+    el_coords[np.isnan(el_coords)] = -10000
+    asi_azel_cal = np.stack((az_coords, el_coords), axis=-1)
+
+    # Find the distance between the satellite azel points and
+    # the asi_azel points. dist_matrix[i,j] is the distance
+    # between ith asi_azel_cal value and jth sat_azel.
+    dist_matrix = scipy.spatial.distance.cdist(asi_azel_cal, sat_azel, metric='euclidean')
+    # Now find the minimum distance for each sat_azel.
+    idx_min_dist = np.argmin(dist_matrix, axis=0)
+    # if idx_min_dist == 0, it is very likely to be a NaN value
+    # beacause np.argmin returns 0 if a row has a NaN.
+    # NaN's arise in the first place if there is an ASI image without
+    # an AC6 data point nearby in time.
+    idx_min_dist = np.array(idx_min_dist, dtype=object)
+    idx_min_dist[idx_min_dist == 0] = np.nan
+    # For use the 1D index for the flattened ASI calibration
+    # to get out the azimuth and elevation pixels.
+    pixel_index = np.nan * np.ones_like(sat_azel)
+    pixel_index[:, 0] = np.remainder(idx_min_dist, cal_dict['FULL_AZIMUTH'].shape[1])
+    pixel_index[:, 1] = np.floor_divide(idx_min_dist, cal_dict['FULL_AZIMUTH'].shape[1])
+    return pixel_index

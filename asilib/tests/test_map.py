@@ -4,7 +4,7 @@ from datetime import datetime
 
 import numpy as np
 
-from asilib.analysis.project_lla_to_skyfield import lla_to_skyfield
+from asilib.analysis.map import lla2azel
 
 """
 Tests that the LLA to AzEl projecting (mapping) returns correct outputs
@@ -20,7 +20,7 @@ class TestProjectLLAtoSkyfield(unittest.TestCase):
         station (elevation ~ 90 degrees) and (az_index, el_index) ~= (127, 127).
         """
         lla = np.array([54.72, -113.301, 500])
-        azel, pixel_index = lla_to_skyfield('THEMIS', 'ATHA', lla)
+        azel, pixel_index = lla2azel('THEMIS', 'ATHA', lla)
 
         # Test the El values
         self.assertEqual(round(azel[1]), 90)
@@ -36,7 +36,7 @@ class TestProjectLLAtoSkyfield(unittest.TestCase):
         (elevation ~ 90 degrees) and (az_index, el_index) ~= (127, 127).
         """
         lla = np.array([54.60, -113.64, 500])
-        azel, pixel_index = lla_to_skyfield('REGO', 'ATHA', lla)
+        azel, pixel_index = lla2azel('REGO', 'ATHA', lla)
 
         # Test the AzEl values
         self.assertEqual(round(azel[0]), 137)
@@ -62,7 +62,7 @@ class TestProjectLLAtoSkyfield(unittest.TestCase):
         alts = 500 * np.ones(n)
         lla = np.array([lats, lons, alts]).T
 
-        sat_azel, asi_pixels = lla_to_skyfield('REGO', 'ATHA', lla)
+        sat_azel, asi_pixels = lla2azel('REGO', 'ATHA', lla)
 
         reference_sat_azel = np.array(
             [

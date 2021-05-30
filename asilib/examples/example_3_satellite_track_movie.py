@@ -7,7 +7,7 @@ import numpy as np
 
 import asilib
 from asilib import plot_movie_generator
-from asilib import lla_to_skyfield
+from asilib import lla2azel
 from asilib import load_cal
 
 # ASI parameters
@@ -30,8 +30,8 @@ lla = np.array([lats, lons, alts]).T
 # Map the satellite track to the station's azimuth and elevation coordinates as well as the
 # image pixels
 # The mapping is not along the magnetic field lines! You need to install IRBEM and then use
-# asilib.map_along_magnetic_field().
-sat_azel, sat_azel_pixels = lla_to_skyfield(mission, station, lla)
+# asilib.lla2footprint().
+sat_azel, sat_azel_pixels = lla2azel(mission, station, lla)
 
 # Initiate the movie generator function.
 movie_generator = plot_movie_generator(
