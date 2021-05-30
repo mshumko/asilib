@@ -28,6 +28,7 @@ def keogram(time_range, mission, station, map_alt=None):
     keo: pd.DataFrame
         The 2d keogram with the time index. The columns are the geographic latitude
         if map_alt != None, otherwise it is the image pixel values (0-265) or (0-512).
+        
     Raises
     ------
     AssertionError

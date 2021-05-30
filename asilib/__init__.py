@@ -43,7 +43,7 @@ from asilib.plot.plot_movie import plot_movie, plot_movie_generator
 from asilib.plot.plot_keogram import plot_keogram
 
 # Import the analysis functions.
-from asilib.analysis.project_lla_to_skyfield import lla_to_skyfield
+from asilib.analysis.map_lla_to_azel import lla_to_azel, lla_to_skyfield
 from asilib.analysis.keogram import keogram
 from asilib.analysis.equal_area import equal_area
 

@@ -1,4 +1,5 @@
 from typing import Sequence, Tuple
+import warnings
 
 import numpy as np
 import pymap3d
@@ -7,12 +8,20 @@ import scipy.spatial
 from asilib.io.load import load_cal
 
 
-def lla_to_skyfield(
+def lla_to_skyfield(mission, station, sat_lla, force_download=False):
+    """
+    DEPRECATED for lla_to_azel()
+    """
+    warnings.warn('lla_to_skyfield is deprecated asilib.lla_to_azel() instead', DeprecationWarning)
+    return lla_to_azel(mission, station, sat_lla, force_download=force_download)
+
+def lla_to_azel(
     mission, station, sat_lla, force_download: bool = False
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    This function projects, i.e. maps, a satellite's latitude, longitude, and altitude
-    (LLA) coordinates to the ASI's azimuth and elevation coordinates and pixel index.
+    Maps, a satellite's latitude, longitude, and altitude (LLA) coordinates 
+    to the ASI's azimuth and elevation (azel) coordinates and image pixel index.
+
     This function is useful to plot a satellite's location in the ASI image using the
     pixel indices.
 
@@ -46,19 +55,19 @@ def lla_to_skyfield(
 
     Example
     -------
-    import numpy as np
-
-    from asilib import lla_to_skyfield
-
-    # THEMIS/ATHA's LLA coordinates are (54.72, -113.301, 676 (meters)).
-    # The LLA is a North-South pass right above ATHA..
-    n = 50
-    lats = np.linspace(60, 50, n)
-    lons = -113.64*np.ones(n)
-    alts = 500**np.ones(n)
-    lla = np.array([lats, lons, alts]).T
-
-    azel, pixels = lla_to_skyfield('REGO', 'ATHA', lla)
+    | import numpy as np
+    | 
+    | from asilib import lla_to_skyfield
+    | 
+    | # THEMIS/ATHA's LLA coordinates are (54.72, -113.301, 676 (meters)).
+    | # The LLA is a North-South pass right above ATHA..
+    | n = 50
+    | lats = np.linspace(60, 50, n)
+    | lons = -113.64*np.ones(n)
+    | alts = 500**np.ones(n)
+    | lla = np.array([lats, lons, alts]).T
+    | 
+    | azel, pixels = lla_to_skyfield('REGO', 'ATHA', lla)
     """
 
     # Check the sat_lla input parameter to make sure it is of the correct shape

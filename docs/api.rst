@@ -35,6 +35,9 @@ Summary
     asilib.plot.plot_frame.plot_frame
     asilib.plot.plot_movie.plot_movie
     asilib.plot.plot_movie.plot_movie_generator
+    asilib.analysis.keogram.keogram
+    asilib.analysis.lla_to_azel.lla_to_azel
+    asilib.analysis.equal_area.equal_area
 
 Imager
 ======
@@ -85,3 +88,19 @@ Plot
 
 Analysis
 ========
+
+.. automodule:: asilib.analysis.keogram
+   :members: keogram
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: asilib.analysis.lla_to_azel
+   :members: lla_to_azel
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: asilib.analysis.equal_area
+   :members: equal_area
+   :undoc-members:
+   :show-inheritance:
