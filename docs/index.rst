@@ -6,7 +6,7 @@
 .. image:: ./_static/aurora-asi-lib_logo.png
   :alt: Alternative text
 
-**Last Built**: |today| **version**: |version| **source**: `github`_.
+**Last Built**: |today| | **Version**: |version| | **Source**: `github`_.
 
 .. _github: https://github.com/mshumko/aurora-asi-lib
 
