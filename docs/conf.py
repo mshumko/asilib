@@ -33,7 +33,9 @@ version = str(asilib.__version__)
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
-    'sphinx.ext.autosummary'
+    'sphinx.ext.autosummary',
+    'sphinx.ext.linkcode',
+    'sphinx_copybutton'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -74,3 +76,11 @@ napoleon_use_ivar = True
 napoleon_use_admonition_for_examples = True
 
 autodoc_typehints = "none"
+
+def linkcode_resolve(domain, info):
+    if domain != 'py':
+        return None
+    if not info['module']:
+        return None
+    filename = info['module'].replace('.', '/')
+    return "https://github.com/mshumko/aurora-asi-lib/tree/main/%s.py" % filename
