@@ -64,9 +64,9 @@ def download_themis_img(
 
     import asilib
 
-    day = datetime(2017, 4, 13, 5)
-    station = 'LUCK'
-    asilib.download_themis_img(day, station)
+    | day = datetime(2017, 4, 13, 5)
+    | station = 'LUCK'
+    | asilib.download_themis_img(day, station)
     """
     if isinstance(day, str):
         day = dateutil.parser.parse(day)
@@ -122,8 +122,8 @@ def download_themis_cal(station: str, force_download: bool = False):
     -------
     import asilib
 
-    station = 'LUCK'
-    asilib.download_themis_cal(station)
+    | station = 'LUCK'
+    | asilib.download_themis_cal(station)
     """
     # Create the calibration directory in data/themis/cal
     save_dir = asilib.config['ASI_DATA_DIR'] / 'themis' / 'cal'
