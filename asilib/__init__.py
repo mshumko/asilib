@@ -55,11 +55,11 @@ from asilib.analysis.equal_area import equal_area
 # exception can be raised from another map_along_magnetic_field 
 # dependency but we want to specifically check for IRBEM and let
 # it crash if something else is wrong.
-if importlib.util.find_spec('IRBEM'):
-    from asilib.analysis.trace_field_line import trace_field_line, map_along_magnetic_field
-else:
-    if config['IRBEM_WARNING']:
-        warnings.warn(
-            "The IRBEM magnetic field library is not installed and is "
-            "a dependency of asilib.map_along_magnetic_field()."
-        )
+# if importlib.util.find_spec('IRBEM'):
+#     from asilib.analysis.trace_field_line import trace_field_line, map_along_magnetic_field
+# else:
+#     if config['IRBEM_WARNING']:
+#         warnings.warn(
+#             "The IRBEM magnetic field library is not installed and is "
+#             "a dependency of asilib.map_along_magnetic_field()."
+#         )

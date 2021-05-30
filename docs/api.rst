@@ -39,7 +39,8 @@ Summary
     asilib.plot.plot_movie.plot_movie
     asilib.plot.plot_movie.plot_movie_generator
     asilib.analysis.keogram.keogram
-    asilib.analysis.lla2azel.lla2azel
+    asilib.analysis.map.lla2azel
+    asilib.analysis.map.lla2footprint
     asilib.analysis.equal_area.equal_area
 
 Imager
@@ -97,18 +98,12 @@ Analysis
    :undoc-members:
    :show-inheritance:
 
-
 .. automodule:: asilib.analysis.map
-   :members: lla2azel
+   :members: lla2azel, lla2footprint
    :undoc-members:
    :show-inheritance:
 
 .. automodule:: asilib.analysis.equal_area
-   :members: equal_area
-   :undoc-members:
-   :show-inheritance:
-
-   .. automodule:: asilib.analysis.map_along_magnetic_
    :members: equal_area
    :undoc-members:
    :show-inheritance:
