@@ -14,25 +14,21 @@ The below functions can be imported and called using the following two preferred
     from asilib.io.download_themis import download_themis_img
     download_themis_img(...)
 
-The former option is possible because these functions are all imported by default. However, this may change in a future release, so absolute import (former example) is preferred.
+The former option is possible because these functions are all imported by default. However, this may change in a future release, so absolute import (latter example) is preferred.
 
 Given Python's flexibility, there are many alternative ways to import asilib with varying degrees of typing.
 
-
-.. note::
-
-    `asilib` is hierarchically structured so that the `load_` functions call the `download_` functions internally if a file does not exist locally, or `force_download=True`. Therefore, **you don't normally need to call the `download_` functions unless you need to download data in bulk.**
-
+`asilib` is hierarchically structured so that the `plot_` functions call the `load_` functions that then call the `download_` functions if a file does not exist locally, or if `force_download=True`. Therefore, **you don't normally need to call the download functions unless you need to download data in bulk.**
 
 Imager
 ======
 
 .. note::
 
-    All of the asilib functionality will soon be combined into an Imager() class.
+    COMING SOON: All of the asilib functionality will soon be combined into an Imager() class.
 
 Download
-^^^^^^^^
+========
 
 .. automodule:: asilib.io.download_themis
    :members:
@@ -41,5 +37,32 @@ Download
 
 .. automodule:: asilib.io.download_rego
    :members: download_rego_img, download_rego_cal
+   :undoc-members:
+   :show-inheritance:
+
+Load
+====
+The following functions are very useful if you want to work with the raw image and calibration data without dealing without explicitly downloading them.
+
+.. automodule:: asilib.io.load
+   :members: load_img, load_cal, get_frame, get_frames
+   :undoc-members:
+   :show-inheritance:
+
+Plot
+====
+
+.. automodule:: asilib.plot.plot_keogram
+   :members: plot_keogram
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: asilib.plot.plot_frame
+   :members: plot_frame
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: asilib.plot.plot_movie
+   :members: plot_movie, plot_movie_generator
    :undoc-members:
    :show-inheritance:
