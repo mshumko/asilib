@@ -32,7 +32,7 @@ class Imager:
         The table values are yes for avaliable data and no for unavailable data (doesn't exist).
     data: dict  
         A dictionary full of ASI time stamps and images
-        # TODO: THink about how to store self.data for:
+        # TODO: Think about how to store self.data for:
         #   1) one station for one hour 
         #   2) one station for multiple hours
         #   3) multiple stations for one hour
@@ -135,7 +135,7 @@ class Imager:
 
     def __str__(self):
         """
-        Return a human-readable representaion of this object containing:
+        Return a human-readable representation of this object containing:
         the array, stations, time_range, and data_avaliability.
         """
         s = (f"{self.array} Imager\nstations={self.stations}\n"
