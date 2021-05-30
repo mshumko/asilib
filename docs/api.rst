@@ -19,6 +19,9 @@ The former option is possible because these functions are all imported by defaul
 .. note::
     `asilib` is hierarchically structured so that the `plot` functions call the `load` functions that then call the `download` functions if a file does not exist locally, or if `force_download=True`. Therefore, **you don't normally need to call the download functions unless you need to download data in bulk.**
 
+.. note::
+    The longitude units are converted from 0->360 to -180->180 degrees in the calibration files.
+
 Summary
 =======
 
@@ -36,7 +39,7 @@ Summary
     asilib.plot.plot_movie.plot_movie
     asilib.plot.plot_movie.plot_movie_generator
     asilib.analysis.keogram.keogram
-    asilib.analysis.lla_to_azel.lla_to_azel
+    asilib.analysis.lla2azel.lla2azel
     asilib.analysis.equal_area.equal_area
 
 Imager
@@ -95,12 +98,17 @@ Analysis
    :show-inheritance:
 
 
-.. automodule:: asilib.analysis.lla_to_azel
-   :members: lla_to_azel
+.. automodule:: asilib.analysis.map
+   :members: lla2azel
    :undoc-members:
    :show-inheritance:
 
 .. automodule:: asilib.analysis.equal_area
+   :members: equal_area
+   :undoc-members:
+   :show-inheritance:
+
+   .. automodule:: asilib.analysis.map_along_magnetic_
    :members: equal_area
    :undoc-members:
    :show-inheritance:

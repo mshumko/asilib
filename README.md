@@ -84,7 +84,7 @@ lla = np.array([lats, lons, alts]).T
 # Map the satellite track to the station's azimuth and elevation coordinates as well as the
 # image pixels
 # The mapping is not along the magnetic field lines! You need to install IRBEM and then use
-# asilib.map_along_magnetic_field().
+# asilib.trace_field_line().
 sat_azel, sat_azel_pixels = lla_to_skyfield(mission, station, lla)
 
 # Initiate the movie generator function.

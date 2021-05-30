@@ -1,11 +1,22 @@
 from typing import Sequence, Tuple
+import pathlib
 import warnings
 
+import pandas as pd
 import numpy as np
 import pymap3d
 import scipy.spatial
 
-from asilib.io.load import load_cal
+import asilib
+
+try:
+    import IRBEM
+except ImportError:
+    if asilib.config['IRBEM_WARNING']:
+        warnings.warn(
+            "The IRBEM magnetic field library is not installed and is "
+            "a dependency of asilib.map_along_magnetic_field()."
+        )
 
 
 def lla_to_skyfield(mission, station, sat_lla, force_download=False):
@@ -13,9 +24,10 @@ def lla_to_skyfield(mission, station, sat_lla, force_download=False):
     DEPRECATED for lla_to_azel()
     """
     warnings.warn('lla_to_skyfield is deprecated asilib.lla_to_azel() instead', DeprecationWarning)
-    return lla_to_azel(mission, station, sat_lla, force_download=force_download)
+    return lla2azel(mission, station, sat_lla, force_download=force_download)
 
-def lla_to_azel(
+
+def lla2azel(
     mission, station, sat_lla, force_download: bool = False
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -79,7 +91,7 @@ def lla_to_azel(
     assert sat_lla.shape[1] == 3, 'sat_lla must have 3 columns.'
 
     # Load the catalog
-    cal_dict = load_cal(mission, station, force_download=force_download)
+    cal_dict = asilib.io.load.load_cal(mission, station, force_download=force_download)
 
     sat_azel = np.nan * np.zeros((sat_lla.shape[0], 2))
 
@@ -160,3 +172,71 @@ def _map_azel_to_pixel(sat_azel: np.ndarray, cal_dict: dict) -> np.ndarray:
     pixel_index[:, 0] = np.remainder(idx_min_dist, cal_dict['FULL_AZIMUTH'].shape[1])
     pixel_index[:, 1] = np.floor_divide(idx_min_dist, cal_dict['FULL_AZIMUTH'].shape[1])
     return pixel_index
+
+
+def map_along_magnetic_field(
+    space_time: np.ndarray,
+    map_alt: float,
+    b_model: str = 'OPQ77',
+    maginput: dict = None,
+    hemisphere: int = 0,
+) -> np.ndarray:
+    """
+    DEPRECARED for lla2footprint()
+    """
+    return lla2footprint(space_time, map_alt, b_model=b_model, maginput=maginput, hemisphere=hemisphere)
+
+def lla2footprint(
+    space_time: np.ndarray,
+    map_alt: float,
+    b_model: str = 'OPQ77',
+    maginput: dict = None,
+    hemisphere: int = 0,
+) -> np.ndarray:
+    """
+    This function uses the IRBEM-Lib library to map the spacecraft's position:
+    latitude, longitude, altitude with the spacecraft's time to the map_alt
+    altitude in units of km, in the same hemisphere.
+
+    Parameters
+    ----------
+    space_time: np.ndarray
+        A 2d array with shape (nPositions, 4) with the columns containing the
+        time, latitude, longitude, and altitude coordinates in that order.
+    map_alt: float
+        The altitude to map to, in km, in the same hemisphere.
+    b_model: str
+        The magnetic field model to use, by default the model is Olson-Pfitzer
+        1974. This parameter is passed directly into IRBEM.MagFields as the
+        'kext' parameter.
+    maginput: dict
+        If you use a differnet b_model that requires time-dependent parameters,
+        supply the appropriate values to the maginput dictionary. It is directly
+        passed into IRBEM.MagFields so refer to IRBEM on the proper format.
+    hemisphere: int
+        The hemisphere to map to. This kwarg is passed to IRBEM and can be one of
+        these four values:
+        0    = same magnetic hemisphere as starting point
+        +1   = northern magnetic hemisphere
+        -1   = southern magnetic hemisphere
+        +2   = opposite magnetic hemisphere as starting point
+    
+    Returns
+    -------
+    magnetic_footprint: np.ndarray
+        A numpy.array with size (n_times, 3) with lat, lon, alt
+        columns representing the magnetic footprint coordinates. 
+    """
+
+    magnetic_footprint = np.nan * np.zeros((space_time.shape[0], 3))
+
+    m = IRBEM.MagFields(kext=b_model)  # Initialize the IRBEM model.
+
+    # Loop over every set of satellite coordinates.
+    for i, (time, lat, lon, alt) in enumerate(space_time):
+        X = {'datetime': time, 'x1': alt, 'x2': lat, 'x3': lon}
+        m_output = m.find_foot_point(X, maginput, map_alt, hemisphere)
+        magnetic_footprint[i, :] = m_output['XFOOT']
+    # Map from IRBEM's (alt, lat, lon) -> (lat, lon, alt)
+    magnetic_footprint[:, [2, 0, 1]] = magnetic_footprint[:, [0, 1, 2]]
+    return magnetic_footprint

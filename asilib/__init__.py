@@ -43,7 +43,7 @@ from asilib.plot.plot_movie import plot_movie, plot_movie_generator
 from asilib.plot.plot_keogram import plot_keogram
 
 # Import the analysis functions.
-from asilib.analysis.map_lla_to_azel import lla_to_azel, lla_to_skyfield
+from asilib.analysis.map import lla2azel, lla2footprint
 from asilib.analysis.keogram import keogram
 from asilib.analysis.equal_area import equal_area
 
@@ -56,7 +56,7 @@ from asilib.analysis.equal_area import equal_area
 # dependency but we want to specifically check for IRBEM and let
 # it crash if something else is wrong.
 if importlib.util.find_spec('IRBEM'):
-    from asilib.analysis.map_along_magnetic_field import map_along_magnetic_field
+    from asilib.analysis.trace_field_line import trace_field_line, map_along_magnetic_field
 else:
     if config['IRBEM_WARNING']:
         warnings.warn(
