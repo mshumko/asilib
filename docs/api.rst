@@ -19,6 +19,23 @@ The former option is possible because these functions are all imported by defaul
 .. note::
     `asilib` is hierarchically structured so that the `plot` functions call the `load` functions that then call the `download` functions if a file does not exist locally, or if `force_download=True`. Therefore, **you don't normally need to call the download functions unless you need to download data in bulk.**
 
+Summary
+=======
+
+.. autosummary::
+    asilib.io.download_themis.download_themis_img
+    asilib.io.download_themis.download_themis_cal
+    asilib.io.download_rego.download_rego_img
+    asilib.io.download_rego.download_rego_cal
+    asilib.io.load.load_img
+    asilib.io.load.load_cal
+    asilib.io.load.get_frame
+    asilib.io.load.get_frames
+    asilib.plot.plot_keogram.plot_keogram 
+    asilib.plot.plot_frame.plot_frame
+    asilib.plot.plot_movie.plot_movie
+    asilib.plot.plot_movie.plot_movie_generator
+
 Imager
 ======
 
@@ -65,3 +82,6 @@ Plot
    :members: plot_movie, plot_movie_generator
    :undoc-members:
    :show-inheritance:
+
+Analysis
+========
