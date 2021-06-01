@@ -2,7 +2,20 @@
 API Reference
 =============
 
-The below functions can be imported and called using the following two preferred ways:
+`asilib` saves all of the ASI image files, calibration files, and movies to 
+
+.. code-block:: python
+
+   asilib.config['ASI_DATA_DIR'] 
+
+By default this directory is set to `~/asilib-data/`, but you can configure the paths using the prompt opened by
+
+.. code-block:: shell
+
+   python3 -m asilib config
+
+
+The below functions can be imported and called using either of the following ways:
 
 - .. code-block:: python
 
@@ -14,7 +27,7 @@ The below functions can be imported and called using the following two preferred
     from asilib.io.load import get_frame
     get_frame(...)
 
-The former option is possible because these functions are all imported by default. However, this may change in a future release, so absolute import shown in the latter example is preferred.
+The former option is possible because these functions are all imported by default. However, this may change in a future release, so absolute import (shown in the latter example) is preferred.
 
 .. note::
     `asilib` is hierarchically structured so that the `plot` functions call the `load` functions that then call the `download` functions if a file does not exist locally, or if `force_download=True`. Therefore, **you don't normally need to call the download functions unless you need to download data in bulk.**
