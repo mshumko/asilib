@@ -241,7 +241,7 @@ def get_frame(
 
     # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
     # to datetime objects.
-    epoch = np.array(cdflib.cdfepoch.to_datetime(cdf_obj.varget(time_key)))
+    epoch = _get_epoch(cdf_obj, time_key, time, mission, station)
     # Find the closest time stamp to time
     idx = np.where((epoch >= time) & (epoch < time + timedelta(seconds=time_thresh_s)))[0]
     assert len(idx) == 1, (
@@ -330,7 +330,7 @@ def get_frames(
 
         # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
         # to datetime objects.
-        epoch = np.array(cdflib.cdfepoch.to_datetime(cdf_obj.varget(time_key)))
+        epoch = _get_epoch(cdf, time_key, time_range[0], mission, station)
 
         # Get the frames 3d array
         frames = cdf_obj.varget(frame_key)
@@ -357,8 +357,9 @@ def get_frames(
             # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
             # to datetime objects.
             epoch = np.append(
-                epoch, np.array(cdflib.cdfepoch.to_datetime(cdf_obj.varget(time_key)))
+                    epoch, _get_epoch(cdf_obj, time_key, hour_date_time, mission, station)
             )
+
             # Get the frames 3d array and concatenate.
             frames = np.concatenate((frames, cdf_obj.varget(frame_key)), axis=0)
 
@@ -451,3 +452,21 @@ def _validate_time_range(time_range):
     # Sort time_range if the user passed it in out of order.
     time_range_list = sorted(time_range_list)
     return time_range_list
+
+def _get_epoch(cdf_obj, time_key, hour_date_time, mission, station):
+    """
+    Gets the CDF epoch array and modifies a ValueError when a CDF file is corrupted.
+    """
+    try:
+        epoch = np.array(
+            cdflib.cdfepoch.to_datetime(cdf_obj.varget(time_key))
+            )
+    except ValueError as err:
+        if str(err) == 'read length must be non-negative or -1':
+            raise ValueError(str(err) + '\n\n ASI data is probably corrupted for '
+            f'time={hour_date_time}, mission={mission}, station={station}. '
+            'download the data again with force_download=True).'
+            )
+        else:
+            raise
+    return epoch
