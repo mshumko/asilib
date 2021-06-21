@@ -52,6 +52,10 @@ def keogram(time_range, mission, station, map_alt=None):
         alt_index = np.where(cal['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0]
         keogram_latitude = cal['FULL_MAP_LATITUDE'][alt_index, :, center_pixel]
 
+        # keogram_latitude array are at the pixel edges. Remap it to the centers
+        dl = keogram_latitude[1:] - keogram_latitude[:-1]
+        keogram_latitude = keogram_latitude[0:-1] + dl/2
+
         # Since keogram_latitude values are NaNs near the image edges, we want to filter
         # out those indices from keogram_latitude and keo.
         valid_lats = np.where(~np.isnan(keogram_latitude))[0]
