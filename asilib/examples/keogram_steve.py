@@ -12,10 +12,13 @@ import asilib
 
 mission='REGO'
 station='LUCK'
+map_alt_km = 230
 
 fig, ax = plt.subplots(figsize=(8, 6))
 ax, im = asilib.plot_keogram(['2017-09-27T07', '2017-09-27T09'], mission, station, 
-                ax=ax, map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
-plt.colorbar(im)
+                ax=ax, map_alt=map_alt_km, color_bounds=(300, 800))
+plt.colorbar(im, label='Intensity')
+ax.set_xlabel('UTC')
+ax.set_ylabel(f'Emission Latitude [deg] at {map_alt_km} km')
 plt.tight_layout()
 plt.show()

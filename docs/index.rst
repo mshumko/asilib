@@ -26,6 +26,7 @@ Supported ASI missions
    :caption: asilib:
 
    installation
+   examples
    tutorials
    user_guide
    api
