@@ -12,7 +12,7 @@ import asilib
 # ASI parameters
 mission = 'THEMIS'
 station = 'RANK'
-time_range = (datetime(2017, 9, 15, 2, 33, 0), datetime(2017, 9, 15, 2, 35, 0))
+time_range = (datetime(2017, 9, 15, 2, 32, 0), datetime(2017, 9, 15, 2, 35, 0))
 
 fig, ax = plt.subplots(2, 1, figsize=(7, 10), gridspec_kw={'height_ratios':[4, 1]}, 
                         constrained_layout=True)
