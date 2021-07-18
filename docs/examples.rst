@@ -8,6 +8,8 @@ Example 1: Fisheye Lens View of an Arc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. figure:: ./_static/example_1.png
+    :alt: A fisheye lens view of an auroral arc.
+    :width: 75%
 
     A bright auroral arc that was analyzed by Imajo et al., 2021 "Active auroral arc powered by accelerated electrons from very high altitudes"
 
@@ -28,6 +30,8 @@ Example 1: Fisheye Lens View of an Arc
 Example 2: A keogram
 ^^^^^^^^^^^^^^^^^^^^
 .. figure:: ./_static/example_2.png
+    :alt: A keogram of STEVE.
+    :width: 75%
 
     A keogram with a STEVE event that moved towards the equator. This event was analyzed in Gallardo-Lacourt et al. 2018 "A statistical analysis of STEVE"
 
@@ -56,7 +60,7 @@ Example 2: Fisheye Movie
 
 .. raw:: html
 
-    <iframe width="560" height="315"
+    <iframe width="75%" height="500"
     src="_static/20150326_060700_062957_themis_fsmi.mp4"; frameborder="0"
     allowfullscreen></iframe>
 
@@ -77,7 +81,7 @@ This is a sophisticated example that maps a hypothetical satellite track to an i
 
 .. raw:: html
 
-    <iframe width="560" height="315"
+    <iframe width="75%" height="500"
     src="_static/20170915_023400_023557_themis_rank.mp4"; frameborder="0"
     allowfullscreen></iframe>
 
@@ -150,8 +154,8 @@ The `asilib` functionality used here:
     
 .. raw:: html
 
-    <iframe height="900" width="500"
-    src="_static/20170915_023300_023457_themis_rank.mp4"; frameborder="0"
+    <iframe width="100%", height="900px"
+    src="_static/20170915_023300_023457_themis_rank.mp4"
     allowfullscreen></iframe>
 
 .. code:: python
