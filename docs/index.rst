@@ -27,8 +27,7 @@ Supported ASI missions
 
    installation
    examples
-   tutorials
-   user_guide
+   tutorial
    api
 
 .. toctree::
