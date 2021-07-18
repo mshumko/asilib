@@ -6,7 +6,7 @@ __pycache__/
 *.pgm.gz
 *.cdf
 *.png
-*.mp4
+# *.mp4
 *.sav
 de421.bsp
 movies/
