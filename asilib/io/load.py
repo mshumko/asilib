@@ -330,7 +330,7 @@ def get_frames(
 
         # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
         # to datetime objects.
-        epoch = _get_epoch(cdf, time_key, time_range[0], mission, station)
+        epoch = _get_epoch(cdf_obj, time_key, time_range[0], mission, station)
 
         # Get the frames 3d array
         frames = cdf_obj.varget(frame_key)
