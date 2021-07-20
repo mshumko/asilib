@@ -144,7 +144,7 @@ def load_cal(mission: str, station: str, force_download: bool = False) -> dict:
     | 
     | rego_cal = asilib.load_cal('REGO', 'GILL')
     """
-    cal_dir = asilib.config['ASI_DATA_DIR'] / mission.lower() / 'cal'
+    cal_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower(), 'cal')
     cal_paths = sorted(list(cal_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
 
     # If no THEMIS cal files found, download the lastest one.
