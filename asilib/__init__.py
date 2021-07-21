@@ -13,6 +13,7 @@ settings.read(HERE / 'config.ini')
 try:
     ASI_DATA_DIR = settings['Paths'].get('ASI_DATA_DIR', 
         pathlib.Path.home() / 'asilib-data')
+    ASI_DATA_DIR = pathlib.Path(ASI_DATA_DIR)
 except KeyError:  # Raised if config.ini does not have Paths.
     ASI_DATA_DIR = pathlib.Path.home() / 'asilib-data'
 
