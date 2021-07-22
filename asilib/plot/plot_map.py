@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.patches as patches
+import matplotlib.collections
 import numpy as np
 
 from asilib import config
@@ -87,6 +88,7 @@ def plot_map(time: Union[datetime, str], mission: str,
     # Set up the plot parameters
     if ax is None:
         _, ax = plt.subplots()
+        set_coord_bounds = True
 
     if color_bounds is None:
         lower, upper = np.quantile(frame, (0.25, 0.98))
@@ -108,28 +110,34 @@ def plot_map(time: Union[datetime, str], mission: str,
 
     # patches = np.ones(frame.shape[0]*frame.shape[1], dtype=object)
     # colors = np.ones(frame.shape[0]*frame.shape[1], dtype=int)
-    patches = np.ones(*frame.shape, dtype=object)
-    colors = np.ones(*frame.shape, dtype=int)
+    patch_list = []
+    color_list = []
 
-    for yi, yf in :
-        for xi, xf in :
+    map_shape = cal['FULL_MAP_LATITUDE'].shape
+    for row in np.arange(0, map_shape[1]-1):
+        for col in np.arange(0, map_shape[2]-1):
+            vertices = np.array([
+                [cal['FULL_MAP_LONGITUDE'][alt_index, row, col], cal['FULL_MAP_LATITUDE'][alt_index, row, col]],
+                [cal['FULL_MAP_LONGITUDE'][alt_index, row+1, col], cal['FULL_MAP_LATITUDE'][alt_index, row+1, col]],
+                [cal['FULL_MAP_LONGITUDE'][alt_index, row+1, col+1], cal['FULL_MAP_LATITUDE'][alt_index, row+1, col+1]],
+                [cal['FULL_MAP_LONGITUDE'][alt_index, row, col+1], cal['FULL_MAP_LATITUDE'][alt_index, row, col+1]]
+                ])
+            if not np.any(np.isnan(vertices)):  # Skip if any vertices are NaN.
+                patch_list.append(patches.Polygon(vertices))
+                color_list.append(frame[map_shape[0]-1-row, map_shape[1]-1-col])
 
-
-    for i in range(self.verticies.shape[2]):
-        c.append(self.c[i])
-        patches.append(Polygon(self.verticies[:, :, i]))
-
-    p = matplotlib.collections.PatchCollection(patches)
-    p.set_cmap(cmap)
-    p.set_array(np.array(c))
+    p = matplotlib.collections.PatchCollection(patch_list)
+    p.set_cmap(color_map)
+    p.set_array(np.array(color_list))
     p.autoscale()
-    if cMapLog:
-        p.set_norm(matplotlib.colors.LogNorm())
-    p.set_clim(vmin=vmin, vmax=vmax)
+    p.set_clim(vmin=color_bounds[0], vmax=color_bounds[1])
     ax.add_collection(p)
-
-    return frame_time, frame, cal, ax, im
+    if set_coord_bounds:
+        ax.set_xlim(np.nanmin(cal['FULL_MAP_LONGITUDE']), np.nanmax(cal['FULL_MAP_LONGITUDE']))
+        ax.set_ylim(np.nanmin(cal['FULL_MAP_LATITUDE']), np.nanmax(cal['FULL_MAP_LATITUDE']))
+    return frame_time, frame, cal, ax
 
 if __name__ == '__main__':
-    plot_map(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 110)
+    # plot_map(datetime(2017, 9, 15, 2, 38, 57), 'THEMIS', 'RANK', 110)
+    plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
     plt.show()
