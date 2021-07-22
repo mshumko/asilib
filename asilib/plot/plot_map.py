@@ -16,7 +16,7 @@ def plot_map(time: Union[datetime, str], mission: str,
     station: str, map_alt: int, time_thresh_s: float = 3,
     ax: plt.subplot = None, color_map: str = 'auto',
     color_bounds: Union[List[float], None] = None,
-    color_norm: str = 'log', pcolormesh_kwargs={}):
+    color_norm: str = 'lin', pcolormesh_kwargs={}):
     """
     Projects the ASI images to a map at an altitude in the calibration file.
 
@@ -105,10 +105,20 @@ def plot_map(time: Union[datetime, str], mission: str,
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
+    # Change NaN lats and lons to 0s and change the corresponding pixel intensities to NaN.
+    invalid_idx = np.where(np.isnan(cal['FULL_MAP_LONGITUDE'][alt_index, :, :]))
+    lon = cal['FULL_MAP_LONGITUDE'][alt_index, :, :].copy()
+    lon[invalid_idx] = 0
+    lat = cal['FULL_MAP_LATITUDE'][alt_index, :, :].copy()
+    lat[invalid_idx] = 0
+    frame_obj = frame.astype(object)  # Necessary to mask values with nan.
+    idx = invalid_idx[0][(invalid_idx[0] <= 255) & (invalid_idx[1] <= 255)]
+    idy = invalid_idx[1][(invalid_idx[0] <= 255) & (invalid_idx[1] <= 255)]
+    frame_obj[idx, idy] = np.nan
+    frame_obj[np.where(frame_obj == 0)] = np.nan
+
     # Make the plot
-    im = ax.pcolormesh(cal['FULL_MAP_LONGITUDE'][alt_index, :, :], 
-                  cal['FULL_MAP_LATITUDE'][alt_index, :, :],
-                  frame, 
+    im = ax.pcolormesh(lon, lat, frame_obj, 
                   norm=norm, shading='flat', **pcolormesh_kwargs
                   )
     return frame_time, frame, cal, ax, im

@@ -16,3 +16,4 @@ asilib/config.ini
 docs/_build/
 .vscode/settings.json
 asilib/tests/.coverage
+.vscode/launch.json
