@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.patches as patches
 import matplotlib.collections
+import progressbar
 import numpy as np
 
 from asilib.io.load import load_cal, get_frame
@@ -113,7 +114,7 @@ def plot_map(time: Union[datetime, str], mission: str,
     color_list = []
 
     map_shape = cal['FULL_MAP_LATITUDE'].shape
-    for row in np.arange(0, map_shape[1]-1):
+    for row in progressbar.progressbar(np.arange(0, map_shape[1]-1)):
         for col in np.arange(0, map_shape[2]-1):
             vertices = np.array([
                 [cal['FULL_MAP_LONGITUDE'][alt_index, row, col], cal['FULL_MAP_LATITUDE'][alt_index, row, col]],
@@ -137,6 +138,8 @@ def plot_map(time: Union[datetime, str], mission: str,
     return frame_time, frame, cal, ax
 
 if __name__ == '__main__':
-    # plot_map(datetime(2017, 9, 15, 2, 38, 57), 'THEMIS', 'RANK', 110)
-    plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
+    # from https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41598-020-79665-5/MediaObjects/41598_2020_79665_Fig1_HTML.jpg?as=webp
+    plot_map(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 110)
+    # From http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
+    # plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
     plt.show()
