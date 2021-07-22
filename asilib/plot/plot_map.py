@@ -112,4 +112,5 @@ def plot_map(time: Union[datetime, str], mission: str,
     return frame_time, frame, cal, ax, im
 
 if __name__ == '__main__':
-    
+    plot_map(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 110)
+    plt.show()
