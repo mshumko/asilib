@@ -2,7 +2,7 @@
 This module contains functions to project the ASI images to a map.
 """
 from typing import List, Union, Optional, Sequence, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
@@ -10,8 +10,7 @@ import matplotlib.patches as patches
 import matplotlib.collections
 import numpy as np
 
-from asilib import config
-from asilib.io import load
+from asilib.io.load import load_cal, get_frame
 
 
 def plot_map(time: Union[datetime, str], mission: str,
@@ -75,10 +74,10 @@ def plot_map(time: Union[datetime, str], mission: str,
         the east/west directions are flipped. Set azel_contours=True to confirm.
     """
     # Load data
-    frame_time, frame = load.get_frame(
+    frame_time, frame = get_frame(
         time, mission, station, time_thresh_s=time_thresh_s
     )
-    cal = load.load_cal(mission, station)
+    cal = load_cal(mission, station)
 
     # Check that the map_alt is in the calibration data.
     assert map_alt in cal['FULL_MAP_ALTITUDE']/1000, \
