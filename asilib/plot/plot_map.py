@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
+import matplotlib.patches as patches
 import numpy as np
 
 from asilib import config
@@ -105,22 +106,28 @@ def plot_map(time: Union[datetime, str], mission: str,
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    # Change NaN lats and lons to 0s and change the corresponding pixel intensities to NaN.
-    invalid_idx = np.where(np.isnan(cal['FULL_MAP_LONGITUDE'][alt_index, :, :]))
-    lon = cal['FULL_MAP_LONGITUDE'][alt_index, :, :].copy()
-    lon[invalid_idx] = 0
-    lat = cal['FULL_MAP_LATITUDE'][alt_index, :, :].copy()
-    lat[invalid_idx] = 0
-    frame_obj = frame.astype(object)  # Necessary to mask values with nan.
-    idx = invalid_idx[0][(invalid_idx[0] <= 255) & (invalid_idx[1] <= 255)]
-    idy = invalid_idx[1][(invalid_idx[0] <= 255) & (invalid_idx[1] <= 255)]
-    frame_obj[idx, idy] = np.nan
-    frame_obj[np.where(frame_obj == 0)] = np.nan
+    # patches = np.ones(frame.shape[0]*frame.shape[1], dtype=object)
+    # colors = np.ones(frame.shape[0]*frame.shape[1], dtype=int)
+    patches = np.ones(*frame.shape, dtype=object)
+    colors = np.ones(*frame.shape, dtype=int)
 
-    # Make the plot
-    im = ax.pcolormesh(lon, lat, frame_obj, 
-                  norm=norm, shading='flat', **pcolormesh_kwargs
-                  )
+    for yi, yf in :
+        for xi, xf in :
+
+
+    for i in range(self.verticies.shape[2]):
+        c.append(self.c[i])
+        patches.append(Polygon(self.verticies[:, :, i]))
+
+    p = matplotlib.collections.PatchCollection(patches)
+    p.set_cmap(cmap)
+    p.set_array(np.array(c))
+    p.autoscale()
+    if cMapLog:
+        p.set_norm(matplotlib.colors.LogNorm())
+    p.set_clim(vmin=vmin, vmax=vmax)
+    ax.add_collection(p)
+
     return frame_time, frame, cal, ax, im
 
 if __name__ == '__main__':
