@@ -161,9 +161,16 @@ def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray,
     return
 
 if __name__ == '__main__':
-    # from https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41598-020-79665-5/MediaObjects/41598_2020_79665_Fig1_HTML.jpg?as=webp
+    # https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41598-020-79665-5/MediaObjects/41598_2020_79665_Fig1_HTML.jpg?as=webp
     # plot_map(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 110)
-    plot_map(datetime(2007, 3, 13, 5, 8, 45), 'THEMIS', 'TPAS', 110)
-    # From http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
+
+    # https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2008GL033794
+    # plot_map(datetime(2007, 3, 13, 5, 8, 45), 'THEMIS', 'TPAS', 110)
+
+    # http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
     # plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
+
+    # https://www.essoar.org/doi/abs/10.1002/essoar.10507288.1
+    plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)
+
     plt.show()
