@@ -10,6 +10,7 @@ import matplotlib.patches as patches
 import matplotlib.collections
 import progressbar
 import numpy as np
+import cartopy.crs as ccrs
 
 from asilib.io.load import load_cal, get_frame
 
@@ -87,8 +88,15 @@ def plot_map(time: Union[datetime, str], mission: str,
 
     # Set up the plot parameters
     if ax is None:
-        _, ax = plt.subplots()
-        set_coord_bounds = True
+        fig = plt.figure(figsize=(10, 5))
+        projection = ccrs.NearsidePerspective(
+            central_latitude=cal['SITE_MAP_LATITUDE'], 
+            central_longitude=cal['SITE_MAP_LONGITUDE'], 
+            satellite_height=100000*map_alt
+            )
+        ax = fig.add_subplot(1, 1, 1, projection=projection)
+        ax.coastlines()
+        # set_coord_bounds = True
 
     if color_bounds is None:
         lower, upper = np.quantile(frame, (0.25, 0.98))
@@ -123,18 +131,21 @@ def plot_map(time: Union[datetime, str], mission: str,
                 [cal['FULL_MAP_LONGITUDE'][alt_index, row, col+1], cal['FULL_MAP_LATITUDE'][alt_index, row, col+1]]
                 ])
             if not np.any(np.isnan(vertices)):  # Skip if any vertices are NaN.
-                patch_list.append(patches.Polygon(vertices))
+                # patch_list.append(patches.Polygon(vertices, transform=ccrs.PlateCarree()))
+                ax.add_patch(patches.Polygon(vertices, transform=projection))
                 color_list.append(frame[map_shape[0]-1-row, map_shape[1]-1-col])
 
-    p = matplotlib.collections.PatchCollection(patch_list)
-    p.set_cmap(color_map)
-    p.set_array(np.array(color_list))
-    p.autoscale()
-    p.set_clim(vmin=color_bounds[0], vmax=color_bounds[1])
-    ax.add_collection(p)
-    if set_coord_bounds:
-        ax.set_xlim(np.nanmin(cal['FULL_MAP_LONGITUDE']), np.nanmax(cal['FULL_MAP_LONGITUDE']))
-        ax.set_ylim(np.nanmin(cal['FULL_MAP_LATITUDE']), np.nanmax(cal['FULL_MAP_LATITUDE']))
+    # ax.add_geometries([patch_list], crs=projection)
+    # p = matplotlib.collections.PatchCollection(patch_list)
+    # p.set_cmap(color_map)
+    # p.set_array(np.array(color_list))
+    # p.autoscale()
+    # p.set_clim(vmin=color_bounds[0], vmax=color_bounds[1])
+    # ax.add_collection(p)
+    # if set_coord_bounds:
+    #     ax.set_xlim(np.nanmin(cal['FULL_MAP_LONGITUDE']), np.nanmax(cal['FULL_MAP_LONGITUDE']))
+    #     ax.set_ylim(np.nanmin(cal['FULL_MAP_LATITUDE']), np.nanmax(cal['FULL_MAP_LATITUDE']))
+    # ax.set_extent([-90, 75, 10, 85], crs=ccrs.PlateCarree())
     return frame_time, frame, cal, ax
 
 if __name__ == '__main__':
