@@ -88,15 +88,14 @@ def plot_map(time: Union[datetime, str], mission: str,
 
     # Set up the plot parameters
     if ax is None:
-        fig = plt.figure(figsize=(10, 5))
+        fig = plt.figure(figsize=(5, 5))
         projection = ccrs.NearsidePerspective(
             central_latitude=cal['SITE_MAP_LATITUDE'], 
             central_longitude=cal['SITE_MAP_LONGITUDE'], 
-            satellite_height=100000*map_alt
+            satellite_height=10000*map_alt
             )
         ax = fig.add_subplot(1, 1, 1, projection=projection)
         ax.coastlines()
-        # set_coord_bounds = True
 
     if color_bounds is None:
         lower, upper = np.quantile(frame, (0.25, 0.98))
@@ -116,41 +115,55 @@ def plot_map(time: Union[datetime, str], mission: str,
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    # patches = np.ones(frame.shape[0]*frame.shape[1], dtype=object)
-    # colors = np.ones(frame.shape[0]*frame.shape[1], dtype=int)
-    patch_list = []
-    color_list = []
-
-    map_shape = cal['FULL_MAP_LATITUDE'].shape
-    for row in progressbar.progressbar(np.arange(0, map_shape[1]-1)):
-        for col in np.arange(0, map_shape[2]-1):
-            vertices = np.array([
-                [cal['FULL_MAP_LONGITUDE'][alt_index, row, col], cal['FULL_MAP_LATITUDE'][alt_index, row, col]],
-                [cal['FULL_MAP_LONGITUDE'][alt_index, row+1, col], cal['FULL_MAP_LATITUDE'][alt_index, row+1, col]],
-                [cal['FULL_MAP_LONGITUDE'][alt_index, row+1, col+1], cal['FULL_MAP_LATITUDE'][alt_index, row+1, col+1]],
-                [cal['FULL_MAP_LONGITUDE'][alt_index, row, col+1], cal['FULL_MAP_LATITUDE'][alt_index, row, col+1]]
-                ])
-            if not np.any(np.isnan(vertices)):  # Skip if any vertices are NaN.
-                # patch_list.append(patches.Polygon(vertices, transform=ccrs.PlateCarree()))
-                ax.add_patch(patches.Polygon(vertices, transform=projection))
-                color_list.append(frame[map_shape[0]-1-row, map_shape[1]-1-col])
-
-    # ax.add_geometries([patch_list], crs=projection)
-    # p = matplotlib.collections.PatchCollection(patch_list)
-    # p.set_cmap(color_map)
-    # p.set_array(np.array(color_list))
-    # p.autoscale()
-    # p.set_clim(vmin=color_bounds[0], vmax=color_bounds[1])
-    # ax.add_collection(p)
-    # if set_coord_bounds:
-    #     ax.set_xlim(np.nanmin(cal['FULL_MAP_LONGITUDE']), np.nanmax(cal['FULL_MAP_LONGITUDE']))
-    #     ax.set_ylim(np.nanmin(cal['FULL_MAP_LATITUDE']), np.nanmax(cal['FULL_MAP_LATITUDE']))
-    # ax.set_extent([-90, 75, 10, 85], crs=ccrs.PlateCarree())
+    pcolormesh_nan(cal['FULL_MAP_LONGITUDE'][alt_index, :, :], 
+                cal['FULL_MAP_LATITUDE'][alt_index, :, :],
+                frame, ax, projection, cmap=color_map, norm=norm)
     return frame_time, frame, cal, ax
+
+def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, 
+                    ax, projection, cmap=None, norm=None):
+    """handles NaN in x and y by smearing last valid value in column or row out,
+    which doesn't affect plot because "c" will be masked too
+
+    Stolen from:
+    https://github.com/scivision/python-matlab-examples/blob/0dd8129bda8f0ec2c46dae734d8e43628346388c/PlotPcolor/pcolormesh_NaN.py
+    """
+
+    mask = np.isfinite(x) & np.isfinite(y)
+    top = None
+    bottom = None
+
+    for i, m in enumerate(mask):
+        good = m.nonzero()[0]
+
+        if good.size == 0:
+            continue
+        elif top is None:
+            top = i
+        else:
+            bottom = i
+
+        x[i, good[-1] :] = x[i, good[-1]]
+        y[i, good[-1] :] = y[i, good[-1]]
+
+        x[i, : good[0]] = x[i, good[0]]
+        y[i, : good[0]] = y[i, good[0]]
+
+    x[:top, :] = np.nanmax(x[top, :])
+    y[:top, :] = np.nanmax(y[top, :])
+
+    x[bottom:, :] = np.nanmax(x[bottom, :])
+    y[bottom:, :] = np.nanmax(y[bottom, :])
+
+    ax.pcolormesh(x, y, np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1], 
+                cmap=cmap, shading='flat', transform=ccrs.PlateCarree(), 
+                norm=norm)
+    return
 
 if __name__ == '__main__':
     # from https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41598-020-79665-5/MediaObjects/41598_2020_79665_Fig1_HTML.jpg?as=webp
-    plot_map(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 110)
+    # plot_map(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 110)
+    plot_map(datetime(2007, 3, 13, 5, 8, 45), 'THEMIS', 'TPAS', 110)
     # From http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
     # plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
     plt.show()
