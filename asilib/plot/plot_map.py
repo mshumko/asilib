@@ -6,9 +6,6 @@ from datetime import datetime
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-import matplotlib.patches as patches
-import matplotlib.collections
-import progressbar
 import numpy as np
 import cartopy.crs as ccrs
 
