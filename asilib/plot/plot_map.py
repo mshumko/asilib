@@ -114,11 +114,11 @@ def plot_map(time: Union[datetime, str], mission: str,
 
     pcolormesh_nan(cal['FULL_MAP_LONGITUDE'][alt_index, :, :], 
                 cal['FULL_MAP_LATITUDE'][alt_index, :, :],
-                frame, ax, projection, cmap=color_map, norm=norm)
+                frame, ax, cmap=color_map, norm=norm)
     return frame_time, frame, cal, ax
 
 def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, 
-                    ax, projection, cmap=None, norm=None):
+                    ax, cmap=None, norm=None):
     """handles NaN in x and y by smearing last valid value in column or row out,
     which doesn't affect plot because "c" will be masked too
 
@@ -165,9 +165,21 @@ if __name__ == '__main__':
     # plot_map(datetime(2007, 3, 13, 5, 8, 45), 'THEMIS', 'TPAS', 110)
 
     # http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
-    # plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
+    plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
 
     # https://www.essoar.org/doi/abs/10.1002/essoar.10507288.1
-    plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)
+    # plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)
+
+    # cal = load_cal('THEMIS', 'GILL')
+    # fig = plt.figure(figsize=(5, 5))
+    # projection = ccrs.NearsidePerspective(
+    #     central_latitude=cal['SITE_MAP_LATITUDE'], 
+    #     central_longitude=cal['SITE_MAP_LONGITUDE'], 
+    #     satellite_height=10000*110
+    #     )
+    # ax = fig.add_subplot(1, 1, 1, projection=projection)
+    # ax.coastlines()
+    # plot_map(datetime(2007, 1, 20, 0, 39, 0), 'THEMIS', 'TPAS', 110, ax=ax)
+    # plot_map(datetime(2007, 1, 20, 0, 39, 0), 'THEMIS', 'GILL', 110, ax=ax)
 
     plt.show()
