@@ -3,6 +3,7 @@ This module contains functions to project the ASI images to a map.
 """
 from typing import List, Union, Optional, Sequence, Tuple
 from datetime import datetime
+import warnings
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
@@ -72,6 +73,9 @@ def plot_map(time: Union[datetime, str], mission: str,
         east is right, and west is left), contrary to the camera orientation where
         the east/west directions are flipped. Set azel_contours=True to confirm.
     """
+    warnings.warn(
+        'plot_map() is an experimental function. It is not tested. Use at your own risk.'
+    )
     # Load data
     frame_time, frame = get_frame(
         time, mission, station, time_thresh_s=time_thresh_s
