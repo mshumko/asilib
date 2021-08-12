@@ -81,3 +81,4 @@ class Imager:
 
 if __name__ == '__main__':
     im = Imager('THEMIS', 'GILL')
+    im.load_cal('2008-01-16')

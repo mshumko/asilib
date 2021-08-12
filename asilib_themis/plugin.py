@@ -1,5 +1,5 @@
 class Plugin:
-    def __init__(self, location, instument=None):
+    def __init__(self, location, instrument=None):
         self.location = location
         self._check_location()
         print('in asilib_themis.plugin.Plugin().__init__')
