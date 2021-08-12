@@ -1,7 +1,7 @@
 import importlib
 import pkgutil
 
-class Imager:
+class Imager(Plot):
     """
     The core class for the downloading, loading, analyzing, and plotting ASI data.
     TODO: Rewrite doctring
@@ -77,7 +77,19 @@ class Imager:
         """
         Checks and, if necessary, parses the time(s) into datetime objects.
         """
+        n = 0
+        return n, time
+
+
+class Plot:
+    def __init__(self) -> None:
+        
         return
+
+    def keogram(self):
+
+        return
+
 
 if __name__ == '__main__':
     im = Imager('THEMIS', 'GILL')

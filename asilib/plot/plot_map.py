@@ -17,7 +17,8 @@ def plot_map(time: Union[datetime, str], mission: str,
     station: str, map_alt: int, time_thresh_s: float = 3,
     ax: plt.subplot = None, color_map: str = 'auto',
     color_bounds: Union[List[float], None] = None,
-    color_norm: str = 'lin', pcolormesh_kwargs={}):
+    color_norm: str = 'lin', pcolormesh_kwargs={}, min_el=10, 
+    map_center='imager'):
     """
     Projects the ASI images to a map at an altitude in the calibration file.
 
@@ -56,6 +57,10 @@ def plot_map(time: Union[datetime, str], mission: str,
         A dictionary of keyword arguments (kwargs) to pass directly into 
         plt.pcolormesh. One use of this parameter is to change the colormap. For example,
         pcolormesh_kwargs = {'cmap':'tu}
+    min_el: float
+        The minimum elevation to map.
+    map_center: str
+        Where to center the map. Can be either 'imager' or 'continent'
 
     Returns
     -------
@@ -86,6 +91,9 @@ def plot_map(time: Union[datetime, str], mission: str,
     assert map_alt in cal['FULL_MAP_ALTITUDE']/1000, \
             f'{map_alt} km is not in calibration altitudes: {cal["FULL_MAP_ALTITUDE"]/1000} km'
     alt_index = np.where(cal['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0] 
+
+    # Filter out the horizon
+    idh = 
 
     # Set up the plot parameters
     if ax is None:
