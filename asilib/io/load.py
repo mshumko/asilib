@@ -4,6 +4,7 @@ import dateutil.parser
 from typing import List, Union, Sequence, Tuple
 from copy import copy
 import warnings
+import re
 
 import pandas as pd
 import numpy as np
@@ -114,13 +115,13 @@ def load_img(
 
 def load_img_file(time, mission: str, station: str, force_download: bool = False):
     """
-    DEPRICATED for load_img()
+    DEPRECATED for load_img()
     """
     warnings.warn('load_img_file is deprecated. Use asilib.load_img() instead', DeprecationWarning)
     return load_img(time, mission, station, force_download)
 
 
-def load_cal(mission: str, station: str, force_download: bool = False) -> dict:
+def load_cal(mission: str, station: str, time: Union[datetime, str], force_download: bool = False) -> dict:
     """
     Loads (and optionally downloads) the latest callibration file.
 
@@ -144,17 +145,24 @@ def load_cal(mission: str, station: str, force_download: bool = False) -> dict:
     | 
     | rego_cal = asilib.load_cal('REGO', 'GILL')
     """
-    cal_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower(), 'cal')
-    cal_paths = sorted(list(cal_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
+    skymap_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower(), 'cal', station.lower())
+    skymap_paths = sorted(list(skymap_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
 
-    # If no THEMIS cal files found, download the lastest one.
-    if len(cal_paths) == 0 and mission.lower() == 'themis':
-        cal_path = download_themis.download_themis_cal(station)
-    # If no REGO cal files found, download the lastest one.
-    elif len(cal_paths) == 0 and mission.lower() == 'rego':
-        cal_path = download_rego.download_rego_cal(station)
-    else:
-        cal_path = cal_paths[-1]
+    # Download skymap files if they are not downloaded yet.
+    if len(skymap_paths) == 0 and mission.lower() == 'themis':
+        skymap_paths = download_themis.download_themis_cal(station)
+    elif len(skymap_paths) == 0 and mission.lower() == 'rego':
+        skymap_paths = download_rego.download_rego_cal(station)
+
+    skymap_dates = _extract_skymap_dates(skymap_paths)
+    skymap_dates_paths = list(zip(skymap_dates, skymap_paths))
+
+    # Try to convert time to datetime object if it is a string.
+    if isinstance(time, str):
+        time = dateutil.parser.parse(time)
+
+    # Find the skymap_date that is closest and before time.
+    dt = [(time - skymap_date).total_seconds() for skymap_date in skymap_dates]
 
     # Load the calibration file and convert it to a dictionary.
     cal_file = scipy.io.readsav(cal_path, python_dict=True)['skymap']
@@ -169,9 +177,21 @@ def load_cal(mission: str, station: str, force_download: bool = False) -> dict:
     cal_dict['cal_path'] = cal_path
     return cal_dict
 
+def _extract_skymap_dates(skymap_paths):
+    """
+    Extract the skymap dates from each skymap_path in skymap_paths.
+    """
+    skymap_dates = []
+
+    for skymap_path in skymap_paths:
+        day = re.search(r'\d{8}', skymap_path.name).group(0)
+        day_obj = datetime.strptime(day, "%Y%m%d")
+        skymap_dates.append(day_obj)
+    return skymap_dates
+
 def load_cal_file(mission: str, station: str, force_download: bool = False):
     """
-    DEPRICATED for load_cal()
+    DEPRECATED for load_cal()
     """
     warnings.warn('load_cal_file is deprecated asilib.load_cal() instead', DeprecationWarning)
     return load_cal(mission, station, force_download)
@@ -470,3 +490,6 @@ def _get_epoch(cdf_obj, time_key, hour_date_time, mission, station):
         else:
             raise
     return epoch
+
+if __name__ == '__main__':
+    cal = load_cal('REGO', 'FSMI', '2018-10-01')

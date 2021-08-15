@@ -98,7 +98,7 @@ def download_rego_img(
         return download_paths
 
 
-def download_rego_cal(station: str, time, force_download: bool = False) -> pathlib.Path:
+def download_rego_cal(station: str, force_download: bool = False) -> pathlib.Path:
     """
     Download the latest calibration (skymap) IDL .sav file and save
     it to asilib.config['ASI_DATA_DIR']/rego/cal/ directory.
@@ -122,26 +122,31 @@ def download_rego_cal(station: str, time, force_download: bool = False) -> pathl
     | asilib.download_rego_cal(station)
     """
     # Create the calibration directory in data/rego/cal
-    save_dir = asilib.config['ASI_DATA_DIR'] / 'rego' / 'cal'
+    save_dir = asilib.config['ASI_DATA_DIR'] / 'rego' / 'cal' / station.lower()
     if not save_dir.is_dir():
         save_dir.mkdir()
         print(f'Made directory at {save_dir}')
 
     url = CAL_BASE_URL + f'{station.lower()}/'
 
-    # Look for all of the hyperlinks to the calibration file and download the
-    # latest one.
-    cal_time_tagged_hrefs = search_hrefs(url, search_pattern=station.lower())
-    url = url + cal_time_tagged_hrefs[-1]  # Last href is the latest one.
-    # Lastly, research for the skymap .sav file.
-    cal_hrefs = search_hrefs(url, search_pattern=f'rego_skymap_{station.lower()}')
-    cal_name = cal_hrefs[0].replace('-%2B', '')  # Replace the code for '+'.
+    # Look for all of the calibration hyperlinks, go in each one of them, and
+    # download the .sav file.
+    cal_folders_relative = search_hrefs(url, search_pattern=station.lower())
+    download_paths = []
 
-    # Download if force_download=True or the file does not exist.
-    download_path = pathlib.Path(save_dir, cal_name)
-    if force_download or (not download_path.is_file()):
-        stream_large_file(url + cal_hrefs[0], download_path)
-    return download_path
+    for cal_folder in cal_folders_relative:
+        cal_folder_absolute = url + cal_folder
+
+        # Lastly, research for the skymap .sav file.
+        cal_name = search_hrefs(cal_folder_absolute, search_pattern=f'.sav')
+        cal_name = cal_name[0].replace('-%2B', '')  # Replace the code for '+'.
+
+        # Download if force_download=True or the file does not exist.
+        download_path = pathlib.Path(save_dir, cal_name)
+        download_paths.append(download_path)
+        if force_download or (not download_path.is_file()):
+            stream_large_file(cal_folder_absolute + cal_name, download_path)
+    return download_paths
 
 
 def stream_large_file(url, save_path, test_flag: bool = False):
@@ -229,6 +234,3 @@ def search_hrefs(url: str, search_pattern: str = '.cdf') -> List[str]:
             f'references containing the search_pattern="{search_pattern}".'
         )
     return matched_hrefs
-
-if __name__ == '__main__':
-    download_rego_cal('FSMI') #  https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/fsmi/
