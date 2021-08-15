@@ -98,7 +98,7 @@ def download_rego_img(
         return download_paths
 
 
-def download_rego_cal(station: str, force_download: bool = False) -> pathlib.Path:
+def download_rego_cal(station: str, time, force_download: bool = False) -> pathlib.Path:
     """
     Download the latest calibration (skymap) IDL .sav file and save
     it to asilib.config['ASI_DATA_DIR']/rego/cal/ directory.
@@ -229,3 +229,6 @@ def search_hrefs(url: str, search_pattern: str = '.cdf') -> List[str]:
             f'references containing the search_pattern="{search_pattern}".'
         )
     return matched_hrefs
+
+if __name__ == '__main__':
+    download_rego_cal('FSMI') #  https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/fsmi/
