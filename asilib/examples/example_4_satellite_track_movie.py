@@ -18,7 +18,7 @@ fig, ax = plt.subplots(2, 1, figsize=(7, 10), gridspec_kw={'height_ratios':[4, 1
                         constrained_layout=True)
 
 # Load the calibration data. This is only necessary to create a fake satellite track.
-cal_dict = asilib.load_cal(mission, station)
+cal_dict = asilib.load_skymap(mission, station, time_range[0])
 
 # Create the fake satellite track coordinates: latitude, longitude, altitude (LLA).
 # This is a north-south satellite track oriented to the east of the THEMIS/RANK 

@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List, Union
 import dateutil.parser
 import pathlib
+import warnings
 
 from bs4 import BeautifulSoup
 
@@ -98,9 +99,9 @@ def download_rego_img(
         return download_paths
 
 
-def download_rego_cal(station: str, force_download: bool = False) -> pathlib.Path:
+def download_rego_skymap(station: str, force_download: bool = False) -> List[pathlib.Path]:
     """
-    Download the latest calibration (skymap) IDL .sav file and save
+    Download all of the (skymap) IDL .sav file and save
     it to asilib.config['ASI_DATA_DIR']/rego/cal/ directory.
 
     Parameters
@@ -147,6 +148,15 @@ def download_rego_cal(station: str, force_download: bool = False) -> pathlib.Pat
         if force_download or (not download_path.is_file()):
             stream_large_file(cal_folder_absolute + cal_name, download_path)
     return download_paths
+
+def download_rego_cal(station: str, force_download: bool = False) -> List[pathlib.Path]:
+    """
+    DEPRECATED for download_rego_skymap()
+    """
+    warnings.warn('asilib.download_rego_cal is deprecated. Use asilib.download_rego_skymap() instead', 
+        DeprecationWarning
+        )
+    return download_rego_skymap(station, force_download)
 
 
 def stream_large_file(url, save_path, test_flag: bool = False):

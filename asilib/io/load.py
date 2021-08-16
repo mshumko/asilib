@@ -154,7 +154,7 @@ def load_skymap(mission: str, station: str, time: Union[datetime, str], force_do
     if len(skymap_paths) == 0 and mission.lower() == 'themis':
         skymap_paths = download_themis.download_themis_cal(station)
     elif len(skymap_paths) == 0 and mission.lower() == 'rego':
-        skymap_paths = download_rego.download_rego_cal(station)
+        skymap_paths = download_rego.download_rego_skymap(station)
 
     skymap_dates = _extract_skymap_dates(skymap_paths)
 
@@ -514,5 +514,7 @@ def _get_epoch(cdf_obj, time_key, hour_date_time, mission, station):
     return epoch
 
 if __name__ == '__main__':
-    cal = load_cal('REGO', 'FSMI', '2010-10-01')
-    print(cal)
+    skymap = load_skymap('REGO', 'FSMI', '2015-10-16')
+    print(skymap)
+    print(skymap['skymap_path'])
+    pass

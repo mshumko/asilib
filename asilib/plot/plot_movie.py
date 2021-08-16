@@ -277,7 +277,7 @@ def plot_movie_generator(
             )
 
         if azel_contours:
-            _add_azel_contours(mission, station, ax, force_download)
+            _add_azel_contours(mission, station, time, ax, force_download)
 
         # Give the user the control of the subplot, image object, and return the frame time
         # so that the user can manipulate the image to add, for example, the satellite track.
@@ -338,7 +338,7 @@ def _write_movie(frame_save_dir, ffmpeg_output_params, movie_file_name, overwrit
 
 
 def _add_azel_contours(
-    mission: str, station: str, ax: plt.Axes, force_download: bool, color: str = 'yellow'
+    mission: str, station: str, time: Union[datetime, str], ax: plt.Axes, force_download: bool, color: str = 'yellow'
 ) -> None:
     """
     Adds contours of azimuth and elevation to the movie frame.
@@ -349,6 +349,8 @@ def _add_azel_contours(
         The mission id, can be either THEMIS or REGO.
     station: str
         The station id to download the data from.
+    time: datetime, or str
+        Time is used to find the relevant skymap file: file created nearest to, and before, the time.
     ax: plt.Axes
         The subplot that will be drawn on.
     force_download: bool
@@ -356,7 +358,7 @@ def _add_azel_contours(
     color: str (optional)
         The contour color.
     """
-    cal_dict = load.load_cal(mission, station, force_download=force_download)
+    cal_dict = load.load_skymap(mission, station, force_download=force_download)
 
     az_contours = ax.contour(
         cal_dict['FULL_AZIMUTH'][::-1, ::-1],

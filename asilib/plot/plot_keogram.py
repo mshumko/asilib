@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 
-from asilib.io.load import get_frames, load_cal, _validate_time_range
+from asilib.io.load import _validate_time_range
 from asilib.analysis.keogram import keogram
 
 

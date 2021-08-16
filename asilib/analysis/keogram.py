@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from asilib.io.load import get_frames, load_cal, _validate_time_range
+from asilib.io.load import get_frames, load_skymap, _validate_time_range
 
 def keogram(time_range, mission, station, map_alt=None):
     """
@@ -46,7 +46,7 @@ def keogram(time_range, mission, station, map_alt=None):
     if map_alt is None:
         keogram_latitude = np.arange(frames.shape[1])  # Dummy index values.
     else:
-        cal = load_cal(mission, station)
+        cal = load_skymap(mission, station, time_range[0])
         assert map_alt in cal['FULL_MAP_ALTITUDE']/1000, \
             f'{map_alt} km is not in calibration altitudes: {cal["FULL_MAP_ALTITUDE"]/1000} km'
         alt_index = np.where(cal['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0]

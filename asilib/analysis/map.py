@@ -22,7 +22,7 @@ else:
         
 
 def lla2azel(
-    mission, station, sat_lla, force_download: bool = False
+    mission, station, time, sat_lla, force_download: bool = False
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Maps, a satellite's latitude, longitude, and altitude (LLA) coordinates 
@@ -37,6 +37,8 @@ def lla2azel(
         The mission id, can be either THEMIS or REGO.
     station: str
         The station id to download the data from.
+    time: datetime, or str
+        Time is used to find the relevant skymap file: file created nearest to, and before, the time.
     sat_lla: np.ndarray or pd.DataFrame
         The satellite's latitude, longitude, and altitude coordinates in a 2d array
         with shape (nPosition, 3) where each row is the number of satellite positions
@@ -61,8 +63,9 @@ def lla2azel(
 
     Example
     -------
+    | from datetime import datetime
+    |
     | import numpy as np
-    | 
     | from asilib import lla2azel
     | 
     | # THEMIS/ATHA's LLA coordinates are (54.72, -113.301, 676 (meters)).
@@ -72,8 +75,10 @@ def lla2azel(
     | lons = -113.64*np.ones(n)
     | alts = 500**np.ones(n)
     | lla = np.array([lats, lons, alts]).T
+    |
+    | time = datetime(2015, 10, 1)  # To load the proper skymap file.
     | 
-    | azel, pixels = lla2azel('REGO', 'ATHA', lla)
+    | azel, pixels = lla2azel('REGO', 'ATHA', time, lla)
     """
 
     # Check the sat_lla input parameter to make sure it is of the correct shape
@@ -85,7 +90,7 @@ def lla2azel(
     assert sat_lla.shape[1] == 3, 'sat_lla must have 3 columns.'
 
     # Load the catalog
-    cal_dict = asilib.io.load.load_cal(mission, station, force_download=force_download)
+    cal_dict = asilib.io.load.load_skymap(mission, station, time, force_download=force_download)
 
     sat_azel = np.nan * np.zeros((sat_lla.shape[0], 2))
 

@@ -10,7 +10,7 @@ import matplotlib.colors as colors
 import numpy as np
 import cartopy.crs as ccrs
 
-from asilib.io.load import load_cal, get_frame
+from asilib.io.load import load_skymap, get_frame
 
 
 def plot_map(time: Union[datetime, str], mission: str,
@@ -85,7 +85,7 @@ def plot_map(time: Union[datetime, str], mission: str,
     frame_time, frame = get_frame(
         time, mission, station, time_thresh_s=time_thresh_s
     )
-    cal = load_cal(mission, station)
+    cal = load_skymap(mission, station, frame_time)
 
     # Check that the map_alt is in the calibration data.
     assert map_alt in cal['FULL_MAP_ALTITUDE']/1000, \
@@ -182,7 +182,7 @@ if __name__ == '__main__':
     # https://www.essoar.org/doi/abs/10.1002/essoar.10507288.1
     # plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)
 
-    # cal = load_cal('THEMIS', 'GILL')
+    # cal = load_skymap('THEMIS', 'GILL', datetime(2007, 1, 20, 0, 39, 0))
     # fig = plt.figure(figsize=(5, 5))
     # projection = ccrs.NearsidePerspective(
     #     central_latitude=cal['SITE_MAP_LATITUDE'], 

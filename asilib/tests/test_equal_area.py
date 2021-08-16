@@ -2,6 +2,7 @@
 Tests asilib/analysis.equal_area.py
 """
 
+from datetime import date, datetime
 from os import path
 import unittest
 import pathlib
@@ -9,7 +10,7 @@ import pathlib
 import numpy as np
 
 import asilib
-from asilib.io.load import load_cal
+from asilib.io.load import load_skymap
 from asilib.analysis.equal_area import equal_area, _dlon, _dlat
 
 # Number of km in a degree of latitude. Also a degree of longitude at the equator
@@ -49,7 +50,7 @@ class Test_keogram(unittest.TestCase):
         mission='THEMIS'
         station='RANK'
         box_km = (10, 10)  # in (Lat, Lon) directions.
-        cal_dict = load_cal(mission, station)
+        cal_dict = load_skymap(mission, station, datetime(2020, 1, 1))
 
         # Set up a north-south satellite track oriented to the east of the THEMIS/RANK 
         # station.
