@@ -44,7 +44,7 @@ Summary
     asilib.io.download_rego.download_rego_img
     asilib.io.download_rego.download_rego_cal
     asilib.io.load.load_img
-    asilib.io.load.load_cal
+    asilib.io.load.load_skymap
     asilib.io.load.get_frame
     asilib.io.load.get_frames
     asilib.plot.plot_keogram.plot_keogram 
@@ -81,7 +81,7 @@ Load
 The following functions are very useful if you want to work with the raw image and calibration data without dealing without explicitly downloading them.
 
 .. automodule:: asilib.io.load
-   :members: load_img, load_cal, get_frame, get_frames
+   :members: load_img, load_skymap, get_frame, get_frames
    :undoc-members:
    :show-inheritance:
 

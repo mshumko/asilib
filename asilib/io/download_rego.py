@@ -139,16 +139,13 @@ def download_rego_cal(station: str, force_download: bool = False) -> pathlib.Pat
 
         # Lastly, research for the skymap .sav file.
         cal_name = search_hrefs(cal_folder_absolute, search_pattern=f'.sav')[0]
-        cal_save_name = cal_name.replace('-%2B', '')  # Replace the code for '+'.
+        cal_save_name = cal_name.replace('-%2B', '')  # Replace the unicode '+'.
 
         # Download if force_download=True or the file does not exist.
         download_path = pathlib.Path(save_dir, cal_save_name)
         download_paths.append(download_path)
         if force_download or (not download_path.is_file()):
             stream_large_file(cal_folder_absolute + cal_name, download_path)
-            # r = requests.get(cal_folder_absolute + cal_name[0])
-            # with open(download_path, 'wb') as f:
-                # f.write(r.content)
     return download_paths
 
 

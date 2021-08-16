@@ -121,9 +121,9 @@ def load_img_file(time, mission: str, station: str, force_download: bool = False
     return load_img(time, mission, station, force_download)
 
 
-def load_cal(mission: str, station: str, time: Union[datetime, str], force_download: bool = False) -> dict:
+def load_skymap(mission: str, station: str, time: Union[datetime, str], force_download: bool = False) -> dict:
     """
-    Loads (and optionally downloads) the latest callibration file.
+    Loads (and optionally downloads) the latest skymap file.
 
     Parameters
     ----------
@@ -131,19 +131,21 @@ def load_cal(mission: str, station: str, time: Union[datetime, str], force_downl
         The mission id, can be either THEMIS or REGO.
     station: str
         The station id to download the data from.
+    time: datetime, or str
+        Time is used to find the relevant skymap file: file created nearest to, and before, the time.
     force_download: bool (optional)
         If True, download the file even if it already exists.
 
     Returns
     -------
     dict
-        The station calibration data with longitudes mapped from 0->360 to to -180->180 degrees.
+        The skymap data with longitudes mapped from 0->360 to to -180->180 degrees.
 
     Example
     -------
     | import asilib
     | 
-    | rego_cal = asilib.load_cal('REGO', 'GILL')
+    | rego_skymap = asilib.load_skymap('REGO', 'GILL', '2018-10-01')
     """
     skymap_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower(), 'cal', station.lower())
     skymap_paths = sorted(list(skymap_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
@@ -173,18 +175,18 @@ def load_cal(mission: str, station: str, time: Union[datetime, str], force_downl
             f'skymap_dates={skymap_dates}'
         )
 
-    # Load the calibration file and convert it to a dictionary.
-    cal_file = scipy.io.readsav(str(skymap_path), python_dict=True)['skymap']
-    cal_dict = {key: copy(cal_file[key][0]) for key in cal_file.dtype.names}
+    # Load the skymap file and convert it to a dictionary.
+    skymap_file = scipy.io.readsav(str(skymap_path), python_dict=True)['skymap']
+    skymap_dict = {key: copy(skymap_file[key][0]) for key in skymap_file.dtype.names}
     # Map longitude from 0 - 360 to -180 - 180.
-    cal_dict['SITE_MAP_LONGITUDE'] = np.mod(cal_dict['SITE_MAP_LONGITUDE'] + 180, 360) - 180
+    skymap_dict['SITE_MAP_LONGITUDE'] = np.mod(skymap_dict['SITE_MAP_LONGITUDE'] + 180, 360) - 180
     # Don't take the modulus of NaNs
-    valid_val_idx = np.where(~np.isnan(cal_dict['FULL_MAP_LONGITUDE']))
-    cal_dict['FULL_MAP_LONGITUDE'][valid_val_idx] = (
-        np.mod(cal_dict['FULL_MAP_LONGITUDE'][valid_val_idx] + 180, 360) - 180
+    valid_val_idx = np.where(~np.isnan(skymap_dict['FULL_MAP_LONGITUDE']))
+    skymap_dict['FULL_MAP_LONGITUDE'][valid_val_idx] = (
+        np.mod(skymap_dict['FULL_MAP_LONGITUDE'][valid_val_idx] + 180, 360) - 180
     )
-    cal_dict['skymap_path'] = skymap_path
-    return cal_dict
+    skymap_dict['skymap_path'] = skymap_path
+    return skymap_dict
 
 def _extract_skymap_dates(skymap_paths):
     """
@@ -198,11 +200,22 @@ def _extract_skymap_dates(skymap_paths):
         skymap_dates.append(day_obj)
     return skymap_dates
 
+def load_cal(mission: str, station: str, time, force_download: bool = False):
+    """
+    DEPRECATED for load_skymap()
+    """
+    warnings.warn('asilib.load_cal() is deprecated, use asilib.load_skymap() instead', 
+        DeprecationWarning
+        )
+    return load_skymap(mission, station, time, force_download)
+
 def load_cal_file(mission: str, station: str, force_download: bool = False):
     """
     DEPRECATED for load_cal()
     """
-    warnings.warn('load_cal_file is deprecated asilib.load_cal() instead', DeprecationWarning)
+    warnings.warn('asilib.load_cal_file() is deprecated, use asilib.load_skymap() instead', 
+        DeprecationWarning
+        )
     return load_cal(mission, station, force_download)
 
 def get_frame(
