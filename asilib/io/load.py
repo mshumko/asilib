@@ -155,17 +155,26 @@ def load_cal(mission: str, station: str, time: Union[datetime, str], force_downl
         skymap_paths = download_rego.download_rego_cal(station)
 
     skymap_dates = _extract_skymap_dates(skymap_paths)
-    skymap_dates_paths = list(zip(skymap_dates, skymap_paths))
 
     # Try to convert time to datetime object if it is a string.
     if isinstance(time, str):
         time = dateutil.parser.parse(time)
 
     # Find the skymap_date that is closest and before time.
-    dt = [(time - skymap_date).total_seconds() for skymap_date in skymap_dates]
+    dt = np.array([(time - skymap_date).total_seconds() for skymap_date in skymap_dates])
+    dt[dt < 0] = np.inf
+    closest_index = np.argmin(dt)
+    skymap_path = skymap_paths[closest_index]
+
+    # Check that time is not before the first skymap date.
+    if np.all(~np.isfinite(dt)):
+        raise ValueError(
+            f'No skymap file found with a date before time={time}\n'
+            f'skymap_dates={skymap_dates}'
+        )
 
     # Load the calibration file and convert it to a dictionary.
-    cal_file = scipy.io.readsav(cal_path, python_dict=True)['skymap']
+    cal_file = scipy.io.readsav(str(skymap_path), python_dict=True)['skymap']
     cal_dict = {key: copy(cal_file[key][0]) for key in cal_file.dtype.names}
     # Map longitude from 0 - 360 to -180 - 180.
     cal_dict['SITE_MAP_LONGITUDE'] = np.mod(cal_dict['SITE_MAP_LONGITUDE'] + 180, 360) - 180
@@ -174,7 +183,7 @@ def load_cal(mission: str, station: str, time: Union[datetime, str], force_downl
     cal_dict['FULL_MAP_LONGITUDE'][valid_val_idx] = (
         np.mod(cal_dict['FULL_MAP_LONGITUDE'][valid_val_idx] + 180, 360) - 180
     )
-    cal_dict['cal_path'] = cal_path
+    cal_dict['skymap_path'] = skymap_path
     return cal_dict
 
 def _extract_skymap_dates(skymap_paths):
@@ -492,4 +501,5 @@ def _get_epoch(cdf_obj, time_key, hour_date_time, mission, station):
     return epoch
 
 if __name__ == '__main__':
-    cal = load_cal('REGO', 'FSMI', '2018-10-01')
+    cal = load_cal('REGO', 'FSMI', '2010-10-01')
+    print(cal)
