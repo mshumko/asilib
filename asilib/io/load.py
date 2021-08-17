@@ -123,7 +123,7 @@ def load_img_file(time, mission: str, station: str, force_download: bool = False
 
 def load_skymap(mission: str, station: str, time: Union[datetime, str], force_download: bool = False) -> dict:
     """
-    Loads (and optionally downloads) the latest skymap file.
+    Loads (and downloads if it doesn't exist) the skymap file closest and before time.
 
     Parameters
     ----------
@@ -147,12 +147,12 @@ def load_skymap(mission: str, station: str, time: Union[datetime, str], force_do
     | 
     | rego_skymap = asilib.load_skymap('REGO', 'GILL', '2018-10-01')
     """
-    skymap_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower(), 'cal', station.lower())
+    skymap_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower(), 'skymap', station.lower())
     skymap_paths = sorted(list(skymap_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
 
     # Download skymap files if they are not downloaded yet.
     if len(skymap_paths) == 0 and mission.lower() == 'themis':
-        skymap_paths = download_themis.download_themis_cal(station)
+        skymap_paths = download_themis.download_themis_skymap(station)
     elif len(skymap_paths) == 0 and mission.lower() == 'rego':
         skymap_paths = download_rego.download_rego_skymap(station)
 
@@ -514,7 +514,7 @@ def _get_epoch(cdf_obj, time_key, hour_date_time, mission, station):
     return epoch
 
 if __name__ == '__main__':
-    skymap = load_skymap('REGO', 'FSMI', '2015-10-16')
+    skymap = load_skymap('THEMIS', 'FSMI', '2015-10-16')
     print(skymap)
     print(skymap['skymap_path'])
     pass

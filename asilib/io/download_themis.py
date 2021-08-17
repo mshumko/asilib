@@ -129,7 +129,7 @@ def download_themis_skymap(station: str, force_download: bool = False):
     # Create the skymap directory in data/themis/skymap/station
     save_dir = asilib.config['ASI_DATA_DIR'] / 'themis' / 'skymap' / station.lower()
     if not save_dir.is_dir():
-        save_dir.mkdir()
+        save_dir.mkdir(parents=True)
         print(f'Made directory at {save_dir}')
 
     url = SKYMAP_BASE_URL + f'{station.lower()}/'

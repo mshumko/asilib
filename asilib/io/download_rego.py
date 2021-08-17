@@ -125,7 +125,7 @@ def download_rego_skymap(station: str, force_download: bool = False) -> List[pat
     # Create the skymap directory in data/rego/skymap
     save_dir = asilib.config['ASI_DATA_DIR'] / 'rego' / 'skymap' / station.lower()
     if not save_dir.is_dir():
-        save_dir.mkdir()
+        save_dir.mkdir(parents=True)
         print(f'Made directory at {save_dir}')
 
     url = SKYMAP_BASE_URL + f'{station.lower()}/'
