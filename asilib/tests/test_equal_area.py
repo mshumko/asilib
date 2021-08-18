@@ -51,13 +51,13 @@ class Test_keogram(unittest.TestCase):
         station='RANK'
         time = datetime(2020, 1, 1)
         box_km = (10, 10)  # in (Lat, Lon) directions.
-        cal_dict = load_skymap(mission, station, time)
+        skymap_dict = load_skymap(mission, station, time)
 
         # Set up a north-south satellite track oriented to the east of the THEMIS/RANK 
         # station.
         n = 10
-        lats = np.linspace(cal_dict["SITE_MAP_LATITUDE"] + 5, cal_dict["SITE_MAP_LATITUDE"] - 5, n)
-        lons = (cal_dict["SITE_MAP_LONGITUDE"]-0.5) * np.ones(n)
+        lats = np.linspace(skymap_dict["SITE_MAP_LATITUDE"] + 5, skymap_dict["SITE_MAP_LATITUDE"] - 5, n)
+        lons = (skymap_dict["SITE_MAP_LONGITUDE"]-0.5) * np.ones(n)
         alts = 110 * np.ones(n)
         lla = np.array([lats, lons, alts]).T
 

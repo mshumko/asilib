@@ -90,7 +90,7 @@ def lla2azel(
     assert sat_lla.shape[1] == 3, 'sat_lla must have 3 columns.'
 
     # Load the catalog
-    cal_dict = asilib.io.load.load_skymap(mission, station, time, force_download=force_download)
+    skymap_dict = asilib.io.load.load_skymap(mission, station, time, force_download=force_download)
 
     sat_azel = np.nan * np.zeros((sat_lla.shape[0], 2))
 
@@ -108,14 +108,14 @@ def lla2azel(
             lat_i,
             lon_i,
             1e3 * alt_km_i,
-            cal_dict['SITE_MAP_LATITUDE'],
-            cal_dict['SITE_MAP_LONGITUDE'],
-            cal_dict['SITE_MAP_ALTITUDE'],
+            skymap_dict['SITE_MAP_LATITUDE'],
+            skymap_dict['SITE_MAP_LONGITUDE'],
+            skymap_dict['SITE_MAP_ALTITUDE'],
         )
         sat_azel[i, :] = [az, el]
 
     # Now find the corresponding x- and y-axis pixel indices.
-    asi_pixels = _map_azel_to_pixel(sat_azel, cal_dict)
+    asi_pixels = _map_azel_to_pixel(sat_azel, skymap_dict)
 
     # If len(input_shape) == 1, a 1d array, flatten the (1x3) sat_azel and
     # asi_pizels arrays into a (3,) array. This way the input and output

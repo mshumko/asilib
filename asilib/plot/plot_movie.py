@@ -358,17 +358,17 @@ def _add_azel_contours(
     color: str (optional)
         The contour color.
     """
-    cal_dict = load.load_skymap(mission, station, time, force_download=force_download)
+    skymap_dict = load.load_skymap(mission, station, time, force_download=force_download)
 
     az_contours = ax.contour(
-        cal_dict['FULL_AZIMUTH'][::-1, ::-1],
+        skymap_dict['FULL_AZIMUTH'][::-1, ::-1],
         colors=color,
         linestyles='dotted',
         levels=np.arange(0, 361, 90),
         alpha=1,
     )
     el_contours = ax.contour(
-        cal_dict['FULL_ELEVATION'][::-1, ::-1],
+        skymap_dict['FULL_ELEVATION'][::-1, ::-1],
         colors=color,
         linestyles='dotted',
         levels=np.arange(0, 91, 30),

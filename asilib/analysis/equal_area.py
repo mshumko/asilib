@@ -36,7 +36,7 @@ def equal_area(mission, station, time, lla, box_km=(5, 5), alt_thresh_km=3):
     """
     assert len(box_km) == 2, 'The box_km parameter must have a length of 2.'
 
-    cal_dict = asilib.load_skymap(mission, station, time)
+    skymap_dict = asilib.load_skymap(mission, station, time)
 
     # Get numpy array if pd.DataFrame passed
     if isinstance(lla, pd.DataFrame):
@@ -52,11 +52,11 @@ def equal_area(mission, station, time, lla, box_km=(5, 5), alt_thresh_km=3):
 
     # Check that the altitude value is in the skymap.
     for alt in lla[:, -1]:
-        assert np.min(np.abs(cal_dict['FULL_MAP_ALTITUDE']/1000-alt)) < alt_thresh_km , (
-            f'Got {alt} km altitude, but it must be one of these: {cal_dict["FULL_MAP_ALTITUDE"]/1000}')
-    alt_index = np.argmin(np.abs(cal_dict['FULL_MAP_ALTITUDE']/1000-alt))
-    lat_map = cal_dict['FULL_MAP_LATITUDE'][alt_index, :, :]
-    lon_map = cal_dict['FULL_MAP_LONGITUDE'][alt_index, :, :]
+        assert np.min(np.abs(skymap_dict['FULL_MAP_ALTITUDE']/1000-alt)) < alt_thresh_km , (
+            f'Got {alt} km altitude, but it must be one of these: {skymap_dict["FULL_MAP_ALTITUDE"]/1000}')
+    alt_index = np.argmin(np.abs(skymap_dict['FULL_MAP_ALTITUDE']/1000-alt))
+    lat_map = skymap_dict['FULL_MAP_LATITUDE'][alt_index, :, :]
+    lon_map = skymap_dict['FULL_MAP_LONGITUDE'][alt_index, :, :]
 
     # shape[X]-1 because the lat/lon maps define the vertices.
     pixel_mask = np.nan*np.zeros((lla.shape[0], lat_map.shape[0]-1, lat_map.shape[1]-1))
