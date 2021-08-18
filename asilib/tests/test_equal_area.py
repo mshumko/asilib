@@ -49,8 +49,9 @@ class Test_keogram(unittest.TestCase):
     def test_equal_area(self, gen_reference=False):
         mission='THEMIS'
         station='RANK'
+        time = datetime(2020, 1, 1)
         box_km = (10, 10)  # in (Lat, Lon) directions.
-        cal_dict = load_skymap(mission, station, datetime(2020, 1, 1))
+        cal_dict = load_skymap(mission, station, time)
 
         # Set up a north-south satellite track oriented to the east of the THEMIS/RANK 
         # station.
@@ -60,7 +61,7 @@ class Test_keogram(unittest.TestCase):
         alts = 110 * np.ones(n)
         lla = np.array([lats, lons, alts]).T
 
-        area_box_mask = asilib.equal_area(mission, station, lla, box_km=(20, 20))
+        area_box_mask = asilib.equal_area(mission, station, time, lla, box_km=(20, 20))
 
         reference_path = pathlib.Path(asilib.config['ASILIB_DIR'], 'tests', 'data', 'area_box_mask.npy')
         if gen_reference:

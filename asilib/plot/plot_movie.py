@@ -277,7 +277,7 @@ def plot_movie_generator(
             )
 
         if azel_contours:
-            _add_azel_contours(mission, station, time, ax, force_download)
+            _add_azel_contours(mission, station, frame_time, ax, force_download)
 
         # Give the user the control of the subplot, image object, and return the frame time
         # so that the user can manipulate the image to add, for example, the satellite track.
@@ -358,7 +358,7 @@ def _add_azel_contours(
     color: str (optional)
         The contour color.
     """
-    cal_dict = load.load_skymap(mission, station, force_download=force_download)
+    cal_dict = load.load_skymap(mission, station, time, force_download=force_download)
 
     az_contours = ax.contour(
         cal_dict['FULL_AZIMUTH'][::-1, ::-1],
