@@ -101,7 +101,7 @@ This is a sophisticated example that maps a hypothetical satellite track to an i
     station = 'RANK'
     time_range = (datetime(2017, 9, 15, 2, 34, 0), datetime(2017, 9, 15, 2, 36, 0))
 
-    # Load the calibration data.
+    # Load the skymap calibration data.
     cal_dict = load_skymap(mission, station, time_range[0])
 
     # Create the satellite track's latitude, longitude, altitude (LLA) coordinates.
@@ -175,7 +175,7 @@ The `asilib` functionality used here:
     fig, ax = plt.subplots(2, 1, figsize=(7, 10), gridspec_kw={'height_ratios':[4, 1]}, 
                             constrained_layout=True)
 
-    # Load the calibration data. This is only necessary to create a fake satellite track.
+    # Load the skymap calibration data. This is only necessary to create a fake satellite track.
     cal_dict = asilib.load_skymap(mission, station, time_range[0])
 
     # Create the fake satellite track coordinates: latitude, longitude, altitude (LLA).

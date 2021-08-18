@@ -2,7 +2,7 @@
 API Reference
 =============
 
-`asilib` saves all of the ASI image files, calibration files, and movies to 
+`asilib` saves all of the ASI image files, skymap calibration files, and movies to 
 
 .. code-block:: python
 
@@ -33,7 +33,7 @@ The former option is possible because these functions are all imported by defaul
     `asilib` is hierarchically structured so that the `plot` functions call the `load` functions that then call the `download` functions if a file does not exist locally, or if `force_download=True`. Therefore, **you don't normally need to call the download functions unless you need to download data in bulk.**
 
 .. note::
-    The longitude units are converted from 0->360 to -180->180 degrees in the calibration files.
+    The longitude units are converted from 0->360 to -180->180 degrees in the skymap calibration files.
 
 Summary
 =======
@@ -78,7 +78,7 @@ Download
 
 Load
 ====
-The following functions are very useful if you want to work with the raw image and calibration data without dealing without explicitly downloading them.
+The following functions are very useful if you want to work with the raw image and skymap data without dealing without explicitly downloading them.
 
 .. automodule:: asilib.io.load
    :members: load_img, load_skymap, get_frame, get_frames

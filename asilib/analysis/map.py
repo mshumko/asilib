@@ -45,7 +45,7 @@ def lla2azel(
         to map, and the columns correspond to latitude, longitude, and altitude,
         respectively. The altitude is in kilometer units.
     force_download: bool (optional)
-        If True, download the calibration file even if it already exists.
+        If True, download the skymap file even if it already exists.
 
     Returns
     -------
@@ -203,10 +203,10 @@ def map_along_magnetic_field(
     return lla2footprint(space_time, map_alt, b_model=b_model, maginput=maginput, hemisphere=hemisphere)
 
 
-def _map_azel_to_pixel(sat_azel: np.ndarray, cal_dict: dict) -> np.ndarray:
+def _map_azel_to_pixel(sat_azel: np.ndarray, skymap_dict: dict) -> np.ndarray:
     """
     Given the 2d array of the satellite's azimuth and elevation, locate
-    the nearest ASI calibration x- and y-axis pixel indices. Note that the
+    the nearest ASI skymap x- and y-axis pixel indices. Note that the
     scipy.spatial.KDTree() algorithm is efficient at finding nearest
     neighbors. However it does not work in a polar coordinate system.
 
@@ -215,8 +215,8 @@ def _map_azel_to_pixel(sat_azel: np.ndarray, cal_dict: dict) -> np.ndarray:
     sat_azel : array
         A 1d or 2d array of satelite azimuth and elevation points.
         If 2d, the rows correspons to time.
-    cal_dict: dict
-        The calibration file dictionary
+    skymap_dict: dict
+        The skymap file dictionary
 
     Returns
     -------
@@ -224,9 +224,9 @@ def _map_azel_to_pixel(sat_azel: np.ndarray, cal_dict: dict) -> np.ndarray:
         An array with the same shape as sat_azel, but representing the
         x- and y-axis pixel indices in the ASI image.
     """
-    az_coords = cal_dict['FULL_AZIMUTH'][::-1, ::-1].ravel()
+    az_coords = skymap_dict['FULL_AZIMUTH'][::-1, ::-1].ravel()
     az_coords[np.isnan(az_coords)] = -10000
-    el_coords = cal_dict['FULL_ELEVATION'][::-1, ::-1].ravel()
+    el_coords = skymap_dict['FULL_ELEVATION'][::-1, ::-1].ravel()
     el_coords[np.isnan(el_coords)] = -10000
     asi_azel_cal = np.stack((az_coords, el_coords), axis=-1)
 
@@ -242,9 +242,9 @@ def _map_azel_to_pixel(sat_azel: np.ndarray, cal_dict: dict) -> np.ndarray:
     # an AC6 data point nearby in time.
     idx_min_dist = np.array(idx_min_dist, dtype=object)
     idx_min_dist[idx_min_dist == 0] = np.nan
-    # For use the 1D index for the flattened ASI calibration
+    # For use the 1D index for the flattened ASI skymap
     # to get out the azimuth and elevation pixels.
     pixel_index = np.nan * np.ones_like(sat_azel)
-    pixel_index[:, 0] = np.remainder(idx_min_dist, cal_dict['FULL_AZIMUTH'].shape[1])
-    pixel_index[:, 1] = np.floor_divide(idx_min_dist, cal_dict['FULL_AZIMUTH'].shape[1])
+    pixel_index[:, 0] = np.remainder(idx_min_dist, skymap_dict['FULL_AZIMUTH'].shape[1])
+    pixel_index[:, 1] = np.floor_divide(idx_min_dist, skymap_dict['FULL_AZIMUTH'].shape[1])
     return pixel_index

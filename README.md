@@ -69,7 +69,7 @@ mission = 'THEMIS'
 station = 'RANK'
 time_range = (datetime(2017, 9, 15, 2, 34, 0), datetime(2017, 9, 15, 2, 36, 0))
 
-# Load the calibration data.
+# Load the skymap calibration data.
 cal_dict = load_skymap(mission, station)
 
 # Create the satellite track's latitude, longitude, altitude (LLA) coordinates.
@@ -126,7 +126,7 @@ python3 -m pip install -e .
 ```
 
 
-In either case, you'll need to configure your system paths to tell `asilib` (the import name) where to save the ASI data and movies. Run ```python3 -m asilib config``` to set up the data directory where the image, calibration, and movie files will be saved. Your settings will be stored in `config.py`. If you configure `asilib`, but don't specify a data directory, a default directory in `~/asilib-data` will be created if it doesn't exist.
+In either case, you'll need to configure your system paths to tell `asilib` (the import name) where to save the ASI data and movies. Run ```python3 -m asilib config``` to set up the data directory where the image, skymap, and movie files will be saved. Your settings will be stored in `config.py`. If you configure `asilib`, but don't specify a data directory, a default directory in `~/asilib-data` will be created if it doesn't exist.
 
 ### ffmpeg dependency
 To make  movies you'll also need to install the ffmpeg library.

@@ -11,7 +11,7 @@ import asilib
 
 """
 This program contains the Red-line Emission Geospace Observatory (REGO) download functions
-that stream image data from the themis.ssl.berkeley.edu server and the calibration data 
+that stream image data from the themis.ssl.berkeley.edu server and the skymap calibration data 
 from the ucalgary.ca server and saves the files to the asilib.config['ASI_DATA_DIR']/rego/ 
 directory.
 """
