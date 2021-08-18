@@ -55,7 +55,7 @@ Example 2: A keogram
     plt.show()
 
 
-Example 2: Fisheye Movie
+Example 3: Fisheye Movie
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. raw:: html
