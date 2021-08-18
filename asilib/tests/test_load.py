@@ -29,13 +29,15 @@ class TestPlotFrame(unittest.TestCase):
         return
 
     def test_rego_load_skymap(self):
-        """ Load the REGO callibration file. """
-        cal = load.load_skymap('REGO', self.station, self.load_date)
+        """ Load the REGO skymap file. """
+        skymap = load.load_skymap('REGO', self.station, self.load_date)
+        assert skymap['skymap_path'].name == 'rego_skymap_gill_20160129_vXX.sav'
         return
 
     def test_themis_load_skymap(self):
-        """ Load the THEMIS callibration file. """
-        cal = load.load_skymap('THEMIS', self.station, self.load_date)
+        """ Load the THEMIS skymap file. """
+        skymap = load.load_skymap('THEMIS', self.station, self.load_date)
+        assert skymap['skymap_path'].name == 'themis_skymap_gill_20151121_vXX.sav'
         return
 
     def test_themis_get_frame(self):
