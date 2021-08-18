@@ -46,11 +46,11 @@ def keogram(time_range, mission, station, map_alt=None):
     if map_alt is None:
         keogram_latitude = np.arange(frames.shape[1])  # Dummy index values.
     else:
-        cal = load_skymap(mission, station, time_range[0])
-        assert map_alt in cal['FULL_MAP_ALTITUDE']/1000, \
-            f'{map_alt} km is not in skymap altitudes: {cal["FULL_MAP_ALTITUDE"]/1000} km'
-        alt_index = np.where(cal['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0]
-        keogram_latitude = cal['FULL_MAP_LATITUDE'][alt_index, :, center_pixel]
+        skymap = load_skymap(mission, station, time_range[0])
+        assert map_alt in skymap['FULL_MAP_ALTITUDE']/1000, \
+            f'{map_alt} km is not in skymap altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
+        alt_index = np.where(skymap['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0]
+        keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, :, center_pixel]
 
         # keogram_latitude array are at the pixel edges. Remap it to the centers
         dl = keogram_latitude[1:] - keogram_latitude[:-1]

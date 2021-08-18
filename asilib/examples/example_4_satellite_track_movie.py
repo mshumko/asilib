@@ -17,7 +17,7 @@ time_range = (datetime(2017, 9, 15, 2, 32, 0), datetime(2017, 9, 15, 2, 35, 0))
 fig, ax = plt.subplots(2, 1, figsize=(7, 10), gridspec_kw={'height_ratios':[4, 1]}, 
                         constrained_layout=True)
 
-# Load the calibration data. This is only necessary to create a fake satellite track.
+# Load the skymap calibration data. This is only necessary to create a fake satellite track.
 skymap_dict = asilib.load_skymap(mission, station, time_range[0])
 
 # Create the fake satellite track coordinates: latitude, longitude, altitude (LLA).
