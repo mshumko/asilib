@@ -28,14 +28,16 @@ class TestPlotFrame(unittest.TestCase):
         cdf_obj = load.load_img(self.load_date, 'THEMIS', self.station)
         return
 
-    def test_rego_load_cal(self):
-        """ Load the REGO callibration file. """
-        cal = load.load_cal('REGO', self.station)
+    def test_rego_load_skymap(self):
+        """ Load the REGO skymap file. """
+        skymap = load.load_skymap('REGO', self.station, self.load_date)
+        assert skymap['skymap_path'].name == 'rego_skymap_gill_20160129_vXX.sav'
         return
 
-    def test_themis_load_cal(self):
-        """ Load the THEMIS callibration file. """
-        cal = load.load_cal('THEMIS', self.station)
+    def test_themis_load_skymap(self):
+        """ Load the THEMIS skymap file. """
+        skymap = load.load_skymap('THEMIS', self.station, self.load_date)
+        assert skymap['skymap_path'].name == 'themis_skymap_gill_20151121_vXX.sav'
         return
 
     def test_themis_get_frame(self):

@@ -2,6 +2,7 @@
 Tests asilib/analysis.equal_area.py
 """
 
+from datetime import date, datetime
 from os import path
 import unittest
 import pathlib
@@ -9,7 +10,7 @@ import pathlib
 import numpy as np
 
 import asilib
-from asilib.io.load import load_cal
+from asilib.io.load import load_skymap
 from asilib.analysis.equal_area import equal_area, _dlon, _dlat
 
 # Number of km in a degree of latitude. Also a degree of longitude at the equator
@@ -48,18 +49,19 @@ class Test_keogram(unittest.TestCase):
     def test_equal_area(self, gen_reference=False):
         mission='THEMIS'
         station='RANK'
+        time = datetime(2020, 1, 1)
         box_km = (10, 10)  # in (Lat, Lon) directions.
-        cal_dict = load_cal(mission, station)
+        skymap_dict = load_skymap(mission, station, time)
 
         # Set up a north-south satellite track oriented to the east of the THEMIS/RANK 
         # station.
         n = 10
-        lats = np.linspace(cal_dict["SITE_MAP_LATITUDE"] + 5, cal_dict["SITE_MAP_LATITUDE"] - 5, n)
-        lons = (cal_dict["SITE_MAP_LONGITUDE"]-0.5) * np.ones(n)
+        lats = np.linspace(skymap_dict["SITE_MAP_LATITUDE"] + 5, skymap_dict["SITE_MAP_LATITUDE"] - 5, n)
+        lons = (skymap_dict["SITE_MAP_LONGITUDE"]-0.5) * np.ones(n)
         alts = 110 * np.ones(n)
         lla = np.array([lats, lons, alts]).T
 
-        area_box_mask = asilib.equal_area(mission, station, lla, box_km=(20, 20))
+        area_box_mask = asilib.equal_area(mission, station, time, lla, box_km=(20, 20))
 
         reference_path = pathlib.Path(asilib.config['ASILIB_DIR'], 'tests', 'data', 'area_box_mask.npy')
         if gen_reference:

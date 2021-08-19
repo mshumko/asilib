@@ -1,6 +1,6 @@
 import unittest
 import pathlib
-from datetime import datetime
+from datetime import date, datetime
 
 import numpy as np
 
@@ -14,20 +14,24 @@ overhead and at 500 km altitude.
 
 
 class TestProjectLLAtoSkyfield(unittest.TestCase):
+    def setUp(self):
+        self.station='LUCK'
+        self.time = datetime(2020, 1, 1)
+        return
+
     def test_themis_lla_to_azel(self):
         """
         Tests that the input LLA corresponds to right overhead of the THEMIS ATHA
         station (elevation ~ 90 degrees) and (az_index, el_index) ~= (127, 127).
         """
-        lla = np.array([54.72, -113.301, 500])
-        azel, pixel_index = lla2azel('THEMIS', 'ATHA', lla)
+        lla = np.array([54.60, -113.644, 500])
+        azel, pixel_index = lla2azel('THEMIS', 'ATHA', self.time, lla)
 
         # Test the El values
         self.assertEqual(round(azel[1]), 90)
 
         # Test that the AzEl indices are witin 3 pixels of zenith.
-        self.assertTrue(abs(pixel_index[0] - 128) < 3)
-        self.assertTrue(abs(pixel_index[0] - 128) < 3)
+        self.assertTrue(abs(pixel_index[0] - 133) < 3)
         return
 
     def test_rego_lla_to_azel(self):
@@ -36,7 +40,7 @@ class TestProjectLLAtoSkyfield(unittest.TestCase):
         (elevation ~ 90 degrees) and (az_index, el_index) ~= (127, 127).
         """
         lla = np.array([54.60, -113.64, 500])
-        azel, pixel_index = lla2azel('REGO', 'ATHA', lla)
+        azel, pixel_index = lla2azel('REGO', 'ATHA', self.time, lla)
 
         # Test the AzEl values
         self.assertEqual(round(azel[0]), 137)
@@ -62,7 +66,7 @@ class TestProjectLLAtoSkyfield(unittest.TestCase):
         alts = 500 * np.ones(n)
         lla = np.array([lats, lons, alts]).T
 
-        sat_azel, asi_pixels = lla2azel('REGO', 'ATHA', lla)
+        sat_azel, asi_pixels = lla2azel('REGO', 'ATHA', self.time, lla)
 
         reference_sat_azel = np.array(
             [

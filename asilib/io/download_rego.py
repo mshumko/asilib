@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List, Union
 import dateutil.parser
 import pathlib
+import warnings
 
 from bs4 import BeautifulSoup
 
@@ -10,13 +11,13 @@ import asilib
 
 """
 This program contains the Red-line Emission Geospace Observatory (REGO) download functions
-that stream image data from the themis.ssl.berkeley.edu server and the calibration data 
+that stream image data from the themis.ssl.berkeley.edu server and the skymap calibration data 
 from the ucalgary.ca server and saves the files to the asilib.config['ASI_DATA_DIR']/rego/ 
 directory.
 """
 
 IMG_BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/'
-CAL_BASE_URL = 'https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/'
+SKYMAP_BASE_URL = 'https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/'
 
 # Check and make a asilib.config['ASI_DATA_DIR']/rego/ directory if doesn't already exist.
 rego_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'rego')
@@ -98,10 +99,10 @@ def download_rego_img(
         return download_paths
 
 
-def download_rego_cal(station: str, force_download: bool = False) -> pathlib.Path:
+def download_rego_skymap(station: str, force_download: bool = False) -> List[pathlib.Path]:
     """
-    Download the latest calibration (skymap) IDL .sav file and save
-    it to asilib.config['ASI_DATA_DIR']/rego/cal/ directory.
+    Download all of the (skymap) IDL .sav file and save
+    it to asilib.config['ASI_DATA_DIR']/rego/skymap/ directory.
 
     Parameters
     ----------
@@ -119,29 +120,43 @@ def download_rego_cal(station: str, force_download: bool = False) -> pathlib.Pat
     | import asilib
     | 
     | station = 'LUCK'
-    | asilib.download_rego_cal(station)
+    | asilib.download_rego_skymap(station)
     """
-    # Create the calibration directory in data/rego/cal
-    save_dir = asilib.config['ASI_DATA_DIR'] / 'rego' / 'cal'
+    # Create the skymap directory in data/rego/skymap
+    save_dir = asilib.config['ASI_DATA_DIR'] / 'rego' / 'skymap' / station.lower()
     if not save_dir.is_dir():
-        save_dir.mkdir()
+        save_dir.mkdir(parents=True)
         print(f'Made directory at {save_dir}')
 
-    url = CAL_BASE_URL + f'{station.lower()}/'
+    url = SKYMAP_BASE_URL + f'{station.lower()}/'
 
-    # Look for all of the hyperlinks to the calibration file and download the
-    # latest one.
-    cal_time_tagged_hrefs = search_hrefs(url, search_pattern=station.lower())
-    url = url + cal_time_tagged_hrefs[-1]  # Last href is the latest one.
-    # Lastly, research for the skymap .sav file.
-    cal_hrefs = search_hrefs(url, search_pattern=f'rego_skymap_{station.lower()}')
-    cal_name = cal_hrefs[0].replace('-%2B', '')  # Replace the code for '+'.
+    # Look for all of the skymap hyperlinks, go in each one of them, and
+    # download the .sav file.
+    skymap_folders_relative = search_hrefs(url, search_pattern=station.lower())
+    download_paths = []
 
-    # Download if force_download=True or the file does not exist.
-    download_path = pathlib.Path(save_dir, cal_name)
-    if force_download or (not download_path.is_file()):
-        stream_large_file(url + cal_hrefs[0], download_path)
-    return download_path
+    for skymap_folder in skymap_folders_relative:
+        skymap_folder_absolute = url + skymap_folder
+
+        # Lastly, research for the skymap .sav file.
+        skymap_name = search_hrefs(skymap_folder_absolute, search_pattern=f'.sav')[0]
+        skymap_save_name = skymap_name.replace('-%2B', '')  # Replace the unicode '+'.
+
+        # Download if force_download=True or the file does not exist.
+        download_path = pathlib.Path(save_dir, skymap_save_name)
+        download_paths.append(download_path)
+        if force_download or (not download_path.is_file()):
+            stream_large_file(skymap_folder_absolute + skymap_name, download_path)
+    return download_paths
+
+def download_rego_cal(station: str, force_download: bool = False) -> List[pathlib.Path]:
+    """
+    DEPRECATED for download_rego_skymap()
+    """
+    warnings.warn('asilib.download_rego_cal is deprecated. Use asilib.download_rego_skymap() instead', 
+        DeprecationWarning
+        )
+    return download_rego_skymap(station, force_download)
 
 
 def stream_large_file(url, save_path, test_flag: bool = False):

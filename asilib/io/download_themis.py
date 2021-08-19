@@ -3,19 +3,20 @@ from datetime import datetime
 from typing import List, Union
 import dateutil.parser
 import pathlib
+import warnings
 
 import asilib
 from asilib.io import download_rego
 
 """
 This program contains the Time History of Events and Macroscale Interactions during 
-Substorms (THEMIS) download functions that stream image and calibration data from the 
-themis.ssl.berkeley.edu server and saves the files to the 
-asilib.config['ASI_DATA_DIR']/themis/ directory.
+Substorms (THEMIS) download functions that stream image and skymap data from the 
+themis.ssl.berkeley.edu and data.phys.ucalgary.ca servers. The data is saved to 
+asilib.config['ASI_DATA_DIR']/themis directory.
 """
 
 IMG_BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l1/asi/'
-CAL_BASE_URL = 'http://themis.ssl.berkeley.edu/data/themis/thg/l2/asi/cal/'
+SKYMAP_BASE_URL = 'https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/skymaps/'
 
 # Check and make a asilib.config['ASI_DATA_DIR']/themis/ directory if doesn't already exist.
 themis_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'themis')
@@ -102,10 +103,10 @@ def download_themis_img(
         return download_paths
 
 
-def download_themis_cal(station: str, force_download: bool = False):
+def download_themis_skymap(station: str, force_download: bool = False):
     """
-    This function downloads the calibration cdf files for the
-    station THEMIS ASI.
+    Download all of the (skymap) IDL .sav file and save
+    it to asilib.config['ASI_DATA_DIR']/themis/skymap/ directory.
 
     Parameters
     ----------
@@ -123,22 +124,40 @@ def download_themis_cal(station: str, force_download: bool = False):
     import asilib
 
     | station = 'LUCK'
-    | asilib.download_themis_cal(station)
+    | asilib.download_themis_skymap(station)
     """
-    # Create the calibration directory in data/themis/cal
-    save_dir = asilib.config['ASI_DATA_DIR'] / 'themis' / 'cal'
+    # Create the skymap directory in data/themis/skymap/station
+    save_dir = asilib.config['ASI_DATA_DIR'] / 'themis' / 'skymap' / station.lower()
     if not save_dir.is_dir():
-        save_dir.mkdir()
+        save_dir.mkdir(parents=True)
         print(f'Made directory at {save_dir}')
 
-    # Search all of the skymap files with the macthing station name.
-    search_pattern = f'themis_skymap_{station.lower()}'
-    file_names = download_rego.search_hrefs(CAL_BASE_URL, search_pattern=search_pattern)
+    url = SKYMAP_BASE_URL + f'{station.lower()}/'
 
-    # Download the latest skymap file
-    download_url = CAL_BASE_URL + file_names[-1]
-    download_path = pathlib.Path(save_dir, file_names[-1])
-    # Download if force_download=True or the file does not exist.
-    if force_download or (not download_path.is_file()):
-        download_rego.stream_large_file(download_url, download_path)
-    return download_path
+    # Look for all of the skymap hyperlinks, go in each one of them, and
+    # download the .sav file.
+    skymap_folders_relative = download_rego.search_hrefs(url, search_pattern=station.lower())
+    download_paths = []
+
+    for skymap_folder in skymap_folders_relative:
+        skymap_folder_absolute = url + skymap_folder
+
+        # Lastly, research for the skymap .sav file.
+        skymap_name = download_rego.search_hrefs(skymap_folder_absolute, search_pattern=f'.sav')[0]
+        skymap_save_name = skymap_name.replace('-%2B', '')  # Replace the unicode '+'.
+
+        # Download if force_download=True or the file does not exist.
+        download_path = pathlib.Path(save_dir, skymap_save_name)
+        download_paths.append(download_path)
+        if force_download or (not download_path.is_file()):
+            download_rego.stream_large_file(skymap_folder_absolute + skymap_name, download_path)
+    return download_paths
+
+def download_themis_cal(station: str, force_download: bool = False) -> List[pathlib.Path]:
+    """
+    DEPRECATED for download_themis_skymap()
+    """
+    warnings.warn('asilib.download_themis_cal() is deprecated. Use asilib.download_themis_skymap() instead', 
+        DeprecationWarning
+        )
+    return download_themis_skymap(station, force_download)

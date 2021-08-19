@@ -40,7 +40,7 @@ class Test_keogram(unittest.TestCase):
     def test_keogram_altitude_error(self):
         """
         Checks that keogram() raises an AssertionError if map_alt is not
-        in the list of calibration altitudes. 
+        in the list of skymap calibration altitudes. 
         """
         with self.assertRaises(AssertionError):
             keo = keogram(['2017-09-27T08', '2017-09-27T08:10'], self.mission, self.station, 

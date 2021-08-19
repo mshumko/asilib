@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from asilib.io.load import get_frames, load_cal, _validate_time_range
+from asilib.io.load import get_frames, load_skymap, _validate_time_range
 
 def keogram(time_range, mission, station, map_alt=None):
     """
@@ -21,7 +21,7 @@ def keogram(time_range, mission, station, map_alt=None):
         The station id to download the data from.
     map_alt: int, optional
         The mapping altitude, in kilometers, used to index the mapped latitude in the 
-        calibration data. If None, will plot pixel index for the y-axis.
+        skymap data. If None, will plot pixel index for the y-axis.
 
     Returns
     -------
@@ -32,7 +32,7 @@ def keogram(time_range, mission, station, map_alt=None):
     Raises
     ------
     AssertionError
-        If map_alt does not equal the mapped altitudes in the calibration mapped values.
+        If map_alt does not equal the mapped altitudes in the skymap mapped values.
     """
     time_range = _validate_time_range(time_range)
     frame_times, frames = get_frames(time_range, mission, station)
@@ -46,11 +46,11 @@ def keogram(time_range, mission, station, map_alt=None):
     if map_alt is None:
         keogram_latitude = np.arange(frames.shape[1])  # Dummy index values.
     else:
-        cal = load_cal(mission, station)
-        assert map_alt in cal['FULL_MAP_ALTITUDE']/1000, \
-            f'{map_alt} km is not in calibration altitudes: {cal["FULL_MAP_ALTITUDE"]/1000} km'
-        alt_index = np.where(cal['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0]
-        keogram_latitude = cal['FULL_MAP_LATITUDE'][alt_index, :, center_pixel]
+        skymap = load_skymap(mission, station, time_range[0])
+        assert map_alt in skymap['FULL_MAP_ALTITUDE']/1000, \
+            f'{map_alt} km is not in skymap altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
+        alt_index = np.where(skymap['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0]
+        keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, :, center_pixel]
 
         # keogram_latitude array are at the pixel edges. Remap it to the centers
         dl = keogram_latitude[1:] - keogram_latitude[:-1]

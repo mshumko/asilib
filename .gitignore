@@ -1,4 +1,4 @@
-env/*
+env*
 asilib-env/*
 __pycache__/
 *.egg-info/

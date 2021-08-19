@@ -82,12 +82,6 @@ def plot_map(time: Union[datetime, str], mission: str,
     )
     cal = load_cal(mission, station)
 
-<<<<<<< Updated upstream
-    # Check that the map_alt is in the calibration data.
-    assert map_alt in cal['FULL_MAP_ALTITUDE']/1000, \
-            f'{map_alt} km is not in calibration altitudes: {cal["FULL_MAP_ALTITUDE"]/1000} km'
-    alt_index = np.where(cal['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0] 
-=======
     # Check that the map_alt is in the skymap calibration data.
     assert map_alt in skymap['FULL_MAP_ALTITUDE']/1000, \
             f'{map_alt} km is not in skymap calibration altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
@@ -95,7 +89,6 @@ def plot_map(time: Union[datetime, str], mission: str,
 
     # Filter out the horizon
     # idh = 
->>>>>>> Stashed changes
 
     # Set up the plot parameters
     if ax is None:

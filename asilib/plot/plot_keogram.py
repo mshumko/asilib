@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 
-from asilib.io.load import get_frames, load_cal, _validate_time_range
+from asilib.io.load import _validate_time_range
 from asilib.analysis.keogram import keogram
 
 
@@ -25,7 +25,7 @@ def plot_keogram(time_range, mission, station, map_alt=None, ax=None, color_boun
         The station id to download the data from.
     map_alt: int, optional
         The mapping altitude, in kilometers, used to index the mapped latitude in the 
-        calibration data. If None, will plot pixel index for the y-axis.
+        skymap calibration data. If None, will plot pixel index for the y-axis.
     ax: plt.subplot
         The subplot to plot the frame on. If None, this function will
         create one.
@@ -53,7 +53,7 @@ def plot_keogram(time_range, mission, station, map_alt=None, ax=None, color_boun
     ------
     AssertionError
         If len(time_range) != 2. Also if map_alt does not equal the mapped 
-        altitudes in the calibration mapped values.
+        altitudes in the skymap mapped values.
 
     Example
     -------

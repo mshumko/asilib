@@ -141,17 +141,17 @@ def plot_frame(
         color='white',
     )
     if azel_contours:
-        cal_dict = load.load_cal(mission, station, force_download=force_download)
+        skymap_dict = load.load_skymap(mission, station, frame_time, force_download=force_download)
 
         az_contours = ax.contour(
-            cal_dict['FULL_AZIMUTH'][::-1, ::-1],
+            skymap_dict['FULL_AZIMUTH'][::-1, ::-1],
             colors='yellow',
             linestyles='dotted',
             levels=np.arange(0, 361, 90),
             alpha=1,
         )
         el_contours = ax.contour(
-            cal_dict['FULL_ELEVATION'][::-1, ::-1],
+            skymap_dict['FULL_ELEVATION'][::-1, ::-1],
             colors='yellow',
             linestyles='dotted',
             levels=np.arange(0, 91, 30),

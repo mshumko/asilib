@@ -55,7 +55,7 @@ Example 2: A keogram
     plt.show()
 
 
-Example 2: Fisheye Movie
+Example 3: Fisheye Movie
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. raw:: html
@@ -94,22 +94,22 @@ This is a sophisticated example that maps a hypothetical satellite track to an i
     import asilib
     from asilib import plot_movie_generator
     from asilib import lla2azel
-    from asilib import load_cal
+    from asilib import load_skymap
 
     # ASI parameters
     mission = 'THEMIS'
     station = 'RANK'
     time_range = (datetime(2017, 9, 15, 2, 34, 0), datetime(2017, 9, 15, 2, 36, 0))
 
-    # Load the calibration data.
-    cal_dict = load_cal(mission, station)
+    # Load the skymap calibration data.
+    skymap_dict = load_skymap(mission, station, time_range[0])
 
     # Create the satellite track's latitude, longitude, altitude (LLA) coordinates.
     # This is an imaginary north-south satellite track oriented to the east
     # of the THEMIS/RANK station.
     n = int((time_range[1] - time_range[0]).total_seconds() / 3)  # 3 second cadence.
-    lats = np.linspace(cal_dict["SITE_MAP_LATITUDE"] + 10, cal_dict["SITE_MAP_LATITUDE"] - 10, n)
-    lons = (cal_dict["SITE_MAP_LONGITUDE"] + 3) * np.ones(n)
+    lats = np.linspace(skymap_dict["SITE_MAP_LATITUDE"] + 10, skymap_dict["SITE_MAP_LATITUDE"] - 10, n)
+    lons = (skymap_dict["SITE_MAP_LONGITUDE"] + 3) * np.ones(n)
     alts = 500 * np.ones(n)
     lla = np.array([lats, lons, alts]).T
 
@@ -133,8 +133,8 @@ This is a sophisticated example that maps a hypothetical satellite track to an i
         # Annotate the station and satellite info in the top-left corner.
         station_str = (
             f'{mission}/{station} '
-            f'LLA=({cal_dict["SITE_MAP_LATITUDE"]:.2f}, '
-            f'{cal_dict["SITE_MAP_LONGITUDE"]:.2f}, {cal_dict["SITE_MAP_ALTITUDE"]:.2f})'
+            f'LLA=({skymap_dict["SITE_MAP_LATITUDE"]:.2f}, '
+            f'{skymap_dict["SITE_MAP_LONGITUDE"]:.2f}, {skymap_dict["SITE_MAP_ALTITUDE"]:.2f})'
         )
         satellite_str = f'Satellite LLA=({lla[i, 0]:.2f}, {lla[i, 1]:.2f}, {lla[i, 2]:.2f})'
         ax.text(0, 1, station_str + '\n' + satellite_str, va='top', 
@@ -175,15 +175,15 @@ The `asilib` functionality used here:
     fig, ax = plt.subplots(2, 1, figsize=(7, 10), gridspec_kw={'height_ratios':[4, 1]}, 
                             constrained_layout=True)
 
-    # Load the calibration data. This is only necessary to create a fake satellite track.
-    cal_dict = asilib.load_cal(mission, station)
+    # Load the skymap calibration data. This is only necessary to create a fake satellite track.
+    skymap_dict = asilib.load_skymap(mission, station, time_range[0])
 
     # Create the fake satellite track coordinates: latitude, longitude, altitude (LLA).
     # This is a north-south satellite track oriented to the east of the THEMIS/RANK 
     # station.
     n = int((time_range[1] - time_range[0]).total_seconds() / 3)  # 3 second cadence.
-    lats = np.linspace(cal_dict["SITE_MAP_LATITUDE"] + 5, cal_dict["SITE_MAP_LATITUDE"] - 5, n)
-    lons = (cal_dict["SITE_MAP_LONGITUDE"]-0.5) * np.ones(n)
+    lats = np.linspace(skymap_dict["SITE_MAP_LATITUDE"] + 5, skymap_dict["SITE_MAP_LATITUDE"] - 5, n)
+    lons = (skymap_dict["SITE_MAP_LONGITUDE"]-0.5) * np.ones(n)
     alts = 110 * np.ones(n)
     lla = np.array([lats, lons, alts]).T
 
@@ -229,8 +229,8 @@ The `asilib` functionality used here:
         # Annotate the station and satellite info in the top-left corner.
         station_str = (
             f'{mission}/{station} '
-            f'LLA=({cal_dict["SITE_MAP_LATITUDE"]:.2f}, '
-            f'{cal_dict["SITE_MAP_LONGITUDE"]:.2f}, {cal_dict["SITE_MAP_ALTITUDE"]:.2f})'
+            f'LLA=({skymap_dict["SITE_MAP_LATITUDE"]:.2f}, '
+            f'{skymap_dict["SITE_MAP_LONGITUDE"]:.2f}, {skymap_dict["SITE_MAP_ALTITUDE"]:.2f})'
         )
         satellite_str = f'Satellite LLA=({lla[i, 0]:.2f}, {lla[i, 1]:.2f}, {lla[i, 2]:.2f})'
         ax[0].text(0, 1, station_str + '\n' + satellite_str, va='top', 

@@ -4,6 +4,7 @@ import dateutil.parser
 from typing import List, Union, Sequence, Tuple
 from copy import copy
 import warnings
+import re
 
 import pandas as pd
 import numpy as np
@@ -114,15 +115,15 @@ def load_img(
 
 def load_img_file(time, mission: str, station: str, force_download: bool = False):
     """
-    DEPRICATED for load_img()
+    DEPRECATED for load_img()
     """
     warnings.warn('load_img_file is deprecated. Use asilib.load_img() instead', DeprecationWarning)
     return load_img(time, mission, station, force_download)
 
 
-def load_cal(mission: str, station: str, force_download: bool = False) -> dict:
+def load_skymap(mission: str, station: str, time: Union[datetime, str], force_download: bool = False) -> dict:
     """
-    Loads (and optionally downloads) the latest callibration file.
+    Loads (and downloads if it doesn't exist) the skymap file closest and before time.
 
     Parameters
     ----------
@@ -130,50 +131,91 @@ def load_cal(mission: str, station: str, force_download: bool = False) -> dict:
         The mission id, can be either THEMIS or REGO.
     station: str
         The station id to download the data from.
+    time: datetime, or str
+        Time is used to find the relevant skymap file: file created nearest to, and before, the time.
     force_download: bool (optional)
         If True, download the file even if it already exists.
 
     Returns
     -------
     dict
-        The station calibration data with longitudes mapped from 0->360 to to -180->180 degrees.
+        The skymap data with longitudes mapped from 0->360 to to -180->180 degrees.
 
     Example
     -------
     | import asilib
     | 
-    | rego_cal = asilib.load_cal('REGO', 'GILL')
+    | rego_skymap = asilib.load_skymap('REGO', 'GILL', '2018-10-01')
     """
-    cal_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower(), 'cal')
-    cal_paths = sorted(list(cal_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
+    skymap_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower(), 'skymap', station.lower())
+    skymap_paths = sorted(list(skymap_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
 
-    # If no THEMIS cal files found, download the lastest one.
-    if len(cal_paths) == 0 and mission.lower() == 'themis':
-        cal_path = download_themis.download_themis_cal(station)
-    # If no REGO cal files found, download the lastest one.
-    elif len(cal_paths) == 0 and mission.lower() == 'rego':
-        cal_path = download_rego.download_rego_cal(station)
-    else:
-        cal_path = cal_paths[-1]
+    # Download skymap files if they are not downloaded yet.
+    if len(skymap_paths) == 0 and mission.lower() == 'themis':
+        skymap_paths = download_themis.download_themis_skymap(station)
+    elif len(skymap_paths) == 0 and mission.lower() == 'rego':
+        skymap_paths = download_rego.download_rego_skymap(station)
 
-    # Load the calibration file and convert it to a dictionary.
-    cal_file = scipy.io.readsav(cal_path, python_dict=True)['skymap']
-    cal_dict = {key: copy(cal_file[key][0]) for key in cal_file.dtype.names}
+    skymap_dates = _extract_skymap_dates(skymap_paths)
+
+    # Try to convert time to datetime object if it is a string.
+    if isinstance(time, str):
+        time = dateutil.parser.parse(time)
+
+    # Find the skymap_date that is closest and before time.
+    dt = np.array([(time - skymap_date).total_seconds() for skymap_date in skymap_dates])
+    dt[dt < 0] = np.inf
+    closest_index = np.argmin(dt)
+    skymap_path = skymap_paths[closest_index]
+
+    # Check that time is not before the first skymap date.
+    if np.all(~np.isfinite(dt)):
+        raise ValueError(
+            f'No skymap file found with a date before time={time}\n'
+            f'skymap_dates={skymap_dates}'
+        )
+
+    # Load the skymap file and convert it to a dictionary.
+    skymap_file = scipy.io.readsav(str(skymap_path), python_dict=True)['skymap']
+    skymap_dict = {key: copy(skymap_file[key][0]) for key in skymap_file.dtype.names}
     # Map longitude from 0 - 360 to -180 - 180.
-    cal_dict['SITE_MAP_LONGITUDE'] = np.mod(cal_dict['SITE_MAP_LONGITUDE'] + 180, 360) - 180
+    skymap_dict['SITE_MAP_LONGITUDE'] = np.mod(skymap_dict['SITE_MAP_LONGITUDE'] + 180, 360) - 180
     # Don't take the modulus of NaNs
-    valid_val_idx = np.where(~np.isnan(cal_dict['FULL_MAP_LONGITUDE']))
-    cal_dict['FULL_MAP_LONGITUDE'][valid_val_idx] = (
-        np.mod(cal_dict['FULL_MAP_LONGITUDE'][valid_val_idx] + 180, 360) - 180
+    valid_val_idx = np.where(~np.isnan(skymap_dict['FULL_MAP_LONGITUDE']))
+    skymap_dict['FULL_MAP_LONGITUDE'][valid_val_idx] = (
+        np.mod(skymap_dict['FULL_MAP_LONGITUDE'][valid_val_idx] + 180, 360) - 180
     )
-    cal_dict['cal_path'] = cal_path
-    return cal_dict
+    skymap_dict['skymap_path'] = skymap_path
+    return skymap_dict
+
+def _extract_skymap_dates(skymap_paths):
+    """
+    Extract the skymap dates from each skymap_path in skymap_paths.
+    """
+    skymap_dates = []
+
+    for skymap_path in skymap_paths:
+        day = re.search(r'\d{8}', skymap_path.name).group(0)
+        day_obj = datetime.strptime(day, "%Y%m%d")
+        skymap_dates.append(day_obj)
+    return skymap_dates
+
+def load_cal(mission: str, station: str, time, force_download: bool = False):
+    """
+    DEPRECATED for load_skymap()
+    """
+    warnings.warn('asilib.load_cal() is deprecated, use asilib.load_skymap() instead', 
+        DeprecationWarning
+        )
+    return load_skymap(mission, station, time, force_download)
 
 def load_cal_file(mission: str, station: str, force_download: bool = False):
     """
-    DEPRICATED for load_cal()
+    DEPRECATED for load_cal()
     """
-    warnings.warn('load_cal_file is deprecated asilib.load_cal() instead', DeprecationWarning)
+    warnings.warn('asilib.load_cal_file() is deprecated, use asilib.load_skymap() instead', 
+        DeprecationWarning
+        )
     return load_cal(mission, station, force_download)
 
 def get_frame(
@@ -470,3 +512,9 @@ def _get_epoch(cdf_obj, time_key, hour_date_time, mission, station):
         else:
             raise
     return epoch
+
+if __name__ == '__main__':
+    skymap = load_skymap('THEMIS', 'FSMI', '2015-10-16')
+    print(skymap)
+    print(skymap['skymap_path'])
+    pass

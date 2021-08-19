@@ -3,7 +3,7 @@ import pathlib
 import importlib.util
 import configparser
 
-__version__ = '0.4.0'
+__version__ = '0.5.0'
 
 # Load the configuration settings.
 HERE = pathlib.Path(__file__).parent.resolve()
@@ -29,12 +29,12 @@ config = {
 }
 
 # Import download programs.
-from asilib.io.download_rego import download_rego_img, download_rego_cal
-from asilib.io.download_themis import download_themis_img, download_themis_cal
+from asilib.io.download_rego import download_rego_img, download_rego_skymap
+from asilib.io.download_themis import download_themis_img, download_themis_skymap
 
 # Import the loading functions.
 from asilib.io.load import load_img
-from asilib.io.load import load_cal
+from asilib.io.load import load_cal, load_skymap
 from asilib.io.load import get_frame
 from asilib.io.load import get_frames
 
@@ -50,17 +50,3 @@ from asilib.analysis.equal_area import equal_area
 
 # Import the equal_area function.
 from asilib.analysis.equal_area import equal_area
-
-# If the IRBEM module exists, import map_along_magnetic_field.
-# This is better than a try-except block because the ImportError
-# exception can be raised from another map_along_magnetic_field 
-# dependency but we want to specifically check for IRBEM and let
-# it crash if something else is wrong.
-# if importlib.util.find_spec('IRBEM'):
-#     from asilib.analysis.trace_field_line import trace_field_line, map_along_magnetic_field
-# else:
-#     if config['IRBEM_WARNING']:
-#         warnings.warn(
-#             "The IRBEM magnetic field library is not installed and is "
-#             "a dependency of asilib.map_along_magnetic_field()."
-#         )
