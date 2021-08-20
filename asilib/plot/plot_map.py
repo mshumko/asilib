@@ -10,12 +10,13 @@ import matplotlib.colors as colors
 import numpy as np
 import cartopy.crs as ccrs
 
-from asilib.io.load import load_cal, get_frame
+from asilib.io.load import load_skymap, get_frame
 
 
 def plot_map(time: Union[datetime, str], mission: str,
     station: str, map_alt: int, time_thresh_s: float = 3,
     ax: plt.subplot = None, color_map: str = 'auto',
+    min_elevation=10,
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'lin', pcolormesh_kwargs={}):
     """
@@ -46,6 +47,8 @@ def plot_map(time: Union[datetime, str], mission: str,
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
         For more information See https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html
+    min_elevation: float
+        Masks the pixels below min_elevation degrees.
     color_bounds: List[float] or None
         The lower and upper values of the color scale. If None, will
         automatically set it to low=1st_quartile and
@@ -80,22 +83,24 @@ def plot_map(time: Union[datetime, str], mission: str,
     frame_time, frame = get_frame(
         time, mission, station, time_thresh_s=time_thresh_s
     )
-    cal = load_cal(mission, station)
+    skymap = load_skymap(mission, station, time)
 
     # Check that the map_alt is in the skymap calibration data.
     assert map_alt in skymap['FULL_MAP_ALTITUDE']/1000, \
             f'{map_alt} km is not in skymap calibration altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
     alt_index = np.where(skymap['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0] 
 
-    # Filter out the horizon
-    # idh = 
+    # Mask the pixels that map to elevations < min_elevation.
+    idh = np.where(skymap['FULL_ELEVATION'][::-1, ::-1] < min_elevation)[0]
+    # frame = frame.astype(object)
+    # frame[idh] = np.nan
 
     # Set up the plot parameters
     if ax is None:
         fig = plt.figure(figsize=(5, 5))
         projection = ccrs.NearsidePerspective(
-            central_latitude=cal['SITE_MAP_LATITUDE'], 
-            central_longitude=cal['SITE_MAP_LONGITUDE'], 
+            central_latitude=skymap['SITE_MAP_LATITUDE'], 
+            central_longitude=skymap['SITE_MAP_LONGITUDE'], 
             satellite_height=10000*map_alt
             )
         ax = fig.add_subplot(1, 1, 1, projection=projection)
@@ -119,10 +124,10 @@ def plot_map(time: Union[datetime, str], mission: str,
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    pcolormesh_nan(cal['FULL_MAP_LONGITUDE'][alt_index, :, :], 
-                cal['FULL_MAP_LATITUDE'][alt_index, :, :],
+    pcolormesh_nan(skymap['FULL_MAP_LONGITUDE'][alt_index, :, :], 
+                skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
                 frame, ax, cmap=color_map, norm=norm)
-    return frame_time, frame, cal, ax
+    return frame_time, frame, skymap, ax
 
 def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, 
                     ax, cmap=None, norm=None):
