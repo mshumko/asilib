@@ -135,8 +135,19 @@ def plot_map(time: Union[datetime, str], mission: str,
 
 def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, 
                     ax, cmap=None, norm=None):
-    """handles NaN in x and y by smearing last valid value in column or row out,
-    which doesn't affect plot because "c" will be masked too
+    """
+    Since pcolormesh cant handle nan lat/lon grid values, we will compress them to the 
+    nearest valid lat/lon grid. There are two main steps:
+
+    1) All nan values to the left of the first valid value are
+    reassigned to the first valid value. Likewise, all nan values to the 
+    right of the last valid value are reassigned to it.
+
+    2) All nan-filled rows above the first valid row are assigned to the 
+    maximum value in the first row, likewise for the bottom rows.
+
+    Essentially this is a reassignment (or a compression) of all nan values in the periphery
+    to the valid grid values in the center. 
 
     Stolen from:
     https://github.com/scivision/python-matlab-examples/blob/0dd8129bda8f0ec2c46dae734d8e43628346388c/PlotPcolor/pcolormesh_NaN.py
