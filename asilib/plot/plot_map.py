@@ -90,10 +90,15 @@ def plot_map(time: Union[datetime, str], mission: str,
             f'{map_alt} km is not in skymap calibration altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
     alt_index = np.where(skymap['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0] 
 
-    # Mask the pixels that map to elevations < min_elevation.
-    idh = np.where(skymap['FULL_ELEVATION'][::-1, ::-1] < min_elevation)[0]
-    # frame = frame.astype(object)
-    # frame[idh] = np.nan
+    # Mask the frame and lat/lon map values where elevation < min_elevation with nans
+    idh = np.where(skymap['FULL_ELEVATION'] < min_elevation)
+    # Can't mask frame unless it is a float array.
+    frame = frame.astype(float)
+    frame[idh] = 0
+    lon_map = skymap['FULL_MAP_LONGITUDE'][alt_index, :, :]
+    lat_map = skymap['FULL_MAP_LATITUDE'][alt_index, :, :]
+    lon_map[idh] = np.nan
+    lat_map[idh] = np.nan
 
     # Set up the plot parameters
     if ax is None:
@@ -124,8 +129,7 @@ def plot_map(time: Union[datetime, str], mission: str,
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    pcolormesh_nan(skymap['FULL_MAP_LONGITUDE'][alt_index, :, :], 
-                skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
+    pcolormesh_nan(lon_map, lat_map,
                 frame, ax, cmap=color_map, norm=norm)
     return frame_time, frame, skymap, ax
 
@@ -137,34 +141,42 @@ def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray,
     Stolen from:
     https://github.com/scivision/python-matlab-examples/blob/0dd8129bda8f0ec2c46dae734d8e43628346388c/PlotPcolor/pcolormesh_NaN.py
     """
-
+    # mask is True when lat and lon grid values are not nan.
     mask = np.isfinite(x) & np.isfinite(y)
     top = None
     bottom = None
 
     for i, m in enumerate(mask):
+        # A common use for nonzero is to find the indices of 
+        # an array, where a condition is True (not nan or inf)
         good = m.nonzero()[0]
 
-        if good.size == 0:
+        if good.size == 0:  # Skip row is all columns are nans.
             continue
-        elif top is None:
+        # First row that has at least 1 valid value.
+        elif top is None:   
             top = i
-        else:
-            bottom = i
+        # Bottom row that has at least 1 value value. All indices in between top and bottom 
+        else:               
+            bottom = i  
 
-        x[i, good[-1] :] = x[i, good[-1]]
-        y[i, good[-1] :] = y[i, good[-1]]
-
+        # Reassign all lat/lon columns after good[-1] (all nans) to good[-1].
+        x[i, good[-1]:] = x[i, good[-1]]
+        y[i, good[-1]:] = y[i, good[-1]]
+        # Reassign all lat/lon columns before good[0] (all nans) to good[0].
         x[i, : good[0]] = x[i, good[0]]
         y[i, : good[0]] = y[i, good[0]]
 
+    # Reassign all of the fully invalid lat/lon rows above top to the the max lat/lon value.
     x[:top, :] = np.nanmax(x[top, :])
     y[:top, :] = np.nanmax(y[top, :])
-
+    # Same, but for the rows below bottom.
     x[bottom:, :] = np.nanmax(x[bottom, :])
     y[bottom:, :] = np.nanmax(y[bottom, :])
 
-    ax.pcolormesh(x, y, np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1], 
+    # TODO: skymap rotation.
+    # old masked c code: np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1]
+    ax.pcolormesh(x, y, c[::-1, ::-1], 
                 cmap=cmap, shading='flat', transform=ccrs.PlateCarree(), 
                 norm=norm)
     return
