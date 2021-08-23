@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 import cartopy.crs as ccrs
+import cartopy
 
 from asilib.io.load import load_skymap, get_frame
 
@@ -16,9 +17,9 @@ from asilib.io.load import load_skymap, get_frame
 def plot_map(time: Union[datetime, str], mission: str,
     station: str, map_alt: int, time_thresh_s: float = 3,
     ax: plt.subplot = None, color_map: str = 'auto',
-    min_elevation=10,
-    color_bounds: Union[List[float], None] = None,
-    color_norm: str = 'lin', pcolormesh_kwargs={}):
+    min_elevation: float=10,
+    color_bounds: Union[List[float], None]=None,
+    color_norm: str='log', pcolormesh_kwargs={}):
     """
     Projects the ASI images to a map at an altitude in the calibration file.
 
@@ -90,15 +91,13 @@ def plot_map(time: Union[datetime, str], mission: str,
             f'{map_alt} km is not in skymap calibration altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
     alt_index = np.where(skymap['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0] 
 
-    # Mask the frame and lat/lon map values where elevation < min_elevation with nans
-    idh = np.where(skymap['FULL_ELEVATION'] < min_elevation)
-    # Can't mask frame unless it is a float array.
-    frame = frame.astype(float)
-    frame[idh] = 0
-    lon_map = skymap['FULL_MAP_LONGITUDE'][alt_index, :, :]
-    lat_map = skymap['FULL_MAP_LATITUDE'][alt_index, :, :]
-    lon_map[idh] = np.nan
-    lat_map[idh] = np.nan
+    frame, lon_map, lat_map = _mask_low_horizon(
+        frame, 
+        skymap['FULL_MAP_LONGITUDE'][alt_index, :, :], 
+        skymap['FULL_MAP_LATITUDE'][alt_index, :, :], 
+        skymap['FULL_ELEVATION'], 
+        min_elevation
+        )
 
     # Set up the plot parameters
     if ax is None:
@@ -109,10 +108,31 @@ def plot_map(time: Union[datetime, str], mission: str,
             satellite_height=10000*map_alt
             )
         ax = fig.add_subplot(1, 1, 1, projection=projection)
-        ax.coastlines()
+        # ax.coastlines()
+        resol = '50m'
+        country_bodr = cartopy.feature.NaturalEarthFeature(category='cultural', name='admin_0_boundary_lines_land', scale=resol, facecolor='none', edgecolor='k')
+
+        # Province Boundaries
+        provinc_bodr = cartopy.feature.NaturalEarthFeature(category='cultural', name='admin_1_states_provinces_lines', scale=resol, facecolor='none', edgecolor='k')
+
+        # Land
+        land = cartopy.feature.NaturalEarthFeature('physical', 'land', scale=resol, edgecolor='k', facecolor="none")
+
+        # Lakes
+        lakes = cartopy.feature.NaturalEarthFeature('physical', 'lakes', scale=resol, edgecolor='k', facecolor="none")
+
+        # Rivers
+        rivers = cartopy.feature.NaturalEarthFeature('physical', 'rivers_lake_centerlines', scale=resol, edgecolor='k', facecolor='none')
+
+        # Add all features to the map, uncomment if you want them
+        ax.add_feature(land, zorder=4)
+        ax.add_feature(lakes, zorder=5)
+        #ax.add_feature(rivers, linewidth=0.5, zorder=6)
+        ax.add_feature(country_bodr, linestyle='--', linewidth=0.8, edgecolor="k", zorder=10)  #USA/Canada
+        ax.add_feature(provinc_bodr, linestyle='--', linewidth=0.6, edgecolor="k", zorder=10)
 
     if color_bounds is None:
-        lower, upper = np.quantile(frame, (0.25, 0.98))
+        lower, upper = np.nanquantile(frame, (0.25, 0.98))
         color_bounds = [lower, np.min([upper, lower * 10])]
 
     if (color_map == 'auto') and (mission.lower() == 'themis'):
@@ -129,8 +149,8 @@ def plot_map(time: Union[datetime, str], mission: str,
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    pcolormesh_nan(lon_map, lat_map,
-                frame, ax, cmap=color_map, norm=norm)
+    # pcolormesh_nan(lon_map, lat_map,
+    #             frame, ax, cmap=color_map, norm=norm)
     return frame_time, frame, skymap, ax
 
 def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, 
@@ -149,7 +169,7 @@ def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray,
     Essentially this is a reassignment (or a compression) of all nan values in the periphery
     to the valid grid values in the center. 
 
-    Stolen from:
+    Function taken from Michael, scivision @ GitHub.:
     https://github.com/scivision/python-matlab-examples/blob/0dd8129bda8f0ec2c46dae734d8e43628346388c/PlotPcolor/pcolormesh_NaN.py
     """
     # mask is True when lat and lon grid values are not nan.
@@ -191,6 +211,23 @@ def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray,
                 cmap=cmap, shading='flat', transform=ccrs.PlateCarree(), 
                 norm=norm)
     return
+
+def _mask_low_horizon(frame, lon_map, lat_map, el_map, min_elevation):
+    """
+    Mask the frame, skymap['FULL_MAP_LONGITUDE'], skymap['FULL_MAP_LONGITUDE'] arrays
+    with np.nans where the skymap['FULL_ELEVATION'] is nan or 
+    skymap['FULL_ELEVATION'] < min_elevation.
+    """
+    idh = np.where(
+        np.isnan(el_map) | 
+        (el_map < min_elevation) 
+        )
+    # Can't mask frame unless it is a float array.
+    frame = frame.astype(float)
+    frame[idh] = np.nan
+    lon_map[idh] = np.nan
+    lat_map[idh] = np.nan
+    return frame, lon_map, lat_map
 
 if __name__ == '__main__':
     # https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41598-020-79665-5/MediaObjects/41598_2020_79665_Fig1_HTML.jpg?as=webp
