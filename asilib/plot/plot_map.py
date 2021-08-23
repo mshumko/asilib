@@ -101,14 +101,14 @@ def plot_map(time: Union[datetime, str], mission: str,
 
     # Set up the plot parameters
     if ax is None:
-        fig = plt.figure(figsize=(5, 5))
-        projection = ccrs.NearsidePerspective(
-            central_latitude=skymap['SITE_MAP_LATITUDE'], 
-            central_longitude=skymap['SITE_MAP_LONGITUDE'], 
-            satellite_height=10000*map_alt
-            )
+        fig = plt.figure(figsize=(8, 5))
+        plot_extent = [-160, -52, 40, 82]
+        central_lon = np.mean(plot_extent[:2])
+        central_lat = np.mean(plot_extent[2:])
+        projection = ccrs.Orthographic(central_lon, central_lat)
         ax = fig.add_subplot(1, 1, 1, projection=projection)
-        # ax.coastlines()
+        ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
+        ax.coastlines()
         resol = '50m'
         country_bodr = cartopy.feature.NaturalEarthFeature(category='cultural', name='admin_0_boundary_lines_land', scale=resol, facecolor='none', edgecolor='k')
 
@@ -127,9 +127,11 @@ def plot_map(time: Union[datetime, str], mission: str,
         # Add all features to the map, uncomment if you want them
         ax.add_feature(land, zorder=4)
         ax.add_feature(lakes, zorder=5)
-        #ax.add_feature(rivers, linewidth=0.5, zorder=6)
+        # ax.add_feature(rivers, linewidth=0.5, zorder=6)
         ax.add_feature(country_bodr, linestyle='--', linewidth=0.8, edgecolor="k", zorder=10)  #USA/Canada
-        ax.add_feature(provinc_bodr, linestyle='--', linewidth=0.6, edgecolor="k", zorder=10)
+        # ax.add_feature(provinc_bodr, linestyle='--', linewidth=0.6, edgecolor="k", zorder=10)
+        # ax.add_feature(Nightshade(frame_time, alpha=0.2))
+        ax.gridlines(linestyle=':')
 
     if color_bounds is None:
         lower, upper = np.nanquantile(frame, (0.25, 0.98))
@@ -149,8 +151,8 @@ def plot_map(time: Union[datetime, str], mission: str,
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    # pcolormesh_nan(lon_map, lat_map,
-    #             frame, ax, cmap=color_map, norm=norm)
+    pcolormesh_nan(lon_map, lat_map,
+                frame, ax, cmap=color_map, norm=norm)
     return frame_time, frame, skymap, ax
 
 def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, 
@@ -242,16 +244,5 @@ if __name__ == '__main__':
     # https://www.essoar.org/doi/abs/10.1002/essoar.10507288.1
     # plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)
 
-    # cal = load_cal('THEMIS', 'GILL')
-    # fig = plt.figure(figsize=(5, 5))
-    # projection = ccrs.NearsidePerspective(
-    #     central_latitude=cal['SITE_MAP_LATITUDE'], 
-    #     central_longitude=cal['SITE_MAP_LONGITUDE'], 
-    #     satellite_height=10000*110
-    #     )
-    # ax = fig.add_subplot(1, 1, 1, projection=projection)
-    # ax.coastlines()
-    # plot_map(datetime(2007, 1, 20, 0, 39, 0), 'THEMIS', 'TPAS', 110, ax=ax)
-    # plot_map(datetime(2007, 1, 20, 0, 39, 0), 'THEMIS', 'GILL', 110, ax=ax)
-
+    plt.tight_layout()
     plt.show()
