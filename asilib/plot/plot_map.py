@@ -99,6 +99,8 @@ def plot_map(time: Union[datetime, str], mission: str,
         min_elevation
         )
 
+    plt.pcolormesh(skymap['FULL_MAP_LATITUDE'][alt_index, ::-1, ::-1]); plt.colorbar(); plt.show()
+
     # Set up the plot parameters
     if ax is None:
         fig = plt.figure(figsize=(8, 5))
@@ -207,6 +209,8 @@ def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray,
     x[bottom:, :] = np.nanmax(x[bottom, :])
     y[bottom:, :] = np.nanmax(y[bottom, :])
 
+    plt.pcolormesh(y); plt.colorbar(); plt.show()
+
     # TODO: skymap rotation.
     # old masked c code: np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1]
     ax.pcolormesh(x, y, c[::-1, ::-1], 
@@ -239,7 +243,8 @@ if __name__ == '__main__':
     # plot_map(datetime(2007, 3, 13, 5, 8, 45), 'THEMIS', 'TPAS', 110)
 
     # http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
-    plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
+    # plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
+    plot_map(datetime(2015, 4, 5, 6, 7, 0), 'THEMIS', 'FSIM', 110)
 
     # https://www.essoar.org/doi/abs/10.1002/essoar.10507288.1
     # plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)
