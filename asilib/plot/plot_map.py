@@ -187,6 +187,8 @@ def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray,
         # an array, where a condition is True (not nan or inf)
         good = m.nonzero()[0]
 
+        # TODO: Problem is that top or bottom is not properly set if the valid values extend 
+        # all the way to the top or bottom edge.
         if good.size == 0:  # Skip row is all columns are nans.
             continue
         # First row that has at least 1 valid value.
@@ -194,7 +196,16 @@ def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray,
             top = i
         # Bottom row that has at least 1 value value. All indices in between top and bottom 
         else:               
-            bottom = i  
+            bottom = i
+
+        # if good.size == 0:  # Skip row is all columns are nans.
+        #     continue
+        # # First row that has at least 1 valid value.
+        # elif top is None:   
+        #     top = i
+        # # Bottom row that has at least 1 value value. All indices in between top and bottom 
+        # else:               
+        #     bottom = i  
 
         # Reassign all lat/lon columns after good[-1] (all nans) to good[-1].
         x[i, good[-1]:] = x[i, good[-1]]
@@ -217,6 +228,7 @@ def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray,
                 norm=norm)
     return
 
+
 def _mask_low_horizon(frame, lon_map, lat_map, el_map, min_elevation):
     """
     Mask the frame, skymap['FULL_MAP_LONGITUDE'], skymap['FULL_MAP_LONGITUDE'] arrays
@@ -224,7 +236,7 @@ def _mask_low_horizon(frame, lon_map, lat_map, el_map, min_elevation):
     skymap['FULL_ELEVATION'] < min_elevation.
     """
     idh = np.where(
-        np.isnan(el_map) & 
+        np.isnan(el_map) | 
         (el_map < min_elevation) 
         )
     # Copy variables to not modify original np.arrays.
