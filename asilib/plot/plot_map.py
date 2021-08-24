@@ -91,6 +91,18 @@ def plot_map(time: Union[datetime, str], mission: str,
             f'{map_alt} km is not in skymap calibration altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
     alt_index = np.where(skymap['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0] 
 
+    f, bx = plt.subplots(1, 3, sharex=True, sharey=True, figsize=(10, 3))
+    f.suptitle(skymap['skymap_path'].name)
+    p0 = bx[0].pcolormesh(skymap['FULL_ELEVATION'][::-1, ::-1])
+    plt.colorbar(p0, ax=bx[0], label='FULL_ELEVATION [deg]')
+
+    p1 = bx[1].pcolormesh(skymap['FULL_MAP_LATITUDE'][alt_index, ::-1, ::-1])
+    plt.colorbar(p1, ax=bx[1], label='FULL_MAP_LATITUDE [deg]')
+
+    p2 = bx[2].pcolormesh(skymap['FULL_MAP_LONGITUDE'][alt_index, ::-1, ::-1])
+    plt.colorbar(p2, ax=bx[2], label='FULL_MAP_LONGITUDE [deg]')
+    plt.tight_layout()
+
     frame, lon_map, lat_map = _mask_low_horizon(
         frame, 
         skymap['FULL_MAP_LONGITUDE'][alt_index, :, :], 
@@ -99,62 +111,72 @@ def plot_map(time: Union[datetime, str], mission: str,
         min_elevation
         )
 
-    plt.pcolormesh(skymap['FULL_MAP_LATITUDE'][alt_index, ::-1, ::-1]); plt.colorbar(); plt.show()
+    f, cx = plt.subplots(1, 3, sharex=True, sharey=True, figsize=(10, 3))
+    f.suptitle(f'{skymap["skymap_path"].name} | after nan filters')
+    p0 = cx[0].pcolormesh(skymap['FULL_ELEVATION'][::-1, ::-1])
+    plt.colorbar(p0, ax=cx[0], label='FULL_ELEVATION [deg]')
 
-    # Set up the plot parameters
-    if ax is None:
-        fig = plt.figure(figsize=(8, 5))
-        plot_extent = [-160, -52, 40, 82]
-        central_lon = np.mean(plot_extent[:2])
-        central_lat = np.mean(plot_extent[2:])
-        projection = ccrs.Orthographic(central_lon, central_lat)
-        ax = fig.add_subplot(1, 1, 1, projection=projection)
-        ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
-        ax.coastlines()
-        resol = '50m'
-        country_bodr = cartopy.feature.NaturalEarthFeature(category='cultural', name='admin_0_boundary_lines_land', scale=resol, facecolor='none', edgecolor='k')
+    p1 = cx[1].pcolormesh(lat_map[::-1, ::-1])
+    plt.colorbar(p1, ax=cx[1], label='FULL_MAP_LATITUDE [deg]')
 
-        # Province Boundaries
-        provinc_bodr = cartopy.feature.NaturalEarthFeature(category='cultural', name='admin_1_states_provinces_lines', scale=resol, facecolor='none', edgecolor='k')
+    p2 = cx[2].pcolormesh(lon_map[::-1, ::-1])
+    plt.colorbar(p2, ax=cx[2], label='FULL_MAP_LONGITUDE [deg]')
+    plt.tight_layout()
 
-        # Land
-        land = cartopy.feature.NaturalEarthFeature('physical', 'land', scale=resol, edgecolor='k', facecolor="none")
+    # # Set up the plot parameters
+    # if ax is None:
+    #     fig = plt.figure(figsize=(8, 5))
+    #     plot_extent = [-160, -52, 40, 82]
+    #     central_lon = np.mean(plot_extent[:2])
+    #     central_lat = np.mean(plot_extent[2:])
+    #     projection = ccrs.Orthographic(central_lon, central_lat)
+    #     ax = fig.add_subplot(1, 1, 1, projection=projection)
+    #     ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
+    #     ax.coastlines()
+    #     resol = '50m'
+    #     country_bodr = cartopy.feature.NaturalEarthFeature(category='cultural', name='admin_0_boundary_lines_land', scale=resol, facecolor='none', edgecolor='k')
 
-        # Lakes
-        lakes = cartopy.feature.NaturalEarthFeature('physical', 'lakes', scale=resol, edgecolor='k', facecolor="none")
+    #     # Province Boundaries
+    #     provinc_bodr = cartopy.feature.NaturalEarthFeature(category='cultural', name='admin_1_states_provinces_lines', scale=resol, facecolor='none', edgecolor='k')
 
-        # Rivers
-        rivers = cartopy.feature.NaturalEarthFeature('physical', 'rivers_lake_centerlines', scale=resol, edgecolor='k', facecolor='none')
+    #     # Land
+    #     land = cartopy.feature.NaturalEarthFeature('physical', 'land', scale=resol, edgecolor='k', facecolor="none")
 
-        # Add all features to the map, uncomment if you want them
-        ax.add_feature(land, zorder=4)
-        ax.add_feature(lakes, zorder=5)
-        # ax.add_feature(rivers, linewidth=0.5, zorder=6)
-        ax.add_feature(country_bodr, linestyle='--', linewidth=0.8, edgecolor="k", zorder=10)  #USA/Canada
-        # ax.add_feature(provinc_bodr, linestyle='--', linewidth=0.6, edgecolor="k", zorder=10)
-        # ax.add_feature(Nightshade(frame_time, alpha=0.2))
-        ax.gridlines(linestyle=':')
+    #     # Lakes
+    #     lakes = cartopy.feature.NaturalEarthFeature('physical', 'lakes', scale=resol, edgecolor='k', facecolor="none")
 
-    if color_bounds is None:
-        lower, upper = np.nanquantile(frame, (0.25, 0.98))
-        color_bounds = [lower, np.min([upper, lower * 10])]
+    #     # Rivers
+    #     rivers = cartopy.feature.NaturalEarthFeature('physical', 'rivers_lake_centerlines', scale=resol, edgecolor='k', facecolor='none')
 
-    if (color_map == 'auto') and (mission.lower() == 'themis'):
-        color_map = 'Greys_r'
-    elif (color_map == 'auto') and (mission.lower() == 'rego'):
-        color_map = colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
-    else:
-        raise NotImplementedError('color_map == "auto" but the mission is unsupported')
+    #     # Add all features to the map, uncomment if you want them
+    #     ax.add_feature(land, zorder=4)
+    #     ax.add_feature(lakes, zorder=5)
+    #     # ax.add_feature(rivers, linewidth=0.5, zorder=6)
+    #     ax.add_feature(country_bodr, linestyle='--', linewidth=0.8, edgecolor="k", zorder=10)  #USA/Canada
+    #     # ax.add_feature(provinc_bodr, linestyle='--', linewidth=0.6, edgecolor="k", zorder=10)
+    #     # ax.add_feature(Nightshade(frame_time, alpha=0.2))
+    #     ax.gridlines(linestyle=':')
 
-    if color_norm == 'log':
-        norm = colors.LogNorm(vmin=color_bounds[0], vmax=color_bounds[1])
-    elif color_norm == 'lin':
-        norm = colors.Normalize(vmin=color_bounds[0], vmax=color_bounds[1])
-    else:
-        raise ValueError('color_norm must be either "log" or "lin".')
+    # if color_bounds is None:
+    #     lower, upper = np.nanquantile(frame, (0.25, 0.98))
+    #     color_bounds = [lower, np.min([upper, lower * 10])]
 
-    pcolormesh_nan(lon_map, lat_map,
-                frame, ax, cmap=color_map, norm=norm)
+    # if (color_map == 'auto') and (mission.lower() == 'themis'):
+    #     color_map = 'Greys_r'
+    # elif (color_map == 'auto') and (mission.lower() == 'rego'):
+    #     color_map = colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
+    # else:
+    #     raise NotImplementedError('color_map == "auto" but the mission is unsupported')
+
+    # if color_norm == 'log':
+    #     norm = colors.LogNorm(vmin=color_bounds[0], vmax=color_bounds[1])
+    # elif color_norm == 'lin':
+    #     norm = colors.Normalize(vmin=color_bounds[0], vmax=color_bounds[1])
+    # else:
+    #     raise ValueError('color_norm must be either "log" or "lin".')
+
+    # pcolormesh_nan(lon_map, lat_map,
+    #             frame, ax, cmap=color_map, norm=norm)
     return frame_time, frame, skymap, ax
 
 def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, 
@@ -249,5 +271,5 @@ if __name__ == '__main__':
     # https://www.essoar.org/doi/abs/10.1002/essoar.10507288.1
     # plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)
 
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.show()
