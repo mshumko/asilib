@@ -17,7 +17,7 @@ from asilib.io.load import load_skymap, get_frame
 def plot_map(time: Union[datetime, str], mission: str,
     station: str, map_alt: int, time_thresh_s: float = 3,
     ax: plt.subplot = None, color_map: str = 'auto',
-    min_elevation: float=40,
+    min_elevation: float=10,
     color_bounds: Union[List[float], None]=None,
     color_norm: str='log', pcolormesh_kwargs={}):
     """
@@ -99,7 +99,7 @@ def plot_map(time: Union[datetime, str], mission: str,
         min_elevation
         )
 
-    if True:
+    if False:
         _debug_nan_filters(skymap, alt_index, lat_map, lon_map)
 
     # Set up the plot parameters
@@ -187,8 +187,6 @@ def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray,
         # an array, where a condition is True (not nan or inf)
         good = m.nonzero()[0]
 
-        # TODO: Problem is that top or bottom is not properly set if the valid values extend 
-        # all the way to the top or bottom edge.
         if good.size == 0:  # Skip row is all columns are nans.
             continue
         # First row that has at least 1 valid value.
@@ -196,16 +194,7 @@ def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray,
             top = i
         # Bottom row that has at least 1 value value. All indices in between top and bottom 
         else:               
-            bottom = i
-
-        # if good.size == 0:  # Skip row is all columns are nans.
-        #     continue
-        # # First row that has at least 1 valid value.
-        # elif top is None:   
-        #     top = i
-        # # Bottom row that has at least 1 value value. All indices in between top and bottom 
-        # else:               
-        #     bottom = i  
+            bottom = i  
 
         # Reassign all lat/lon columns after good[-1] (all nans) to good[-1].
         x[i, good[-1]:] = x[i, good[-1]]
@@ -248,6 +237,16 @@ def _mask_low_horizon(frame, lon_map, lat_map, el_map, min_elevation):
     frame_copy[idh] = np.nan
     lon_map_copy[idh] = np.nan
     lat_map_copy[idh] = np.nan
+
+    # For some reason the lat/lon_map arrays are one size larger than el_map, so 
+    # here we mask the boundary indices in el_map by adding 1 to both the rows 
+    # and columns.
+    idh_boundary_bottom = (idh[0]+1, idh[1])  # idh is a tuple so we have to create a new one.
+    idh_boundary_right = (idh[0], idh[1]+1)
+    lon_map_copy[idh_boundary_bottom] = np.nan
+    lat_map_copy[idh_boundary_bottom] = np.nan
+    lon_map_copy[idh_boundary_right] = np.nan
+    lat_map_copy[idh_boundary_right] = np.nan
     return frame_copy, lon_map_copy, lat_map_copy
 
 
@@ -288,11 +287,14 @@ if __name__ == '__main__':
     # plot_map(datetime(2007, 3, 13, 5, 8, 45), 'THEMIS', 'TPAS', 110)
 
     # http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
-    # plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
-    # plot_map(datetime(2015, 4, 5, 6, 7, 0), 'THEMIS', 'FSIM', 110)
+    frame_time, frame, skymap, ax = plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
+    plot_map(datetime(2015, 4, 5, 6, 7, 0), 'THEMIS', 'FSIM', 110, ax=ax)
+    plot_map(datetime(2015, 4, 5, 6, 7, 0), 'THEMIS', 'PINA', 110, ax=ax)
+    plot_map(datetime(2015, 4, 5, 6, 7, 0), 'THEMIS', 'WHIT', 110, ax=ax)
+    plot_map(datetime(2015, 4, 5, 6, 7, 0), 'THEMIS', 'SNKQ', 110, ax=ax)
 
     # https://www.essoar.org/doi/abs/10.1002/essoar.10507288.1
-    plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)
+    # plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)
 
     # plt.tight_layout()
     plt.show()
