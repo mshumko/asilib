@@ -163,18 +163,16 @@ def load_skymap(mission: str, station: str, time: Union[datetime, str], force_do
         time = dateutil.parser.parse(time)
 
     # Find the skymap_date that is closest and before time.
+    # For reference: dt > 0 when time is after skymap_date. 
     dt = np.array([(time - skymap_date).total_seconds() for skymap_date in skymap_dates])
-    dt[dt < 0] = np.inf
-    closest_index = np.argmin(dt)
-    skymap_path = skymap_paths[closest_index]
-
-    # Check that time is not before the first skymap date.
+    dt[dt < 0] = np.inf  # Mask out all skymap_dates after time.
     if np.all(~np.isfinite(dt)):
-        raise ValueError(
-            f'No skymap file found with a date before time={time}\n'
-            f'skymap_dates={skymap_dates}'
-        )
-
+        # Edge case when time is before the first skymap_date.
+        closest_index = 0
+    else:
+        closest_index = np.nanargmin(dt)
+    skymap_path = skymap_paths[closest_index]
+    
     # Load the skymap file and convert it to a dictionary.
     skymap_file = scipy.io.readsav(str(skymap_path), python_dict=True)['skymap']
     skymap_dict = {key: copy(skymap_file[key][0]) for key in skymap_file.dtype.names}
@@ -194,7 +192,7 @@ def _extract_skymap_dates(skymap_paths):
     """
     skymap_dates = []
 
-    for skymap_path in skymap_paths:
+    for skymap_path in sorted(skymap_paths):
         day = re.search(r'\d{8}', skymap_path.name).group(0)
         day_obj = datetime.strptime(day, "%Y%m%d")
         skymap_dates.append(day_obj)

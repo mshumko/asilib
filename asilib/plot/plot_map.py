@@ -17,7 +17,7 @@ from asilib.io.load import load_skymap, get_frame
 def plot_map(time: Union[datetime, str], mission: str,
     station: str, map_alt: int, time_thresh_s: float = 3,
     ax: plt.subplot = None, color_map: str = 'auto',
-    min_elevation: float=10,
+    min_elevation: float=5,
     color_bounds: Union[List[float], None]=None,
     color_norm: str='log', pcolormesh_kwargs={}):
     """
@@ -287,11 +287,16 @@ if __name__ == '__main__':
     # plot_map(datetime(2007, 3, 13, 5, 8, 45), 'THEMIS', 'TPAS', 110)
 
     # http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
-    frame_time, frame, skymap, ax = plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
-    plot_map(datetime(2015, 4, 5, 6, 7, 0), 'THEMIS', 'FSIM', 110, ax=ax)
-    plot_map(datetime(2015, 4, 5, 6, 7, 0), 'THEMIS', 'PINA', 110, ax=ax)
-    plot_map(datetime(2015, 4, 5, 6, 7, 0), 'THEMIS', 'WHIT', 110, ax=ax)
-    plot_map(datetime(2015, 4, 5, 6, 7, 0), 'THEMIS', 'SNKQ', 110, ax=ax)
+    # frame_time, frame, skymap, ax = plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
+
+    # https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2008GL033794
+    # Figure 2b.
+    time = datetime(2007, 3, 13, 5, 8, 45)
+    mission='THEMIS'
+    stations = ['ATHA', 'FSMI', 'FSIM', 'TPAS', 'GILL', 'PINA', 'KAPU']
+    frame_time, frame, skymap, ax = plot_map(time, mission, stations[0], 110)
+    for station in stations[1:]:
+        plot_map(time, mission, station, 110, ax=ax)
 
     # https://www.essoar.org/doi/abs/10.1002/essoar.10507288.1
     # plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)
