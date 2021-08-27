@@ -17,7 +17,7 @@ from asilib.io.load import load_skymap, get_frame
 def plot_map(time: Union[datetime, str], mission: str,
     station: str, map_alt: int, time_thresh_s: float = 3,
     ax: plt.subplot = None, color_map: str = 'auto',
-    min_elevation: float=10, norm=True,
+    min_elevation: float=10, norm=True, asi_label=True,
     color_bounds: Union[List[float], None]=None,
     color_norm: str='log', pcolormesh_kwargs={}):
     """
@@ -53,6 +53,8 @@ def plot_map(time: Union[datetime, str], mission: str,
     norm: bool 
         If True, normalizes the frame array to 0-1. This is useful when
         mapping images from multiple imagers.
+    asi_label: bool
+        Annotates the map with the ASI code in the center of the image.
     color_bounds: List[float] or None
         The lower and upper values of the color scale. If None, will
         automatically set it to low=1st_quartile and
@@ -115,28 +117,6 @@ def plot_map(time: Union[datetime, str], mission: str,
         ax = fig.add_subplot(1, 1, 1, projection=projection)
         ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
         ax.coastlines()
-        resol = '50m'
-        country_bodr = cartopy.feature.NaturalEarthFeature(category='cultural', name='admin_0_boundary_lines_land', scale=resol, facecolor='none', edgecolor='k')
-
-        # Province Boundaries
-        provinc_bodr = cartopy.feature.NaturalEarthFeature(category='cultural', name='admin_1_states_provinces_lines', scale=resol, facecolor='none', edgecolor='k')
-
-        # Land
-        land = cartopy.feature.NaturalEarthFeature('physical', 'land', scale=resol, edgecolor='k', facecolor="none")
-
-        # Lakes
-        lakes = cartopy.feature.NaturalEarthFeature('physical', 'lakes', scale=resol, edgecolor='k', facecolor="none")
-
-        # Rivers
-        rivers = cartopy.feature.NaturalEarthFeature('physical', 'rivers_lake_centerlines', scale=resol, edgecolor='k', facecolor='none')
-
-        # Add all features to the map, uncomment if you want them
-        ax.add_feature(land, zorder=4)
-        ax.add_feature(lakes, zorder=5)
-        # ax.add_feature(rivers, linewidth=0.5, zorder=6)
-        ax.add_feature(country_bodr, linestyle='--', linewidth=0.8, edgecolor="k", zorder=10)  #USA/Canada
-        # ax.add_feature(provinc_bodr, linestyle='--', linewidth=0.6, edgecolor="k", zorder=10)
-        # ax.add_feature(Nightshade(frame_time, alpha=0.2))
         ax.gridlines(linestyle=':')
 
     if color_bounds is None:
@@ -159,6 +139,10 @@ def plot_map(time: Union[datetime, str], mission: str,
 
     pcolormesh_nan(lon_map, lat_map,
                 frame, ax, cmap=color_map, norm=norm)
+
+    if asi_label:
+        ax.text(skymap['SITE_MAP_LONGITUDE'], skymap['SITE_MAP_LATITUDE'], station.upper(),
+                color='r', transform=ccrs.PlateCarree(), va='center', ha='center')
     return frame_time, frame, skymap, ax
 
 def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, 
@@ -267,7 +251,7 @@ if __name__ == '__main__':
     # Figure 2b.
     time = datetime(2007, 3, 13, 5, 8, 45)
     mission='THEMIS'
-    stations = ['ATHA', 'PINA', 'FSIM', 'TPAS', 'SNKQ']
+    stations = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
     map_alt = 110
     min_elevation = 2
 
@@ -275,6 +259,8 @@ if __name__ == '__main__':
         min_elevation=min_elevation)
     for station in stations[1:]:
         plot_map(time, mission, station, map_alt, ax=ax, min_elevation=min_elevation)
+
+    ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
 
     # https://deepblue.lib.umich.edu/bitstream/handle/2027.42/95671/jgra21670.pdf?sequence=1
     # time = datetime(2009, 1, 31, 7, 13, 0)
