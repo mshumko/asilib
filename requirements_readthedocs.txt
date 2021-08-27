@@ -1,0 +1,23 @@
+beautifulsoup4==4.9.3
+cdflib==0.3.20
+matplotlib==3.3.4
+numpy==1.20.0
+pandas==1.2.1
+requests==2.25.1
+scipy==1.6.0
+ffmpeg-python==0.2.0
+pymap3d==2.5.0
+-e .
+
+# For development
+bump2version==1.0.1 # For bumping up the versions
+bumpversion==0.6.0
+black==20.8b1 # For formatting code.
+pytest==6.2.2
+pytest-cov==2.12.0
+
+# For docs
+# Sphinx themes
+sphinx-copybutton==0.3.1
+furo==2021.4.11b34
+nbsphinx==0.8.6
