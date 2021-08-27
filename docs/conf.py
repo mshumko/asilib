@@ -40,9 +40,9 @@ extensions = [
     'nbsphinx'
 ]
 
-# autodoc_mock_imports = ["cartopy"]
+autodoc_mock_imports = ["cartopy"]
 
-sys.modules['cartopy'] = mock.Mock()
+# sys.modules['cartopy'] = mock.Mock()
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
