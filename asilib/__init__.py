@@ -40,8 +40,9 @@ from asilib.io.load import get_frames
 
 # Import the plotting and animating functions.
 from asilib.plot.plot_frame import plot_frame
-from asilib.plot.plot_movie import plot_movie, plot_movie_generator
+from asilib.plot.plot_map import plot_map
 from asilib.plot.plot_keogram import plot_keogram
+from asilib.plot.plot_movie import plot_movie, plot_movie_generator
 
 # Import the analysis functions.
 from asilib.analysis.map import lla2azel, lla2footprint, lla_to_skyfield, map_along_magnetic_field

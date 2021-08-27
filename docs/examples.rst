@@ -11,7 +11,7 @@ Example 1: Fisheye Lens View of an Arc
     :alt: A fisheye lens view of an auroral arc.
     :width: 75%
 
-    A bright auroral arc that was analyzed by Imajo et al., 2021 "Active auroral arc powered by accelerated electrons from very high altitudes"
+    A bright auroral arc that was analyzed by Imajo et al. 2021 "Active auroral arc powered by accelerated electrons from very high altitudes"
 
 .. code:: python
 
@@ -27,7 +27,42 @@ Example 1: Fisheye Lens View of an Arc
     ax.axis('off')
     plt.show()
 
-Example 2: A keogram
+Example 2: Project ASI images onto a map
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. figure:: ./_static/donovan_2008_fig2b_map.png
+    :alt: A breakup of an auroral arc projected onto a map of North America.
+    :width: 75%
+
+    The first breakup of an auroral arc during a substorm analyzed by Donovan et al. 2008 "Simultaneous THEMIS in situ and auroral observations of a small
+    substorm"
+
+.. code:: python
+
+    time = datetime(2007, 3, 13, 5, 8, 45)
+    mission='THEMIS'
+    stations = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+    map_alt = 110
+    min_elevation = 2
+
+    # Set up a cartopy map of North America. If you omit ax to asilib.plot_map(),
+    # this is the map plot that it will create. 
+    fig = plt.figure(figsize=(8, 5))
+    plot_extent = [-160, -52, 40, 82]
+    central_lon = np.mean(plot_extent[:2])
+    central_lat = np.mean(plot_extent[2:])
+    projection = ccrs.Orthographic(central_lon, central_lat)
+    ax = fig.add_subplot(1, 1, 1, projection=projection)
+    ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
+    ax.coastlines()
+    ax.gridlines(linestyle=':')
+
+    for station in stations:
+        plot_map(time, mission, station, map_alt, ax=ax, min_elevation=min_elevation)
+
+    ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
+
+
+Example 3: A keogram
 ^^^^^^^^^^^^^^^^^^^^
 .. figure:: ./_static/example_2.png
     :alt: A keogram of STEVE.
@@ -55,7 +90,7 @@ Example 2: A keogram
     plt.show()
 
 
-Example 3: Fisheye Movie
+Example 4: Fisheye Movie
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. raw:: html
@@ -74,7 +109,7 @@ Example 3: Fisheye Movie
     asilib.plot_movie(time_range, 'THEMIS', 'FSMI', overwrite=True)
     print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
 
-Example 4: A Satellite pass
+Example 5: A Satellite pass
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is a sophisticated example that maps a hypothetical satellite track to an image
@@ -142,7 +177,7 @@ This is a sophisticated example that maps a hypothetical satellite track to an i
 
     print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
 
-Example 5: Another Satellite pass
+Example 6: Another Satellite pass
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     
 An even more sophisticated example that maps a hypothetical satellite track to an image and calculates the mean ASI intensity in a 10x10 km box around the satellite's location.
