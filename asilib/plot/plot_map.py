@@ -255,9 +255,19 @@ if __name__ == '__main__':
     map_alt = 110
     min_elevation = 2
 
-    frame_time, frame, skymap, ax = plot_map(time, mission, stations[0], map_alt,
-        min_elevation=min_elevation)
-    for station in stations[1:]:
+    fig = plt.figure(figsize=(8, 5))
+    plot_extent = [-160, -52, 40, 82]
+    central_lon = np.mean(plot_extent[:2])
+    central_lat = np.mean(plot_extent[2:])
+    projection = ccrs.Orthographic(central_lon, central_lat)
+    ax = fig.add_subplot(1, 1, 1, projection=projection)
+    ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
+    ax.coastlines()
+    ax.gridlines(linestyle=':')
+
+    # frame_time, frame, skymap, ax = plot_map(time, mission, stations[0], map_alt,
+    #     min_elevation=min_elevation)
+    for station in stations:
         plot_map(time, mission, station, map_alt, ax=ax, min_elevation=min_elevation)
 
     ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
