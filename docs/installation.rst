@@ -14,23 +14,36 @@ Installing aurora-asi-lib is as simple as:
 
 Dependencies
 ^^^^^^^^^^^^
+These are the required dependencies for aurora-asi-lib to work.
 
 ffmpeg
 ------
-To make movies you'll also need to install the ffmpeg library to make movies
+To make movies.
 
-- **Ubuntu**: ```apt install ffmpeg```
+- **Linux**: ```apt install ffmpeg```
 - **Mac**: ```brew install ffmpeg```
 
 cartopy
 -------
-**Once asilib implements asi maps:** to make maps you will need to install cartopy dependencies. On linux the following commands will install these dependencies.
+To project ASI images onto a map you need to install the cartopy dependencies. As installing cartopy dependencies tend to be complex, see their `install`_ page for more details.
+
+.. _install: https://scitools.org.uk/cartopy/docs/latest/installing.html#installing
+
+**Linux**
 
 .. code-block:: shell
 
    sudo apt-get install python3-dev
    sudo apt-get install libproj-dev proj-data proj-bin  
    sudo apt-get install libgeos-dev  
+
+**Mac**
+
+.. code-block:: shell
+
+   brew install proj geos
+   pip3 install --upgrade pyshp
+   pip3 install shapely --no-binary shapely
 
 Configuration
 ^^^^^^^^^^^^^
