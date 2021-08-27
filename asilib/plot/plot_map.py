@@ -17,7 +17,7 @@ from asilib.io.load import load_skymap, get_frame
 def plot_map(time: Union[datetime, str], mission: str,
     station: str, map_alt: int, time_thresh_s: float = 3,
     ax: plt.subplot = None, color_map: str = 'auto',
-    min_elevation: float=5,
+    min_elevation: float=10, norm=True,
     color_bounds: Union[List[float], None]=None,
     color_norm: str='log', pcolormesh_kwargs={}):
     """
@@ -50,6 +50,9 @@ def plot_map(time: Union[datetime, str], mission: str,
         For more information See https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html
     min_elevation: float
         Masks the pixels below min_elevation degrees.
+    norm: bool 
+        If True, normalizes the frame array to 0-1. This is useful when
+        mapping images from multiple imagers.
     color_bounds: List[float] or None
         The lower and upper values of the color scale. If None, will
         automatically set it to low=1st_quartile and
@@ -99,8 +102,8 @@ def plot_map(time: Union[datetime, str], mission: str,
         min_elevation
         )
 
-    if False:
-        _debug_nan_filters(skymap, alt_index, lat_map, lon_map)
+    if norm:
+        frame /= np.nanmax(frame)
 
     # Set up the plot parameters
     if ax is None:
@@ -250,35 +253,6 @@ def _mask_low_horizon(frame, lon_map, lat_map, el_map, min_elevation):
     return frame_copy, lon_map_copy, lat_map_copy
 
 
-def _debug_nan_filters(skymap, alt_index, lat_map, lon_map):
-    """
-    Test function that checks that the nan filters are applied correctly.
-    """
-    f, cx = plt.subplots(2, 3, sharex=True, sharey=True, figsize=(10, 6))
-    f.suptitle(f'{skymap["skymap_path"].name}\nfirst row: original | second row: after nan filters')
-
-    p0 = cx[0, 0].pcolormesh(skymap['FULL_ELEVATION'][::-1, ::-1])
-    plt.colorbar(p0, ax=cx[0, 0], label='FULL_ELEVATION [deg]')
-
-    p1 = cx[0, 1].pcolormesh(skymap['FULL_MAP_LATITUDE'][alt_index, ::-1, ::-1])
-    plt.colorbar(p1, ax=cx[0, 1], label='FULL_MAP_LATITUDE [deg]')
-
-    p2 = cx[0, 2].pcolormesh(skymap['FULL_MAP_LONGITUDE'][alt_index, ::-1, ::-1])
-    plt.colorbar(p2, ax=cx[0, 2], label='FULL_MAP_LONGITUDE [deg]')
-
-    p0 = cx[1, 0].pcolormesh(skymap['FULL_ELEVATION'][::-1, ::-1])
-    plt.colorbar(p0, ax=cx[1, 0], label='FULL_ELEVATION [deg]')
-
-    p1 = cx[1, 1].pcolormesh(lat_map[::-1, ::-1])
-    plt.colorbar(p1, ax=cx[1, 1], label='FULL_MAP_LATITUDE [deg]')
-
-    p2 = cx[1, 2].pcolormesh(lon_map[::-1, ::-1])
-    plt.colorbar(p2, ax=cx[1, 2], label='FULL_MAP_LONGITUDE [deg]')
-    plt.tight_layout()
-    cx[1, 2].set(xlim=(0, 256), ylim=(0, 256))
-    plt.show()
-    return
-
 if __name__ == '__main__':
     # https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41598-020-79665-5/MediaObjects/41598_2020_79665_Fig1_HTML.jpg?as=webp
     # plot_map(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 110)
@@ -293,10 +267,22 @@ if __name__ == '__main__':
     # Figure 2b.
     time = datetime(2007, 3, 13, 5, 8, 45)
     mission='THEMIS'
-    stations = ['ATHA', 'FSMI', 'FSIM', 'TPAS', 'GILL', 'PINA', 'KAPU']
-    frame_time, frame, skymap, ax = plot_map(time, mission, stations[0], 110)
+    stations = ['ATHA', 'PINA', 'FSIM', 'TPAS', 'SNKQ']
+    map_alt = 110
+    min_elevation = 2
+
+    frame_time, frame, skymap, ax = plot_map(time, mission, stations[0], map_alt,
+        min_elevation=min_elevation)
     for station in stations[1:]:
-        plot_map(time, mission, station, 110, ax=ax)
+        plot_map(time, mission, station, map_alt, ax=ax, min_elevation=min_elevation)
+
+    # https://deepblue.lib.umich.edu/bitstream/handle/2027.42/95671/jgra21670.pdf?sequence=1
+    # time = datetime(2009, 1, 31, 7, 13, 0)
+    # mission='THEMIS'
+    # stations = ['GILL', 'SNKQ']#'FSMI', 'FSIM', 'TPAS', 'GILL']#, 'PINA', 'KAPU']
+    # frame_time, frame, skymap, ax = plot_map(time, mission, stations[0], 110)
+    # for station in stations[1:]:
+    #     plot_map(time, mission, station, 110, ax=ax)
 
     # https://www.essoar.org/doi/abs/10.1002/essoar.10507288.1
     # plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)
