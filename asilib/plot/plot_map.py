@@ -4,12 +4,17 @@ This module contains functions to project the ASI images to a map.
 from typing import List, Union, Optional, Sequence, Tuple
 from datetime import datetime
 import warnings
+import importlib
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
-import cartopy.crs as ccrs
-import cartopy
+
+try:
+    import cartopy.crs as ccrs
+    import cartopy
+except ImportError:
+    pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.plot_map().
 
 from asilib.io.load import load_skymap, get_frame
 
@@ -82,6 +87,12 @@ def plot_map(time: Union[datetime, str], mission: str,
         east is right, and west is left), contrary to the camera orientation where
         the east/west directions are flipped. Set azel_contours=True to confirm.
     """
+    # Halt here if cartopy is not installed.
+    if importlib.util.find_spec("cartopy") is None:
+        raise ImportError("cartopy can't be imported. This is a required dependency for asilib.plot_map()"
+            " that must be installed separately. See https://scitools.org.uk/cartopy/docs/latest/installing.html"
+            " and https://aurora-asi-lib.readthedocs.io/en/latest/installation.html.")
+
     frame_time, frame = get_frame(
         time, mission, station, time_thresh_s=time_thresh_s
     )

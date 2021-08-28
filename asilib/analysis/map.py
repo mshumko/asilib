@@ -8,17 +8,12 @@ import numpy as np
 import pymap3d
 import scipy.spatial
 
-import asilib
-
-
-if importlib.util.find_spec('IRBEM'):
+try:
     import IRBEM
-else:
-    if asilib.config['IRBEM_WARNING']:
-        warnings.warn(
-            "The IRBEM magnetic field library is not installed and is "
-            "a dependency of asilib.analysis.map.lla2footprint()."
-        )
+except ImportError:
+    pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.lla2footprint().
+
+import asilib
         
 
 def lla2azel(
@@ -166,8 +161,17 @@ def lla2footprint(
     magnetic_footprint: np.ndarray
         A numpy.array with size (n_times, 3) with lat, lon, alt
         columns representing the magnetic footprint coordinates. 
-    """
 
+    Raises
+    ------
+    ImportError
+        If IRBEM can't be imported.
+    """
+    if importlib.util.find_spec('IRBEM') is None:
+        raise ImportError("IRBEM can't be imported. This is a required dependency for asilib.lla2footprint()"
+            " that must be installed separately. See https://github.com/PRBEM/IRBEM"
+            " and https://aurora-asi-lib.readthedocs.io/en/latest/installation.html.")
+    
     magnetic_footprint = np.nan * np.zeros((space_time.shape[0], 3))
 
     m = IRBEM.MagFields(kext=b_model)  # Initialize the IRBEM model.

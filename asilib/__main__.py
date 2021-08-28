@@ -17,11 +17,6 @@ if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'con
     )
     ASI_DATA_DIR = input(s)
 
-    s = (
-        f'Raise IRBEM import warnings? Default yes: '
-    )
-    IRBEM_WARNING = input(s)
-
     # If the user specified the directory, check that the ASI directory already exists
     # and make that directory if it does not.
     if ASI_DATA_DIR != '':
@@ -43,24 +38,11 @@ if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'con
             print(f'asilib directory at {DEFAULT_ASI_DATA_DIR} already exists.')
 
 
-    # Check that the IRBEM_WARNING input is correct.
-    if ('y' in IRBEM_WARNING.lower()) or ('true' in IRBEM_WARNING.lower()):
-        IRBEM_WARNING = True
-    elif IRBEM_WARNING == '':
-        IRBEM_WARNING = True
-    elif ('n' in IRBEM_WARNING.lower()) or ('false' in IRBEM_WARNING.lower()):
-        IRBEM_WARNING = False
-    else:
-        raise ValueError(f'Unknown input to IRBEM_WARNING = {IRBEM_WARNING}. It must be'
-                        f' one of the following: [y, n, yes, no, True, False]')
-
 
     # Create a configparser object and add the user configuration. 
     config = configparser.ConfigParser()
-
     if ASI_DATA_DIR != '':
         config['Paths'] = {'ASI_DATA_DIR':ASI_DATA_DIR} 
-    config['Warnings'] = {'IRBEM':IRBEM_WARNING}
 
     with open(here / 'config.ini', 'w') as f:
        config.write(f)

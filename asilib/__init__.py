@@ -17,15 +17,9 @@ try:
 except KeyError:  # Raised if config.ini does not have Paths.
     ASI_DATA_DIR = pathlib.Path.home() / 'asilib-data'
 
-try:
-    IRBEM_WARNING = settings['Warnings'].getboolean('IRBEM')
-except KeyError: # Raised if config.ini does not have Warnings.
-    IRBEM_WARNING = True
-
 config = {
     'ASILIB_DIR': HERE,
-    'ASI_DATA_DIR': ASI_DATA_DIR, 
-    'IRBEM_WARNING':IRBEM_WARNING
+    'ASI_DATA_DIR': ASI_DATA_DIR
 }
 
 # Import download programs.
