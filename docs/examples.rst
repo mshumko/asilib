@@ -38,6 +38,14 @@ Example 2: Project ASI images onto a map
 
 .. code:: python
 
+    from datetime import datetime
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import cartopy.crs as ccrs
+    import asilib
+
+    # First two code blocks set up the ASI parameters and the map subplot.
     time = datetime(2007, 3, 13, 5, 8, 45)
     mission='THEMIS'
     stations = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
@@ -57,10 +65,10 @@ Example 2: Project ASI images onto a map
     ax.gridlines(linestyle=':')
 
     for station in stations:
-        plot_map(time, mission, station, map_alt, ax=ax, min_elevation=min_elevation)
+        asilib.plot_map(time, mission, station, map_alt, ax=ax, min_elevation=min_elevation)
 
     ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
-
+    plt.show()
 
 Example 3: A keogram
 ^^^^^^^^^^^^^^^^^^^^
