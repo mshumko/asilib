@@ -62,7 +62,7 @@ def download_rego_img(
     | from datetime import datetime
     |
     | import asilib
-    | 
+    |
     | day = datetime(2017, 4, 13, 5)
     | station = 'LUCK'
     | asilib.download_rego_img(day, station)
@@ -118,7 +118,7 @@ def download_rego_skymap(station: str, force_download: bool = False) -> List[pat
     Example
     -------
     | import asilib
-    | 
+    |
     | station = 'LUCK'
     | asilib.download_rego_skymap(station)
     """
@@ -149,13 +149,15 @@ def download_rego_skymap(station: str, force_download: bool = False) -> List[pat
             stream_large_file(skymap_folder_absolute + skymap_name, download_path)
     return download_paths
 
+
 def download_rego_cal(station: str, force_download: bool = False) -> List[pathlib.Path]:
     """
     DEPRECATED for download_rego_skymap()
     """
-    warnings.warn('asilib.download_rego_cal is deprecated. Use asilib.download_rego_skymap() instead', 
-        DeprecationWarning
-        )
+    warnings.warn(
+        'asilib.download_rego_cal is deprecated. Use asilib.download_rego_skymap() instead',
+        DeprecationWarning,
+    )
     return download_rego_skymap(station, force_download)
 
 
@@ -226,7 +228,7 @@ def search_hrefs(url: str, search_pattern: str = '.cdf') -> List[str]:
     Raises
     ------
     NotADirectoryError
-        If a hyper reference (a folder or a file) is not found on the 
+        If a hyper reference (a folder or a file) is not found on the
         server. This is raised if the data does not exist.
     """
     matched_hrefs = []

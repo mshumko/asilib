@@ -14,13 +14,13 @@ except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.lla2footprint().
 
 import asilib
-        
+
 
 def lla2azel(
     mission, station, time, sat_lla, force_download: bool = False
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Maps, a satellite's latitude, longitude, and altitude (LLA) coordinates 
+    Maps, a satellite's latitude, longitude, and altitude (LLA) coordinates
     to the ASI's azimuth and elevation (azel) coordinates and image pixel index.
 
     This function is useful to plot a satellite's location in the ASI image using the
@@ -62,7 +62,7 @@ def lla2azel(
     |
     | import numpy as np
     | from asilib import lla2azel
-    | 
+    |
     | # THEMIS/ATHA's LLA coordinates are (54.72, -113.301, 676 (meters)).
     | # The LLA is a North-South pass right above ATHA..
     | n = 50
@@ -72,7 +72,7 @@ def lla2azel(
     | lla = np.array([lats, lons, alts]).T
     |
     | time = datetime(2015, 10, 1)  # To load the proper skymap file.
-    | 
+    |
     | azel, pixels = lla2azel('REGO', 'ATHA', time, lla)
     """
 
@@ -155,12 +155,12 @@ def lla2footprint(
         +1   = northern magnetic hemisphere
         -1   = southern magnetic hemisphere
         +2   = opposite magnetic hemisphere as starting point
-    
+
     Returns
     -------
     magnetic_footprint: np.ndarray
         A numpy.array with size (n_times, 3) with lat, lon, alt
-        columns representing the magnetic footprint coordinates. 
+        columns representing the magnetic footprint coordinates.
 
     Raises
     ------
@@ -168,10 +168,12 @@ def lla2footprint(
         If IRBEM can't be imported.
     """
     if importlib.util.find_spec('IRBEM') is None:
-        raise ImportError("IRBEM can't be imported. This is a required dependency for asilib.lla2footprint()"
+        raise ImportError(
+            "IRBEM can't be imported. This is a required dependency for asilib.lla2footprint()"
             " that must be installed separately. See https://github.com/PRBEM/IRBEM"
-            " and https://aurora-asi-lib.readthedocs.io/en/latest/installation.html.")
-    
+            " and https://aurora-asi-lib.readthedocs.io/en/latest/installation.html."
+        )
+
     magnetic_footprint = np.nan * np.zeros((space_time.shape[0], 3))
 
     m = IRBEM.MagFields(kext=b_model)  # Initialize the IRBEM model.
@@ -204,7 +206,9 @@ def map_along_magnetic_field(
     """
     DEPRECARED for lla2footprint()
     """
-    return lla2footprint(space_time, map_alt, b_model=b_model, maginput=maginput, hemisphere=hemisphere)
+    return lla2footprint(
+        space_time, map_alt, b_model=b_model, maginput=maginput, hemisphere=hemisphere
+    )
 
 
 def _map_azel_to_pixel(sat_azel: np.ndarray, skymap_dict: dict) -> np.ndarray:

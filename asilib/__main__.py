@@ -27,7 +27,7 @@ if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'con
             print(f'aurora_asi data directory at {pathlib.Path(ASI_DATA_DIR)} already exists.')
     else:
         # If the user did not specify the directory, make one at ~/asilib-data
-        # and don't save ASI_DATA_DIR. Then configparser in __init__.py will 
+        # and don't save ASI_DATA_DIR. Then configparser in __init__.py will
         # try to load ASI_DATA_DIR and default to pathlib.Path.home() / 'asilib-data'
         # if it doesn't exist.
         DEFAULT_ASI_DATA_DIR = pathlib.Path.home() / 'asilib-data'
@@ -37,15 +37,13 @@ if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'con
         else:
             print(f'asilib directory at {DEFAULT_ASI_DATA_DIR} already exists.')
 
-
-
-    # Create a configparser object and add the user configuration. 
+    # Create a configparser object and add the user configuration.
     config = configparser.ConfigParser()
     if ASI_DATA_DIR != '':
-        config['Paths'] = {'ASI_DATA_DIR':ASI_DATA_DIR} 
+        config['Paths'] = {'ASI_DATA_DIR': ASI_DATA_DIR}
 
     with open(here / 'config.ini', 'w') as f:
-       config.write(f)
+        config.write(f)
 
 else:
     print(

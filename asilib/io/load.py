@@ -39,8 +39,8 @@ def load_img(
     Returns
     -------
     cdflib.CDF
-        The handle to the full image CDF object. Use cdflib.CDF.varget() 
-        to load the variables into memory (see the implementation in 
+        The handle to the full image CDF object. Use cdflib.CDF.varget()
+        to load the variables into memory (see the implementation in
         asilib.io.load.get_frame() or asilib.io.load.get_frames())
 
     Raises
@@ -50,7 +50,7 @@ def load_img(
         this FileNotFoundError that clearly conveys that the file was not
         found in the file system or online.
     ValueError
-        Raised if there is an error with the file finding logic (ideally 
+        Raised if there is an error with the file finding logic (ideally
         should not be raised).
 
     Example
@@ -113,6 +113,7 @@ def load_img(
     # If we made it here, we either found a local file, or downloaded one
     return cdflib.CDF(file_path)
 
+
 def load_img_file(time, mission: str, station: str, force_download: bool = False):
     """
     DEPRECATED for load_img()
@@ -121,7 +122,9 @@ def load_img_file(time, mission: str, station: str, force_download: bool = False
     return load_img(time, mission, station, force_download)
 
 
-def load_skymap(mission: str, station: str, time: Union[datetime, str], force_download: bool = False) -> dict:
+def load_skymap(
+    mission: str, station: str, time: Union[datetime, str], force_download: bool = False
+) -> dict:
     """
     Loads (and downloads if it doesn't exist) the skymap file closest and before time.
 
@@ -144,10 +147,12 @@ def load_skymap(mission: str, station: str, time: Union[datetime, str], force_do
     Example
     -------
     | import asilib
-    | 
+    |
     | rego_skymap = asilib.load_skymap('REGO', 'GILL', '2018-10-01')
     """
-    skymap_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower(), 'skymap', station.lower())
+    skymap_dir = pathlib.Path(
+        asilib.config['ASI_DATA_DIR'], mission.lower(), 'skymap', station.lower()
+    )
     skymap_paths = sorted(list(skymap_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
 
     # Download skymap files if they are not downloaded yet.
@@ -163,7 +168,7 @@ def load_skymap(mission: str, station: str, time: Union[datetime, str], force_do
         time = dateutil.parser.parse(time)
 
     # Find the skymap_date that is closest and before time.
-    # For reference: dt > 0 when time is after skymap_date. 
+    # For reference: dt > 0 when time is after skymap_date.
     dt = np.array([(time - skymap_date).total_seconds() for skymap_date in skymap_dates])
     dt[dt < 0] = np.inf  # Mask out all skymap_dates after time.
     if np.all(~np.isfinite(dt)):
@@ -172,7 +177,7 @@ def load_skymap(mission: str, station: str, time: Union[datetime, str], force_do
     else:
         closest_index = np.nanargmin(dt)
     skymap_path = skymap_paths[closest_index]
-    
+
     # Load the skymap file and convert it to a dictionary.
     skymap_file = scipy.io.readsav(str(skymap_path), python_dict=True)['skymap']
     skymap_dict = {key: copy(skymap_file[key][0]) for key in skymap_file.dtype.names}
@@ -186,6 +191,7 @@ def load_skymap(mission: str, station: str, time: Union[datetime, str], force_do
     skymap_dict['skymap_path'] = skymap_path
     return skymap_dict
 
+
 def _extract_skymap_dates(skymap_paths):
     """
     Extract the skymap dates from each skymap_path in skymap_paths.
@@ -198,23 +204,26 @@ def _extract_skymap_dates(skymap_paths):
         skymap_dates.append(day_obj)
     return skymap_dates
 
+
 def load_cal(mission: str, station: str, time, force_download: bool = False):
     """
     DEPRECATED for load_skymap()
     """
-    warnings.warn('asilib.load_cal() is deprecated, use asilib.load_skymap() instead', 
-        DeprecationWarning
-        )
+    warnings.warn(
+        'asilib.load_cal() is deprecated, use asilib.load_skymap() instead', DeprecationWarning
+    )
     return load_skymap(mission, station, time, force_download)
+
 
 def load_cal_file(mission: str, station: str, force_download: bool = False):
     """
     DEPRECATED for load_cal()
     """
-    warnings.warn('asilib.load_cal_file() is deprecated, use asilib.load_skymap() instead', 
-        DeprecationWarning
-        )
+    warnings.warn(
+        'asilib.load_cal_file() is deprecated, use asilib.load_skymap() instead', DeprecationWarning
+    )
     return load_cal(mission, station, force_download)
+
 
 def get_frame(
     time: Union[datetime, str],
@@ -257,13 +266,13 @@ def get_frame(
     Raises
     ------
     AssertionError
-        If a unique time stamp was not found within time_thresh_s of 
+        If a unique time stamp was not found within time_thresh_s of
         time.
 
     Example
     -------
     | import asilib
-    | 
+    |
     | time, frame = asilib.get_frame('2016-10-29T04:15:00', 'REGO', 'GILL')
     """
     # Try to convert time to datetime object if it is a string.
@@ -340,13 +349,13 @@ def get_frames(
         If the data file exists with no time stamps contained in time_range.
     AssertionError
         If len(time_range) != 2.
-        
+
     Example
     -------
     | from datetime import datetime
-    | 
+    |
     | import asilib
-    | 
+    |
     | time_range = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
     | times, frames = asilib.get_frames(time_range, 'REGO', 'GILL')
     """
@@ -389,7 +398,7 @@ def get_frames(
         else:
             # The timedelta offset is needed to include the end hour.
             hourly_date_times = pd.date_range(
-                start=time_range[0], end=time_range[1]+pd.Timedelta(hours=1), freq='H'
+                start=time_range[0], end=time_range[1] + pd.Timedelta(hours=1), freq='H'
             )
         for hour_date_time in hourly_date_times:
             cdf_obj = load_img(hour_date_time, mission, station, force_download=force_download)
@@ -397,7 +406,7 @@ def get_frames(
             # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
             # to datetime objects.
             epoch = np.append(
-                    epoch, _get_epoch(cdf_obj, time_key, hour_date_time, mission, station)
+                epoch, _get_epoch(cdf_obj, time_key, hour_date_time, mission, station)
             )
 
             # Get the frames 3d array and concatenate.
@@ -405,15 +414,17 @@ def get_frames(
 
     # Find the time stamps in between time_range.
     idx = np.where((epoch >= time_range[0]) & (epoch <= time_range[1]))[0]
-    assert len(idx) > 0, (f'The data exists for {mission}/{station}, but no '
-                        f'data between {time_range}')
+    assert len(idx) > 0, (
+        f'The data exists for {mission}/{station}, but no ' f'data between {time_range}'
+    )
     return epoch[idx], frames[idx, :, :]
+
 
 def get_frames_generator(time_range, mission, station, force_download=False):
     """
     Gets multiple ASI image frames given the mission (THEMIS or REGO), station, and
     the time_range date-time parameters. If a file does not locally exist, this
-    function will attempt to download it. This generator yields the ASI data, file 
+    function will attempt to download it. This generator yields the ASI data, file
     by file, bounded by time_range. This generator is useful for loading lots of data
     for keograms.
 
@@ -447,6 +458,7 @@ def get_frames_generator(time_range, mission, station, force_download=False):
     """
 
     raise NotImplementedError
+
 
 def _validate_time_range(time_range):
     """
@@ -482,34 +494,37 @@ def _validate_time_range(time_range):
             # Try to parse it if passed a string.
             time_range_list.append(dateutil.parser.parse(t_i))
         elif isinstance(t_i, (datetime, pd.Timestamp)):
-            # If passed a the native or pandas datetime object. 
+            # If passed a the native or pandas datetime object.
             time_range_list.append(t_i)
         else:
-            raise ValueError(f'Unknown time_range format. Got {time_range}. Start/end times must be '
-                            'strings that can be parsed by dateutil.parser.parse, or '
-                            'datetime.datetime, or pd.Timestamp objects.')
+            raise ValueError(
+                f'Unknown time_range format. Got {time_range}. Start/end times must be '
+                'strings that can be parsed by dateutil.parser.parse, or '
+                'datetime.datetime, or pd.Timestamp objects.'
+            )
 
     # Sort time_range if the user passed it in out of order.
     time_range_list = sorted(time_range_list)
     return time_range_list
+
 
 def _get_epoch(cdf_obj, time_key, hour_date_time, mission, station):
     """
     Gets the CDF epoch array and modifies a ValueError when a CDF file is corrupted.
     """
     try:
-        epoch = np.array(
-            cdflib.cdfepoch.to_datetime(cdf_obj.varget(time_key))
-            )
+        epoch = np.array(cdflib.cdfepoch.to_datetime(cdf_obj.varget(time_key)))
     except ValueError as err:
         if str(err) == 'read length must be non-negative or -1':
-            raise ValueError(str(err) + '\n\n ASI data is probably corrupted for '
-            f'time={hour_date_time}, mission={mission}, station={station}. '
-            'download the data again with force_download=True).'
+            raise ValueError(
+                str(err) + '\n\n ASI data is probably corrupted for '
+                f'time={hour_date_time}, mission={mission}, station={station}. '
+                'download the data again with force_download=True).'
             )
         else:
             raise
     return epoch
+
 
 if __name__ == '__main__':
     skymap = load_skymap('THEMIS', 'FSMI', '2015-10-16')

@@ -3,7 +3,7 @@ Tests for keogram.py and plot_keogram.py.
 """
 import unittest
 import pathlib
- 
+
 import pandas as pd
 import numpy as np
 
@@ -11,22 +11,25 @@ import asilib
 from asilib.analysis.keogram import keogram
 from asilib.plot.plot_keogram import plot_keogram
 
+
 class Test_keogram(unittest.TestCase):
     def setUp(self):
-        self.mission='REGO'
-        self.station='LUCK'
+        self.mission = 'REGO'
+        self.station = 'LUCK'
         return
 
     def test_steve_keogram(self):
         """
         Tests that the STEVE keogram pd.DataFrame is identical.
         """
-        keo = keogram(['2017-09-27T08', '2017-09-27T08:10'], self.mission, self.station, 
-                    map_alt=230)
+        keo = keogram(
+            ['2017-09-27T08', '2017-09-27T08:10'], self.mission, self.station, map_alt=230
+        )
         keo_reference = pd.read_csv(
             pathlib.Path(asilib.config['ASILIB_DIR'], 'tests', 'data', 'test_steve_keogram.csv'),
-            index_col=0, parse_dates=True
-            )
+            index_col=0,
+            parse_dates=True,
+        )
         keo_reference.columns = map(float, keo_reference.columns)
 
         # Test that the keogram values are the same.
@@ -40,25 +43,26 @@ class Test_keogram(unittest.TestCase):
     def test_keogram_altitude_error(self):
         """
         Checks that keogram() raises an AssertionError if map_alt is not
-        in the list of skymap calibration altitudes. 
+        in the list of skymap calibration altitudes.
         """
         with self.assertRaises(AssertionError):
-            keo = keogram(['2017-09-27T08', '2017-09-27T08:10'], self.mission, self.station, 
-                    map_alt=200)
+            keo = keogram(
+                ['2017-09-27T08', '2017-09-27T08:10'], self.mission, self.station, map_alt=200
+            )
         return
+
 
 class Test_plot_keogram(unittest.TestCase):
     def setUp(self):
-        self.mission='REGO'
-        self.station='LUCK'
+        self.mission = 'REGO'
+        self.station = 'LUCK'
         return
 
     def test_steve_plot_keogram_alt(self):
         """
         Tests that the STEVE keogram plot is made without an error.
         """
-        plot_keogram(['2017-09-27T08', '2017-09-27T08:10'], self.mission, self.station, 
-                    map_alt=230)
+        plot_keogram(['2017-09-27T08', '2017-09-27T08:10'], self.mission, self.station, map_alt=230)
         return
 
     def test_steve_plot_keogram_alt(self):

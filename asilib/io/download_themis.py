@@ -153,11 +153,13 @@ def download_themis_skymap(station: str, force_download: bool = False):
             download_rego.stream_large_file(skymap_folder_absolute + skymap_name, download_path)
     return download_paths
 
+
 def download_themis_cal(station: str, force_download: bool = False) -> List[pathlib.Path]:
     """
     DEPRECATED for download_themis_skymap()
     """
-    warnings.warn('asilib.download_themis_cal() is deprecated. Use asilib.download_themis_skymap() instead', 
-        DeprecationWarning
-        )
+    warnings.warn(
+        'asilib.download_themis_cal() is deprecated. Use asilib.download_themis_skymap() instead',
+        DeprecationWarning,
+    )
     return download_themis_skymap(station, force_download)

@@ -15,7 +15,7 @@ overhead and at 500 km altitude.
 
 class TestProjectLLAtoSkyfield(unittest.TestCase):
     def setUp(self):
-        self.station='LUCK'
+        self.station = 'LUCK'
         self.time = datetime(2020, 1, 1)
         return
 

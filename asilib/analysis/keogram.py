@@ -3,6 +3,7 @@ import pandas as pd
 
 from asilib.io.load import get_frames, load_skymap, _validate_time_range
 
+
 def keogram(time_range, mission, station, map_alt=None):
     """
     Makes a keogram pd.DataFrame along the central meridian.
@@ -20,7 +21,7 @@ def keogram(time_range, mission, station, map_alt=None):
     station: str
         The station id to download the data from.
     map_alt: int, optional
-        The mapping altitude, in kilometers, used to index the mapped latitude in the 
+        The mapping altitude, in kilometers, used to index the mapped latitude in the
         skymap data. If None, will plot pixel index for the y-axis.
 
     Returns
@@ -28,7 +29,7 @@ def keogram(time_range, mission, station, map_alt=None):
     keo: pd.DataFrame
         The 2d keogram with the time index. The columns are the geographic latitude
         if map_alt != None, otherwise it is the image pixel values (0-265) or (0-512).
-        
+
     Raises
     ------
     AssertionError
@@ -38,7 +39,7 @@ def keogram(time_range, mission, station, map_alt=None):
     frame_times, frames = get_frames(time_range, mission, station)
 
     # Find the pixel at the center of the camera.
-    center_pixel = int(frames.shape[1]/2)
+    center_pixel = int(frames.shape[1] / 2)
 
     # Get the meridian from all of the frames.
     keo = frames[:, :, center_pixel]
@@ -47,14 +48,15 @@ def keogram(time_range, mission, station, map_alt=None):
         keogram_latitude = np.arange(frames.shape[1])  # Dummy index values.
     else:
         skymap = load_skymap(mission, station, time_range[0])
-        assert map_alt in skymap['FULL_MAP_ALTITUDE']/1000, \
-            f'{map_alt} km is not in skymap altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
-        alt_index = np.where(skymap['FULL_MAP_ALTITUDE']/1000 == map_alt)[0][0]
+        assert (
+            map_alt in skymap['FULL_MAP_ALTITUDE'] / 1000
+        ), f'{map_alt} km is not in skymap altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
+        alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
         keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, :, center_pixel]
 
         # keogram_latitude array are at the pixel edges. Remap it to the centers
         dl = keogram_latitude[1:] - keogram_latitude[:-1]
-        keogram_latitude = keogram_latitude[0:-1] + dl/2
+        keogram_latitude = keogram_latitude[0:-1] + dl / 2
 
         # Since keogram_latitude values are NaNs near the image edges, we want to filter
         # out those indices from keogram_latitude and keo.

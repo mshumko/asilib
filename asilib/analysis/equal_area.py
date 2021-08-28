@@ -3,11 +3,12 @@ import pandas as pd
 
 import asilib
 
-earth_radius_km = 6371 # Earth radius
+earth_radius_km = 6371  # Earth radius
+
 
 def equal_area(mission, station, time, lla, box_km=(5, 5), alt_thresh_km=3):
     """
-    Given a square are in kilometers and a series of (latitude, 
+    Given a square are in kilometers and a series of (latitude,
     longitude, altitude) coordinates, calculate the pixel box
     width and height.
 
@@ -21,7 +22,7 @@ def equal_area(mission, station, time, lla, box_km=(5, 5), alt_thresh_km=3):
         Time is used to find the relevant skymap file: file created nearest to, and before, the time.
     lla: np.ndarray
         An array with (n_time, 3) dimensions with the columns
-        representing the latitude, longitude, and altitude 
+        representing the latitude, longitude, and altitude
         coordinates.
     box_size_km: iterable
         A length 2 iterable with the box dimensions in
@@ -30,9 +31,9 @@ def equal_area(mission, station, time, lla, box_km=(5, 5), alt_thresh_km=3):
     Returns
     -------
     pixel_mask: np.ndarray
-        An array with (n_time, n_x_pixels, n_y_pixels) dimensions with 
+        An array with (n_time, n_x_pixels, n_y_pixels) dimensions with
         dimensions n_x_pixels and n_y_pixels dimensions the size of each
-        frame. Values inside the area are 1 and outside are np.nan. 
+        frame. Values inside the area are 1 and outside are np.nan.
     """
     assert len(box_km) == 2, 'The box_km parameter must have a length of 2.'
 
@@ -52,20 +53,21 @@ def equal_area(mission, station, time, lla, box_km=(5, 5), alt_thresh_km=3):
 
     # Check that the altitude value is in the skymap.
     for alt in lla[:, -1]:
-        assert np.min(np.abs(skymap_dict['FULL_MAP_ALTITUDE']/1000-alt)) < alt_thresh_km , (
-            f'Got {alt} km altitude, but it must be one of these: {skymap_dict["FULL_MAP_ALTITUDE"]/1000}')
-    alt_index = np.argmin(np.abs(skymap_dict['FULL_MAP_ALTITUDE']/1000-alt))
+        assert (
+            np.min(np.abs(skymap_dict['FULL_MAP_ALTITUDE'] / 1000 - alt)) < alt_thresh_km
+        ), f'Got {alt} km altitude, but it must be one of these: {skymap_dict["FULL_MAP_ALTITUDE"]/1000}'
+    alt_index = np.argmin(np.abs(skymap_dict['FULL_MAP_ALTITUDE'] / 1000 - alt))
     lat_map = skymap_dict['FULL_MAP_LATITUDE'][alt_index, :, :]
     lon_map = skymap_dict['FULL_MAP_LONGITUDE'][alt_index, :, :]
 
     # shape[X]-1 because the lat/lon maps define the vertices.
-    pixel_mask = np.nan*np.zeros((lla.shape[0], lat_map.shape[0]-1, lat_map.shape[1]-1))
+    pixel_mask = np.nan * np.zeros((lla.shape[0], lat_map.shape[0] - 1, lat_map.shape[1] - 1))
 
     dlat = _dlat(box_km[1], lla[:, -1])
     dlon = _dlon(box_km[0], lla[:, -1], lla[:, 0])
 
     for i, ((lat, lon, _), dlon_i, dlat_i) in enumerate(zip(lla, dlon, dlat)):
-        # Find the indices of the box. If none were found (pixel smaller than 
+        # Find the indices of the box. If none were found (pixel smaller than
         # the box_size_km) then increase the box size until one pixel is found.
         masked_box_len = 0
         multiplier = 1
@@ -73,10 +75,10 @@ def equal_area(mission, station, time, lla, box_km=(5, 5), alt_thresh_km=3):
 
         while masked_box_len == 0:
             idx_box = np.where(
-                (lat_map >= lat-multiplier*dlat_i/2) &
-                (lat_map <= lat+multiplier*dlat_i/2) &
-                (lon_map >= lon-multiplier*dlon_i/2) &
-                (lon_map <= lon+multiplier*dlon_i/2)
+                (lat_map >= lat - multiplier * dlat_i / 2)
+                & (lat_map <= lat + multiplier * dlat_i / 2)
+                & (lon_map >= lon - multiplier * dlon_i / 2)
+                & (lon_map <= lon + multiplier * dlon_i / 2)
             )
 
             masked_box_len = len(idx_box[0])
@@ -95,7 +97,7 @@ def equal_area(mission, station, time, lla, box_km=(5, 5), alt_thresh_km=3):
 
 def _dlat(d, alt):
     """
-    Calculate the change in latitude that correpsponds to arc length distance d at 
+    Calculate the change in latitude that correpsponds to arc length distance d at
     alt altitude. Units are kilometers. Both d and alt must be the same length.
 
     Parameters
@@ -104,7 +106,7 @@ def _dlat(d, alt):
         A float, 1d list, or 1d np.array of arc length.
     alt: float or np.ndarray
         A float, 1d list, or 1d np.array of satellite altitudes.
-    
+
     Returns
     -------
     dlat: float or np.ndarray
@@ -112,7 +114,7 @@ def _dlat(d, alt):
     """
     if isinstance(alt, list):  # Don't need to cast d since it is in np.divide().
         alt = np.array(alt)
-    return np.rad2deg(np.divide(d, (earth_radius_km+alt)))
+    return np.rad2deg(np.divide(d, (earth_radius_km + alt)))
 
 
 def _dlon(d, alt, lat):
@@ -137,7 +139,7 @@ def _dlon(d, alt, lat):
     if isinstance(alt, list):  # Don't need to cast other variables.
         alt = np.array(alt)
 
-    numerator = np.sin(d/(2*(earth_radius_km+alt)))
+    numerator = np.sin(d / (2 * (earth_radius_km + alt)))
     denominator = np.cos(np.deg2rad(lat))
-    dlon_rads = 2*np.arcsin(numerator/denominator)
+    dlon_rads = 2 * np.arcsin(numerator / denominator)
     return np.rad2deg(dlon_rads)

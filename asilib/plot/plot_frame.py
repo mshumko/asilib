@@ -91,9 +91,9 @@ def plot_frame(
     Example
     -------
     | from datetime import datetime
-    | 
+    |
     | import matplotlib.pyplot as plt
-    | 
+    |
     | import asilib
     |
     | # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active
