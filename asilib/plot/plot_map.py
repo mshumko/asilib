@@ -26,7 +26,7 @@ def plot_map(time: Union[datetime, str], mission: str,
     color_bounds: Union[List[float], None]=None,
     color_norm: str='log', pcolormesh_kwargs={}):
     """
-    Projects the ASI images to a map at an altitude in the calibration file.
+    Projects the ASI images to a map at an altitude in the skymap calibration file.
 
     Parameters
     ----------
@@ -41,7 +41,7 @@ def plot_map(time: Union[datetime, str], mission: str,
         The station id to download the data from.
     map_alt: int
         The altitude in kilometers to project to. Must be an altitude value 
-        in the calibration.
+        in the skymap calibration.
     time_thresh_s: float
         The maximum allowed time difference between a frame's time stamp
         and the time argument in seconds. Will raise a ValueError if no
@@ -77,15 +77,12 @@ def plot_map(time: Union[datetime, str], mission: str,
         The time of the current frame.
     frame: np.array
         The 2d ASI image corresponding to frame_time.
-    cal: dict
-        The calibration data for that mission-station.
+    skyamp: dict
+        The skymap calibration for that ASI.
     ax: plt.Axes
         The subplot object to modify the axis, labels, etc.
-    im: plt.AxesImage
-        The plt.imshow image object. Common use for im is to add a colorbar.
-        The image is oriented in the map orientation (north is up, south is down,
-        east is right, and west is left), contrary to the camera orientation where
-        the east/west directions are flipped. Set azel_contours=True to confirm.
+    p: plt.AxesImage
+        The plt.pcolormesh image object. Common use for p is to add a colorbar.
     """
     # Halt here if cartopy is not installed.
     if importlib.util.find_spec("cartopy") is None:
@@ -144,13 +141,13 @@ def plot_map(time: Union[datetime, str], mission: str,
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    pcolormesh_nan(lon_map, lat_map,
+    p = pcolormesh_nan(lon_map, lat_map,
                 frame, ax, cmap=color_map, norm=norm)
 
     if asi_label:
         ax.text(skymap['SITE_MAP_LONGITUDE'], skymap['SITE_MAP_LATITUDE'], station.upper(),
                 color='r', transform=ccrs.PlateCarree(), va='center', ha='center')
-    return frame_time, frame, skymap, ax
+    return frame_time, frame, skymap, ax, p
 
 def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, 
                     ax, cmap=None, norm=None):
@@ -206,10 +203,10 @@ def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray,
 
     # TODO: skymap rotation.
     # old masked c code: np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1]
-    ax.pcolormesh(x, y, c[::-1, ::-1], 
+    p = ax.pcolormesh(x, y, c[::-1, ::-1], 
                 cmap=cmap, shading='flat', transform=ccrs.PlateCarree(), 
                 norm=norm)
-    return
+    return p
 
 
 def _mask_low_horizon(frame, lon_map, lat_map, el_map, min_elevation):
