@@ -12,6 +12,7 @@
 #
 import os
 import sys
+from unittest import mock
 sys.path.insert(0, os.path.abspath('../'))
 
 import asilib
@@ -38,6 +39,10 @@ extensions = [
     'sphinx_copybutton',
     'nbsphinx'
 ]
+
+mock_imports = ['cartopy', 'cartopy.crs']
+for mock_import in mock_imports:
+    sys.modules[mock_import] = mock.Mock()
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

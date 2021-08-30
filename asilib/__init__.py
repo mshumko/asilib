@@ -3,7 +3,7 @@ import pathlib
 import importlib.util
 import configparser
 
-__version__ = '0.5.0'
+__version__ = '0.6.1'
 
 # Load the configuration settings.
 HERE = pathlib.Path(__file__).parent.resolve()
@@ -11,22 +11,12 @@ settings = configparser.ConfigParser()
 settings.read(HERE / 'config.ini')
 
 try:
-    ASI_DATA_DIR = settings['Paths'].get('ASI_DATA_DIR', 
-        pathlib.Path.home() / 'asilib-data')
+    ASI_DATA_DIR = settings['Paths'].get('ASI_DATA_DIR', pathlib.Path.home() / 'asilib-data')
     ASI_DATA_DIR = pathlib.Path(ASI_DATA_DIR)
 except KeyError:  # Raised if config.ini does not have Paths.
     ASI_DATA_DIR = pathlib.Path.home() / 'asilib-data'
 
-try:
-    IRBEM_WARNING = settings['Warnings'].getboolean('IRBEM')
-except KeyError: # Raised if config.ini does not have Warnings.
-    IRBEM_WARNING = True
-
-config = {
-    'ASILIB_DIR': HERE,
-    'ASI_DATA_DIR': ASI_DATA_DIR, 
-    'IRBEM_WARNING':IRBEM_WARNING
-}
+config = {'ASILIB_DIR': HERE, 'ASI_DATA_DIR': ASI_DATA_DIR}
 
 # Import download programs.
 from asilib.io.download_rego import download_rego_img, download_rego_skymap

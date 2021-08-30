@@ -13,6 +13,7 @@ import asilib
 import asilib.io.load as load
 from asilib.analysis.start_generator import start_generator
 
+
 def plot_movie(
     time_range: Sequence[Union[datetime, str]], mission: str, station: str, **kwargs
 ) -> None:
@@ -54,7 +55,7 @@ def plot_movie(
         Switch azimuth and elevation contours on or off.
     movie_container: str
         The movie container: mp4 has better compression but avi was determined
-        to be the official container for preserving digital video by the 
+        to be the official container for preserving digital video by the
         National Archives and Records Administration.
     ffmpeg_output_params: dict
         The additional/overwitten ffmpeg output prameters. The default parameters are:
@@ -68,7 +69,7 @@ def plot_movie(
     Returns
     -------
     None
-    
+
     Raises
     ------
     NotImplementedError
@@ -80,9 +81,9 @@ def plot_movie(
     Example
     -------
     | from datetime import datetime
-    | 
+    |
     | import asilib
-    | 
+    |
     | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     | asilib.plot_movie(time_range, 'THEMIS', 'FSMI')
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
@@ -91,7 +92,7 @@ def plot_movie(
     # Create a subplot object if one is not passed.
     ax = kwargs.get('ax', None)
     if ax is None:
-        _, ax = plt.subplots(figsize=(6,6))
+        _, ax = plt.subplots(figsize=(6, 6))
         kwargs['ax'] = ax
         plt.tight_layout()
 
@@ -101,7 +102,9 @@ def plot_movie(
         pass
     return
 
+
 Frames = collections.namedtuple('Frames', ['time', 'frames'])
+
 
 @start_generator
 def plot_movie_generator(
@@ -125,8 +128,8 @@ def plot_movie_generator(
     spacecraft position, and that will convert it to a movie. If you just want to make
     an ASI movie, use the wrapper for this function, plot_movie().
 
-    Once this generator is initiated with the name `gen`, but **before** the for loop, 
-    you can get the ASI frames and times by calling `gen.send('data')`. This will yield a 
+    Once this generator is initiated with the name `gen`, but **before** the for loop,
+    you can get the ASI frames and times by calling `gen.send('data')`. This will yield a
     collections.namedtuple with `time` and `frames` attributes.
 
     Parameters
@@ -158,7 +161,7 @@ def plot_movie_generator(
         The optional subplot that will be drawn on.
     movie_container: str
         The movie container: mp4 has better compression but avi was determined
-        to be the official container for preserving digital video by the 
+        to be the official container for preserving digital video by the
         National Archives and Records Administration.
     ffmpeg_output_params: dict
         The additional/overwitten ffmpeg output parameters. The default parameters are:
@@ -184,7 +187,7 @@ def plot_movie_generator(
         The image is oriented in the map orientation (north is up, south is down,
         east is right, and west is left), contrary to the camera orientation where
         the east/west directions are flipped. Set azel_contours=True to confirm.
-    
+
     Raises
     ------
     NotImplementedError
@@ -196,12 +199,12 @@ def plot_movie_generator(
     Example
     -------
     | from datetime import datetime
-    | 
+    |
     | import asilib
-    | 
+    |
     | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     | movie_generator = asilib.plot_movie_generator(time_range, 'THEMIS', 'FSMI')
-    | 
+    |
     | for frame_time, frame, im, ax in movie_generator:
     |       # The code that modifies each frame here.
     |       pass
@@ -240,7 +243,7 @@ def plot_movie_generator(
     else:
         raise NotImplementedError('color_map == "auto" but the mission is unsupported')
 
-    # With the @start_generator decorator, when this generator first gets called, it 
+    # With the @start_generator decorator, when this generator first gets called, it
     # will halt here. This way the errors due to missing data will be raised up front.
     user_input = yield
     # user_input can be used to get the frame_times and frames out of the generator.
@@ -298,6 +301,7 @@ def plot_movie_generator(
     _write_movie(frame_save_dir, ffmpeg_output_params, movie_file_name, overwrite)
     return
 
+
 def _write_movie(frame_save_dir, ffmpeg_output_params, movie_file_name, overwrite):
     """
     Helper function to write a movie using ffmpeg.
@@ -305,22 +309,22 @@ def _write_movie(frame_save_dir, ffmpeg_output_params, movie_file_name, overwrit
     Parameters
     ----------
     frame_save_dir: pathlib.Path
-        The directory where the individual frames are saved to. 
+        The directory where the individual frames are saved to.
     ffmpeg_output_params: dict
         The additional/overwitten ffmpeg output parameters. The default parameters are:
         framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
-    movie_file_name: str 
+    movie_file_name: str
         The movie file name.
     overwrite: bool
         Overwrite the movie.
 
     """
     ffmpeg_params = {
-        'framerate':10,
-        'crf':25,
-        'vcodec':'libx264',
-        'pix_fmt':'yuv420p',
-        'preset':'slower'
+        'framerate': 10,
+        'crf': 25,
+        'vcodec': 'libx264',
+        'pix_fmt': 'yuv420p',
+        'preset': 'slower',
     }
     # Add or change the ffmpeg_params's key:values with ffmpeg_output_params
     ffmpeg_params.update(ffmpeg_output_params)
@@ -330,15 +334,19 @@ def _write_movie(frame_save_dir, ffmpeg_output_params, movie_file_name, overwrit
         str(frame_save_dir) + f'/*.png',
         pattern_type='glob',
         # Use pop so it won't be passed into movie_obj.output().
-        framerate=ffmpeg_params.pop('framerate')
+        framerate=ffmpeg_params.pop('framerate'),
     )
-    movie_obj.output(str(movie_save_path), **ffmpeg_params).run(
-                        overwrite_output=overwrite)
+    movie_obj.output(str(movie_save_path), **ffmpeg_params).run(overwrite_output=overwrite)
     return
 
 
 def _add_azel_contours(
-    mission: str, station: str, time: Union[datetime, str], ax: plt.Axes, force_download: bool, color: str = 'yellow'
+    mission: str,
+    station: str,
+    time: Union[datetime, str],
+    ax: plt.Axes,
+    force_download: bool,
+    color: str = 'yellow',
 ) -> None:
     """
     Adds contours of azimuth and elevation to the movie frame.

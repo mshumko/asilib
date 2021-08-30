@@ -14,18 +14,41 @@ Installing aurora-asi-lib is as simple as:
 
 Dependencies
 ^^^^^^^^^^^^
-These are the required dependencies for aurora-asi-lib to work.
+There are three optional dependencies that you may want to install if you want to use certain `asilib` functions. See the dependency table below, followed by limited instructions on how to install these dependencies. Finally, see their official documentation for the comprehensive installation instructions.
+
++----------------+--------------------------------+
+| **Dependency** | **asilib functions**           |
++----------------+--------------------------------+
+| ffmpeg         | | asilib.make_movie()          |
+|                | | asilib.make_movie_generator()|
++----------------+--------------------------------+
+| IRBEM          | asilib.lla2footprint()         |
++----------------+--------------------------------+
+| cartopy        | asilib.plot_map()              |
++----------------+--------------------------------+
 
 ffmpeg
-------
+======
 To make movies.
 
 - **Linux**: ```apt install ffmpeg```
 - **Mac**: ```brew install ffmpeg```
 
+See their `main page`_ for further instructions.
+
+.. _main page: https://ffmpeg.org/download.html
+
+IRBEM
+=====
+Necessary to map along magnetic field lines. You'll need to download (or clone) the library `source code`_, and then execute these two steps:
+- Compile the fortran code (`make...all` and `make...install` commands)
+- `cd` into the python directory and execute `python3 -m pip install .`
+
+.. _source code: https://github.com/PRBEM/IRBEM
+
 cartopy
--------
-To project ASI images onto a map you need to install the cartopy dependencies. As installing cartopy dependencies tend to be complex, see their `install`_ page for more details.
+=======
+To project ASI images onto a map you need to install the cartopy dependencies, followed by cartopy itself. As installing cartopy dependencies tend to be complex, see their `install`_ page for more details.
 
 .. _install: https://scitools.org.uk/cartopy/docs/latest/installing.html#installing
 
@@ -51,16 +74,11 @@ aurora-asi-lib writes the data and movie files to the `asilib.config['ASI_DATA_D
 
 As you probably figured out, the asilib configuration data is contained in the `asilib.config` dictionary that currently contains:
 
-- `ASILIB_DIR`: asilib code directory (mainly used for testing)
-- `ASI_DATA_DIR`: asilib data directory
-- `IRBEM_WARNING`: to toggle warnings when the IRBEM-lib_ library is not installed.
-
 =============    ===========
 Parameter        Description
 =============    ===========
 ASILIB_DIR       asilib code directory (mainly used for testing)
 ASI_DATA_DIR     asilib data directory
-IRBEM_WARNING    warn when the IRBEM-lib_ library is not installed
 MEMORY_USE       (NOT IMPLEMENTED!) warn when the `ASI_DATA_DIR` directory memory size exceeds a threshold 
 =============    ===========
 

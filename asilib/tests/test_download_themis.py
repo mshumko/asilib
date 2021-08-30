@@ -14,7 +14,7 @@ Run with "python3 test_download_themis.py -v" for the verbose output.
 
 class TestDownloadThemis(unittest.TestCase):
     def setUp(self):
-        """ Set up a few variables. """
+        """Set up a few variables."""
         self.day = datetime(2016, 10, 29, 4)
         self.station = 'Gill'
         self.url = (
@@ -24,7 +24,7 @@ class TestDownloadThemis(unittest.TestCase):
         return
 
     def test_server_response(self):
-        """ Check that the server responds without an error. """
+        """Check that the server responds without an error."""
         r = requests.get(self.url)
         status_code = r.status_code
         # Check that the server status code is not

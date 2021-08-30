@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 
 import asilib
 
-mission='THEMIS'
-station='KAPU'
+mission = 'THEMIS'
+station = 'KAPU'
 
 asilib.plot_frame('2008-03-09T04:39:00', mission, station)
 plt.tight_layout()
