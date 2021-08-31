@@ -70,6 +70,8 @@ def load_img(
     matched_paths = list(search_path.rglob(search_pattern))
     # Try to download files if one is not found locally.
 
+    # TODO: Reorganize the if statements with the outermost statement:
+    # "if force_download"
     if (len(matched_paths) == 1) and (not force_download):
         # If a local file was found and the user does not want to force the download.
         file_path = matched_paths[0]
@@ -150,6 +152,7 @@ def load_skymap(
     |
     | rego_skymap = asilib.load_skymap('REGO', 'GILL', '2018-10-01')
     """
+    # TODO: Add force_download here.
     skymap_dir = pathlib.Path(
         asilib.config['ASI_DATA_DIR'], mission.lower(), 'skymap', station.lower()
     )
@@ -369,6 +372,8 @@ def get_frames(
         frame_key = f'thg_asf_{station.lower()}'
         time_key = f'thg_asf_{station.lower()}_epoch'
 
+    # TODO: Remove essentially all the code below and call get_frames_generator using
+    # a loop similar to the one in asilib.analysis.keogram.
     # Determine if we need to load in one hour or multiple hours worth of data.
     start_time_rounded = time_range[0].replace(minute=0, second=0, microsecond=0)
     end_time_rounded = time_range[1].replace(minute=0, second=0, microsecond=0)
