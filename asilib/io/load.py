@@ -96,7 +96,7 @@ def load_img(
                 )[0]
             except NotADirectoryError:
                 raise FileNotFoundError(
-                    f'THEMIS ASI data not found for station {station} on day {time.date()}'
+                    f'THEMIS ASI data not found for station {station} on {time}'
                 )
         elif mission.lower() == 'rego':
             try:
@@ -105,7 +105,7 @@ def load_img(
                 )[0]
             except NotADirectoryError:
                 raise FileNotFoundError(
-                    f'REGO ASI data not found for station {station} on day {time.date()}'
+                    f'REGO ASI data not found for station {station} on {time}'
                 )
     else:
         raise ValueError(f"Not sure what happend here. I found {matched_paths} matching paths.")
@@ -307,6 +307,7 @@ def get_frames(
     mission: str,
     station: str,
     force_download: bool = False,
+    ignore_missing_data: bool = True
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Gets multiple ASI image frames given the mission (THEMIS or REGO), station, and
@@ -325,17 +326,16 @@ def get_frames(
         The mission id, can be either THEMIS or REGO.
     station: str
         The station id to download the data from.
-    force_download: bool (optional)
+    force_download: bool
         If True, download the file even if it already exists.
-    time_thresh_s: float
-        The maximum allowed time difference between a frame's time stamp
-        and the time argument in seconds. Will raise a ValueError if no
-        image time stamp is within the threshold.
+    ignore_missing_data: bool
+        Flag to ignore the FileNotFoundError that is raised when ASI
+        data is unavailable for that date-hour.
 
     Returns
     -------
     frame_time: datetime
-        The frame timestamps contained in time_range, inclduing the start
+        The frame timestamps contained in time_range, including the start
         and end times.
     frame: np.ndarray
         An (nTime x nPixelRows x nPixelCols) array containing the ASI images
@@ -395,8 +395,14 @@ def get_frames(
 
         hours = _get_hours(time_range)
         for hour in hours:
-            cdf_obj = load_img(hour, mission, station, force_download=force_download)
-
+            try:
+                cdf_obj = load_img(hour, mission, station, force_download=force_download)
+            except FileNotFoundError:
+                if ignore_missing_data:
+                    pass
+                else: 
+                    raise
+            
             # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
             # to datetime objects.
             epoch = np.append(
@@ -418,7 +424,8 @@ def get_frames_generator(
     time_range: Sequence[Union[datetime, str]],
     mission: str,
     station: str,
-    force_download: bool = False
+    force_download: bool = False,
+    ignore_missing_data: bool = True
     ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Yields multiple ASI image frames given the mission (THEMIS or REGO), station, and
@@ -438,12 +445,11 @@ def get_frames_generator(
         The mission id, can be either THEMIS or REGO.
     station: str
         The station id to download the data from.
-    force_download: bool (optional)
+    force_download: bool
         If True, download the file even if it already exists.
-    time_thresh_s: float
-        The maximum allowed time difference between a frame's time stamp
-        and the time argument in seconds. Will raise a ValueError if no
-        image time stamp is within the threshold.
+    ignore_missing_data: bool
+        Flag to ignore the FileNotFoundError that is raised when ASI
+        data is unavailable for that date-hour. 
 
     Yields
     -------
@@ -468,7 +474,14 @@ def get_frames_generator(
     hours = _get_hours(time_range)
         
     for hour in hours:
-        cdf_obj = load_img(hour, mission, station, force_download=force_download)
+        try:
+            cdf_obj = load_img(hour, mission, station, force_download=force_download)
+        except FileNotFoundError:
+            if ignore_missing_data:
+                pass
+            else: 
+                raise
+
         epoch = _get_epoch(cdf_obj, time_key, hour, mission, station)
 
         idx = np.where((epoch >= time_range[0]) & (epoch <= time_range[1]))[0]

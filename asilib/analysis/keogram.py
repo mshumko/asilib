@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from asilib.io.load import get_frames, load_skymap, _validate_time_range
+from asilib.io.load import get_frames_generator, load_skymap, _validate_time_range
 
 
 def keogram(time_range, mission, station, map_alt=None):
@@ -36,23 +36,43 @@ def keogram(time_range, mission, station, map_alt=None):
         If map_alt does not equal the mapped altitudes in the skymap mapped values.
     """
     time_range = _validate_time_range(time_range)
-    frame_times, frames = get_frames(time_range, mission, station)
+    
+    # Allocate adequate amount of memory to store frame_times, and frames.
+    if mission.lower() == 'themis':
+        img_size = 256
+        max_n_timestamps = int((time_range[1]-time_range[0]).total_seconds()/3) 
+    elif mission.lower() == 'rego':
+        img_size = 512
+        max_n_timestamps = int((time_range[1]-time_range[0]).total_seconds()/3)
+    else:
+        raise NotImplementedError
+    keo = np.nan*np.zeros((max_n_timestamps, img_size))
+    keo_times = np.nan*np.zeros(max_n_timestamps, dtype=object)
 
-    # Find the pixel at the center of the camera.
-    center_pixel = int(frames.shape[1] / 2)
+    frames_generator = get_frames_generator(time_range, mission, station)
 
-    # Get the meridian from all of the frames.
-    keo = frames[:, :, center_pixel]
+    start_time_index = 0
+    for file_frame_times, file_frames in frames_generator: 
+        end_time_index = start_time_index + file_frames.shape[0]
+        keo[start_time_index:end_time_index, :] = file_frames[:, :, img_size//2]  # Slice the meridian
+        keo_times[start_time_index:end_time_index] = file_frame_times
+        start_time_index += file_frames.shape[0]
+
+    # This code block removes any filler nan values if the ASI frames were not sampled at the instrument
+    # cadence throughout time_range.
+    i_nan = np.where(~np.isnan(keo[:, 0]))[0]
+    keo = keo[i_nan, :]
+    keo_times = keo_times[i_nan]
 
     if map_alt is None:
-        keogram_latitude = np.arange(frames.shape[1])  # Dummy index values.
+        keogram_latitude = np.arange(img_size)  # Dummy index values for latitudes.
     else:
         skymap = load_skymap(mission, station, time_range[0])
         assert (
             map_alt in skymap['FULL_MAP_ALTITUDE'] / 1000
         ), f'{map_alt} km is not in skymap altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
         alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
-        keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, :, center_pixel]
+        keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, :, img_size//2]
 
         # keogram_latitude array are at the pixel edges. Remap it to the centers
         dl = keogram_latitude[1:] - keogram_latitude[:-1]
@@ -64,4 +84,4 @@ def keogram(time_range, mission, station, map_alt=None):
         # The ::-1 reverses the latitude array to make them in ascending order.
         keogram_latitude = keogram_latitude[valid_lats][::-1]
         keo = keo[:, valid_lats]
-    return pd.DataFrame(data=keo, index=frame_times, columns=keogram_latitude)
+    return pd.DataFrame(data=keo, index=keo_times, columns=keogram_latitude)
