@@ -414,13 +414,17 @@ def get_frames(
     return epoch[idx], frames[idx, :, :]
 
 
-def get_frames_generator(time_range, mission, station, force_download=False):
+def get_frames_generator(
+    time_range: Sequence[Union[datetime, str]],
+    mission: str,
+    station: str,
+    force_download: bool = False
+    ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Gets multiple ASI image frames given the mission (THEMIS or REGO), station, and
-    the time_range date-time parameters. If a file does not locally exist, this
-    function will attempt to download it. This generator yields the ASI data, file
-    by file, bounded by time_range. This generator is useful for loading lots of data
-    for keograms.
+    Yields multiple ASI image frames given the mission (THEMIS or REGO), station, and
+    time_range parameters. If a file does not locally exist, this function will attempt 
+    to download it. This generator yields the ASI data, file by file, bounded by time_range. 
+    This generator is useful for loading lots of data---useful for keograms.
 
     Parameters
     ----------
@@ -441,10 +445,10 @@ def get_frames_generator(time_range, mission, station, force_download=False):
         and the time argument in seconds. Will raise a ValueError if no
         image time stamp is within the threshold.
 
-    Returns
+    Yields
     -------
     frame_time: datetime
-        The frame timestamps contained in time_range, inclduing the start
+        The frame timestamps contained in time_range, including the start
         and end times.
     frame: np.ndarray
         An (nTime x nPixelRows x nPixelCols) array containing the ASI images
