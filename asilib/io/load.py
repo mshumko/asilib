@@ -393,20 +393,14 @@ def get_frames(
         else:
             raise NotImplementedError
 
-        if (time_range[1].minute == 0) and (time_range[1].second == 0):
-            hourly_date_times = pd.date_range(start=time_range[0], end=time_range[1], freq='H')
-        else:
-            # The timedelta offset is needed to include the end hour.
-            hourly_date_times = pd.date_range(
-                start=time_range[0], end=time_range[1] + pd.Timedelta(hours=1), freq='H'
-            )
-        for hour_date_time in hourly_date_times:
-            cdf_obj = load_img(hour_date_time, mission, station, force_download=force_download)
+        hours = _get_hours(time_range)
+        for hour in hours:
+            cdf_obj = load_img(hour, mission, station, force_download=force_download)
 
             # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
             # to datetime objects.
             epoch = np.append(
-                epoch, _get_epoch(cdf_obj, time_key, hour_date_time, mission, station)
+                epoch, _get_epoch(cdf_obj, time_key, hour, mission, station)
             )
 
             # Get the frames 3d array and concatenate.
@@ -457,7 +451,24 @@ def get_frames_generator(time_range, mission, station, force_download=False):
         for times contained in time_range.
     """
 
-    raise NotImplementedError
+    time_range = _validate_time_range(time_range)
+
+    # Figure out the data keys to load.
+    if mission.lower() == 'rego':
+        frame_key = f'clg_rgf_{station.lower()}'
+        time_key = f'clg_rgf_{station.lower()}_epoch'
+    elif mission.lower() == 'themis':
+        frame_key = f'thg_asf_{station.lower()}'
+        time_key = f'thg_asf_{station.lower()}_epoch'
+
+    hours = _get_hours(time_range)
+        
+    for hour in hours:
+        cdf_obj = load_img(hour, mission, station, force_download=force_download)
+        epoch = _get_epoch(cdf_obj, time_key, hour, mission, station)
+
+        idx = np.where((epoch >= time_range[0]) & (epoch <= time_range[1]))[0]
+        yield epoch[idx], cdf_obj.varget(frame_key, startrec=idx[0], endrec=idx[-1])
 
 
 def _validate_time_range(time_range):
@@ -525,9 +536,34 @@ def _get_epoch(cdf_obj, time_key, hour_date_time, mission, station):
             raise
     return epoch
 
+def _get_hours(time_range):
+    """
+    Helper function to figure out what date-hour times are between the times in time_range.
+    This function is useful to figure out what hourly ASI files to download.
+    """
+    time_range = _validate_time_range(time_range)
+
+    # Modify time_range. If time_range[0] is not at the top of the hour, we zero the minutes
+    # seconds, and milliseconds. This helps with keeping the + 1 hour offsets aligned to the
+    # start of the hour. 
+    time_range[0] = time_range[0].replace(minute=0, second=0, microsecond=0)
+
+    current_hour = copy(time_range[0])
+    hours = []
+
+    # Not <= because we down want to download the final hour if time_range[1] is, for example,
+    # 05:00:00 [HH:MM:SS]
+    while current_hour < time_range[1]:  
+        hours.append(current_hour)
+        current_hour += timedelta(hours=1)
+    return hours
 
 if __name__ == '__main__':
-    skymap = load_skymap('THEMIS', 'FSMI', '2015-10-16')
-    print(skymap)
-    print(skymap['skymap_path'])
-    pass
+    mission = 'REGO'
+    station = 'LUCK'
+    time_range = ['2017-09-27T07:10', '2017-09-27T09:05']
+
+    g = get_frames_generator(time_range, mission, station)
+
+    for t, f in g:
+        print(f'start_time={t[0]}, end_time={t[-1]}')
