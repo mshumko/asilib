@@ -1,3 +1,4 @@
+from os import stat
 import pathlib
 from datetime import datetime, timedelta
 import dateutil.parser
@@ -63,23 +64,7 @@ def load_img(
     if isinstance(time, str):
         time = dateutil.parser.parse(time)
 
-    # Download data if force_download == True:
-    # Check if the REGO or THEMIS data is already saved locally.
-    search_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower())
-    search_pattern = f'*asf*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
-    matched_paths = list(search_path.rglob(search_pattern))
-    # Try to download files if one is not found locally.
-
-    # TODO: Reorganize the if statements with the outermost statement:
-    # "if force_download"
-    if (len(matched_paths) == 1) and (not force_download):
-        # If a local file was found and the user does not want to force the download.
-        file_path = matched_paths[0]
-
-    elif (len(matched_paths) == 1) and (force_download):
-        # If a local file was found and the user does want to force the download.
-        # These downloaders are guaranteed to find a matching file unless the server
-        # lost the file.
+    if force_download:
         if mission.lower() == 'themis':
             file_path = download_themis.download_themis_img(
                 time, station, force_download=force_download
@@ -88,31 +73,38 @@ def load_img(
             file_path = download_rego.download_rego_img(
                 time, station, force_download=force_download
             )[0]
-
-    elif len(matched_paths) == 0:
-        # Now if no local files were found, try to download it.
-        if mission.lower() == 'themis':
-            try:
-                file_path = download_themis.download_themis_img(
-                    time, station, force_download=force_download
-                )[0]
-            except NotADirectoryError:
-                raise FileNotFoundError(
-                    f'THEMIS ASI data not found for station {station} on {time}'
-                )
-        elif mission.lower() == 'rego':
-            try:
-                file_path = download_rego.download_rego_img(
-                    time, station, force_download=force_download
-                )[0]
-            except NotADirectoryError:
-                raise FileNotFoundError(
-                    f'REGO ASI data not found for station {station} on {time}'
-                )
     else:
-        raise ValueError(f"Not sure what happend here. I found {matched_paths} matching paths.")
+        # If the user does not want to force a download, look for a file on the 
+        # computer. If a local file is not found, try to download one.
+        search_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower())
+        search_pattern = f'*asf*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
+        matched_paths = list(search_path.rglob(search_pattern))
 
-    # If we made it here, we either found a local file, or downloaded one
+        if (len(matched_paths) == 1):  # A local file found
+            file_path = matched_paths[0]
+
+        elif len(matched_paths) == 0:  # No local file found
+            if mission.lower() == 'themis':
+                try:
+                    file_path = download_themis.download_themis_img(
+                        time, station, force_download=force_download
+                    )[0]
+                except NotADirectoryError:
+                    raise FileNotFoundError(
+                        f'THEMIS ASI data not found for station {station} at {time}'
+                    )
+            elif mission.lower() == 'rego':
+                try:
+                    file_path = download_rego.download_rego_img(
+                        time, station, force_download=force_download
+                    )[0]
+                except NotADirectoryError:
+                    raise FileNotFoundError(
+                        f'REGO ASI data not found for station {station} at {time}'
+                    )
+        else:  # Multiple files found?
+            raise ValueError(f"Not sure what happend here. I found {matched_paths} matching paths.")
+
     return cdflib.CDF(file_path)
 
 
@@ -152,23 +144,34 @@ def load_skymap(
     |
     | rego_skymap = asilib.load_skymap('REGO', 'GILL', '2018-10-01')
     """
-    # TODO: Add force_download here.
-    skymap_dir = pathlib.Path(
-        asilib.config['ASI_DATA_DIR'], mission.lower(), 'skymap', station.lower()
-    )
-    skymap_paths = sorted(list(skymap_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
-
-    # Download skymap files if they are not downloaded yet.
-    if len(skymap_paths) == 0 and mission.lower() == 'themis':
-        skymap_paths = download_themis.download_themis_skymap(station)
-    elif len(skymap_paths) == 0 and mission.lower() == 'rego':
-        skymap_paths = download_rego.download_rego_skymap(station)
-
-    skymap_dates = _extract_skymap_dates(skymap_paths)
-
     # Try to convert time to datetime object if it is a string.
     if isinstance(time, str):
         time = dateutil.parser.parse(time)
+
+    if force_download:
+        if mission.lower() == 'themis':
+            skymap_paths = download_themis.download_themis_skymap(station, force_download=force_download)
+        elif mission.lower() == 'rego':
+            skymap_paths = download_rego.download_rego_skymap(station, force_download=force_download)
+
+    else:
+        # If the user does not want to force download skymap files, 
+        # look for the appropriate file on the computer. If a local
+        # skymap file is not found, download them all and look for the
+        # appropriate file.
+        skymap_dir = pathlib.Path(
+            asilib.config['ASI_DATA_DIR'], mission.lower(), 'skymap', station.lower()
+        )
+        skymap_paths = sorted(list(skymap_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*')))
+
+        # Download skymap files if they are not downloaded yet.
+        if len(skymap_paths) == 0:
+            if mission.lower() == 'themis':
+                skymap_paths = download_themis.download_themis_skymap(station, force_download=force_download)
+            elif mission.lower() == 'rego':
+                skymap_paths = download_rego.download_rego_skymap(station, force_download=force_download)
+
+    skymap_dates = _extract_skymap_dates(skymap_paths)
 
     # Find the skymap_date that is closest and before time.
     # For reference: dt > 0 when time is after skymap_date.
@@ -177,6 +180,9 @@ def load_skymap(
     if np.all(~np.isfinite(dt)):
         # Edge case when time is before the first skymap_date.
         closest_index = 0
+        warnings.warn(f'The requested skymap time={time} for {mission}/{station} is before first '
+            f'skymap file: {skymap_paths[0].name}. This skymap file will be used.'
+            )
     else:
         closest_index = np.nanargmin(dt)
     skymap_path = skymap_paths[closest_index]
@@ -581,11 +587,4 @@ def _get_hours(time_range):
     return hours
 
 if __name__ == '__main__':
-    mission = 'REGO'
-    station = 'LUCK'
-    time_range = ['2017-09-27T07:10', '2017-09-27T09:05']
-
-    g = get_frames_generator(time_range, mission, station)
-
-    for t, f in g:
-        print(f'start_time={t[0]}, end_time={t[-1]}')
+    d = asilib.load_skymap('THEMIS', 'GILL', '2000-01-01', force_download=False)
