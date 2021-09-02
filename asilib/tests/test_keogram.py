@@ -18,18 +18,18 @@ class Test_keogram(unittest.TestCase):
         self.station = 'LUCK'
         return
 
-    def test_steve_keogram(self):
+    def test_steve_keogram(self, create_reference=False):
         """
         Tests that the STEVE keogram pd.DataFrame is identical.
         """
         keo = keogram(
             ['2017-09-27T08', '2017-09-27T08:10'], self.mission, self.station, map_alt=230
         )
-        keo_reference = pd.read_csv(
-            pathlib.Path(asilib.config['ASILIB_DIR'], 'tests', 'data', 'test_steve_keogram.csv'),
-            index_col=0,
-            parse_dates=True,
-        )
+        reference_path = pathlib.Path(asilib.config['ASILIB_DIR'], 'tests', 'data', 'test_steve_keogram.csv')
+
+        if create_reference:
+            keo.to_csv(reference_path)
+        keo_reference = pd.read_csv(reference_path, index_col=0, parse_dates=True)
         keo_reference.columns = map(float, keo_reference.columns)
 
         # Test that the keogram values are the same.

@@ -59,7 +59,7 @@ class Test_keogram(unittest.TestCase):
         assert np.isclose(_dlon(85, 0, -40), 1, rtol=0.005)
         return
 
-    def test_equal_area(self, gen_reference=False):
+    def test_equal_area(self, create_reference=False):
         mission = 'THEMIS'
         station = 'RANK'
         time = datetime(2020, 1, 1)
@@ -81,7 +81,7 @@ class Test_keogram(unittest.TestCase):
         reference_path = pathlib.Path(
             asilib.config['ASILIB_DIR'], 'tests', 'data', 'area_box_mask.npy'
         )
-        if gen_reference:
+        if create_reference:
             np.save(reference_path, area_box_mask)
         else:
             area_box_mask_reference = np.load(reference_path)
