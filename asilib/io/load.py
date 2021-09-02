@@ -22,7 +22,7 @@ def load_img(
     time: Union[datetime, str], mission: str, station: str, force_download: bool = False
 ) -> cdflib.cdfread.CDF:
     """
-    Returns a full image (ASF) cdflib.CDF file object and download it if it's not found locally.
+    Returns a full image (THEMIS:ASF, REGO:rgf) cdflib.CDF file object and download it if it's not found locally.
 
     Parameters
     ----------
@@ -77,7 +77,10 @@ def load_img(
         # If the user does not want to force a download, look for a file on the 
         # computer. If a local file is not found, try to download one.
         search_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower())
-        search_pattern = f'*asf*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
+        if mission.lower() == 'themis':
+            search_pattern = f'*asf*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
+        elif mission.lower() == 'rego':
+            search_pattern = f'*rgf*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
         matched_paths = list(search_path.rglob(search_pattern))
 
         if (len(matched_paths) == 1):  # A local file found
@@ -321,7 +324,8 @@ def get_frames(
     """
     Gets multiple ASI image frames given the mission (THEMIS or REGO), station, and
     the time_range date-time parameters. If a file does not locally exist, this
-    function will attempt to download it.
+    function will attempt to download it. The returned time stamps span a range 
+    from time_range[0], up to, but excluding a time stamp exactly matching time_range[1].
 
     Parameters
     ----------
@@ -424,7 +428,7 @@ def get_frames(
             frames = np.concatenate((frames, cdf_obj.varget(frame_key)), axis=0)
 
     # Find the time stamps in between time_range.
-    idx = np.where((epoch >= time_range[0]) & (epoch <= time_range[1]))[0]
+    idx = np.where((epoch >= time_range[0]) & (epoch < time_range[1]))[0]
     assert len(idx) > 0, (
         f'The data exists for {mission}/{station}, but no ' f'data between {time_range}'
     )
@@ -442,7 +446,9 @@ def get_frames_generator(
     Yields multiple ASI image frames given the mission (THEMIS or REGO), station, and
     time_range parameters. If a file does not locally exist, this function will attempt 
     to download it. This generator yields the ASI data, file by file, bounded by time_range. 
-    This generator is useful for loading lots of data---useful for keograms.
+    This generator is useful for loading lots of data---useful for keograms. The returned 
+    time stamps span a range from time_range[0], up to, but excluding a time stamp 
+    exactly matching time_range[1].
 
     Parameters
     ----------
@@ -495,7 +501,7 @@ def get_frames_generator(
 
         epoch = _get_epoch(cdf_obj, time_key, hour, mission, station)
 
-        idx = np.where((epoch >= time_range[0]) & (epoch <= time_range[1]))[0]
+        idx = np.where((epoch >= time_range[0]) & (epoch < time_range[1]))[0]
         yield epoch[idx], cdf_obj.varget(frame_key, startrec=idx[0], endrec=idx[-1])
 
 
