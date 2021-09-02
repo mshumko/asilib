@@ -40,15 +40,10 @@ def keogram(time_range, mission, station, map_alt=None):
     # Allocate adequate amount of memory to store frame_times, and frames.
     if mission.lower() == 'themis':
         img_size = 256
-        # The + 1 is a buffer. It is needed for cases when time_range does not span the
-        # full hour (one file). For a case of the full hour, the last time stamp in the file has
-        # 59 minutes and 57 seconds and so the +1 is not needed. However, if time_range starts
-        # or ends at another time, them the last time stamp may be at exactly time_range[1] and 
-        # is thus one extra value is necessary in the generator loop below.
-        max_n_timestamps = int((time_range[1]-time_range[0]).total_seconds()/3)+1
+        max_n_timestamps = int((time_range[1]-time_range[0]).total_seconds()/3)
     elif mission.lower() == 'rego':
         img_size = 512
-        max_n_timestamps = int((time_range[1]-time_range[0]).total_seconds()/3)+1
+        max_n_timestamps = int((time_range[1]-time_range[0]).total_seconds()/3)
     else:
         raise NotImplementedError
     keo = np.nan*np.zeros((max_n_timestamps, img_size))
