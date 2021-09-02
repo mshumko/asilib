@@ -28,7 +28,7 @@ def plot_frame(
 ) -> Tuple[datetime, plt.Axes, matplotlib.image.AxesImage]:
     """
     Plots one ASI image frame given the mission (THEMIS or REGO), station, and
-    the day date-time parameters. If a file does not locally exist, the load_img()
+    the day date-time parameters. If a file does not locally exist, the _find_img_path()
     function will attempt to download it.
 
     Parameters

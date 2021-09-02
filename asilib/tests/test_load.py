@@ -20,12 +20,14 @@ class TestPlotFrame(unittest.TestCase):
 
     def test_rego_load_img(self):
         """Checks that the REGO ASI image file can be loaded."""
-        cdf_obj = load.load_img(self.load_date, 'REGO', self.station)
+        cdf_path = load._find_img_path(self.load_date, 'REGO', self.station)
+        cdf_obj = cdflib.CDF(cdf_path)
         return
 
     def test_themis_load_img(self):
         """Checks that the REGO ASI image file can be loaded."""
-        cdf_obj = load.load_img(self.load_date, 'THEMIS', self.station)
+        cdf_path = load._find_img_path(self.load_date, 'THEMIS', self.station)
+        cdf_obj = cdflib.CDF(cdf_path)
         return
 
     def test_rego_load_skymap(self):

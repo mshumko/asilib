@@ -18,11 +18,12 @@ from asilib.io import download_themis
 import asilib
 
 
-def load_img(
+def _find_img_path(
     time: Union[datetime, str], mission: str, station: str, force_download: bool = False
 ) -> cdflib.cdfread.CDF:
     """
-    Returns a full image (THEMIS:ASF, REGO:rgf) cdflib.CDF file object and download it if it's not found locally.
+    Returns a path to an all sky full-resolution image (THEMIS:ASF, REGO:rgf) file.
+    If a file is not found locally, it will attempt to download it.
 
     Parameters
     ----------
@@ -39,10 +40,10 @@ def load_img(
 
     Returns
     -------
-    cdflib.CDF
-        The handle to the full image CDF object. Use cdflib.CDF.varget()
-        to load the variables into memory (see the implementation in
-        asilib.io.load.get_frame() or asilib.io.load.get_frames())
+    pathlib.Path
+        The path to the full image file. See the implementation in
+        asilib.io.load.get_frame() or asilib.io.load.get_frames() on
+        how to use cdflib to load the image cdf files.
 
     Raises
     ------
@@ -58,7 +59,7 @@ def load_img(
     -------
     | import asilib
     |
-    | asi_file_handle = asilib.load_img('2016-10-29T04', 'REGO', 'GILL')
+    | asi_file_path = asilib._find_img_path('2016-10-29T04', 'REGO', 'GILL')
     """
     # Try to convert time to datetime object if it is a string.
     if isinstance(time, str):
@@ -108,15 +109,15 @@ def load_img(
         else:  # Multiple files found?
             raise ValueError(f"Not sure what happend here. I found {matched_paths} matching paths.")
 
-    return cdflib.CDF(file_path)
+    return file_path
 
 
-def load_img_file(time, mission: str, station: str, force_download: bool = False):
+def load_img(time, mission: str, station: str, force_download: bool = False):
     """
-    DEPRECATED for load_img()
+    DEPRECATED for _find_img_path()
     """
-    warnings.warn('load_img_file is deprecated. Use asilib.load_img() instead', DeprecationWarning)
-    return load_img(time, mission, station, force_download)
+    warnings.warn('load_img is deprecated. Use asilib._find_img_path() instead', DeprecationWarning)
+    return _find_img_path(time, mission, station, force_download)
 
 
 def load_skymap(
@@ -291,7 +292,8 @@ def get_frame(
     if isinstance(time, str):
         time = dateutil.parser.parse(time)
 
-    cdf_obj = load_img(time, mission, station, force_download=force_download)
+    cdf_path = _find_img_path(time, mission, station, force_download=force_download)
+    cdf_obj = cdflib.CDF(cdf_path)
 
     if mission.lower() == 'rego':
         frame_key = f'clg_rgf_{station.lower()}'
@@ -390,7 +392,8 @@ def get_frames(
     if start_time_rounded == end_time_rounded:
         # If the start/end date-hour are the same than load one data file, otherwise
         # load however many is necessary and concatinate the frames and times.
-        cdf_obj = load_img(time_range[0], mission, station, force_download=force_download)
+        cdf_path = _find_img_path(time_range[0], mission, station, force_download=force_download)
+        cdf_obj = cdflib.CDF(cdf_path)
 
         # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
         # to datetime objects.
@@ -411,7 +414,8 @@ def get_frames(
         hours = _get_hours(time_range)
         for hour in hours:
             try:
-                cdf_obj = load_img(hour, mission, station, force_download=force_download)
+                cdf_path = _find_img_path(hour, mission, station, force_download=force_download)
+                cdf_obj = cdflib.CDF(cdf_path)
             except FileNotFoundError:
                 if ignore_missing_data:
                     pass
@@ -492,7 +496,8 @@ def get_frames_generator(
         
     for hour in hours:
         try:
-            cdf_obj = load_img(hour, mission, station, force_download=force_download)
+            cdf_path = _find_img_path(hour, mission, station, force_download=force_download)
+            cdf_obj = cdflib.CDF(cdf_path)
         except FileNotFoundError:
             if ignore_missing_data:
                 pass

@@ -23,7 +23,6 @@ from asilib.io.download_rego import download_rego_img, download_rego_skymap
 from asilib.io.download_themis import download_themis_img, download_themis_skymap
 
 # Import the loading functions.
-from asilib.io.load import load_img
 from asilib.io.load import load_cal, load_skymap
 from asilib.io.load import get_frame
 from asilib.io.load import get_frames

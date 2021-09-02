@@ -43,7 +43,6 @@ Summary
     asilib.io.download_themis.download_themis_cal
     asilib.io.download_rego.download_rego_img
     asilib.io.download_rego.download_rego_cal
-    asilib.io.load.load_img
     asilib.io.load.load_skymap
     asilib.io.load.get_frame
     asilib.io.load.get_frames
@@ -82,7 +81,7 @@ Load
 The following functions are very useful if you want to work with the raw image and skymap data without dealing without explicitly downloading them.
 
 .. automodule:: asilib.io.load
-   :members: load_img, load_skymap, get_frame, get_frames
+   :members: load_skymap, get_frame, get_frames
    :undoc-members:
    :show-inheritance:
 
