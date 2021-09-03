@@ -18,7 +18,7 @@ class TestPlotFrame(unittest.TestCase):
     def setUp(self):
         self.load_date = datetime(2016, 10, 29, 4)
         self.time_range = [datetime(2016, 10, 29, 4, 0), 
-                           datetime(2016, 10, 29, 4, 10)]
+                           datetime(2016, 10, 29, 4, 1)]
         self.station = 'GILL'
 
     def test_rego_find_img(self):
@@ -75,8 +75,8 @@ class TestPlotFrame(unittest.TestCase):
         np.testing.assert_equal(frame_reference, frame)
         return
 
-    def test_themis_get_frames(self, create_reference=False):
-        """Get 10 minutes of THEMIS images."""
+    def test_themis_get_frames(self, create_reference=True):
+        """Get one minute of THEMIS images."""
         times, frames = load.get_frames(self.time_range, 'THEMIS', 'GILL')
 
         # np.save can't save an array of datetime objects without allow_pickle=True. 
@@ -84,23 +84,19 @@ class TestPlotFrame(unittest.TestCase):
         # datetimes.
         times = np.array([t.isoformat() for t in times])
 
-        frames_reference_path = pathlib.Path(config['ASILIB_DIR'], 'tests', 'data', 
-            'test_themis_get_frames_frames.npy')
-        times_reference_path = pathlib.Path(config['ASILIB_DIR'], 'tests', 'data', 
-            'test_themis_get_frames_times.npy')
+        reference_path = pathlib.Path(config['ASILIB_DIR'], 'tests', 'data', 
+            'test_themis_get_frames.npz')
         if create_reference:
-            np.save(frames_reference_path, frames)
-            np.save(times_reference_path, times)
+            np.savez_compressed(reference_path, frames=frames, times=times)
 
-        frame_reference = np.load(frames_reference_path)
-        times_reference = np.load(times_reference_path)
+        reference = np.load(reference_path)
 
-        np.testing.assert_equal(frame_reference, frames)
-        np.testing.assert_equal(times_reference, times)
+        np.testing.assert_equal(reference['frames'], frames)
+        np.testing.assert_equal(reference['times'], times)
         return
 
     def test_rego_get_frames(self, create_reference=True):
-        """Get 10 minutes of REGO images."""
+        """Get one minute of REGO images."""
         times, frames = load.get_frames(self.time_range, 'REGO', 'GILL')
 
         # np.save can't save an array of datetime objects without allow_pickle=True. 
@@ -112,7 +108,7 @@ class TestPlotFrame(unittest.TestCase):
             'test_rego_get_frames.npz')
 
         if create_reference:
-            np.savez(reference_path, frames=frames, times=times)
+            np.savez_compressed(reference_path, frames=frames, times=times)
 
         reference = np.load(reference_path)
 
