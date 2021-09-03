@@ -349,9 +349,10 @@ def get_frames(
 
     Returns
     -------
-    frame_time: datetime
-        The frame timestamps contained in time_range, including the start
-        and end times.
+    times: datetime
+        The frame timestamps contained in time_range, including the start time
+        and excluding the end time (if time_range[1] exactly matches a ASI time 
+        stamp).
     frame: np.ndarray
         An (nTime x nPixelRows x nPixelCols) array containing the ASI images
         for times contained in time_range.
@@ -360,8 +361,6 @@ def get_frames(
     ------
     NotImplementedError
         If the image dimensions are not specified for an ASI mission.
-    AssertionError
-        If the data file exists with no time stamps contained in time_range.
     AssertionError
         If len(time_range) != 2.
 
@@ -374,69 +373,22 @@ def get_frames(
     | time_range = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
     | times, frames = asilib.get_frames(time_range, 'REGO', 'GILL')
     """
-    time_range = _validate_time_range(time_range)
+    times, frames = _create_empty_data_arrays(mission, time_range, 'frames')
+    frames_generator = get_frames_generator(time_range, mission, station)
 
-    # Figure out the data keys to load.
-    if mission.lower() == 'rego':
-        frame_key = f'clg_rgf_{station.lower()}'
-        time_key = f'clg_rgf_{station.lower()}_epoch'
-    elif mission.lower() == 'themis':
-        frame_key = f'thg_asf_{station.lower()}'
-        time_key = f'thg_asf_{station.lower()}_epoch'
+    start_time_index = 0
+    for file_frame_times, file_frames in frames_generator: 
+        end_time_index = start_time_index + file_frames.shape[0]
 
-    # TODO: Remove essentially all the code below and call get_frames_generator using
-    # a loop similar to the one in asilib.analysis.keogram.
-    # Determine if we need to load in one hour or multiple hours worth of data.
-    start_time_rounded = time_range[0].replace(minute=0, second=0, microsecond=0)
-    end_time_rounded = time_range[1].replace(minute=0, second=0, microsecond=0)
-    if start_time_rounded == end_time_rounded:
-        # If the start/end date-hour are the same than load one data file, otherwise
-        # load however many is necessary and concatinate the frames and times.
-        cdf_path = _find_img_path(time_range[0], mission, station, force_download=force_download)
-        cdf_obj = cdflib.CDF(cdf_path)
+        frames[start_time_index:end_time_index, :, :] = file_frames
+        times[start_time_index:end_time_index] = file_frame_times
 
-        # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
-        # to datetime objects.
-        epoch = _get_epoch(cdf_obj, time_key, time_range[0], mission, station)
+        start_time_index += file_frames.shape[0]
 
-        # Get the frames 3d array
-        frames = cdf_obj.varget(frame_key)
-    else:
-        # If the time_range is across two or more hours
-        epoch = np.array([])
-        if mission.lower() == 'themis':
-            frames = np.ones((0, 256, 256))
-        elif mission.lower() == 'rego':
-            frames = np.ones((0, 512, 512))
-        else:
-            raise NotImplementedError
-
-        hours = _get_hours(time_range)
-        for hour in hours:
-            try:
-                cdf_path = _find_img_path(hour, mission, station, force_download=force_download)
-                cdf_obj = cdflib.CDF(cdf_path)
-            except FileNotFoundError:
-                if ignore_missing_data:
-                    pass
-                else: 
-                    raise
-            
-            # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
-            # to datetime objects.
-            epoch = np.append(
-                epoch, _get_epoch(cdf_obj, time_key, hour, mission, station)
-            )
-
-            # Get the frames 3d array and concatenate.
-            frames = np.concatenate((frames, cdf_obj.varget(frame_key)), axis=0)
-
-    # Find the time stamps in between time_range.
-    idx = np.where((epoch >= time_range[0]) & (epoch < time_range[1]))[0]
-    assert len(idx) > 0, (
-        f'The data exists for {mission}/{station}, but no ' f'data between {time_range}'
-    )
-    return epoch[idx], frames[idx, :, :]
+    i_nan = np.where(~np.isnan(frames[:, 0, 0]))[0]
+    frames = frames[i_nan, :, :]
+    times = times[i_nan]
+    return times, frames
 
 
 def get_frames_generator(
@@ -474,9 +426,10 @@ def get_frames_generator(
 
     Yields
     -------
-    frame_time: datetime
-        The frame timestamps contained in time_range, including the start
-        and end times.
+    times: datetime
+        The frame timestamps contained in time_range, including the start time
+        and excluding the end time (if time_range[1] exactly matches a ASI time 
+        stamp).
     frame: np.ndarray
         An (nTime x nPixelRows x nPixelCols) array containing the ASI images
         for times contained in time_range.
@@ -596,6 +549,35 @@ def _get_hours(time_range):
         hours.append(current_hour)
         current_hour += timedelta(hours=1)
     return hours
+
+def _create_empty_data_arrays(mission, time_range, type):
+    """
+    Creates two appropriately sized np.arrays full of np.nan. The first is a 1d times array,
+    and the second is either: a 2d array (n_steps, n_pixels) if type=='keogram', or a 3d array
+    (n_times, n_pixels, n_pixels) if type='frames'.
+    """
+    if mission.lower() == 'themis':
+        img_size = 256
+        cadence_s = 3
+        max_n_timestamps = int((time_range[1]-time_range[0]).total_seconds()/cadence_s)
+    elif mission.lower() == 'rego':
+        img_size = 512
+        cadence_s = 3
+        max_n_timestamps = int((time_range[1]-time_range[0]).total_seconds()/cadence_s)
+    else:
+        raise NotImplementedError
+    
+    if type.lower() == 'keogram':
+        data_shape = (max_n_timestamps, img_size)
+    elif type.lower() == 'frames':
+        data_shape = (max_n_timestamps, img_size, img_size)
+    else:
+        raise ValueError('type must be "keogram" or "frames".')
+
+    # object is the only dtype that can contain datetime objects
+    times = np.nan*np.zeros(max_n_timestamps, dtype=object)
+    data = np.nan*np.zeros(data_shape)
+    return times, data
 
 if __name__ == '__main__':
     d = asilib.load_skymap('THEMIS', 'GILL', '2000-01-01', force_download=False)
