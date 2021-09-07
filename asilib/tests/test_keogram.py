@@ -25,7 +25,9 @@ class Test_keogram(unittest.TestCase):
         keo = keogram(
             ['2017-09-27T08', '2017-09-27T08:10'], self.mission, self.station, map_alt=230
         )
-        reference_path = pathlib.Path(asilib.config['ASILIB_DIR'], 'tests', 'data', 'test_steve_keogram.csv')
+        reference_path = pathlib.Path(
+            asilib.config['ASILIB_DIR'], 'tests', 'data', 'test_steve_keogram.csv'
+        )
 
         if create_reference:
             keo.to_csv(reference_path)

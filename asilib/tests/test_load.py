@@ -17,8 +17,7 @@ and it doesn't validate the output.
 class TestPlotFrame(unittest.TestCase):
     def setUp(self):
         self.load_date = datetime(2016, 10, 29, 4)
-        self.time_range = [datetime(2016, 10, 29, 4, 0), 
-                           datetime(2016, 10, 29, 4, 1)]
+        self.time_range = [datetime(2016, 10, 29, 4, 0), datetime(2016, 10, 29, 4, 1)]
         self.station = 'GILL'
 
     def test_rego_find_img(self):
@@ -49,7 +48,9 @@ class TestPlotFrame(unittest.TestCase):
         """Get one THEMIS ASI image."""
         time, frame = load.get_frame(self.load_date, 'THEMIS', 'GILL')
 
-        reference_path = pathlib.Path(config['ASILIB_DIR'], 'tests', 'data', 'test_themis_get_frame.npy')
+        reference_path = pathlib.Path(
+            config['ASILIB_DIR'], 'tests', 'data', 'test_themis_get_frame.npy'
+        )
         if create_reference:
             np.save(reference_path, frame)
         frame_reference = np.load(reference_path)
@@ -64,7 +65,9 @@ class TestPlotFrame(unittest.TestCase):
         """Get one REGO ASI image."""
         time, frame = load.get_frame(self.load_date, 'REGO', 'GILL')
 
-        reference_path = pathlib.Path(config['ASILIB_DIR'], 'tests', 'data', 'test_rego_get_frame.npy')
+        reference_path = pathlib.Path(
+            config['ASILIB_DIR'], 'tests', 'data', 'test_rego_get_frame.npy'
+        )
         if create_reference:
             np.save(reference_path, frame)
         frame_reference = np.load(reference_path)
@@ -79,13 +82,14 @@ class TestPlotFrame(unittest.TestCase):
         """Get one minute of THEMIS images."""
         times, frames = load.get_frames(self.time_range, 'THEMIS', 'GILL')
 
-        # np.save can't save an array of datetime objects without allow_pickle=True. 
+        # np.save can't save an array of datetime objects without allow_pickle=True.
         # Since this can be a security concern, we'll save a string version of
         # datetimes.
         times = np.array([t.isoformat() for t in times])
 
-        reference_path = pathlib.Path(config['ASILIB_DIR'], 'tests', 'data', 
-            'test_themis_get_frames.npz')
+        reference_path = pathlib.Path(
+            config['ASILIB_DIR'], 'tests', 'data', 'test_themis_get_frames.npz'
+        )
         if create_reference:
             np.savez_compressed(reference_path, frames=frames, times=times)
 
@@ -99,13 +103,14 @@ class TestPlotFrame(unittest.TestCase):
         """Get one minute of REGO images."""
         times, frames = load.get_frames(self.time_range, 'REGO', 'GILL')
 
-        # np.save can't save an array of datetime objects without allow_pickle=True. 
+        # np.save can't save an array of datetime objects without allow_pickle=True.
         # Since this can be a security concern, we'll save a string version of
         # datetimes.
         times = np.array([t.isoformat() for t in times])
 
-        reference_path = pathlib.Path(config['ASILIB_DIR'], 'tests', 'data', 
-            'test_rego_get_frames.npz')
+        reference_path = pathlib.Path(
+            config['ASILIB_DIR'], 'tests', 'data', 'test_rego_get_frames.npz'
+        )
 
         if create_reference:
             np.savez_compressed(reference_path, frames=frames, times=times)
