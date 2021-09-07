@@ -6,9 +6,10 @@
 .. image:: ./_static/aurora-asi-lib_logo.png
   :alt: Alternative text
 
-**Last Built**: |today| | **Version**: |version| | **Source**: `github`_.
+**Last Built**: |today| | **Version**: |version| | **Source**: `github`_ | **Archive**: `zenodo`_.
 
 .. _github: https://github.com/mshumko/aurora-asi-lib
+.. _zenodo: https://doi.org/10.5281/zenodo.4746446
 
 Easily download, plot, animate, and analyze auroral all sky imager (ASI) data.
 
