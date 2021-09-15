@@ -34,27 +34,38 @@ Abstract
 
 
 \section*{Plain Language Summary}
-Test
+\noindent
 
 
 \section{Introduction}\label{intro}
 \textcolor{blue}{
       OUTLINE
       \begin{itemize}
-            \item Brief history of ASIs and ASI arrays. Talk about why THEMIS ASI exists.
+            \item Brief history of ASIs and ASI arrays. Talk about why THEMIS ASI exists. Discuss CANOPUS?
+            \item With these ASI arrays, the volume of data is immense.
             \item Why this software? Aurora ASI data formats very greatly, each with their own caveats. Our goal is to remove the need for scientists needing to write duplicate code to use these popular missions. AS a result, this will enable scientists to dive right into the science and not need to know the details of data management (downloading and loading data, as well as applying routine data processing steps)   
       \end{itemize}
 }
-\subsection{Design Philosophy}
+
+
+\section{Design Philosophy}
+\textcolor{blue}{
+      OUTLINE
+      \begin{itemize}
+            \item The primary design philosophy is to offer a relatively small set of functionality that is useful for most researchers studying the aurora. We strived to strike a balance between a complex and a user-friendly tool. 
+            \item Online keogram and conjunction interface accessible anywhere with internet connection.
+            \item Comprehensive ASI data analysis functionality on a PC.
+      \end{itemize}
+}
 
 \section{AuroraX}\label{aurorax}
 \textcolor{blue}{
       OUTLINE
       \begin{itemize}
+            \item What is it?
             \item A highly optimized conjunction search
             \item On-demand keograms
             \item Virtual Observatory
-            \item What is the difference between swarm-aurora and Conjunction Search? The're confusingly similar.
       \end{itemize}
 }
 
@@ -62,6 +73,7 @@ Test
 \textcolor{blue}{
       OUTLINE
       \begin{itemize}
+            \item What is it?
             \item Plug-in based architecture
             \item Handles the downloading and loading of ASI images. Ultimately, ASI image files consists of time stamps and images, so the load data is equally as simple.
             \item Similarly with skymap calibration files.
