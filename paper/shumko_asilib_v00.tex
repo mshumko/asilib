@@ -10,9 +10,9 @@
 
 \begin{document}
 
-\title{AuroraX and aurorax-asilib: a user-friendly auroral all-sky imager analysis framework}
+\title{AuroraX, aurorax-api, and aurorax-asilib: a user-friendly auroral all-sky imager analysis framework}
 
-\authors{M. Shumko\affil{1, 2}, B. Gallardo-Lacourt\affil{1,2}, A.J. Halford\affil{1}, E. Donovan\affil{3}, K.R. Murphy, E.L. Spanswick\affil{3}, D. Chaddock\affil{3}, and I. Thompson}
+\authors{M. Shumko\affil{1, 2}, B. Gallardo-Lacourt\affil{1,2}, A.J. Halford\affil{1}, E. Donovan\affil{3}, E.L. Spanswick\affil{3}, D. Chaddock\affil{3}, I. Thompson, and K.R. Murphy}
 
 \affiliation{1}{NASA's Goddard Space Flight Center, Greenbelt, Maryland, USA}
 \affiliation{2}{Universities Space Research Association, Columbia, Maryland, USA}
@@ -42,19 +42,25 @@ Abstract
       OUTLINE
       \begin{itemize}
             \item Brief history of ASIs and ASI arrays. Talk about why THEMIS ASI exists. Discuss CANOPUS?
-            \item With these ASI arrays, the volume of data is immense.
-            \item Why this software? Aurora ASI data formats very greatly, each with their own caveats. Our goal is to remove the need for scientists needing to write duplicate code to use these popular missions. AS a result, this will enable scientists to dive right into the science and not need to know the details of data management (downloading and loading data, as well as applying routine data processing steps)   
+            \item Breadth of possible science questions that can be answered with aurora image data.
+            \item Problem: modern ASI arrays produce an immense volume of data.
+            \item Why this software? Aurora ASI data formats very greatly, each with their own caveats. This centralized software package is maintained by the AuroraX team. 
+            \item Benefits: Maintained by the AuroraX team so it's usability is of paramount importance
+            \item Reduce the barrier to entry into auroral physics. Reduce the technical requirements and  enable rapid discovery of new science.
+            \item Instead of case study results, larger statistical behavior will likely appear.
+            \item remove the need for scientists needing to write duplicate code to use these popular missions. AS a result, this will enable scientists to dive right into the science and not need to know the details of data management (downloading and loading data, as well as applying routine data processing steps
       \end{itemize}
 }
 
 
-\section{Design Philosophy}
+\section{Design Philosophy (Principals?)}
 \textcolor{blue}{
       OUTLINE
       \begin{itemize}
-            \item The primary design philosophy is to offer a relatively small set of functionality that is useful for most researchers studying the aurora. We strived to strike a balance between a complex and a user-friendly tool. 
+            \item The primary design philosophy is to offer a robust set of functions that are useful for most researchers studying the aurora. We strived to strike a balance between complicated and user-friendly tools. 
             \item Online keogram and conjunction interface accessible anywhere with internet connection.
             \item Comprehensive ASI data analysis functionality on a PC.
+            \item Abstract away data management steps: downloading data, loading data, applying routine data processing steps, and common visualizations.
       \end{itemize}
 }
 
@@ -66,6 +72,8 @@ Abstract
             \item A highly optimized conjunction search
             \item On-demand keograms
             \item Virtual Observatory
+            \item pyaurorax (aurorax-api) to directly access AuroraX services.
+            \item Figure 1: a) a screenshot of the nightly keograms, b) screenshot of the conjunction search tool. 
       \end{itemize}
 }
 
@@ -74,22 +82,70 @@ Abstract
       OUTLINE
       \begin{itemize}
             \item What is it?
-            \item Plug-in based architecture
-            \item Handles the downloading and loading of ASI images. Ultimately, ASI image files consists of time stamps and images, so the load data is equally as simple.
-            \item Similarly with skymap calibration files.
-            \item If a file is already downloaded, you do not need an internet connection to work with the data.
-            \item 
+            \item Plug-in based architecture that allows new ASI arrays to be added and called by the core aurorax-asilib software.
       \end{itemize}
 }
 \subsection{Download and load ASI image and skymap data}
+\textcolor{blue}{
+      OUTLINE
+      \begin{itemize}
+            \item Handles the downloading and loading of ASI images. Main design principle: Ultimately, ASI image files consists of time stamps and images, so the asilib functions really only need to return that data
+            \item Similarly with skymap calibration files
+            \item If a file is already downloaded, you do not need an internet connection to work with the data
+      \end{itemize}
+}
 
 \subsection{Plotting single images}
+\textcolor{blue}{
+      OUTLINE
+      \begin{itemize}
+            \item Fisheye lens view
+            \item Project onto a geographic map
+            \item Figure 2: a) fisheye view, b) that fisheye view mapped to 110 km. (THEMIS)
+      \end{itemize}
+}
+
+\subsection{Keograms}
+\textcolor{blue}{
+      OUTLINE
+      \begin{itemize}
+            \item Keograms along the meridian
+            \item Uses generators to minimize the RAM usage
+            \item Figure 3: A keogram for a full night. (REGO)
+      \end{itemize}
+}
 
 \subsection{Creating ASI movies}
+\textcolor{blue}{
+      OUTLINE
+      \begin{itemize}
+            \item Basic fisheye animation
+            \item Basic map animation (need to add functionality)
+            \item Using co-routines to superpose data onto images (extensively used for conjunctions).
+            \item Reference SI movie 1.
+      \end{itemize}
+}
 
 \subsection{ASI analysis tools}
+\textcolor{blue}{
+      OUTLINE
+      \begin{itemize}
+            \item lla2azel
+            \item lla2footprint (requires IRBEM)
+            \item area2pixels
+      \end{itemize}
+}
 
 \subsection{An example: a satellite-ASI conjunction}
+\textcolor{blue}{
+      OUTLINE
+      \begin{itemize}
+            \item Combine everything above into an example showing where the footprint of a LEO satellite is, and what 
+            \item Figure 4: A conjunction montage and a time series
+            \item (Implement an Imager.conjunction function)
+            \item Reference movie S2
+      \end{itemize}
+}
 
 \section{Quality Assurance}
 \textcolor{blue}{
@@ -101,6 +157,18 @@ Abstract
 }
 
 \section{Conclusion}
+
+\textcolor{blue}{
+      OUTLINE
+      \begin{itemize}
+            \item AuroraX, aurorax-api, and aurorax-asilib tools provide the science community with a simple and a robust set of analysis tools
+            \item Enable system-level science to be easily done
+            \item Quickly sift through an immense volume of data to uncover new physics
+            \item This is an end-to-end solution
+            \item Plan to add support for other ASI arrays and satellites
+            \item Help promote a uniform ASI data format for future cameras
+      \end{itemize}
+}
 
 \acknowledgments
 We are thankful for the engineers and scientists who made AuroraX, THEMIS ASI, and REGO ASI projects possible. M. Shumko and B. Gallardo-Lacourt acknowledge the support provided by the NASA Postdoctoral Program at the NASA’s Goddard Space Flight Center, administered by Universities Space Research Association under contract with NASA. The THEMIS and REGO ASI data is available from \url{https://data.phys.ucalgary.ca/}.
