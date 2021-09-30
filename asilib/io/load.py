@@ -114,10 +114,9 @@ def _find_img_path(
 
 def load_img(time, mission: str, station: str, force_download: bool = False):
     """
-    DEPRECATED for _find_img_path()
+    Wrapper for the get_frame and get_frames functions. 
     """
-    warnings.warn('load_img is deprecated. Use asilib._find_img_path() instead', DeprecationWarning)
-    return _find_img_path(time, mission, station, force_download)
+    raise NotImplementedError
 
 
 def load_skymap(
@@ -227,26 +226,6 @@ def _extract_skymap_dates(skymap_paths):
         day_obj = datetime.strptime(day, "%Y%m%d")
         skymap_dates.append(day_obj)
     return skymap_dates
-
-
-def load_cal(mission: str, station: str, time, force_download: bool = False):
-    """
-    DEPRECATED for load_skymap()
-    """
-    warnings.warn(
-        'asilib.load_cal() is deprecated, use asilib.load_skymap() instead', DeprecationWarning
-    )
-    return load_skymap(mission, station, time, force_download)
-
-
-def load_cal_file(mission: str, station: str, force_download: bool = False):
-    """
-    DEPRECATED for load_cal()
-    """
-    warnings.warn(
-        'asilib.load_cal_file() is deprecated, use asilib.load_skymap() instead', DeprecationWarning
-    )
-    return load_cal(mission, station, force_download)
 
 
 def get_frame(

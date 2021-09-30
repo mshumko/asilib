@@ -187,30 +187,6 @@ def lla2footprint(
     magnetic_footprint[:, [2, 0, 1]] = magnetic_footprint[:, [0, 1, 2]]
     return magnetic_footprint
 
-
-def lla_to_skyfield(mission, station, sat_lla, force_download=False):
-    """
-    DEPRECATED for lla2azel()
-    """
-    warnings.warn('lla_to_skyfield is deprecated asilib.lla2azel() instead', DeprecationWarning)
-    return lla2azel(mission, station, sat_lla, force_download=force_download)
-
-
-def map_along_magnetic_field(
-    space_time: np.ndarray,
-    map_alt: float,
-    b_model: str = 'OPQ77',
-    maginput: dict = None,
-    hemisphere: int = 0,
-) -> np.ndarray:
-    """
-    DEPRECARED for lla2footprint()
-    """
-    return lla2footprint(
-        space_time, map_alt, b_model=b_model, maginput=maginput, hemisphere=hemisphere
-    )
-
-
 def _map_azel_to_pixel(sat_azel: np.ndarray, skymap_dict: dict) -> np.ndarray:
     """
     Given the 2d array of the satellite's azimuth and elevation, locate
