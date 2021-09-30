@@ -23,7 +23,7 @@ from asilib.io.download_rego import download_rego_img, download_rego_skymap
 from asilib.io.download_themis import download_themis_img, download_themis_skymap
 
 # Import the loading functions.
-from asilib.io.load import load_cal, load_skymap
+from asilib.io.load import load_skymap
 from asilib.io.load import get_frame
 from asilib.io.load import get_frames
 
@@ -34,7 +34,7 @@ from asilib.plot.plot_keogram import plot_keogram
 from asilib.plot.plot_movie import plot_movie, plot_movie_generator
 
 # Import the analysis functions.
-from asilib.analysis.map import lla2azel, lla2footprint, lla_to_skyfield, map_along_magnetic_field
+from asilib.analysis.map import lla2azel, lla2footprint
 from asilib.analysis.keogram import keogram
 from asilib.analysis.equal_area import equal_area
 
