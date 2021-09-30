@@ -150,17 +150,6 @@ def download_rego_skymap(station: str, force_download: bool = False) -> List[pat
     return download_paths
 
 
-def download_rego_cal(station: str, force_download: bool = False) -> List[pathlib.Path]:
-    """
-    DEPRECATED for download_rego_skymap()
-    """
-    warnings.warn(
-        'asilib.download_rego_cal is deprecated. Use asilib.download_rego_skymap() instead',
-        DeprecationWarning,
-    )
-    return download_rego_skymap(station, force_download)
-
-
 def stream_large_file(url, save_path, test_flag: bool = False):
     """
     Streams a file from url to save_path. In requests.get(), stream=True
