@@ -54,7 +54,7 @@ class Test_plot_map(unittest.TestCase):
         ax.coastlines()
         ax.gridlines(linestyle=':')
 
-        # frame_time, frame, skymap, ax = plot_map(time, mission, stations[0], map_alt,
+        # image_time, image, skymap, ax = plot_map(time, mission, stations[0], map_alt,
         #     min_elevation=min_elevation)
         for station in stations:
             plot_map(time, mission, station, map_alt, ax=ax, min_elevation=min_elevation)

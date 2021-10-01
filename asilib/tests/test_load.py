@@ -14,7 +14,7 @@ and it doesn't validate the output.
 """
 
 
-class TestPlotFrame(unittest.TestCase):
+class TestPlotImage(unittest.TestCase):
     def setUp(self):
         self.load_date = datetime(2016, 10, 29, 4)
         self.time_range = [datetime(2016, 10, 29, 4, 0), datetime(2016, 10, 29, 4, 1)]
@@ -46,41 +46,41 @@ class TestPlotFrame(unittest.TestCase):
 
     def test_load_image_themis(self, create_reference=False):
         """Load one THEMIS ASI image."""
-        time, frame = load.load_image('THEMIS', 'GILL', self.load_date)
+        time, image = load.load_image('THEMIS', 'GILL', self.load_date)
 
         reference_path = pathlib.Path(
             config['ASILIB_DIR'], 'tests', 'data', 'test_load_image_themis.npy'
         )
         if create_reference:
-            np.save(reference_path, frame)
-        frame_reference = np.load(reference_path)
+            np.save(reference_path, image)
+        image_reference = np.load(reference_path)
 
         time_diff = (self.load_date - time).total_seconds()
         self.assertTrue(abs(time_diff) < 3)
 
-        np.testing.assert_equal(frame_reference, frame)
+        np.testing.assert_equal(image_reference, image)
         return
 
     def test_load_image_rego(self, create_reference=False):
         """Load one REGO ASI image."""
-        time, frame = load.load_image('REGO', 'GILL', time=self.load_date)
+        time, image = load.load_image('REGO', 'GILL', time=self.load_date)
 
         reference_path = pathlib.Path(
             config['ASILIB_DIR'], 'tests', 'data', 'test_load_image_rego.npy'
         )
         if create_reference:
-            np.save(reference_path, frame)
-        frame_reference = np.load(reference_path)
+            np.save(reference_path, image)
+        image_reference = np.load(reference_path)
 
         time_diff = (self.load_date - time).total_seconds()
         self.assertTrue(abs(time_diff) < 3)
 
-        np.testing.assert_equal(frame_reference, frame)
+        np.testing.assert_equal(image_reference, image)
         return
 
-    def test_load_images_themis(self, create_reference=False):
+    def test_load_images_themis(self, create_reference=True):
         """load one minute of THEMIS images."""
-        times, frames = load.load_image('THEMIS', 'GILL', time_range=self.time_range)
+        times, images = load.load_image('THEMIS', 'GILL', time_range=self.time_range)
 
         # np.save can't save an array of datetime objects without allow_pickle=True.
         # Since this can be a security concern, we'll save a string version of
@@ -91,17 +91,17 @@ class TestPlotFrame(unittest.TestCase):
             config['ASILIB_DIR'], 'tests', 'data', 'test_load_images_themis.npz'
         )
         if create_reference:
-            np.savez_compressed(reference_path, frames=frames, times=times)
+            np.savez_compressed(reference_path, images=images, times=times)
 
         reference = np.load(reference_path)
 
-        np.testing.assert_equal(reference['frames'], frames)
+        np.testing.assert_equal(reference['images'], images)
         np.testing.assert_equal(reference['times'], times)
         return
 
-    def test_load_images_rego(self, create_reference=False):
+    def test_load_images_rego(self, create_reference=True):
         """Load one minute of REGO images."""
-        times, frames = load.load_image('REGO', 'GILL', time_range=self.time_range)
+        times, images = load.load_image('REGO', 'GILL', time_range=self.time_range)
 
         # np.save can't save an array of datetime objects without allow_pickle=True.
         # Since this can be a security concern, we'll save a string version of
@@ -112,11 +112,11 @@ class TestPlotFrame(unittest.TestCase):
             config['ASILIB_DIR'], 'tests', 'data', 'test_load_images_rego.npz'
         )
         if create_reference:
-            np.savez_compressed(reference_path, frames=frames, times=times)
+            np.savez_compressed(reference_path, images=images, times=times)
 
         reference = np.load(reference_path)
 
-        np.testing.assert_equal(reference['frames'], frames)
+        np.testing.assert_equal(reference['images'], images)
         np.testing.assert_equal(reference['times'], times)
         return
 

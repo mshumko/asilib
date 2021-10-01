@@ -21,7 +21,7 @@ Example 1: Fisheye Lens View of an Arc
 
     import asilib
 
-    frame_time, frame, ax, im = asilib.plot_image(datetime(2017, 9, 15, 2, 34, 0), 
+    image_time, image, ax, im = asilib.plot_image(datetime(2017, 9, 15, 2, 34, 0), 
         'THEMIS', 'RANK', color_norm='log', force_download=False)
     plt.colorbar(im)
     ax.axis('off')
@@ -167,7 +167,7 @@ This is a sophisticated example that maps a hypothetical satellite track to an i
         time_range, mission, station, azel_contours=True, overwrite=True
     )
 
-    for i, (time, frame, ax, im) in enumerate(movie_generator):
+    for i, (time, image, ax, im) in enumerate(movie_generator):
         # Plot the entire satellite track
         ax.plot(sat_azel_pixels[:, 0], sat_azel_pixels[:, 1], 'red')
         # Plot the current satellite position.
@@ -192,7 +192,7 @@ An even more sophisticated example that maps a hypothetical satellite track to a
 
 The `asilib` functionality used here: 
 
-* `asilib.plot_movie_generator(..).send()` to get all the frames and frame times
+* `asilib.plot_movie_generator(..).send()` to get all the images and image times
 * `asilib.equal_area()` to create a masked array of pixels within a X by Y km sized box at the emission altitude. The masked array is `np.nan` outside of the box and 1 inside.
     
 .. raw:: html
@@ -242,19 +242,19 @@ The `asilib` functionality used here:
         ax=ax[0]
     )
 
-    # Use the generator to get the frames and time stamps to estimate mean the ASI
+    # Use the generator to get the images and time stamps to estimate mean the ASI
     # brightness along the satellite path and in a (10x10 km) box.
-    frame_data = movie_generator.send('data')
+    image_data = movie_generator.send('data')
 
     # Calculate what pixels are in a box_km around the satellite, and convolve it
-    # with the frames to pick out the ASI intensity in that box.
+    # with the images to pick out the ASI intensity in that box.
     area_box_mask = asilib.equal_area(mission, station, lla, box_km=(20, 20))
-    asi_brightness = np.nanmean(frame_data.frames*area_box_mask, axis=(1,2))
+    asi_brightness = np.nanmean(image_data.images*area_box_mask, axis=(1,2))
     area_box_mask[np.isnan(area_box_mask)] = 0  # To play nice with plt.contour()
 
-    for i, (time, frame, _, im) in enumerate(movie_generator):
+    for i, (time, image, _, im) in enumerate(movie_generator):
         # Note that because we are drawing moving data: ASI image in ax[0] and 
-        # the ASI time series + a vertical bar at the frame time in ax[1], we need
+        # the ASI time series + a vertical bar at the image time in ax[1], we need
         # to redraw everything at every iteration.
         
         # Clear ax[1] (ax[0] cleared by asilib.plot_movie_generator())
@@ -266,8 +266,8 @@ The `asilib` functionality used here:
         ax[0].scatter(sat_azel_pixels[i, 0], sat_azel_pixels[i, 1], c='red', marker='o', s=50)
 
         # Plot the time series of the mean ASI intensity along the satellite path
-        ax[1].plot(frame_data.time, asi_brightness)
-        ax[1].axvline(time, c='k') # At the current frame time.
+        ax[1].plot(image_data.time, asi_brightness)
+        ax[1].axvline(time, c='k') # At the current image time.
 
         # Annotate the station and satellite info in the top-left corner.
         station_str = (

@@ -602,7 +602,7 @@ def _create_empty_data_arrays(mission, time_range, type):
     elif type.lower() == 'images':
         data_shape = (max_n_timestamps, img_size, img_size)
     else:
-        raise ValueError('type must be "keogram" or "frames".')
+        raise ValueError('type must be "keogram" or "images".')
 
     # object is the only dtype that can contain datetime objects
     times = np.nan * np.zeros(max_n_timestamps, dtype=object)
