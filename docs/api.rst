@@ -20,12 +20,12 @@ The below functions can be imported and called using either of the following way
 - .. code-block:: python
 
     import asilib
-    asilib.get_frame(...)
+    asilib.load_image(...)
 
 - .. code-block:: python
 
-    from asilib.io.load import get_frame
-    get_frame(...)
+    from asilib.io.load import load_image
+    load_image(...)
 
 The former option is possible because these functions are all imported by default. However, this may change in a future release, so absolute import (shown in the latter example) is preferred.
 
@@ -44,8 +44,8 @@ Summary
     asilib.io.download_rego.download_rego_img
     asilib.io.download_rego.download_rego_cal
     asilib.io.load.load_skymap
-    asilib.io.load.get_frame
-    asilib.io.load.get_frames
+    asilib.io.load.load_image
+    asilib.io.load.load_image_generator
     asilib.plot.plot_keogram.plot_keogram 
     asilib.plot.plot_frame.plot_frame
     asilib.plot.plot_map.plot_map
@@ -81,7 +81,7 @@ Load
 The following functions are very useful if you want to work with the raw image and skymap data without dealing without explicitly downloading them.
 
 .. automodule:: asilib.io.load
-   :members: load_skymap, get_frame, get_frames
+   :members: load_skymap, load_image, load_image_generator
    :undoc-members:
    :show-inheritance:
 

@@ -246,7 +246,7 @@ def plot_movie_generator(
     # With the @start_generator decorator, when this generator first gets called, it
     # will halt here. This way the errors due to missing data will be raised up front.
     user_input = yield
-    # user_input can be used to get the frame_times and frames out of the generator.
+    # user_input can be used to get the image_times and images out of the generator.
     if isinstance(user_input, str) and 'data' in user_input.lower():
         yield Frames(frame_times, frames)
 

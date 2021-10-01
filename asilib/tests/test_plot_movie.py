@@ -29,7 +29,7 @@ class TestPlotFrame(unittest.TestCase):
         gen = asilib.plot_movie_generator(
             time_range, 'THEMIS', 'FSMI', azel_contours=True, overwrite=True
         )
-        tup = gen.send("get_frame_data")
+        tup = gen.send("get_image_data")
         self.assertEqual(tup.time.shape, (100,))
         self.assertEqual(tup.frames.shape, (100, 256, 256))
 
