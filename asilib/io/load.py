@@ -68,11 +68,11 @@ def _find_img_path(
     if force_download:
         if mission.lower() == 'themis':
             file_path = download_themis.download_themis_img(
-                time, station, force_download=force_download
+                station, time=time, force_download=force_download
             )[0]
         elif mission.lower() == 'rego':
             file_path = download_rego.download_rego_img(
-                time, station, force_download=force_download
+                station, time=time, force_download=force_download
             )[0]
     else:
         # If the user does not want to force a download, look for a file on the

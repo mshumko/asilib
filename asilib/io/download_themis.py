@@ -37,8 +37,8 @@ def download_themis_img(
 
     Parameters
     ----------
-    station: str
-        The station id to download the data from.
+    location_code: str
+        The location_code to download the data from.
     time: datetime.datetime or str
         The date and time to download the data from. If day is string,
         dateutil.parser.parse will attempt to parse it into a datetime

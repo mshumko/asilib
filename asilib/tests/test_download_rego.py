@@ -32,7 +32,7 @@ class TestDownloadRego(unittest.TestCase):
         image_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'rego')
         image_path = image_dir / 'clg_l1_rgf_luck_2020080104_v01.cdf'
 
-        download_rego.download_rego_img(self.day, self.station, force_download=True)
+        download_rego.download_rego_img(self.station, time=self.day, force_download=True)
 
         assert image_path.is_file()
         return

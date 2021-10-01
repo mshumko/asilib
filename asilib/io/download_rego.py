@@ -27,9 +27,9 @@ if not rego_dir.exists():
 
 
 def download_rego_img(
-    day: Union[datetime, str],
-    station: str,
-    download_hour: bool = True,
+    location_code: str,
+    time: Union[datetime, str]=None,
+    time_range: Union[datetime, str]=None,
     force_download: bool = False,
     test_flag: bool = False,
 ) -> List[pathlib.Path]:
@@ -40,15 +40,16 @@ def download_rego_img(
 
     Parameters
     ----------
-    day: datetime.datetime or str
+    location_code: str
+        The location_code to download the data from.
+    time: datetime.datetime or str
         The date and time to download the data from. If day is string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object.
-    station: str
-        The station id to download the data from.
-    download_hour: bool (optinal)
-        If True, will download only one hour of image data, otherwise it will
-        download image data from the entire day.
+    time_range: a list of len(2) of datetime.datetime or str
+        Two time to download the data from. If day is string,
+        dateutil.parser.parse will attempt to parse it into a datetime
+        object.
     force_download: bool (optional)
         If True, download the file even if it already exists.
 
@@ -66,38 +67,28 @@ def download_rego_img(
     |
     | day = datetime(2017, 4, 13, 5)
     | station = 'LUCK'
-    | asilib.download_rego_img(day, station)
+    | asilib.download_rego_img(station, time=day)
     """
-    if isinstance(day, str):
-        day = dateutil.parser.parse(day)
-    # Add the station/year/month url folders onto the url
-    url = IMG_BASE_URL + f'{station.lower()}/{day.year}/{str(day.month).zfill(2)}/'
+    if (time is None) and (time_range is None):
+        raise AttributeError('Neither time or time_range is specified.')
+    elif ((time is not None) and (time_range is not None)):
+        raise AttributeError('Both time and time_range can not be simultaneously specified.')
 
-    if download_hour:
-        # Find an image file for the hour.
-        search_pattern = f'{station.lower()}_{day.strftime("%Y%m%d%H")}'
-        file_names = utils._search_hrefs(url, search_pattern=search_pattern)
+    elif time is not None:
+        time = utils._validate_time(time)
+        download_path = _download_one_img_file(location_code, time, force_download)
+        download_paths = [download_path]  # List for constancy with the time_range code chunk output.
 
-        # Download file
-        download_url = url + file_names[0]  # On the server
-        download_path = pathlib.Path(rego_dir, file_names[0])  # On the local machine.
-        # Download if force_download=True or the file does not exist.
-        if force_download or (not download_path.is_file()):
-            utils._stream_large_file(download_url, download_path, test_flag=test_flag)
-        return [download_path]
-    else:
-        # Otherwise find all of the image files for that station and UT hour.
-        file_names = utils._search_hrefs(url)
+    elif time_range is not None:
+        time_range = utils._validate_time_range(time_range)
+        download_hours = utils._get_hours(time_range)
         download_paths = []
-        # Download files
-        for file_name in file_names:
-            download_url = url + file_name
-            download_path = pathlib.Path(rego_dir, file_name)
+        
+        for hour in download_hours:
+            download_path = _download_one_img_file(location_code, hour, force_download)
             download_paths.append(download_path)
-            # Download if force_download=True or the file does not exist.
-            if force_download or (not download_path.is_file()):
-                utils._stream_large_file(download_url, download_path, test_flag=test_flag)
-        return download_paths
+            
+    return download_paths
 
 
 def download_rego_skymap(station: str, force_download: bool = False) -> List[pathlib.Path]:
