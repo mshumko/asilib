@@ -64,11 +64,6 @@ html_logo = './_static/aurora-asi-lib_logo.png'
 
 html_theme_options = {
     # Toc options
-    'collapse_navigation': False,
-    'sticky_navigation': True,
-    'navigation_depth': 4,
-    'includehidden': True,
-    'titles_only': True,
     "sidebar_hide_name": True
 }
 

@@ -35,14 +35,16 @@ The former option is possible because these functions are all imported by defaul
 .. note::
     The longitude units are converted from 0->360 to -180->180 degrees in the skymap calibration files.
 
-Summary
-=======
+Function Summary
+================
 
 .. autosummary::
+   :nosignatures:
+
     asilib.io.download_themis.download_themis_img
-    asilib.io.download_themis.download_themis_cal
+    asilib.io.download_themis.download_themis_skymap
     asilib.io.download_rego.download_rego_img
-    asilib.io.download_rego.download_rego_cal
+    asilib.io.download_rego.download_rego_skymap
     asilib.io.load.load_skymap
     asilib.io.load.load_image
     asilib.io.load.load_image_generator
@@ -67,12 +69,12 @@ Download
 ========
 
 .. automodule:: asilib.io.download_themis
-   :members:
+   :members: download_themis_img, download_themis_skymap
    :undoc-members:
    :show-inheritance:
 
 .. automodule:: asilib.io.download_rego
-   :members: download_rego_img, download_rego_cal
+   :members: download_rego_img, download_rego_skymap
    :undoc-members:
    :show-inheritance:
 

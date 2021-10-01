@@ -78,7 +78,7 @@ class TestPlotImage(unittest.TestCase):
         np.testing.assert_equal(image_reference, image)
         return
 
-    def test_load_images_themis(self, create_reference=True):
+    def test_load_images_themis(self, create_reference=False):
         """load one minute of THEMIS images."""
         times, images = load.load_image('THEMIS', 'GILL', time_range=self.time_range)
 
@@ -99,7 +99,7 @@ class TestPlotImage(unittest.TestCase):
         np.testing.assert_equal(reference['times'], times)
         return
 
-    def test_load_images_rego(self, create_reference=True):
+    def test_load_images_rego(self, create_reference=False):
         """Load one minute of REGO images."""
         times, images = load.load_image('REGO', 'GILL', time_range=self.time_range)
 
