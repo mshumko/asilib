@@ -21,7 +21,7 @@ Feel free to contact me and request that I add other ASI missions to `asilib`.
 Before you can run these examples, make sure that `asilib` is configured with the installation steps below. These examples, and more, are in the `asilib/examples/` folder.
 
 ### Example 1
-This example uses asilib to plot one frame of a bright auroral arc.
+This example uses asilib to plot one image of a bright auroral arc.
 ```python
 from datetime import datetime
 
@@ -31,7 +31,7 @@ import asilib
 
 # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active 
 # auroral arc powered by accelerated electrons from very high altitudes"
-frame_time, frame, ax, im = asilib.plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 
+image_time, image, ax, im = asilib.plot_image(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 
                     color_norm='log', force_download=False)
 plt.colorbar(im)
 ax.axis('off')

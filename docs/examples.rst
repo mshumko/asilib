@@ -21,7 +21,7 @@ Example 1: Fisheye Lens View of an Arc
 
     import asilib
 
-    frame_time, frame, ax, im = asilib.plot_frame(datetime(2017, 9, 15, 2, 34, 0), 
+    frame_time, frame, ax, im = asilib.plot_image(datetime(2017, 9, 15, 2, 34, 0), 
         'THEMIS', 'RANK', color_norm='log', force_download=False)
     plt.colorbar(im)
     ax.axis('off')

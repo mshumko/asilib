@@ -2,6 +2,7 @@ import pathlib
 from datetime import datetime, timedelta
 import dateutil.parser
 from typing import List, Union, Optional, Sequence, Tuple
+import warnings
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -20,7 +21,31 @@ def plot_frame(
     force_download: bool = False,
     time_thresh_s: float = 3,
     ax: plt.subplot = None,
-    add_label: bool = True,
+    label: bool = True,
+    color_map: str = 'auto',
+    color_bounds: Union[List[float], None] = None,
+    color_norm: str = 'log',
+    azel_contours: bool = False,
+) -> Tuple[datetime, plt.Axes, matplotlib.image.AxesImage]:
+
+    warnings.warn('asilib.plot_frame is deprecated for asilib.plot_image.')
+    return plot_image(time, mission, station, force_download=force_download,
+            time_thresh_s=time_thresh_s,
+            ax=ax,
+            label=label,
+            color_map=color_map,
+            color_bounds=color_bounds,
+            color_norm=color_norm,
+            azel_contours=azel_contours)
+
+def plot_image(
+    time: Union[datetime, str],
+    mission: str,
+    station: str,
+    force_download: bool = False,
+    time_thresh_s: float = 3,
+    ax: plt.subplot = None,
+    label: bool = True,
     color_map: str = 'auto',
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
@@ -51,7 +76,7 @@ def plot_frame(
     ax: plt.subplot
         The subplot to plot the frame on. If None, this function will
         create one.
-    add_label: bool
+    label: bool
         Flag to add the "mission/station/frame_time" text to the plot.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
@@ -98,7 +123,7 @@ def plot_frame(
     |
     | # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active
     | # auroral arc powered by accelerated electrons from very high altitudes"
-    | frame_time, ax, im = asilib.plot_frame(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK',
+    | frame_time, ax, im = asilib.plot_image(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK',
     |     color_norm='log', force_download=False)
     |
     | plt.colorbar(im)
@@ -132,14 +157,15 @@ def plot_frame(
         raise ValueError('color_norm must be either "log" or "lin".')
 
     im = ax.imshow(frame[:, :], cmap=color_map, norm=norm, origin="lower")
-    ax.text(
-        0,
-        0,
-        f"{mission.upper()}/{station.upper()}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}",
-        va='bottom',
-        transform=ax.transAxes,
-        color='white',
-    )
+    if label:
+        ax.text(
+            0,
+            0,
+            f"{mission.upper()}/{station.upper()}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}",
+            va='bottom',
+            transform=ax.transAxes,
+            color='white',
+        )
     if azel_contours:
         skymap_dict = load.load_skymap(mission, station, frame_time, force_download=force_download)
 

@@ -15,6 +15,6 @@ import asilib
 mission = 'THEMIS'
 station = 'KAPU'
 
-asilib.plot_frame('2008-03-09T04:39:00', mission, station)
+asilib.plot_image('2008-03-09T04:39:00', mission, station)
 plt.tight_layout()
 plt.show()
