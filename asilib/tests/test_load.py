@@ -1,7 +1,7 @@
 import re
 import unittest
 import pathlib
-from datetime import datetime
+from datetime import datetime, time
 import numpy as np
 import cdflib
 
@@ -44,12 +44,12 @@ class TestPlotFrame(unittest.TestCase):
         assert skymap['skymap_path'].name == 'themis_skymap_gill_20151121_vXX.sav'
         return
 
-    def test_themis_get_frame(self, create_reference=False):
-        """Get one THEMIS ASI image."""
-        time, frame = load.get_frame(self.load_date, 'THEMIS', 'GILL')
+    def test_load_image_themis(self, create_reference=False):
+        """Load one THEMIS ASI image."""
+        time, frame = load.load_image('THEMIS', 'GILL', self.load_date)
 
         reference_path = pathlib.Path(
-            config['ASILIB_DIR'], 'tests', 'data', 'test_themis_get_frame.npy'
+            config['ASILIB_DIR'], 'tests', 'data', 'test_load_image_themis.npy'
         )
         if create_reference:
             np.save(reference_path, frame)
@@ -61,12 +61,12 @@ class TestPlotFrame(unittest.TestCase):
         np.testing.assert_equal(frame_reference, frame)
         return
 
-    def test_rego_get_frame(self, create_reference=False):
-        """Get one REGO ASI image."""
-        time, frame = load.get_frame(self.load_date, 'REGO', 'GILL')
+    def test_load_image_rego(self, create_reference=False):
+        """Load one REGO ASI image."""
+        time, frame = load.load_image('REGO', 'GILL', time=self.load_date)
 
         reference_path = pathlib.Path(
-            config['ASILIB_DIR'], 'tests', 'data', 'test_rego_get_frame.npy'
+            config['ASILIB_DIR'], 'tests', 'data', 'test_load_image_rego.npy'
         )
         if create_reference:
             np.save(reference_path, frame)
@@ -78,9 +78,9 @@ class TestPlotFrame(unittest.TestCase):
         np.testing.assert_equal(frame_reference, frame)
         return
 
-    def test_themis_get_frames(self, create_reference=True):
-        """Get one minute of THEMIS images."""
-        times, frames = load.get_frames(self.time_range, 'THEMIS', 'GILL')
+    def test_load_images_themis(self, create_reference=False):
+        """load one minute of THEMIS images."""
+        times, frames = load.load_image('THEMIS', 'GILL', time_range=self.time_range)
 
         # np.save can't save an array of datetime objects without allow_pickle=True.
         # Since this can be a security concern, we'll save a string version of
@@ -88,7 +88,7 @@ class TestPlotFrame(unittest.TestCase):
         times = np.array([t.isoformat() for t in times])
 
         reference_path = pathlib.Path(
-            config['ASILIB_DIR'], 'tests', 'data', 'test_themis_get_frames.npz'
+            config['ASILIB_DIR'], 'tests', 'data', 'test_load_images_themis.npz'
         )
         if create_reference:
             np.savez_compressed(reference_path, frames=frames, times=times)
@@ -99,9 +99,9 @@ class TestPlotFrame(unittest.TestCase):
         np.testing.assert_equal(reference['times'], times)
         return
 
-    def test_rego_get_frames(self, create_reference=True):
-        """Get one minute of REGO images."""
-        times, frames = load.get_frames(self.time_range, 'REGO', 'GILL')
+    def test_load_images_rego(self, create_reference=False):
+        """Load one minute of REGO images."""
+        times, frames = load.load_image('REGO', 'GILL', time_range=self.time_range)
 
         # np.save can't save an array of datetime objects without allow_pickle=True.
         # Since this can be a security concern, we'll save a string version of
@@ -109,9 +109,8 @@ class TestPlotFrame(unittest.TestCase):
         times = np.array([t.isoformat() for t in times])
 
         reference_path = pathlib.Path(
-            config['ASILIB_DIR'], 'tests', 'data', 'test_rego_get_frames.npz'
+            config['ASILIB_DIR'], 'tests', 'data', 'test_load_images_rego.npz'
         )
-
         if create_reference:
             np.savez_compressed(reference_path, frames=frames, times=times)
 
