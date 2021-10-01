@@ -87,6 +87,7 @@ def download_rego_img(
         download_paths = []
 
         for hour in download_hours:
+            # TODO: Add a try-except block if the user wants to ignore downloading files that don't exist.
             download_path = _download_one_img_file(location_code, hour, force_download)
             download_paths.append(download_path)
 
