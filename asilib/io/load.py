@@ -112,23 +112,40 @@ def _find_img_path(
     return file_path
 
 
-def load_image(asi_array_code: str, location_code: str, time=None, time_range=None, 
-    force_download: bool = False, time_thresh_s: float = 3, ignore_missing_data: bool = True):
+def load_image(
+    asi_array_code: str,
+    location_code: str,
+    time=None,
+    time_range=None,
+    force_download: bool = False,
+    time_thresh_s: float = 3,
+    ignore_missing_data: bool = True,
+):
     """
-    Wrapper for the _load_image and _load_images functions. 
+    Wrapper for the _load_image and _load_images functions.
     """
     # A bunch of if statements that download image files only when either time or time_range
     # is specified (not both).
     if (time is None) and (time_range is None):
         raise AttributeError('Neither time or time_range is specified.')
-    elif ((time is not None) and (time_range is not None)):
+    elif (time is not None) and (time_range is not None):
         raise AttributeError('Both time and time_range can not be simultaneously specified.')
     elif time is not None:
-        return _load_image(time, asi_array_code, location_code, force_download=force_download,
-                    time_thresh_s=time_thresh_s)
+        return _load_image(
+            time,
+            asi_array_code,
+            location_code,
+            force_download=force_download,
+            time_thresh_s=time_thresh_s,
+        )
     elif time_range is not None:
-        return _load_images(time_range, asi_array_code, location_code, force_download=force_download, 
-                    ignore_missing_data=ignore_missing_data)
+        return _load_images(
+            time_range,
+            asi_array_code,
+            location_code,
+            force_download=force_download,
+            ignore_missing_data=ignore_missing_data,
+        )
     return
 
 
@@ -240,19 +257,25 @@ def _extract_skymap_dates(skymap_paths):
         skymap_dates.append(day_obj)
     return skymap_dates
 
+
 def get_frame(
-        time: Union[datetime, str],
-        asi_array_code: str,
-        location_code: str,
-        force_download: bool = False,
-        time_thresh_s: float = 3,
-        ) -> Tuple[datetime, np.ndarray]:
+    time: Union[datetime, str],
+    asi_array_code: str,
+    location_code: str,
+    force_download: bool = False,
+    time_thresh_s: float = 3,
+) -> Tuple[datetime, np.ndarray]:
 
     warnings.warn('asilib.get_frame is deprecated for asilib.load_image')
 
-    return _load_image(time, asi_array_code, location_code,
-                force_download=force_download, 
-                time_thresh_s=time_thresh_s)
+    return _load_image(
+        time,
+        asi_array_code,
+        location_code,
+        force_download=force_download,
+        time_thresh_s=time_thresh_s,
+    )
+
 
 def _load_image(
     time: Union[datetime, str],
@@ -331,17 +354,18 @@ def _load_image(
     )
     return epoch[idx[0]], cdf_obj.varget(image_key)[idx[0], :, :]
 
+
 def get_frames(
-        time_range: Sequence[Union[datetime, str]],
-        asi_array_code: str,
-        location_code: str,
-        force_download: bool = False,
-        ) -> Tuple[datetime, np.ndarray]:
+    time_range: Sequence[Union[datetime, str]],
+    asi_array_code: str,
+    location_code: str,
+    force_download: bool = False,
+) -> Tuple[datetime, np.ndarray]:
 
     warnings.warn('asilib.get_frames is deprecated for asilib.load_image.')
 
-    return _load_images(time_range, asi_array_code, location_code,
-                force_download=force_download)
+    return _load_images(time_range, asi_array_code, location_code, force_download=force_download)
+
 
 def _load_images(
     time_range: Sequence[Union[datetime, str]],
@@ -401,8 +425,13 @@ def _load_images(
     | times, images = asilib.io.load._load_images(time_range, 'REGO', 'GILL')
     """
     times, images = _create_empty_data_arrays(mission, time_range, 'images')
-    image_generator = load_image_generator(time_range, mission, station, 
-        force_download=force_download, ignore_missing_data=ignore_missing_data)
+    image_generator = load_image_generator(
+        time_range,
+        mission,
+        station,
+        force_download=force_download,
+        ignore_missing_data=ignore_missing_data,
+    )
 
     start_time_index = 0
     for file_image_times, file_images in image_generator:

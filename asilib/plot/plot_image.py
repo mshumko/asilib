@@ -29,14 +29,20 @@ def plot_frame(
 ) -> Tuple[datetime, plt.Axes, matplotlib.image.AxesImage]:
 
     warnings.warn('asilib.plot_frame is deprecated for asilib.plot_image.')
-    return plot_image(time, mission, station, force_download=force_download,
-            time_thresh_s=time_thresh_s,
-            ax=ax,
-            label=label,
-            color_map=color_map,
-            color_bounds=color_bounds,
-            color_norm=color_norm,
-            azel_contours=azel_contours)
+    return plot_image(
+        time,
+        mission,
+        station,
+        force_download=force_download,
+        time_thresh_s=time_thresh_s,
+        ax=ax,
+        label=label,
+        color_map=color_map,
+        color_bounds=color_bounds,
+        color_norm=color_norm,
+        azel_contours=azel_contours,
+    )
+
 
 def plot_image(
     time: Union[datetime, str],

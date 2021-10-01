@@ -187,6 +187,7 @@ def lla2footprint(
     magnetic_footprint[:, [2, 0, 1]] = magnetic_footprint[:, [0, 1, 2]]
     return magnetic_footprint
 
+
 def _map_azel_to_pixel(sat_azel: np.ndarray, skymap_dict: dict) -> np.ndarray:
     """
     Given the 2d array of the satellite's azimuth and elevation, locate

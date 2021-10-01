@@ -26,9 +26,9 @@ if not themis_dir.exists():
 
 def download_themis_img(
     location_code: str,
-    time: Union[datetime, str]=None,
-    time_range: Union[datetime, str]=None,
-    force_download: bool = False
+    time: Union[datetime, str] = None,
+    time_range: Union[datetime, str] = None,
+    force_download: bool = False,
 ) -> List[pathlib.Path]:
     """
     This function downloads the THEMIS ASI image data given the day, location_code,
@@ -68,23 +68,25 @@ def download_themis_img(
     """
     if (time is None) and (time_range is None):
         raise AttributeError('Neither time or time_range is specified.')
-    elif ((time is not None) and (time_range is not None)):
+    elif (time is not None) and (time_range is not None):
         raise AttributeError('Both time and time_range can not be simultaneously specified.')
 
     elif time is not None:
         time = utils._validate_time(time)
         download_path = _download_one_img_file(location_code, time, force_download)
-        download_paths = [download_path]  # List for constancy with the time_range code chunk output.
+        download_paths = [
+            download_path
+        ]  # List for constancy with the time_range code chunk output.
 
     elif time_range is not None:
         time_range = utils._validate_time_range(time_range)
         download_hours = utils._get_hours(time_range)
         download_paths = []
-        
+
         for hour in download_hours:
             download_path = _download_one_img_file(location_code, hour, force_download)
             download_paths.append(download_path)
-            
+
     return download_paths
 
 
@@ -99,9 +101,7 @@ def _download_one_img_file(location_code, time, force_download):
     file_names = utils._search_hrefs(url, search_pattern=search_pattern)
 
     server_url = url + file_names[0]
-    download_path = pathlib.Path(
-        asilib.config['ASI_DATA_DIR'], 'themis', file_names[0]
-    )
+    download_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'themis', file_names[0])
     if force_download or (not download_path.is_file()):
         utils._stream_large_file(server_url, download_path)
     return download_path

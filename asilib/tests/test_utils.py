@@ -41,22 +41,18 @@ class TestUtils(unittest.TestCase):
         """
         Tests utils._validate_time.
         """
-        valid_time_inputs = [
-                    '2016-01-01T10:05',
-                    '2016-01-01 10:05',
-                    datetime(2016, 1, 1, 10, 5)
-        ]
+        valid_time_inputs = ['2016-01-01T10:05', '2016-01-01 10:05', datetime(2016, 1, 1, 10, 5)]
 
         invalid_time_inputs = [
-                    'Two thousand and sixteen',
-                    5,
-                    10000.0,
+            'Two thousand and sixteen',
+            5,
+            10000.0,
         ]
-        
+
         for t in valid_time_inputs:
             assert datetime(2016, 1, 1, 10, 5) == utils._validate_time(t)
 
-        for t in invalid_time_inputs:        
+        for t in invalid_time_inputs:
             with self.assertRaises(ValueError):
                 utils._validate_time(t)
         return
@@ -66,39 +62,39 @@ class TestUtils(unittest.TestCase):
         Tests utils._validate_time_range.
         """
         valid_time_inputs = [
-                    ['2016-01-01T10:05', '2016-01-01T10:10'],
-                    ['2016-01-01 10:05', '2016-01-01 10:10'],
-                    [datetime(2016, 1, 1, 10, 5), datetime(2016, 1, 1, 10, 10)]
+            ['2016-01-01T10:05', '2016-01-01T10:10'],
+            ['2016-01-01 10:05', '2016-01-01 10:10'],
+            [datetime(2016, 1, 1, 10, 5), datetime(2016, 1, 1, 10, 10)],
         ]
 
         invalid_time_input_length = [
-                    ['2016-01-01T10:05', '2016-01-01T10:10', '2016-01-01T10:10'],
-                    [datetime(2016, 1, 1, 10, 5)],
-                    [],
-                    5,
-                    5.5
+            ['2016-01-01T10:05', '2016-01-01T10:10', '2016-01-01T10:10'],
+            [datetime(2016, 1, 1, 10, 5)],
+            [],
+            5,
+            5.5,
         ]
 
-        invalid_time_format = [
-                    ['test', '2016-01-01T10:05'],
-                    [5, 5]
-        ]
-        
+        invalid_time_format = [['test', '2016-01-01T10:05'], [5, 5]]
+
         for time_range in valid_time_inputs:
-            assert [datetime(2016, 1, 1, 10, 5), datetime(2016, 1, 1, 10, 10)] == utils._validate_time_range(time_range)
+            assert [
+                datetime(2016, 1, 1, 10, 5),
+                datetime(2016, 1, 1, 10, 10),
+            ] == utils._validate_time_range(time_range)
 
-        for time_range in invalid_time_input_length:        
+        for time_range in invalid_time_input_length:
             with self.assertRaises(AssertionError):
                 utils._validate_time_range(time_range)
 
-        for time_range in invalid_time_format:        
+        for time_range in invalid_time_format:
             with self.assertRaises(ValueError):
                 utils._validate_time_range(time_range)
         return
 
     def test_get_hours(self):
         """
-        Tests the hour time series from _get_hours. The four test cases comprise of two 
+        Tests the hour time series from _get_hours. The four test cases comprise of two
         tests with either the start or end time are top of the hour, and two tests
         where either the start or end time are not at the top of the hour.
         """
@@ -112,11 +108,19 @@ class TestUtils(unittest.TestCase):
 
         time_range = [datetime(2016, 1, 1, 10), datetime(2016, 1, 1, 12, 1)]
         hours = utils._get_hours(time_range)
-        assert hours == [datetime(2016, 1, 1, 10), datetime(2016, 1, 1, 11), datetime(2016, 1, 1, 12)]
+        assert hours == [
+            datetime(2016, 1, 1, 10),
+            datetime(2016, 1, 1, 11),
+            datetime(2016, 1, 1, 12),
+        ]
 
         time_range = [datetime(2016, 1, 1, 10, 5), datetime(2016, 1, 1, 12, 1)]
         hours = utils._get_hours(time_range)
-        assert hours == [datetime(2016, 1, 1, 10), datetime(2016, 1, 1, 11), datetime(2016, 1, 1, 12)]
+        assert hours == [
+            datetime(2016, 1, 1, 10),
+            datetime(2016, 1, 1, 11),
+            datetime(2016, 1, 1, 12),
+        ]
         return
 
 

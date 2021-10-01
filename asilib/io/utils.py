@@ -30,7 +30,9 @@ def _validate_time_range(time_range):
     if time_range is None:
         return None
 
-    assert isinstance(time_range, (list, tuple, np.ndarray)), "time_range must be a list, tuple, or np.ndarray." 
+    assert isinstance(
+        time_range, (list, tuple, np.ndarray)
+    ), "time_range must be a list, tuple, or np.ndarray."
     assert len(time_range) == 2, "time_range must be a list or a tuple with start and end times."
 
     time_range_parsed = []
@@ -60,12 +62,13 @@ def _get_hours(time_range):
     current_hour = copy.copy(time_range[0])
     hours = []
 
-    # Not <= in while loop because we don't want to download the final hour if time_range[1] is, 
+    # Not <= in while loop because we don't want to download the final hour if time_range[1] is,
     # for example, 05:00:00 [HH:MM:SS].
     while current_hour < time_range[1]:
         hours.append(current_hour)
         current_hour += timedelta(hours=1)
     return hours
+
 
 def _stream_large_file(url, save_path, test_flag: bool = False):
     """
