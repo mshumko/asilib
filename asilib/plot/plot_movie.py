@@ -38,7 +38,7 @@ def plot_movie(
         The station id to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
-    add_label: bool
+    label: bool
         Flag to add the "mission/station/image_time" text to the plot.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
@@ -112,7 +112,7 @@ def plot_movie_generator(
     mission: str,
     station: str,
     force_download: bool = False,
-    add_label: bool = True,
+    label: bool = True,
     color_map: str = 'auto',
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
@@ -146,7 +146,7 @@ def plot_movie_generator(
         The station id to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
-    add_label: bool
+    label: bool
         Flag to add the "mission/station/image_time" text to the plot.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
@@ -269,7 +269,7 @@ def plot_movie_generator(
             raise ValueError('color_norm must be either "log" or "lin".')
 
         im = ax.imshow(image, cmap=color_map, norm=norm, origin='lower')
-        if add_label:
+        if label:
             ax.text(
                 0,
                 0,
