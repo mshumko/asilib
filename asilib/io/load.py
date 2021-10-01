@@ -91,7 +91,7 @@ def _find_img_path(
             if mission.lower() == 'themis':
                 try:
                     file_path = download_themis.download_themis_img(
-                        time, station, force_download=force_download
+                        station, time=time, force_download=force_download
                     )[0]
                 except NotADirectoryError:
                     raise FileNotFoundError(
@@ -100,7 +100,7 @@ def _find_img_path(
             elif mission.lower() == 'rego':
                 try:
                     file_path = download_rego.download_rego_img(
-                        time, station, force_download=force_download
+                        station, time=time, force_download=force_download
                     )[0]
                 except NotADirectoryError:
                     raise FileNotFoundError(
