@@ -42,7 +42,7 @@ def _find_img_path(
     -------
     pathlib.Path
         The path to the full image file. See the implementation in
-        asilib.io.load.get_frame() or asilib.io.load.get_frames() on
+        asilib.io.load._get_image() or asilib.io.load.get_images() on
         how to use cdflib to load the image cdf files.
 
     Raises
@@ -112,9 +112,10 @@ def _find_img_path(
     return file_path
 
 
-def load_img(time, mission: str, station: str, force_download: bool = False):
+def load_image(asi_array_code: str, location_code: str, time=None, time_range=None, 
+    force_download: bool = False):
     """
-    Wrapper for the get_frame and get_frames functions. 
+    Wrapper for the get_image and get_images functions. 
     """
     raise NotImplementedError
 
@@ -227,8 +228,21 @@ def _extract_skymap_dates(skymap_paths):
         skymap_dates.append(day_obj)
     return skymap_dates
 
-
 def get_frame(
+        time: Union[datetime, str],
+        asi_array_code: str,
+        location_code: str,
+        force_download: bool = False,
+        time_thresh_s: float = 3,
+        ) -> Tuple[datetime, np.ndarray]:
+
+    warnings.warn('asilib.get_frame is deprecated for asilib.load_image')
+
+    return _get_image(time, asi_array_code, location_code,
+                force_download=force_download, 
+                time_thresh_s=time_thresh_s)
+
+def _get_image(
     time: Union[datetime, str],
     mission: str,
     station: str,
@@ -276,7 +290,7 @@ def get_frame(
     -------
     | import asilib
     |
-    | time, frame = asilib.get_frame('2016-10-29T04:15:00', 'REGO', 'GILL')
+    | time, frame = asilib.io.load._get_image('2016-10-29T04:15:00', 'REGO', 'GILL')
     """
     # Try to convert time to datetime object if it is a string.
     if isinstance(time, str):
@@ -305,8 +319,21 @@ def get_frame(
     )
     return epoch[idx[0]], cdf_obj.varget(frame_key)[idx[0], :, :]
 
-
 def get_frames(
+        time_range: Sequence[Union[datetime, str]],
+        asi_array_code: str,
+        location_code: str,
+        force_download: bool = False,
+        time_thresh_s: float = 3,
+        ) -> Tuple[datetime, np.ndarray]:
+
+    warnings.warn('asilib.get_frames is deprecated for asilib.load_image.')
+
+    return _get_images(time_range, asi_array_code, location_code,
+                force_download=force_download,
+                time_thresh_s=time_thresh_s)
+
+def _get_images(
     time_range: Sequence[Union[datetime, str]],
     mission: str,
     station: str,
@@ -361,7 +388,7 @@ def get_frames(
     | import asilib
     |
     | time_range = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
-    | times, frames = asilib.get_frames(time_range, 'REGO', 'GILL')
+    | times, frames = asilib.io.load._get_images(time_range, 'REGO', 'GILL')
     """
     times, frames = _create_empty_data_arrays(mission, time_range, 'frames')
     frames_generator = get_frames_generator(time_range, mission, station)

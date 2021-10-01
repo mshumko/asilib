@@ -24,6 +24,7 @@ from asilib.io.download_themis import download_themis_img, download_themis_skyma
 
 # Import the loading functions.
 from asilib.io.load import load_skymap
+from asilib.io.load import load_image
 from asilib.io.load import get_frame
 from asilib.io.load import get_frames
 
