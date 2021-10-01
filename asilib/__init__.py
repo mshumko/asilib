@@ -1,6 +1,5 @@
 import warnings
 import pathlib
-import importlib.util
 import configparser
 
 __version__ = '0.7.1'
@@ -19,8 +18,10 @@ except KeyError:  # Raised if config.ini does not have Paths.
 config = {'ASILIB_DIR': HERE, 'ASI_DATA_DIR': ASI_DATA_DIR}
 
 # Import download programs.
-from asilib.io.download_rego import download_rego_img, download_rego_skymap
-from asilib.io.download_themis import download_themis_img, download_themis_skymap
+from asilib.io.download_rego import download_rego_img 
+from asilib.io.download_rego import download_rego_skymap
+from asilib.io.download_themis import download_themis_img
+from asilib.io.download_themis import download_themis_skymap
 
 # Import the loading functions.
 from asilib.io.load import load_skymap
@@ -33,12 +34,11 @@ from asilib.io.load import get_frames
 from asilib.plot.plot_frame import plot_frame
 from asilib.plot.plot_map import plot_map
 from asilib.plot.plot_keogram import plot_keogram
-from asilib.plot.plot_movie import plot_movie, plot_movie_generator
+from asilib.plot.plot_movie import plot_movie
+from asilib.plot.plot_movie import plot_movie_generator
 
 # Import the analysis functions.
-from asilib.analysis.map import lla2azel, lla2footprint
+from asilib.analysis.map import lla2azel
+from asilib.analysis.map import lla2footprint
 from asilib.analysis.keogram import keogram
-from asilib.analysis.equal_area import equal_area
-
-# Import the equal_area function.
 from asilib.analysis.equal_area import equal_area
