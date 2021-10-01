@@ -24,20 +24,6 @@ class TestDownloadRego(unittest.TestCase):
         )
         return
 
-    def test_server_response(self):
-        """Check that the server responds without an error, 400-599 status_codes."""
-        r = requests.get(self.url)
-        assert r.status_code // 100 != 4
-        assert r.status_code // 100 != 5
-        return
-
-    def test_href_is_found(self):
-        """Test that the href function can find the first file on August 2020."""
-        search_pattern = f'{self.station}_{self.day.strftime("%Y%m%d%H")}'
-        matched_hrefs = download_rego.search_hrefs(self.url, search_pattern=search_pattern)
-        assert 'clg_l1_rgf_luck_2020080104_v01.cdf' in matched_hrefs
-        return
-
     def test_download_img(self):
         """
         Test the full REGO data downloader and download an hour file

@@ -6,7 +6,7 @@ import pathlib
 import warnings
 
 import asilib
-from asilib.io import download_rego
+import asilib.io.utils as utils
 
 """
 This program contains the Time History of Events and Macroscale Interactions during 
@@ -25,31 +25,28 @@ if not themis_dir.exists():
 
 
 def download_themis_img(
-    day: Union[datetime, str],
-    station: str,
-    download_hour: bool = True,
-    force_download: bool = False,
-    test_flag: bool = False,
+    location_code: str,
+    time: Union[datetime, str]=None,
+    time_range: Union[datetime, str]=None,
+    force_download: bool = False
 ) -> List[pathlib.Path]:
     """
-    This function downloads the THEMIS ASI image data given the day, station name,
+    This function downloads the THEMIS ASI image data given the day, location_code,
     and a flag to download a single hour file or the entire day. The images
     are saved to the asilib.config['ASI_DATA_DIR'] / 'themis' directory.
 
     Parameters
     ----------
-    day: datetime.datetime or str
+    station: str
+        The station id to download the data from.
+    time: datetime.datetime or str
         The date and time to download the data from. If day is string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object.
-    station: str
-        The station id to download the data from.
-    download_hour: bool (optinal)
-        If True, will download only one hour of image data, otherwise it will
-        download image data from the entire folder (typically a month)
-        from URL = IMG_BASE_URL/station/year/month. This kwarg is useful if you
-        need to download recently-uploaded data that is not fully processed
-        and has the YYYYMMDD (not YYYYMMDDHH) date string in the filename.
+    time_range: a list of len(2) of datetime.datetime or str
+        Two time to download the data from. If day is string,
+        dateutil.parser.parse will attempt to parse it into a datetime
+        object.
     force_download: bool (optional)
         If True, download the file even if it already exists.
 
@@ -69,38 +66,45 @@ def download_themis_img(
     | station = 'LUCK'
     | asilib.download_themis_img(day, station)
     """
-    if isinstance(day, str):
-        day = dateutil.parser.parse(day)
-    # Add the station/year/month url folders onto the url
-    url = IMG_BASE_URL + f'{station.lower()}/{day.year}/{str(day.month).zfill(2)}/'
+    if (time is None) and (time_range is None):
+        raise AttributeError('Neither time or time_range is specified.')
+    elif ((time is not None) and (time_range is not None)):
+        raise AttributeError('Both time and time_range can not be simultaneously specified.')
 
-    if download_hour:
-        # Find an image file for the hour.
-        search_pattern = f'{station.lower()}_{day.strftime("%Y%m%d%H")}'
-        file_names = download_rego.search_hrefs(url, search_pattern=search_pattern)
+    elif time is not None:
+        time = utils._validate_time(time)
+        download_path = _download_one_img_file(location_code, time, force_download)
+        download_paths = [download_path]  # List for constancy with the time_range code chunk output.
 
-        # Download file
-        download_url = url + file_names[0]  # On the server
-        download_path = pathlib.Path(
-            asilib.config['ASI_DATA_DIR'], 'themis', file_names[0]
-        )  # On the local machine.
-        # Download if force_download=True or the file does not exist.
-        if force_download or (not download_path.is_file()):
-            download_rego.stream_large_file(download_url, download_path, test_flag=test_flag)
-        return [download_path]
-    else:
-        # Otherwise find all of the image files for that station and UT hour.
-        file_names = download_rego.search_hrefs(url)
+    elif time_range is not None:
+        time_range = utils._validate_time_range(time_range)
+        download_hours = utils._get_hours(time_range)
         download_paths = []
-        # Download files
-        for file_name in file_names:
-            download_url = url + file_name
-            download_path = pathlib.Path(themis_dir, file_name)
+        
+        for hour in download_hours:
+            download_path = _download_one_img_file(location_code, hour, force_download)
             download_paths.append(download_path)
-            # Download if force_download=True or the file does not exist.
-            if force_download or (not download_path.is_file()):
-                download_rego.stream_large_file(download_url, download_path, test_flag=test_flag)
-        return download_paths
+            
+    return download_paths
+
+
+def _download_one_img_file(location_code, time, force_download):
+    """
+    Download one hour-long file.
+    """
+    # Add the location/year/month url folders onto the url
+    url = IMG_BASE_URL + f'{location_code.lower()}/{time.year}/{str(time.month).zfill(2)}/'
+
+    search_pattern = f'{location_code.lower()}_{time.strftime("%Y%m%d%H")}'
+    file_names = utils._search_hrefs(url, search_pattern=search_pattern)
+
+    server_url = url + file_names[0]
+    download_path = pathlib.Path(
+        asilib.config['ASI_DATA_DIR'], 'themis', file_names[0]
+    )
+    if force_download or (not download_path.is_file()):
+        utils._stream_large_file(server_url, download_path)
+    return download_path
 
 
 def download_themis_skymap(station: str, force_download: bool = False):
@@ -136,19 +140,19 @@ def download_themis_skymap(station: str, force_download: bool = False):
 
     # Look for all of the skymap hyperlinks, go in each one of them, and
     # download the .sav file.
-    skymap_folders_relative = download_rego.search_hrefs(url, search_pattern=station.lower())
+    skymap_folders_relative = utils._search_hrefs(url, search_pattern=station.lower())
     download_paths = []
 
     for skymap_folder in skymap_folders_relative:
         skymap_folder_absolute = url + skymap_folder
 
         # Lastly, research for the skymap .sav file.
-        skymap_name = download_rego.search_hrefs(skymap_folder_absolute, search_pattern=f'.sav')[0]
+        skymap_name = utils._search_hrefs(skymap_folder_absolute, search_pattern=f'.sav')[0]
         skymap_save_name = skymap_name.replace('-%2B', '')  # Replace the unicode '+'.
 
         # Download if force_download=True or the file does not exist.
         download_path = pathlib.Path(save_dir, skymap_save_name)
         download_paths.append(download_path)
         if force_download or (not download_path.is_file()):
-            download_rego.stream_large_file(skymap_folder_absolute + skymap_name, download_path)
+            utils._stream_large_file(skymap_folder_absolute + skymap_name, download_path)
     return download_paths
