@@ -280,15 +280,15 @@ def _load_image(
     force_download: bool (optional)
         If True, download the file even if it already exists.
     time_thresh_s: float
-        The maximum allowed time difference between a frame's time stamp
+        The maximum allowed time difference between a image time stamp
         and the time argument in seconds. Will raise a ValueError if no
         image time stamp is within the threshold.
 
     Returns
     -------
-    frame_time: datetime
-        The frame timestamp.
-    frame: np.ndarray
+    image_time: datetime
+        The image timestamp.
+    image: np.ndarray
         A 2D array of the ASI image at the date-time nearest to the
         time argument.
 
@@ -302,7 +302,7 @@ def _load_image(
     -------
     | import asilib
     |
-    | time, frame = asilib.io.load._load_image('2016-10-29T04:15:00', 'REGO', 'GILL')
+    | time, image = asilib.io.load._load_image('2016-10-29T04:15:00', 'REGO', 'GILL')
     """
     # Try to convert time to datetime object if it is a string.
     if isinstance(time, str):
@@ -312,10 +312,10 @@ def _load_image(
     cdf_obj = cdflib.CDF(cdf_path)
 
     if mission.lower() == 'rego':
-        frame_key = f'clg_rgf_{station.lower()}'
+        image_key = f'clg_rgf_{station.lower()}'
         time_key = f'clg_rgf_{station.lower()}_epoch'
     elif mission.lower() == 'themis':
-        frame_key = f'thg_asf_{station.lower()}'
+        image_key = f'thg_asf_{station.lower()}'
         time_key = f'thg_asf_{station.lower()}_epoch'
 
     # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
@@ -329,7 +329,7 @@ def _load_image(
         f'You can change the time_thresh_s kwarg to find a '
         f'time stamp further away.'
     )
-    return epoch[idx[0]], cdf_obj.varget(frame_key)[idx[0], :, :]
+    return epoch[idx[0]], cdf_obj.varget(image_key)[idx[0], :, :]
 
 def get_frames(
         time_range: Sequence[Union[datetime, str]],
@@ -351,7 +351,7 @@ def _load_images(
     ignore_missing_data: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Gets multiple ASI image frames given the mission (THEMIS or REGO), station, and
+    Gets multiple ASI image images given the mission (THEMIS or REGO), station, and
     the time_range date-time parameters. If a file does not locally exist, this
     function will attempt to download it. The returned time stamps span a range
     from time_range[0], up to, but excluding a time stamp exactly matching time_range[1].
@@ -360,7 +360,7 @@ def _load_images(
     ----------
     time_range: List[Union[datetime, str]]
         A list with len(2) == 2 of the start and end time to get the
-        frames. If either start or end time is a string,
+        images. If either start or end time is a string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
@@ -377,10 +377,10 @@ def _load_images(
     Returns
     -------
     times: datetime
-        The frame timestamps contained in time_range, including the start time
+        The image timestamps contained in time_range, including the start time
         and excluding the end time (if time_range[1] exactly matches a ASI time
         stamp).
-    frame: np.ndarray
+    image: np.ndarray
         An (nTime x nPixelRows x nPixelCols) array containing the ASI images
         for times contained in time_range.
 
@@ -398,25 +398,25 @@ def _load_images(
     | import asilib
     |
     | time_range = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
-    | times, frames = asilib.io.load._load_images(time_range, 'REGO', 'GILL')
+    | times, images = asilib.io.load._load_images(time_range, 'REGO', 'GILL')
     """
-    times, frames = _create_empty_data_arrays(mission, time_range, 'frames')
-    frames_generator = load_image_generator(time_range, mission, station, 
+    times, images = _create_empty_data_arrays(mission, time_range, 'images')
+    image_generator = load_image_generator(time_range, mission, station, 
         force_download=force_download, ignore_missing_data=ignore_missing_data)
 
     start_time_index = 0
-    for file_frame_times, file_frames in frames_generator:
-        end_time_index = start_time_index + file_frames.shape[0]
+    for file_image_times, file_images in image_generator:
+        end_time_index = start_time_index + file_images.shape[0]
 
-        frames[start_time_index:end_time_index, :, :] = file_frames
-        times[start_time_index:end_time_index] = file_frame_times
+        images[start_time_index:end_time_index, :, :] = file_images
+        times[start_time_index:end_time_index] = file_image_times
 
-        start_time_index += file_frames.shape[0]
+        start_time_index += file_images.shape[0]
 
-    i_nan = np.where(~np.isnan(frames[:, 0, 0]))[0]
-    frames = frames[i_nan, :, :]
+    i_nan = np.where(~np.isnan(images[:, 0, 0]))[0]
+    images = images[i_nan, :, :]
     times = times[i_nan]
-    return times, frames
+    return times, images
 
 
 def load_image_generator(
@@ -438,7 +438,7 @@ def load_image_generator(
     ----------
     time_range: List[Union[datetime, str]]
         A list with len(2) == 2 of the start and end time to get the
-        frames. If either start or end time is a string,
+        images. If either start or end time is a string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
@@ -455,10 +455,10 @@ def load_image_generator(
     Yields
     -------
     times: datetime
-        The frame timestamps contained in time_range, including the start time
+        The image timestamps contained in time_range, including the start time
         and excluding the end time (if time_range[1] exactly matches a ASI time
         stamp).
-    frame: np.ndarray
+    images: np.ndarray
         An (nTime x nPixelRows x nPixelCols) array containing the ASI images
         for times contained in time_range.
     """
@@ -467,10 +467,10 @@ def load_image_generator(
 
     # Figure out the data keys to load.
     if mission.lower() == 'rego':
-        frame_key = f'clg_rgf_{station.lower()}'
+        image_key = f'clg_rgf_{station.lower()}'
         time_key = f'clg_rgf_{station.lower()}_epoch'
     elif mission.lower() == 'themis':
-        frame_key = f'thg_asf_{station.lower()}'
+        image_key = f'thg_asf_{station.lower()}'
         time_key = f'thg_asf_{station.lower()}_epoch'
 
     hours = _get_hours(time_range)
@@ -488,7 +488,7 @@ def load_image_generator(
         epoch = _get_epoch(cdf_obj, time_key, hour, mission, station)
 
         idx = np.where((epoch >= time_range[0]) & (epoch < time_range[1]))[0]
-        yield epoch[idx], cdf_obj.varget(frame_key, startrec=idx[0], endrec=idx[-1])
+        yield epoch[idx], cdf_obj.varget(image_key, startrec=idx[0], endrec=idx[-1])
 
 
 def _validate_time_range(time_range):
@@ -500,7 +500,7 @@ def _validate_time_range(time_range):
     ----------
     time_range: List[Union[datetime, str]]
         A list with len(2) == 2 of the start and end time to get the
-        frames. If either start or end time is a string,
+        images. If either start or end time is a string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
@@ -584,7 +584,7 @@ def _create_empty_data_arrays(mission, time_range, type):
     """
     Creates two appropriately sized np.arrays full of np.nan. The first is a 1d times array,
     and the second is either: a 2d array (n_steps, n_pixels) if type=='keogram', or a 3d array
-    (n_times, n_pixels, n_pixels) if type='frames'.
+    (n_times, n_pixels, n_pixels) if type='images'.
     """
     if mission.lower() == 'themis':
         img_size = 256
@@ -599,7 +599,7 @@ def _create_empty_data_arrays(mission, time_range, type):
 
     if type.lower() == 'keogram':
         data_shape = (max_n_timestamps, img_size)
-    elif type.lower() == 'frames':
+    elif type.lower() == 'images':
         data_shape = (max_n_timestamps, img_size, img_size)
     else:
         raise ValueError('type must be "keogram" or "frames".')

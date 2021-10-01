@@ -52,7 +52,7 @@ def plot_image(
     azel_contours: bool = False,
 ) -> Tuple[datetime, plt.Axes, matplotlib.image.AxesImage]:
     """
-    Plots one ASI image frame given the mission (THEMIS or REGO), station, and
+    Plots one ASI image image given the mission (THEMIS or REGO), station, and
     the day date-time parameters. If a file does not locally exist, the _find_img_path()
     function will attempt to download it.
 
@@ -70,14 +70,14 @@ def plot_image(
     force_download: bool (optional)
         If True, download the file even if it already exists.
     time_thresh_s: float
-        The maximum allowed time difference between a frame's time stamp
+        The maximum allowed time difference between a image time stamp
         and the time argument in seconds. Will raise a ValueError if no
         image time stamp is within the threshold.
     ax: plt.subplot
-        The subplot to plot the frame on. If None, this function will
+        The subplot to plot the image on. If None, this function will
         create one.
     label: bool
-        Flag to add the "mission/station/frame_time" text to the plot.
+        Flag to add the "mission/station/image_time" text to the plot.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
@@ -93,10 +93,10 @@ def plot_image(
 
     Returns
     -------
-    frame_time: datetime.datetime
-        The time of the current frame.
-    frame: np.array
-        The 2d ASI image corresponding to frame_time.
+    image_time: datetime.datetime
+        The time of the current image.
+    image: np.array
+        The 2d ASI image corresponding to image_time.
     ax: plt.Axes
         The subplot object to modify the axis, labels, etc.
     im: plt.AxesImage
@@ -123,7 +123,7 @@ def plot_image(
     |
     | # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active
     | # auroral arc powered by accelerated electrons from very high altitudes"
-    | frame_time, ax, im = asilib.plot_image(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK',
+    | image_time, ax, im = asilib.plot_image(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK',
     |     color_norm='log', force_download=False)
     |
     | plt.colorbar(im)
@@ -133,13 +133,13 @@ def plot_image(
     if ax is None:
         _, ax = plt.subplots()
 
-    frame_time, frame = load.load_image(
+    image_time, image = load.load_image(
         mission, station, time=time, force_download=force_download, time_thresh_s=time_thresh_s
     )
 
-    # Figure out the color_bounds from the frame data.
+    # Figure out the color_bounds from the image data.
     if color_bounds is None:
-        lower, upper = np.quantile(frame, (0.25, 0.98))
+        lower, upper = np.quantile(image, (0.25, 0.98))
         color_bounds = [lower, np.min([upper, lower * 10])]
 
     if (color_map == 'auto') and (mission.lower() == 'themis'):
@@ -156,18 +156,18 @@ def plot_image(
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    im = ax.imshow(frame[:, :], cmap=color_map, norm=norm, origin="lower")
+    im = ax.imshow(image[:, :], cmap=color_map, norm=norm, origin="lower")
     if label:
         ax.text(
             0,
             0,
-            f"{mission.upper()}/{station.upper()}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}",
+            f"{mission.upper()}/{station.upper()}\n{image_time.strftime('%Y-%m-%d %H:%M:%S')}",
             va='bottom',
             transform=ax.transAxes,
             color='white',
         )
     if azel_contours:
-        skymap_dict = load.load_skymap(mission, station, frame_time, force_download=force_download)
+        skymap_dict = load.load_skymap(mission, station, image_time, force_download=force_download)
 
         az_contours = ax.contour(
             skymap_dict['FULL_AZIMUTH'][::-1, ::-1],
@@ -185,4 +185,4 @@ def plot_image(
         )
         plt.clabel(az_contours, inline=True, fontsize=8)
         plt.clabel(el_contours, inline=True, fontsize=8, rightside_up=True)
-    return frame_time, frame, ax, im
+    return image_time, image, ax, im

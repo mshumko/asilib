@@ -24,7 +24,7 @@ def plot_keogram(
     ----------
     time_range: List[Union[datetime, str]]
         A list with len(2) == 2 of the start and end time to get the
-        frames. If either start or end time is a string,
+        images. If either start or end time is a string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
@@ -36,7 +36,7 @@ def plot_keogram(
         The mapping altitude, in kilometers, used to index the mapped latitude in the
         skymap calibration data. If None, will plot pixel index for the y-axis.
     ax: plt.subplot
-        The subplot to plot the frame on. If None, this function will
+        The subplot to plot the image on. If None, this function will
         create one.
     color_bounds: List[float] or None
         The lower and upper values of the color scale. If None, will
@@ -87,7 +87,7 @@ def plot_keogram(
     if ax is None:
         _, ax = plt.subplots()
 
-    # Figure out the color_bounds from the frame data.
+    # Figure out the color_bounds from the image data.
     if color_bounds is None:
         lower, upper = np.quantile(keo_df, (0.25, 0.98))
         color_bounds = [lower, np.min([upper, lower * 10])]

@@ -28,7 +28,7 @@ def plot_movie(
     ----------
     time_range: List[Union[datetime, str]]
         A list with len(2) == 2 of the start and end time to get the
-        frames. If either start or end time is a string,
+        images. If either start or end time is a string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
@@ -39,7 +39,7 @@ def plot_movie(
     force_download: bool (optional)
         If True, download the file even if it already exists.
     add_label: bool
-        Flag to add the "mission/station/frame_time" text to the plot.
+        Flag to add the "mission/station/image_time" text to the plot.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
@@ -98,12 +98,12 @@ def plot_movie(
 
     movie_generator = plot_movie_generator(time_range, mission, station, **kwargs)
 
-    for frame_time, frame, im, ax in movie_generator:
+    for image_time, image, im, ax in movie_generator:
         pass
     return
 
 
-Frames = collections.namedtuple('Frames', ['time', 'frames'])
+Images = collections.namedtuple('Images', ['time', 'images'])
 
 
 @start_generator
@@ -124,19 +124,19 @@ def plot_movie_generator(
 ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
     """
     A generator function that loads the ASI data and then yields individual ASI images,
-    frame by frame. This allows the user to add content to each frame, such as the
+    image by image. This allows the user to add content to each image, such as the
     spacecraft position, and that will convert it to a movie. If you just want to make
     an ASI movie, use the wrapper for this function, plot_movie().
 
     Once this generator is initiated with the name `gen`, but **before** the for loop,
-    you can get the ASI frames and times by calling `gen.send('data')`. This will yield a
-    collections.namedtuple with `time` and `frames` attributes.
+    you can get the ASI images and times by calling `gen.send('data')`. This will yield a
+    collections.namedtuple with `time` and `images` attributes.
 
     Parameters
     ----------
     time_range: List[Union[datetime, str]]
         A list with len(2) == 2 of the start and end time to get the
-        frames. If either start or end time is a string,
+        images. If either start or end time is a string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
@@ -147,7 +147,7 @@ def plot_movie_generator(
     force_download: bool (optional)
         If True, download the file even if it already exists.
     add_label: bool
-        Flag to add the "mission/station/frame_time" text to the plot.
+        Flag to add the "mission/station/image_time" text to the plot.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
@@ -176,10 +176,10 @@ def plot_movie_generator(
 
     Yields
     ------
-    frame_time: datetime.datetime
-        The time of the current frame.
-    frame: np.ndarray
-        A 2d image array of the frame corresponding to frame_time
+    image_time: datetime.datetime
+        The time of the current image.
+    image: np.ndarray
+        A 2d image array of the image corresponding to image_time
     ax: plt.Axes
         The subplot object to modify the axis, labels, etc.
     im: plt.AxesImage
@@ -205,14 +205,14 @@ def plot_movie_generator(
     | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     | movie_generator = asilib.plot_movie_generator(time_range, 'THEMIS', 'FSMI')
     |
-    | for frame_time, frame, im, ax in movie_generator:
-    |       # The code that modifies each frame here.
+    | for image_time, image, im, ax in movie_generator:
+    |       # The code that modifies each image here.
     |       pass
     |
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
     """
     try:
-        frame_times, frames = load_image(
+        image_times, images = load_image(
             mission, station, time_range=time_range, force_download=force_download
         )
     except AssertionError as err:
@@ -226,15 +226,15 @@ def plot_movie_generator(
 
     # Create the movie directory inside asilib.config['ASI_DATA_DIR'] if it does
     # not exist.
-    frame_save_dir = pathlib.Path(
+    image_save_dir = pathlib.Path(
         asilib.config['ASI_DATA_DIR'],
         'movies',
-        'frames',
-        f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_' f'{station.lower()}',
+        'images',
+        f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_' f'{station.lower()}',
     )
-    if not frame_save_dir.is_dir():
-        frame_save_dir.mkdir(parents=True)
-        print(f'Created a {frame_save_dir} directory')
+    if not image_save_dir.is_dir():
+        image_save_dir.mkdir(parents=True)
+        print(f'Created a {image_save_dir} directory')
 
     if (color_map == 'auto') and (mission.lower() == 'themis'):
         color_map = 'Greys_r'
@@ -248,17 +248,17 @@ def plot_movie_generator(
     user_input = yield
     # user_input can be used to get the image_times and images out of the generator.
     if isinstance(user_input, str) and 'data' in user_input.lower():
-        yield Frames(frame_times, frames)
+        yield Images(image_times, images)
 
-    for frame_time, frame in zip(frame_times, frames):
-        # If the frame is all 0s we have a bad frame and we need to skip it.
-        if np.all(frame == 0):
+    for image_time, image in zip(image_times, images):
+        # If the image is all 0s we have a bad image and we need to skip it.
+        if np.all(image == 0):
             continue
         ax.clear()
         ax.axis('off')
-        # Figure out the color_bounds from the frame data.
+        # Figure out the color_bounds from the image data.
         if color_bounds is None:
-            lower, upper = np.quantile(frame, (0.25, 0.98))
+            lower, upper = np.quantile(image, (0.25, 0.98))
             color_bounds = [lower, np.min([upper, lower * 10])]
 
         if color_norm == 'log':
@@ -268,48 +268,48 @@ def plot_movie_generator(
         else:
             raise ValueError('color_norm must be either "log" or "lin".')
 
-        im = ax.imshow(frame, cmap=color_map, norm=norm, origin='lower')
+        im = ax.imshow(image, cmap=color_map, norm=norm, origin='lower')
         if add_label:
             ax.text(
                 0,
                 0,
-                f"{mission.upper()}/{station.upper()}\n{frame_time.strftime('%Y-%m-%d %H:%M:%S')}",
+                f"{mission.upper()}/{station.upper()}\n{image_time.strftime('%Y-%m-%d %H:%M:%S')}",
                 va='bottom',
                 transform=ax.transAxes,
                 color='white',
             )
 
         if azel_contours:
-            _add_azel_contours(mission, station, frame_time, ax, force_download)
+            _add_azel_contours(mission, station, image_time, ax, force_download)
 
-        # Give the user the control of the subplot, image object, and return the frame time
+        # Give the user the control of the subplot, image object, and return the image time
         # so that the user can manipulate the image to add, for example, the satellite track.
-        yield frame_time, frame, ax, im
+        yield image_time, image, ax, im
 
         # Save the plot before the next iteration.
         save_name = (
-            f'{frame_time.strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_' f'{station.lower()}.png'
+            f'{image_time.strftime("%Y%m%d_%H%M%S")}_{mission.lower()}_' f'{station.lower()}.png'
         )
-        plt.savefig(frame_save_dir / save_name)
+        plt.savefig(image_save_dir / save_name)
 
     # Make the movie
     movie_file_name = (
-        f'{frame_times[0].strftime("%Y%m%d_%H%M%S")}_'
-        f'{frame_times[-1].strftime("%H%M%S")}_'
+        f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_'
+        f'{image_times[-1].strftime("%H%M%S")}_'
         f'{mission.lower()}_{station.lower()}.{movie_container}'
     )
-    _write_movie(frame_save_dir, ffmpeg_output_params, movie_file_name, overwrite)
+    _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrite)
     return
 
 
-def _write_movie(frame_save_dir, ffmpeg_output_params, movie_file_name, overwrite):
+def _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrite):
     """
     Helper function to write a movie using ffmpeg.
 
     Parameters
     ----------
-    frame_save_dir: pathlib.Path
-        The directory where the individual frames are saved to.
+    image_save_dir: pathlib.Path
+        The directory where the individual images are saved to.
     ffmpeg_output_params: dict
         The additional/overwitten ffmpeg output parameters. The default parameters are:
         framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
@@ -329,9 +329,9 @@ def _write_movie(frame_save_dir, ffmpeg_output_params, movie_file_name, overwrit
     # Add or change the ffmpeg_params's key:values with ffmpeg_output_params
     ffmpeg_params.update(ffmpeg_output_params)
 
-    movie_save_path = frame_save_dir.parents[1] / movie_file_name
+    movie_save_path = image_save_dir.parents[1] / movie_file_name
     movie_obj = ffmpeg.input(
-        str(frame_save_dir) + f'/*.png',
+        str(image_save_dir) + f'/*.png',
         pattern_type='glob',
         # Use pop so it won't be passed into movie_obj.output().
         framerate=ffmpeg_params.pop('framerate'),
@@ -349,7 +349,7 @@ def _add_azel_contours(
     color: str = 'yellow',
 ) -> None:
     """
-    Adds contours of azimuth and elevation to the movie frame.
+    Adds contours of azimuth and elevation to the movie image.
 
     Parameters
     ----------

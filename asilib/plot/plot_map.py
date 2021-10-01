@@ -52,11 +52,11 @@ def plot_map(
         The altitude in kilometers to project to. Must be an altitude value
         in the skymap calibration.
     time_thresh_s: float
-        The maximum allowed time difference between a frame's time stamp
+        The maximum allowed time difference between an image time stamp
         and the time argument in seconds. Will raise a ValueError if no
         image time stamp is within the threshold.
     ax: plt.subplot
-        The subplot to plot the frame on. If None, this function will
+        The subplot to plot the image on. If None, this function will
         create one.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
@@ -65,7 +65,7 @@ def plot_map(
     min_elevation: float
         Masks the pixels below min_elevation degrees.
     norm: bool
-        If True, normalizes the frame array to 0-1. This is useful when
+        If True, normalizes the image array to 0-1. This is useful when
         mapping images from multiple imagers.
     asi_label: bool
         Annotates the map with the ASI code in the center of the image.
@@ -82,10 +82,10 @@ def plot_map(
 
     Returns
     -------
-    frame_time: datetime.datetime
-        The time of the current frame.
-    frame: np.array
-        The 2d ASI image corresponding to frame_time.
+    image_time: datetime.datetime
+        The time of the current image.
+    image: np.array
+        The 2d ASI image corresponding to image_time.
     skyamp: dict
         The skymap calibration for that ASI.
     ax: plt.Axes
@@ -101,7 +101,7 @@ def plot_map(
             " and https://aurora-asi-lib.readthedocs.io/en/latest/installation.html."
         )
 
-    frame_time, frame = load_image(mission, station, time=time, time_thresh_s=time_thresh_s)
+    image_time, image = load_image(mission, station, time=time, time_thresh_s=time_thresh_s)
     skymap = load_skymap(mission, station, time)
 
     # Check that the map_alt is in the skymap calibration data.
@@ -110,8 +110,8 @@ def plot_map(
     ), f'{map_alt} km is not in skymap calibration altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
     alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
 
-    frame, lon_map, lat_map = _mask_low_horizon(
-        frame,
+    image, lon_map, lat_map = _mask_low_horizon(
+        image,
         skymap['FULL_MAP_LONGITUDE'][alt_index, :, :],
         skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
         skymap['FULL_ELEVATION'],
@@ -119,7 +119,7 @@ def plot_map(
     )
 
     if norm:
-        frame /= np.nanmax(frame)
+        image /= np.nanmax(image)
 
     # Set up the plot parameters
     if ax is None:
@@ -134,7 +134,7 @@ def plot_map(
         ax.gridlines(linestyle=':')
 
     if color_bounds is None:
-        lower, upper = np.nanquantile(frame, (0.25, 0.98))
+        lower, upper = np.nanquantile(image, (0.25, 0.98))
         color_bounds = [lower, np.min([upper, lower * 10])]
 
     if (color_map == 'auto') and (mission.lower() == 'themis'):
@@ -151,7 +151,7 @@ def plot_map(
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    p = pcolormesh_nan(lon_map, lat_map, frame, ax, cmap=color_map, norm=norm)
+    p = pcolormesh_nan(lon_map, lat_map, image, ax, cmap=color_map, norm=norm)
 
     if asi_label:
         ax.text(
@@ -163,7 +163,7 @@ def plot_map(
             va='center',
             ha='center',
         )
-    return frame_time, frame, skymap, ax, p
+    return image_time, image, skymap, ax, p
 
 
 def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, norm=None):
@@ -225,20 +225,20 @@ def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, n
     return p
 
 
-def _mask_low_horizon(frame, lon_map, lat_map, el_map, min_elevation):
+def _mask_low_horizon(image, lon_map, lat_map, el_map, min_elevation):
     """
-    Mask the frame, skymap['FULL_MAP_LONGITUDE'], skymap['FULL_MAP_LONGITUDE'] arrays
+    Mask the image, skymap['FULL_MAP_LONGITUDE'], skymap['FULL_MAP_LONGITUDE'] arrays
     with np.nans where the skymap['FULL_ELEVATION'] is nan or
     skymap['FULL_ELEVATION'] < min_elevation.
     """
     idh = np.where(np.isnan(el_map) | (el_map < min_elevation))
     # Copy variables to not modify original np.arrays.
-    frame_copy = frame.copy()
+    image_copy = image.copy()
     lon_map_copy = lon_map.copy()
     lat_map_copy = lat_map.copy()
-    # Can't mask frame unless it is a float array.
-    frame_copy = frame_copy.astype(float)
-    frame_copy[idh] = np.nan
+    # Can't mask image unless it is a float array.
+    image_copy = image_copy.astype(float)
+    image_copy[idh] = np.nan
     lon_map_copy[idh] = np.nan
     lat_map_copy[idh] = np.nan
 
@@ -251,7 +251,7 @@ def _mask_low_horizon(frame, lon_map, lat_map, el_map, min_elevation):
     lat_map_copy[idh_boundary_bottom] = np.nan
     lon_map_copy[idh_boundary_right] = np.nan
     lat_map_copy[idh_boundary_right] = np.nan
-    return frame_copy, lon_map_copy, lat_map_copy
+    return image_copy, lon_map_copy, lat_map_copy
 
 
 if __name__ == '__main__':
@@ -262,7 +262,7 @@ if __name__ == '__main__':
     # plot_map(datetime(2007, 3, 13, 5, 8, 45), 'THEMIS', 'TPAS', 110)
 
     # http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
-    frame_time, frame, skymap, ax, p = plot_map(
+    image_time, image, skymap, ax, p = plot_map(
         datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110
     )
 
@@ -284,7 +284,7 @@ if __name__ == '__main__':
     # ax.coastlines()
     # ax.gridlines(linestyle=':')
 
-    # # frame_time, frame, skymap, ax = plot_map(time, mission, stations[0], map_alt,
+    # # image_time, image, skymap, ax = plot_map(time, mission, stations[0], map_alt,
     # #     min_elevation=min_elevation)
     # for station in stations:
     #     plot_map(time, mission, station, map_alt, ax=ax, min_elevation=min_elevation)
@@ -295,7 +295,7 @@ if __name__ == '__main__':
     # # time = datetime(2009, 1, 31, 7, 13, 0)
     # # mission='THEMIS'
     # # stations = ['GILL', 'SNKQ']#'FSMI', 'FSIM', 'TPAS', 'GILL']#, 'PINA', 'KAPU']
-    # # frame_time, frame, skymap, ax = plot_map(time, mission, stations[0], 110)
+    # # image_time, image, skymap, ax = plot_map(time, mission, stations[0], 110)
     # # for station in stations[1:]:
     # #     plot_map(time, mission, station, 110, ax=ax)
 
