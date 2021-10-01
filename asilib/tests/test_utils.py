@@ -38,7 +38,29 @@ class TestUtils(unittest.TestCase):
         return
 
     def test_validate_time(self):
-        raise NotImplementedError
+        """
+        Tests utils._validate_time.
+        """
+        valid_time_inputs = [
+                    '2016-01-01T10:05',
+                    '2016-01-01 10:05',
+                    datetime(2016, 1, 1, 10, 5)
+        ]
+
+        invalid_time_inputs = [
+                    'Two thousand and sixteen',
+                    5,
+                    10000.0,
+        ]
+        
+        for t in valid_time_inputs:
+            assert datetime(2016, 1, 1, 10, 5) == utils._validate_time(t)
+
+        for t in invalid_time_inputs:        
+            with self.assertRaises(ValueError):
+                utils._validate_time(t)
+
+        return
 
     def test_validate_time_range(self):
         raise NotImplementedError
