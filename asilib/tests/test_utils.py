@@ -97,7 +97,27 @@ class TestUtils(unittest.TestCase):
         return
 
     def test_get_hours(self):
-        raise NotImplementedError
+        """
+        Tests the hour time series from _get_hours. The four test cases comprise of two 
+        tests with either the start or end time are top of the hour, and two tests
+        where either the start or end time are not at the top of the hour.
+        """
+        time_range = [datetime(2016, 1, 1, 10), datetime(2016, 1, 1, 12)]
+        hours = utils._get_hours(time_range)
+        assert hours == [datetime(2016, 1, 1, 10), datetime(2016, 1, 1, 11)]
+
+        time_range = [datetime(2016, 1, 1, 10, 5, 1, 50000), datetime(2016, 1, 1, 12)]
+        hours = utils._get_hours(time_range)
+        assert hours == [datetime(2016, 1, 1, 10), datetime(2016, 1, 1, 11)]
+
+        time_range = [datetime(2016, 1, 1, 10), datetime(2016, 1, 1, 12, 1)]
+        hours = utils._get_hours(time_range)
+        assert hours == [datetime(2016, 1, 1, 10), datetime(2016, 1, 1, 11), datetime(2016, 1, 1, 12)]
+
+        time_range = [datetime(2016, 1, 1, 10, 5), datetime(2016, 1, 1, 12, 1)]
+        hours = utils._get_hours(time_range)
+        assert hours == [datetime(2016, 1, 1, 10), datetime(2016, 1, 1, 11), datetime(2016, 1, 1, 12)]
+        return
 
 
 if __name__ == '__main__':
