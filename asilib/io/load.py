@@ -123,6 +123,8 @@ def load_image(
 ):
     """
     Wrapper for the _load_image and _load_images functions.
+
+    TODO: Add full docstring.
     """
     # A bunch of if statements that download image files only when either time or time_range
     # is specified (not both).
