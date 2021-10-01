@@ -10,7 +10,7 @@ import numpy as np
 import ffmpeg
 
 import asilib
-import asilib.io.load as load
+from asilib.io.load import load_image, load_skymap
 from asilib.analysis.start_generator import start_generator
 
 
@@ -212,8 +212,8 @@ def plot_movie_generator(
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
     """
     try:
-        frame_times, frames = load.get_frames(
-            time_range, mission, station, force_download=force_download
+        frame_times, frames = load_image(
+            mission, station, time_range=time_range, force_download=force_download
         )
     except AssertionError as err:
         if '0 number of time stamps were found in time_range' in str(err):
@@ -366,7 +366,7 @@ def _add_azel_contours(
     color: str (optional)
         The contour color.
     """
-    skymap_dict = load.load_skymap(mission, station, time, force_download=force_download)
+    skymap_dict = load_skymap(mission, station, time, force_download=force_download)
 
     az_contours = ax.contour(
         skymap_dict['FULL_AZIMUTH'][::-1, ::-1],

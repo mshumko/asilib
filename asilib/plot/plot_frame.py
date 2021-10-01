@@ -108,8 +108,8 @@ def plot_frame(
     if ax is None:
         _, ax = plt.subplots()
 
-    frame_time, frame = load.get_frame(
-        time, mission, station, force_download=force_download, time_thresh_s=time_thresh_s
+    frame_time, frame = load.load_image(
+        mission, station, time=time, force_download=force_download, time_thresh_s=time_thresh_s
     )
 
     # Figure out the color_bounds from the frame data.

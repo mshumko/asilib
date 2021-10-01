@@ -127,7 +127,7 @@ def load_image(asi_array_code: str, location_code: str, time=None, time_range=No
         return _load_image(time, asi_array_code, location_code, force_download=force_download,
                     time_thresh_s=time_thresh_s)
     elif time_range is not None:
-        return _load_images(time, asi_array_code, location_code, force_download=force_download, 
+        return _load_images(time_range, asi_array_code, location_code, force_download=force_download, 
                     ignore_missing_data=ignore_missing_data)
     return
 
@@ -336,14 +336,12 @@ def get_frames(
         asi_array_code: str,
         location_code: str,
         force_download: bool = False,
-        time_thresh_s: float = 3,
         ) -> Tuple[datetime, np.ndarray]:
 
     warnings.warn('asilib.get_frames is deprecated for asilib.load_image.')
 
     return _load_images(time_range, asi_array_code, location_code,
-                force_download=force_download,
-                time_thresh_s=time_thresh_s)
+                force_download=force_download)
 
 def _load_images(
     time_range: Sequence[Union[datetime, str]],

@@ -16,7 +16,7 @@ try:
 except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.plot_map().
 
-from asilib.io.load import load_skymap, get_frame
+from asilib.io.load import load_skymap, load_image
 
 
 def plot_map(
@@ -101,7 +101,7 @@ def plot_map(
             " and https://aurora-asi-lib.readthedocs.io/en/latest/installation.html."
         )
 
-    frame_time, frame = get_frame(time, mission, station, time_thresh_s=time_thresh_s)
+    frame_time, frame = load_image(mission, station, time=time, time_thresh_s=time_thresh_s)
     skymap = load_skymap(mission, station, time)
 
     # Check that the map_alt is in the skymap calibration data.
