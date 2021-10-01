@@ -391,7 +391,7 @@ def _get_images(
     | times, frames = asilib.io.load._get_images(time_range, 'REGO', 'GILL')
     """
     times, frames = _create_empty_data_arrays(mission, time_range, 'frames')
-    frames_generator = get_frames_generator(time_range, mission, station)
+    frames_generator = load_image_generator(time_range, mission, station)
 
     start_time_index = 0
     for file_frame_times, file_frames in frames_generator:
@@ -408,7 +408,7 @@ def _get_images(
     return times, frames
 
 
-def get_frames_generator(
+def load_image_generator(
     time_range: Sequence[Union[datetime, str]],
     mission: str,
     station: str,
@@ -416,7 +416,7 @@ def get_frames_generator(
     ignore_missing_data: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Yields multiple ASI image frames given the mission (THEMIS or REGO), station, and
+    Yields multiple ASI image files given the mission (THEMIS or REGO), station, and
     time_range parameters. If a file does not locally exist, this function will attempt
     to download it. This generator yields the ASI data, file by file, bounded by time_range.
     This generator is useful for loading lots of data---useful for keograms. The returned

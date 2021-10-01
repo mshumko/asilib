@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from asilib.io.load import (
-    get_frames_generator,
+    load_image_generator,
     load_skymap,
     _validate_time_range,
     _create_empty_data_arrays,
@@ -42,7 +42,7 @@ def keogram(time_range, mission, station, map_alt=None):
     """
     time_range = _validate_time_range(time_range)
     keo_times, keo = _create_empty_data_arrays(mission, time_range, 'keogram')
-    frames_generator = get_frames_generator(time_range, mission, station)
+    frames_generator = load_image_generator(time_range, mission, station)
 
     start_time_index = 0
     for file_frame_times, file_frames in frames_generator:
