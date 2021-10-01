@@ -27,11 +27,12 @@ from asilib.io.download_themis import download_themis_skymap
 from asilib.io.load import load_skymap
 from asilib.io.load import load_image
 from asilib.io.load import load_image_generator
-from asilib.io.load import get_frame
-from asilib.io.load import get_frames
+from asilib.io.load import get_frame   # Deprecated
+from asilib.io.load import get_frames  # Deprecated
 
 # Import the plotting and animating functions.
-from asilib.plot.plot_image import plot_frame, plot_image
+from asilib.plot.plot_image import plot_frame  # Deprecated
+from asilib.plot.plot_image import plot_image
 from asilib.plot.plot_map import plot_map
 from asilib.plot.plot_keogram import plot_keogram
 from asilib.plot.plot_movie import plot_movie

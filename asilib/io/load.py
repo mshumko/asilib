@@ -262,7 +262,7 @@ def _load_image(
     time_thresh_s: float = 3,
 ) -> Tuple[datetime, np.ndarray]:
     """
-    Gets one ASI image frame given the mission (THEMIS or REGO), station, and
+    Gets one ASI image image given the mission (THEMIS or REGO), station, and
     the day date-time parameters. If a file does not locally exist, this
     function will attempt to download it.
 

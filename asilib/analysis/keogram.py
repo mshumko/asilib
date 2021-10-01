@@ -17,7 +17,7 @@ def keogram(time_range, mission, station, map_alt=None):
     ----------
     time_range: List[Union[datetime, str]]
         A list with len(2) == 2 of the start and end time to get the
-        frames. If either start or end time is a string,
+        images. If either start or end time is a string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
@@ -42,18 +42,18 @@ def keogram(time_range, mission, station, map_alt=None):
     """
     time_range = _validate_time_range(time_range)
     keo_times, keo = _create_empty_data_arrays(mission, time_range, 'keogram')
-    frames_generator = load_image_generator(time_range, mission, station)
+    image_generator = load_image_generator(time_range, mission, station)
 
     start_time_index = 0
-    for file_frame_times, file_frames in frames_generator:
-        end_time_index = start_time_index + file_frames.shape[0]
-        keo[start_time_index:end_time_index, :] = file_frames[
+    for file_image_times, file_images in image_generator:
+        end_time_index = start_time_index + file_images.shape[0]
+        keo[start_time_index:end_time_index, :] = file_images[
             :, :, keo.shape[1] // 2
         ]  # Slice the meridian
-        keo_times[start_time_index:end_time_index] = file_frame_times
-        start_time_index += file_frames.shape[0]
+        keo_times[start_time_index:end_time_index] = file_image_times
+        start_time_index += file_images.shape[0]
 
-    # This code block removes any filler nan values if the ASI frames were not sampled at the instrument
+    # This code block removes any filler nan values if the ASI images were not sampled at the instrument
     # cadence throughout time_range.
     i_nan = np.where(~np.isnan(keo[:, 0]))[0]
     keo = keo[i_nan, :]

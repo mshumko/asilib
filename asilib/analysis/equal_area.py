@@ -33,7 +33,7 @@ def equal_area(mission, station, time, lla, box_km=(5, 5), alt_thresh_km=3):
     pixel_mask: np.ndarray
         An array with (n_time, n_x_pixels, n_y_pixels) dimensions with
         dimensions n_x_pixels and n_y_pixels dimensions the size of each
-        frame. Values inside the area are 1 and outside are np.nan.
+        image. Values inside the area are 1 and outside are np.nan.
     """
     assert len(box_km) == 2, 'The box_km parameter must have a length of 2.'
 
