@@ -59,11 +59,42 @@ class TestUtils(unittest.TestCase):
         for t in invalid_time_inputs:        
             with self.assertRaises(ValueError):
                 utils._validate_time(t)
-
         return
 
     def test_validate_time_range(self):
-        raise NotImplementedError
+        """
+        Tests utils._validate_time_range.
+        """
+        valid_time_inputs = [
+                    ['2016-01-01T10:05', '2016-01-01T10:10'],
+                    ['2016-01-01 10:05', '2016-01-01 10:10'],
+                    [datetime(2016, 1, 1, 10, 5), datetime(2016, 1, 1, 10, 10)]
+        ]
+
+        invalid_time_input_length = [
+                    ['2016-01-01T10:05', '2016-01-01T10:10', '2016-01-01T10:10'],
+                    [datetime(2016, 1, 1, 10, 5)],
+                    [],
+                    5,
+                    5.5
+        ]
+
+        invalid_time_format = [
+                    ['test', '2016-01-01T10:05'],
+                    [5, 5]
+        ]
+        
+        for time_range in valid_time_inputs:
+            assert [datetime(2016, 1, 1, 10, 5), datetime(2016, 1, 1, 10, 10)] == utils._validate_time_range(time_range)
+
+        for time_range in invalid_time_input_length:        
+            with self.assertRaises(AssertionError):
+                utils._validate_time_range(time_range)
+
+        for time_range in invalid_time_format:        
+            with self.assertRaises(ValueError):
+                utils._validate_time_range(time_range)
+        return
 
     def test_get_hours(self):
         raise NotImplementedError

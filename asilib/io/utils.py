@@ -23,7 +23,7 @@ def _validate_time(time):
     return time
 
 
-def _check_time_range(time_range):
+def _validate_time_range(time_range):
     """
     Validates tries to parse the time_range into datetime objects.
     """
