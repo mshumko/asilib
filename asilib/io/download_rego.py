@@ -31,7 +31,7 @@ def download_rego_img(
     time: Union[datetime, str] = None,
     time_range: Union[datetime, str] = None,
     force_download: bool = False,
-    test_flag: bool = False,
+    ignore_missing_data: bool = True,
 ) -> List[pathlib.Path]:
     """
     The wrapper to download the REGO data given the day, station name,
@@ -52,6 +52,10 @@ def download_rego_img(
         object.
     force_download: bool (optional)
         If True, download the file even if it already exists.
+    ignore_missing_data: bool
+        Flag to ignore the FileNotFoundError that is raised when ASI
+        data is unavailable for that date-hour. Only used when 
+        ``time_range`` is specified.
 
     Returns
     -------
@@ -87,9 +91,14 @@ def download_rego_img(
         download_paths = []
 
         for hour in download_hours:
-            # TODO: Add a try-except block if the user wants to ignore downloading files that don't exist.
-            download_path = _download_one_img_file(location_code, hour, force_download)
-            download_paths.append(download_path)
+            try:
+                download_path = _download_one_img_file(location_code, hour, force_download)
+                download_paths.append(download_path)
+            except NotADirectoryError:
+                if ignore_missing_data:
+                    continue
+                else:
+                    raise
 
     return download_paths
 
