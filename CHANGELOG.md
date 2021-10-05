@@ -1,3 +1,6 @@
+# Version 0.7.4
+- The main change is the `ignore_missing_files` parameter that is passed to the download functions. When True, the `download_themis_img` and `download_rego_img` will not raise a missing file error when data from that hour does not exist.
+
 # Version 0.7.3
 - The biggest API change is the parameter order for `download_rego_img` and `download_themis_img`. Now it is `(location code (i.e. station), time, and time_range)`. Beware that now the parameter order API is inconsistent across all of the functions---I will standardize it to (`asi_array_code`, `location code (i.e. station)`, `time`, and `time_range`) in the next minor (0.X.0 release).
 
