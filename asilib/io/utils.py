@@ -13,7 +13,7 @@ import numpy as np
 
 
 _time_type = Union[datetime, str]
-_time_range_type = List[_time_type, _time_type]
+_time_range_type = List[_time_type]
 
 
 def _validate_time(time: _time_type) -> List[datetime]:
