@@ -591,7 +591,8 @@ def _create_empty_data_arrays(mission, time_range, type):
         cadence_s = 3
     else:
         raise NotImplementedError
-
+        
+    time_range = utils._validate_time_range(time_range)
     max_n_timestamps = int((time_range[1] - time_range[0]).total_seconds() / cadence_s)
 
     if type.lower() == 'keogram':

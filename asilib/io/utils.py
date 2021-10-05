@@ -61,9 +61,9 @@ def _get_hours(time_range: _time_range_type) -> List[datetime]:
     # Modify time_range. If time_range[0] is not at the top of the hour, we zero the minutes
     # seconds, and milliseconds. This helps with keeping the + 1 hour offsets aligned to the
     # start of the hour.
-    time_range[0] = time_range[0].replace(minute=0, second=0, microsecond=0)
-
-    current_hour = copy.copy(time_range[0])
+    current_hour = copy.copy(
+        time_range[0].replace(minute=0, second=0, microsecond=0)
+        )
     hours = []
 
     # Not <= in while loop because we don't want to download the final hour if time_range[1] is,
