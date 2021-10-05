@@ -1,4 +1,4 @@
-array,station,name,latitude,longitude
+array,location_code,name,latitude,longitude
 REGO,GILL,Gillam,56.376,-94.64
 REGO,FSIM,Fort Simpson,61.756,-121.23
 REGO,FSMI,Fort Smith,60.017,-111.95

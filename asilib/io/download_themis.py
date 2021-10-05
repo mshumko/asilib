@@ -68,8 +68,8 @@ def download_themis_img(
     import asilib
 
     | day = datetime(2017, 4, 13, 5)
-    | station = 'LUCK'
-    | asilib.download_themis_img(day, station)
+    | location_code = 'LUCK'
+    | asilib.download_themis_img(day, location_code)
     """
     if (time is None) and (time_range is None):
         raise AttributeError('Neither time or time_range is specified.')
@@ -118,15 +118,15 @@ def _download_one_img_file(location_code, time, force_download):
     return download_path
 
 
-def download_themis_skymap(station: str, force_download: bool = False):
+def download_themis_skymap(location_code: str, force_download: bool = False):
     """
     Download all of the (skymap) IDL .sav file and save
     it to asilib.config['ASI_DATA_DIR']/themis/skymap/ directory.
 
     Parameters
     ----------
-    station: str
-        The station name, case insensitive
+    location_code: str
+        The imager location code, case insensitive
     force_download: bool (optional)
         If True, download the file even if it already exists.
 
@@ -138,20 +138,20 @@ def download_themis_skymap(station: str, force_download: bool = False):
     -------
     import asilib
 
-    | station = 'LUCK'
-    | asilib.download_themis_skymap(station)
+    | location_code = 'LUCK'
+    | asilib.download_themis_skymap(location_code)
     """
-    # Create the skymap directory in data/themis/skymap/station
-    save_dir = asilib.config['ASI_DATA_DIR'] / 'themis' / 'skymap' / station.lower()
+    # Create the skymap directory in data/themis/skymap/location_code
+    save_dir = asilib.config['ASI_DATA_DIR'] / 'themis' / 'skymap' / location_code.lower()
     if not save_dir.is_dir():
         save_dir.mkdir(parents=True)
         print(f'Made directory at {save_dir}')
 
-    url = SKYMAP_BASE_URL + f'{station.lower()}/'
+    url = SKYMAP_BASE_URL + f'{location_code.lower()}/'
 
     # Look for all of the skymap hyperlinks, go in each one of them, and
     # download the .sav file.
-    skymap_folders_relative = utils._search_hrefs(url, search_pattern=station.lower())
+    skymap_folders_relative = utils._search_hrefs(url, search_pattern=location_code.lower())
     download_paths = []
 
     for skymap_folder in skymap_folders_relative:

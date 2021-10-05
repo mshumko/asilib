@@ -8,7 +8,7 @@ from asilib.io.load import (
 )
 
 
-def keogram(time_range, asi_array_code, station, map_alt=None):
+def keogram(time_range, asi_array_code, location_code, map_alt=None):
     """
     Makes a keogram pd.DataFrame along the central meridian.
 
@@ -22,8 +22,8 @@ def keogram(time_range, asi_array_code, station, map_alt=None):
         is assumed to be the start_time and is not checked.
     asi_array_code: str
         The asi_array_code, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
+    location_code: str
+        The location_code to download the data from.
     map_alt: int, optional
         The mapping altitude, in kilometers, used to index the mapped latitude in the
         skymap data. If None, will plot pixel index for the y-axis.
@@ -39,7 +39,7 @@ def keogram(time_range, asi_array_code, station, map_alt=None):
     AssertionError
         If map_alt does not equal the mapped altitudes in the skymap mapped values.
     """
-    image_generator = load_image_generator(time_range, asi_array_code, station)
+    image_generator = load_image_generator(time_range, asi_array_code, location_code)
     keo_times, keo = _create_empty_data_arrays(asi_array_code, time_range, 'keogram')
 
     start_time_index = 0
@@ -60,7 +60,7 @@ def keogram(time_range, asi_array_code, station, map_alt=None):
     if map_alt is None:
         keogram_latitude = np.arange(keo.shape[1])  # Dummy index values for latitudes.
     else:
-        skymap = load_skymap(asi_array_code, station, time_range[0])
+        skymap = load_skymap(asi_array_code, location_code, time_range[0])
         assert (
             map_alt in skymap['FULL_MAP_ALTITUDE'] / 1000
         ), f'{map_alt} km is not in skymap altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'

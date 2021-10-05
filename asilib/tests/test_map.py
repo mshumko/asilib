@@ -15,14 +15,14 @@ overhead and at 500 km altitude.
 
 class TestProjectLLAtoSkyfield(unittest.TestCase):
     def setUp(self):
-        self.station = 'LUCK'
+        self.location_code = 'LUCK'
         self.time = datetime(2020, 1, 1)
         return
 
     def test_themis_lla_to_azel(self):
         """
         Tests that the input LLA corresponds to right overhead of the THEMIS ATHA
-        station (elevation ~ 90 degrees) and (az_index, el_index) ~= (127, 127).
+        imager (elevation ~ 90 degrees) and (az_index, el_index) ~= (127, 127).
         """
         lla = np.array([54.60, -113.644, 500])
         azel, pixel_index = lla2azel('THEMIS', 'ATHA', self.time, lla)
@@ -36,7 +36,7 @@ class TestProjectLLAtoSkyfield(unittest.TestCase):
 
     def test_rego_lla_to_azel(self):
         """
-        Tests that the input LLA corresponds to right overhead of the ATHA REGO station
+        Tests that the input LLA corresponds to right overhead of the ATHA REGO imager
         (elevation ~ 90 degrees) and (az_index, el_index) ~= (127, 127).
         """
         lla = np.array([54.60, -113.64, 500])

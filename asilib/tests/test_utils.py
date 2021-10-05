@@ -16,10 +16,10 @@ class TestUtils(unittest.TestCase):
         """Set up a few variables."""
         # http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/luck/2020/08/clg_l1_rgf_luck_2020080104_v01.cdf
         self.day = datetime(2020, 8, 1, 4)
-        self.station = 'LuCk'
+        self.location_code = 'LuCk'
         self.url = (
             asilib.io.download_rego.IMG_BASE_URL
-            + f'{self.station.lower()}/{self.day.year}/{str(self.day.month).zfill(2)}/'
+            + f'{self.location_code.lower()}/{self.day.year}/{str(self.day.month).zfill(2)}/'
         )
         return
 
@@ -32,7 +32,7 @@ class TestUtils(unittest.TestCase):
 
     def test_href_is_found(self):
         """Test that the href function can find the first file on August 2020."""
-        search_pattern = f'{self.station}_{self.day.strftime("%Y%m%d%H")}'
+        search_pattern = f'{self.location_code}_{self.day.strftime("%Y%m%d%H")}'
         matched_hrefs = utils._search_hrefs(self.url, search_pattern=search_pattern)
         assert 'clg_l1_rgf_luck_2020080104_v01.cdf' in matched_hrefs
         return

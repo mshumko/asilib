@@ -17,10 +17,10 @@ class TestDownloadRego(unittest.TestCase):
         """Set up a few variables."""
         # http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/luck/2020/08/clg_l1_rgf_luck_2020080104_v01.cdf
         self.day = datetime(2020, 8, 1, 4)
-        self.station = 'Luck'
+        self.location_code = 'Luck'
         self.url = (
             download_rego.IMG_BASE_URL
-            + f'{self.station.lower()}/{self.day.year}/{str(self.day.month).zfill(2)}/'
+            + f'{self.location_code.lower()}/{self.day.year}/{str(self.day.month).zfill(2)}/'
         )
         return
 
@@ -32,7 +32,7 @@ class TestDownloadRego(unittest.TestCase):
         image_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'rego')
         image_path = image_dir / 'clg_l1_rgf_luck_2020080104_v01.cdf'
 
-        download_rego.download_rego_img(self.station, time=self.day, force_download=True)
+        download_rego.download_rego_img(self.location_code, time=self.day, force_download=True)
 
         assert image_path.is_file()
         return

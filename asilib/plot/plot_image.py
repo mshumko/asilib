@@ -17,7 +17,7 @@ from asilib.io import load
 def plot_frame(
     time: Union[datetime, str],
     asi_array_code: str,
-    station: str,
+    location_code: str,
     force_download: bool = False,
     time_thresh_s: float = 3,
     ax: plt.subplot = None,
@@ -32,7 +32,7 @@ def plot_frame(
     return plot_image(
         time,
         asi_array_code,
-        station,
+        location_code,
         force_download=force_download,
         time_thresh_s=time_thresh_s,
         ax=ax,
@@ -47,7 +47,7 @@ def plot_frame(
 def plot_image(
     time: Union[datetime, str],
     asi_array_code: str,
-    station: str,
+    location_code: str,
     force_download: bool = False,
     time_thresh_s: float = 3,
     ax: plt.subplot = None,
@@ -58,7 +58,7 @@ def plot_image(
     azel_contours: bool = False,
 ) -> Tuple[datetime, plt.Axes, matplotlib.image.AxesImage]:
     """
-    Plots one ASI image image given the asi_array_code (THEMIS or REGO), station, and
+    Plots one ASI image image given the asi_array_code (THEMIS or REGO), imager location code, and
     the day date-time parameters. If a file does not locally exist, the _find_img_path()
     function will attempt to download it.
 
@@ -71,8 +71,8 @@ def plot_image(
         is assumed to be the start_time and is not checked.
     asi_array_code: str
         The asi_array_code id, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
+    location_code: str
+        The imager location code to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
     time_thresh_s: float
@@ -83,7 +83,7 @@ def plot_image(
         The subplot to plot the image on. If None, this function will
         create one.
     label: bool
-        Flag to add the "asi_array_code/station/image_time" text to the plot.
+        Flag to add the "asi_array_code/location_code/image_time" text to the plot.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
@@ -140,7 +140,7 @@ def plot_image(
         _, ax = plt.subplots()
 
     image_time, image = load.load_image(
-        asi_array_code, station, time=time, force_download=force_download, time_thresh_s=time_thresh_s
+        asi_array_code, location_code, time=time, force_download=force_download, time_thresh_s=time_thresh_s
     )
 
     # Figure out the color_bounds from the image data.
@@ -167,13 +167,13 @@ def plot_image(
         ax.text(
             0,
             0,
-            f"{asi_array_code.upper()}/{station.upper()}\n{image_time.strftime('%Y-%m-%d %H:%M:%S')}",
+            f"{asi_array_code.upper()}/{location_code.upper()}\n{image_time.strftime('%Y-%m-%d %H:%M:%S')}",
             va='bottom',
             transform=ax.transAxes,
             color='white',
         )
     if azel_contours:
-        skymap_dict = load.load_skymap(asi_array_code, station, image_time, force_download=force_download)
+        skymap_dict = load.load_skymap(asi_array_code, location_code, image_time, force_download=force_download)
 
         az_contours = ax.contour(
             skymap_dict['FULL_AZIMUTH'][::-1, ::-1],

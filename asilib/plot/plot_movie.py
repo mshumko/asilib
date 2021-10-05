@@ -15,7 +15,7 @@ from asilib.analysis.start_generator import start_generator
 
 
 def plot_movie(
-    time_range: Sequence[Union[datetime, str]], asi_array_code: str, station: str, **kwargs
+    time_range: Sequence[Union[datetime, str]], asi_array_code: str, location_code: str, **kwargs
 ) -> None:
     """
     A wrapper for plot_movie_generator() generator function. This function calls
@@ -34,12 +34,12 @@ def plot_movie(
         is assumed to be the start_time and is not checked.
     asi_array_code: str
         The asi_array_code, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
+    location_code: str
+        The imager location code to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
     label: bool
-        Flag to add the "asi_array_code/station/image_time" text to the plot.
+        Flag to add the "asi_array_code/location_code/image_time" text to the plot.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
@@ -96,7 +96,7 @@ def plot_movie(
         kwargs['ax'] = ax
         plt.tight_layout()
 
-    movie_generator = plot_movie_generator(time_range, asi_array_code, station, **kwargs)
+    movie_generator = plot_movie_generator(time_range, asi_array_code, location_code, **kwargs)
 
     for image_time, image, im, ax in movie_generator:
         pass
@@ -110,7 +110,7 @@ Images = collections.namedtuple('Images', ['time', 'images'])
 def plot_movie_generator(
     time_range: Sequence[Union[datetime, str]],
     asi_array_code: str,
-    station: str,
+    location_code: str,
     force_download: bool = False,
     label: bool = True,
     color_map: str = 'auto',
@@ -142,12 +142,12 @@ def plot_movie_generator(
         is assumed to be the start_time and is not checked.
     asi_array_code: str
         The asi_array_code, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
+    location_code: str
+        The imager location code to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
     label: bool
-        Flag to add the "asi_array_code/station/image_time" text to the plot.
+        Flag to add the "asi_array_code/location_code/image_time" text to the plot.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
@@ -213,11 +213,11 @@ def plot_movie_generator(
     """
     try:
         image_times, images = load_image(
-            asi_array_code, station, time_range=time_range, force_download=force_download
+            asi_array_code, location_code, time_range=time_range, force_download=force_download
         )
     except AssertionError as err:
         if '0 number of time stamps were found in time_range' in str(err):
-            print(f'The file exists for {asi_array_code}/{station}, but no data ' f'between {time_range}.')
+            print(f'The file exists for {asi_array_code}/{location_code}, but no data ' f'between {time_range}.')
             raise
         else:
             raise
@@ -230,7 +230,7 @@ def plot_movie_generator(
         asilib.config['ASI_DATA_DIR'],
         'movies',
         'images',
-        f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_' f'{station.lower()}',
+        f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_' f'{location_code.lower()}',
     )
     if not image_save_dir.is_dir():
         image_save_dir.mkdir(parents=True)
@@ -273,14 +273,14 @@ def plot_movie_generator(
             ax.text(
                 0,
                 0,
-                f"{asi_array_code.upper()}/{station.upper()}\n{image_time.strftime('%Y-%m-%d %H:%M:%S')}",
+                f"{asi_array_code.upper()}/{location_code.upper()}\n{image_time.strftime('%Y-%m-%d %H:%M:%S')}",
                 va='bottom',
                 transform=ax.transAxes,
                 color='white',
             )
 
         if azel_contours:
-            _add_azel_contours(asi_array_code, station, image_time, ax, force_download)
+            _add_azel_contours(asi_array_code, location_code, image_time, ax, force_download)
 
         # Give the user the control of the subplot, image object, and return the image time
         # so that the user can manipulate the image to add, for example, the satellite track.
@@ -288,7 +288,7 @@ def plot_movie_generator(
 
         # Save the plot before the next iteration.
         save_name = (
-            f'{image_time.strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_' f'{station.lower()}.png'
+            f'{image_time.strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_' f'{location_code.lower()}.png'
         )
         plt.savefig(image_save_dir / save_name)
 
@@ -296,7 +296,7 @@ def plot_movie_generator(
     movie_file_name = (
         f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_'
         f'{image_times[-1].strftime("%H%M%S")}_'
-        f'{asi_array_code.lower()}_{station.lower()}.{movie_container}'
+        f'{asi_array_code.lower()}_{location_code.lower()}.{movie_container}'
     )
     _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrite)
     return
@@ -342,7 +342,7 @@ def _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrit
 
 def _add_azel_contours(
     asi_array_code: str,
-    station: str,
+    location_code: str,
     time: Union[datetime, str],
     ax: plt.Axes,
     force_download: bool,
@@ -355,8 +355,8 @@ def _add_azel_contours(
     ----------
     asi_array_code: str
         The asi_array_code, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
+    location_code: str
+        The imager location code to download the data from.
     time: datetime, or str
         Time is used to find the relevant skymap file: file created nearest to, and before, the time.
     ax: plt.Axes
@@ -366,7 +366,7 @@ def _add_azel_contours(
     color: str (optional)
         The contour color.
     """
-    skymap_dict = load_skymap(asi_array_code, station, time, force_download=force_download)
+    skymap_dict = load_skymap(asi_array_code, location_code, time, force_download=force_download)
 
     az_contours = ax.contour(
         skymap_dict['FULL_AZIMUTH'][::-1, ::-1],

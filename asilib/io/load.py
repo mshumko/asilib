@@ -299,12 +299,12 @@ def get_frame(
 def _load_image(
     time: Union[datetime, str],
     asi_array_code: str,
-    station: str,
+    location_code: str,
     force_download: bool = False,
     time_thresh_s: float = 3,
 ) -> Tuple[datetime, np.ndarray]:
     """
-    Gets one ASI image image given the ASI array code (THEMIS or REGO), station, and
+    Gets one ASI image image given the ASI array code (THEMIS or REGO), imager location (location_code), and
     the day date-time parameters. If a file does not locally exist, this
     function will attempt to download it.
 
@@ -317,8 +317,8 @@ def _load_image(
         is assumed to be the start_time and is not checked.
     asi_array_code: str
         The asi_array_code id, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
+    location_code: str
+        The imager location code to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
     time_thresh_s: float
@@ -348,19 +348,19 @@ def _load_image(
     """
     time = utils._validate_time(time)
 
-    cdf_path = _find_img_path(time, asi_array_code, station, force_download=force_download)
+    cdf_path = _find_img_path(time, asi_array_code, location_code, force_download=force_download)
     cdf_obj = cdflib.CDF(cdf_path)
 
     if asi_array_code.lower() == 'rego':
-        image_key = f'clg_rgf_{station.lower()}'
-        time_key = f'clg_rgf_{station.lower()}_epoch'
+        image_key = f'clg_rgf_{location_code.lower()}'
+        time_key = f'clg_rgf_{location_code.lower()}_epoch'
     elif asi_array_code.lower() == 'themis':
-        image_key = f'thg_asf_{station.lower()}'
-        time_key = f'thg_asf_{station.lower()}_epoch'
+        image_key = f'thg_asf_{location_code.lower()}'
+        time_key = f'thg_asf_{location_code.lower()}_epoch'
 
     # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
     # to datetime objects.
-    epoch = _get_epoch(cdf_obj, time_key, time, asi_array_code, station)
+    epoch = _get_epoch(cdf_obj, time_key, time, asi_array_code, location_code)
     # Find the closest time stamp to time
     idx = np.where((epoch >= time) & (epoch < time + timedelta(seconds=time_thresh_s)))[0]
     assert len(idx) == 1, (
@@ -387,12 +387,12 @@ def get_frames(
 def _load_images(
     time_range: Sequence[Union[datetime, str]],
     asi_array_code: str,
-    station: str,
+    location_code: str,
     force_download: bool = False,
     ignore_missing_data: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Gets multiple ASI image images given the asi_array_code (THEMIS or REGO), station, and
+    Gets multiple ASI image images given the asi_array_code (THEMIS or REGO), imager location code, and
     the time_range date-time parameters. If a file does not locally exist, this
     function will attempt to download it. The returned time stamps span a range
     from time_range[0], up to, but excluding a time stamp exactly matching time_range[1].
@@ -407,8 +407,8 @@ def _load_images(
         is assumed to be the start_time and is not checked.
     asi_array_code: str
         The asi_array_code, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
+    location_code: str
+        The location code to download the data from.
     force_download: bool
         If True, download the file even if it already exists.
     ignore_missing_data: bool
@@ -445,7 +445,7 @@ def _load_images(
     image_generator = load_image_generator(
         time_range,
         asi_array_code,
-        station,
+        location_code,
         force_download=force_download,
         ignore_missing_data=ignore_missing_data,
     )
@@ -466,7 +466,7 @@ def _load_images(
 
 
 def _find_img_path(
-    time: Union[datetime, str], asi_array_code: str, station: str, force_download: bool = False
+    time: Union[datetime, str], asi_array_code: str, location_code: str, force_download: bool = False
 ) -> cdflib.cdfread.CDF:
     """
     Returns a path to an all sky full-resolution image (THEMIS:ASF, REGO:rgf) file.
@@ -480,8 +480,8 @@ def _find_img_path(
         object. Must contain the date and the UT hour.
     asi_array_code: str
         The asi_array_code, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
+    location_code: str
+        The imager location code to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
 
@@ -515,20 +515,20 @@ def _find_img_path(
     if force_download:
         if asi_array_code.lower() == 'themis':
             file_path = download_themis.download_themis_img(
-                station, time=time, force_download=force_download
+                location_code, time=time, force_download=force_download
             )[0]
         elif asi_array_code.lower() == 'rego':
             file_path = download_rego.download_rego_img(
-                station, time=time, force_download=force_download
+                location_code, time=time, force_download=force_download
             )[0]
     else:
         # If the user does not want to force a download, look for a file on the
         # computer. If a local file is not found, try to download one.
         search_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], asi_array_code.lower())
         if asi_array_code.lower() == 'themis':
-            search_pattern = f'*asf*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
+            search_pattern = f'*asf*{location_code.lower()}*{time.strftime("%Y%m%d%H")}*'
         elif asi_array_code.lower() == 'rego':
-            search_pattern = f'*rgf*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
+            search_pattern = f'*rgf*{location_code.lower()}*{time.strftime("%Y%m%d%H")}*'
         matched_paths = list(search_path.rglob(search_pattern))
 
         if len(matched_paths) == 1:  # A local file found
@@ -538,20 +538,20 @@ def _find_img_path(
             if asi_array_code.lower() == 'themis':
                 try:
                     file_path = download_themis.download_themis_img(
-                        station, time=time, force_download=force_download
+                        location_code, time=time, force_download=force_download
                     )[0]
                 except NotADirectoryError:
                     raise FileNotFoundError(
-                        f'THEMIS ASI data not found for station {station} at {time}'
+                        f'THEMIS ASI data not found for location_code={location_code} at {time}'
                     )
             elif asi_array_code.lower() == 'rego':
                 try:
                     file_path = download_rego.download_rego_img(
-                        station, time=time, force_download=force_download
+                        location_code, time=time, force_download=force_download
                     )[0]
                 except NotADirectoryError:
                     raise FileNotFoundError(
-                        f'REGO ASI data not found for station {station} at {time}'
+                        f'REGO ASI data not found for location_code={location_code} at {time}'
                     )
         else:  # Multiple files found?
             raise ValueError(f"Not sure what happend here. I found {matched_paths} matching paths.")
@@ -559,7 +559,7 @@ def _find_img_path(
     return file_path
 
 
-def _get_epoch(cdf_obj, time_key, hour_date_time, asi_array_code, station):
+def _get_epoch(cdf_obj, time_key, hour_date_time, asi_array_code, location_code):
     """
     Gets the CDF epoch array and modifies a ValueError when a CDF file is corrupted.
     """
@@ -569,7 +569,7 @@ def _get_epoch(cdf_obj, time_key, hour_date_time, asi_array_code, station):
         if str(err) == 'read length must be non-negative or -1':
             raise ValueError(
                 str(err) + '\n\n ASI data is probably corrupted for '
-                f'time={hour_date_time}, asi_array_code={asi_array_code}, station={station}. '
+                f'time={hour_date_time}, asi_array_code={asi_array_code}, location_code={location_code}. '
                 'download the data again with force_download=True).'
             )
         else:

@@ -6,7 +6,7 @@ import asilib
 earth_radius_km = 6371  # Earth radius
 
 
-def equal_area(asi_array_code, station, time, lla, box_km=(5, 5), alt_thresh_km=3):
+def equal_area(asi_array_code, location_code, time, lla, box_km=(5, 5), alt_thresh_km=3):
     """
     Given a square are in kilometers and a series of (latitude,
     longitude, altitude) coordinates, calculate the pixel box
@@ -16,8 +16,8 @@ def equal_area(asi_array_code, station, time, lla, box_km=(5, 5), alt_thresh_km=
     ----------
     asi_array_code: str
         The asi_array_code used to look up the skymap file.
-    station: str
-        The station used to look up the skymap file.
+    location_code: str
+        The location code used to look up the skymap file.
     time: datetime, or str
         Time is used to find the relevant skymap file: file created nearest to, and before, the time.
     lla: np.ndarray
@@ -37,7 +37,7 @@ def equal_area(asi_array_code, station, time, lla, box_km=(5, 5), alt_thresh_km=
     """
     assert len(box_km) == 2, 'The box_km parameter must have a length of 2.'
 
-    skymap_dict = asilib.load_skymap(asi_array_code, station, time)
+    skymap_dict = asilib.load_skymap(asi_array_code, location_code, time)
 
     # Get numpy array if pd.DataFrame passed
     if isinstance(lla, pd.DataFrame):

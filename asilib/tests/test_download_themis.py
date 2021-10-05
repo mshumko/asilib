@@ -16,10 +16,10 @@ class TestDownloadThemis(unittest.TestCase):
     def setUp(self):
         """Set up a few variables."""
         self.day = datetime(2016, 10, 29, 4)
-        self.station = 'Gill'
+        self.location_code = 'Gill'
         self.url = (
             download_themis.IMG_BASE_URL
-            + f'{self.station.lower()}/{self.day.year}/{str(self.day.month).zfill(2)}/'
+            + f'{self.location_code.lower()}/{self.day.year}/{str(self.day.month).zfill(2)}/'
         )
         return
 
@@ -41,7 +41,7 @@ class TestDownloadThemis(unittest.TestCase):
         temp_image_dir = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'themis')
         temp_image_path = temp_image_dir / 'thg_l1_asf_gill_2016102904_v01.cdf'
 
-        download_themis.download_themis_img(self.station, self.day, force_download=True)
+        download_themis.download_themis_img(self.location_code, self.day, force_download=True)
 
         self.assertTrue(temp_image_path.is_file())
         return

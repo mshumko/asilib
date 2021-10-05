@@ -40,7 +40,7 @@ class Test_plot_map(unittest.TestCase):
         """
         time = datetime(2007, 3, 13, 5, 8, 45)
         asi_array_code = 'THEMIS'
-        stations = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+        location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
         map_alt = 110
         min_elevation = 2
 
@@ -54,8 +54,8 @@ class Test_plot_map(unittest.TestCase):
         ax.coastlines()
         ax.gridlines(linestyle=':')
 
-        for station in stations:
-            plot_map(time, asi_array_code, station, map_alt, ax=ax, min_elevation=min_elevation)
+        for location_code in location_codes:
+            plot_map(time, asi_array_code, location_code, map_alt, ax=ax, min_elevation=min_elevation)
 
         ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
 

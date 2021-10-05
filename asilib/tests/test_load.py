@@ -18,29 +18,29 @@ class TestPlotImage(unittest.TestCase):
     def setUp(self):
         self.load_date = datetime(2016, 10, 29, 4)
         self.time_range = [datetime(2016, 10, 29, 4, 0), datetime(2016, 10, 29, 4, 1)]
-        self.station = 'GILL'
+        self.location_code = 'GILL'
 
     def test_rego_find_img(self):
         """Checks that the REGO ASI image file can be loaded."""
-        cdf_path = load._find_img_path(self.load_date, 'REGO', self.station)
+        cdf_path = load._find_img_path(self.load_date, 'REGO', self.location_code)
         assert cdf_path.name == 'clg_l1_rgf_gill_2016102904_v01.cdf'
         return
 
     def test_themis_find_img(self):
         """Checks that the REGO ASI image file can be loaded."""
-        cdf_path = load._find_img_path(self.load_date, 'THEMIS', self.station)
+        cdf_path = load._find_img_path(self.load_date, 'THEMIS', self.location_code)
         assert cdf_path.name == 'thg_l1_asf_gill_2016102904_v01.cdf'
         return
 
     def test_rego_load_skymap(self):
         """Load the REGO skymap file."""
-        skymap = load.load_skymap('REGO', self.station, self.load_date)
+        skymap = load.load_skymap('REGO', self.location_code, self.load_date)
         assert skymap['skymap_path'].name == 'rego_skymap_gill_20160129_vXX.sav'
         return
 
     def test_themis_load_skymap(self):
         """Load the THEMIS skymap file."""
-        skymap = load.load_skymap('THEMIS', self.station, self.load_date)
+        skymap = load.load_skymap('THEMIS', self.location_code, self.load_date)
         assert skymap['skymap_path'].name == 'themis_skymap_gill_20151121_vXX.sav'
         return
 

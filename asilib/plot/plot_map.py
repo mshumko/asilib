@@ -22,7 +22,7 @@ from asilib.io.load import load_skymap, load_image
 def plot_map(
     time: Union[datetime, str],
     asi_array_code: str,
-    station: str,
+    location_code: str,
     map_alt: int,
     time_thresh_s: float = 3,
     ax: plt.subplot = None,
@@ -46,8 +46,8 @@ def plot_map(
         is assumed to be the start_time and is not checked.
     asi_array_code: str
         The asi_array_code, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
+    location_code: str
+        The imager location code to download the data from.
     map_alt: int
         The altitude in kilometers to project to. Must be an altitude value
         in the skymap calibration.
@@ -101,8 +101,8 @@ def plot_map(
             " and https://aurora-asi-lib.readthedocs.io/en/latest/installation.html."
         )
 
-    image_time, image = load_image(asi_array_code, station, time=time, time_thresh_s=time_thresh_s)
-    skymap = load_skymap(asi_array_code, station, time)
+    image_time, image = load_image(asi_array_code, location_code, time=time, time_thresh_s=time_thresh_s)
+    skymap = load_skymap(asi_array_code, location_code, time)
 
     # Check that the map_alt is in the skymap calibration data.
     assert (
@@ -157,7 +157,7 @@ def plot_map(
         ax.text(
             skymap['SITE_MAP_LONGITUDE'],
             skymap['SITE_MAP_LATITUDE'],
-            station.upper(),
+            location_code.upper(),
             color='r',
             transform=ccrs.PlateCarree(),
             va='center',
@@ -270,7 +270,7 @@ if __name__ == '__main__':
     # # Figure 2b.
     # time = datetime(2007, 3, 13, 5, 8, 45)
     # asi_array_code = 'THEMIS'
-    # stations = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+    # location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
     # map_alt = 110
     # min_elevation = 2
 
@@ -284,20 +284,20 @@ if __name__ == '__main__':
     # ax.coastlines()
     # ax.gridlines(linestyle=':')
 
-    # # image_time, image, skymap, ax = plot_map(time, asi_array_code, stations[0], map_alt,
+    # # image_time, image, skymap, ax = plot_map(time, asi_array_code, location_codes[0], map_alt,
     # #     min_elevation=min_elevation)
-    # for station in stations:
-    #     plot_map(time, asi_array_code, station, map_alt, ax=ax, min_elevation=min_elevation)
+    # for location_code in location_codes:
+    #     plot_map(time, asi_array_code, location_code, map_alt, ax=ax, min_elevation=min_elevation)
 
     # ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
 
     # # https://deepblue.lib.umich.edu/bitstream/handle/2027.42/95671/jgra21670.pdf?sequence=1
     # # time = datetime(2009, 1, 31, 7, 13, 0)
     # # asi_array_code='THEMIS'
-    # # stations = ['GILL', 'SNKQ']#'FSMI', 'FSIM', 'TPAS', 'GILL']#, 'PINA', 'KAPU']
-    # # image_time, image, skymap, ax = plot_map(time, asi_array_code, stations[0], 110)
-    # # for station in stations[1:]:
-    # #     plot_map(time, asi_array_code, station, 110, ax=ax)
+    # # location_codes = ['GILL', 'SNKQ']#'FSMI', 'FSIM', 'TPAS', 'GILL']#, 'PINA', 'KAPU']
+    # # image_time, image, skymap, ax = plot_map(time, asi_array_code, location_codes[0], 110)
+    # # for location_code in location_codes[1:]:
+    # #     plot_map(time, asi_array_code, location_code, 110, ax=ax)
 
     # # https://www.essoar.org/doi/abs/10.1002/essoar.10507288.1
     # # plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)

@@ -10,13 +10,13 @@ import matplotlib.pyplot as plt
 import asilib
 
 asi_array_code = 'REGO'
-station = 'GILL'
+location_code = 'GILL'
 
 fig, ax = plt.subplots(figsize=(8, 6))
 ax, im = asilib.plot_keogram(
     ['2015-02-02T10', '2015-02-02T11'],
     asi_array_code,
-    station,
+    location_code,
     ax=ax,
     map_alt=230,
     pcolormesh_kwargs={'cmap': 'Greys_r'},

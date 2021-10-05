@@ -34,7 +34,7 @@ def download_rego_img(
     ignore_missing_data: bool = True,
 ) -> List[pathlib.Path]:
     """
-    The wrapper to download the REGO data given the day, station name,
+    The wrapper to download the REGO data given the day, imager location,
     and a flag to download a single hour file or the entire day. The images
     are saved to the asilib.config['ASI_DATA_DIR'] / 'rego' directory.
 
@@ -70,8 +70,8 @@ def download_rego_img(
     | import asilib
     |
     | day = datetime(2017, 4, 13, 5)
-    | station = 'LUCK'
-    | asilib.download_rego_img(station, time=day)
+    | location_code = 'LUCK'
+    | asilib.download_rego_img(location_code, time=day)
     """
     if (time is None) and (time_range is None):
         raise AttributeError('Neither time or time_range is specified.')
@@ -103,15 +103,15 @@ def download_rego_img(
     return download_paths
 
 
-def download_rego_skymap(station: str, force_download: bool = False) -> List[pathlib.Path]:
+def download_rego_skymap(location_code: str, force_download: bool = False) -> List[pathlib.Path]:
     """
     Download all of the (skymap) IDL .sav file and save
     it to asilib.config['ASI_DATA_DIR']/rego/skymap/ directory.
 
     Parameters
     ----------
-    station: str
-        The station name, case insensitive
+    location_code: str
+        The imager location code, case insensitive
     force_download: bool (optional)
         If True, download the file even if it already exists.
 
@@ -123,20 +123,20 @@ def download_rego_skymap(station: str, force_download: bool = False) -> List[pat
     -------
     | import asilib
     |
-    | station = 'LUCK'
-    | asilib.download_rego_skymap(station)
+    | location_code = 'LUCK'
+    | asilib.download_rego_skymap(location_code)
     """
     # Create the skymap directory in data/rego/skymap
-    save_dir = asilib.config['ASI_DATA_DIR'] / 'rego' / 'skymap' / station.lower()
+    save_dir = asilib.config['ASI_DATA_DIR'] / 'rego' / 'skymap' / location_code.lower()
     if not save_dir.is_dir():
         save_dir.mkdir(parents=True)
         print(f'Made directory at {save_dir}')
 
-    url = SKYMAP_BASE_URL + f'{station.lower()}/'
+    url = SKYMAP_BASE_URL + f'{location_code.lower()}/'
 
     # Look for all of the skymap hyperlinks, go in each one of them, and
     # download the .sav file.
-    skymap_folders_relative = utils._search_hrefs(url, search_pattern=station.lower())
+    skymap_folders_relative = utils._search_hrefs(url, search_pattern=location_code.lower())
     download_paths = []
 
     for skymap_folder in skymap_folders_relative:

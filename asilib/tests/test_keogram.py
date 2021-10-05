@@ -15,7 +15,7 @@ from asilib.plot.plot_keogram import plot_keogram
 class Test_keogram(unittest.TestCase):
     def setUp(self):
         self.asi_array_code = 'REGO'
-        self.station = 'LUCK'
+        self.location_code = 'LUCK'
         return
 
     def test_steve_keogram(self, create_reference=False):
@@ -23,7 +23,7 @@ class Test_keogram(unittest.TestCase):
         Tests that the STEVE keogram pd.DataFrame is identical.
         """
         keo = keogram(
-            ['2017-09-27T08', '2017-09-27T08:10'], self.asi_array_code, self.station, map_alt=230
+            ['2017-09-27T08', '2017-09-27T08:10'], self.asi_array_code, self.location_code, map_alt=230
         )
         reference_path = pathlib.Path(
             asilib.config['ASILIB_DIR'], 'tests', 'data', 'test_steve_keogram.csv'
@@ -49,7 +49,7 @@ class Test_keogram(unittest.TestCase):
         """
         with self.assertRaises(AssertionError):
             keo = keogram(
-                ['2017-09-27T08', '2017-09-27T08:10'], self.asi_array_code, self.station, map_alt=200
+                ['2017-09-27T08', '2017-09-27T08:10'], self.asi_array_code, self.location_code, map_alt=200
             )
         return
 
@@ -57,21 +57,21 @@ class Test_keogram(unittest.TestCase):
 class Test_plot_keogram(unittest.TestCase):
     def setUp(self):
         self.asi_array_code = 'REGO'
-        self.station = 'LUCK'
+        self.location_code = 'LUCK'
         return
 
     def test_steve_plot_keogram_alt(self):
         """
         Tests that the STEVE keogram plot is made without an error.
         """
-        plot_keogram(['2017-09-27T08', '2017-09-27T08:10'], self.asi_array_code, self.station, map_alt=230)
+        plot_keogram(['2017-09-27T08', '2017-09-27T08:10'], self.asi_array_code, self.location_code, map_alt=230)
         return
 
     def test_steve_plot_keogram_alt(self):
         """
         Tests that the STEVE keogram plot is made without an altitude (columns are the image indices).
         """
-        plot_keogram(['2017-09-27T08', '2017-09-27T08:10'], self.asi_array_code, self.station)
+        plot_keogram(['2017-09-27T08', '2017-09-27T08:10'], self.asi_array_code, self.location_code)
         return
 
 

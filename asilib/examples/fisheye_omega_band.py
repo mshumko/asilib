@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 import asilib
 
 asi_array_code = 'THEMIS'
-station = 'KAPU'
+location_code = 'KAPU'
 
-asilib.plot_image('2008-03-09T04:39:00', asi_array_code, station)
+asilib.plot_image('2008-03-09T04:39:00', asi_array_code, location_code)
 plt.tight_layout()
 plt.show()
