@@ -85,7 +85,9 @@ def lla2azel(
     assert sat_lla.shape[1] == 3, 'sat_lla must have 3 columns.'
 
     # Load the catalog
-    skymap_dict = asilib.io.load.load_skymap(asi_array_code, location_code, time, force_download=force_download)
+    skymap_dict = asilib.io.load.load_skymap(
+        asi_array_code, location_code, time, force_download=force_download
+    )
 
     sat_azel = np.nan * np.zeros((sat_lla.shape[0], 2))
 

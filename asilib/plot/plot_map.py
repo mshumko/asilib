@@ -101,7 +101,9 @@ def plot_map(
             " and https://aurora-asi-lib.readthedocs.io/en/latest/installation.html."
         )
 
-    image_time, image = load_image(asi_array_code, location_code, time=time, time_thresh_s=time_thresh_s)
+    image_time, image = load_image(
+        asi_array_code, location_code, time=time, time_thresh_s=time_thresh_s
+    )
     skymap = load_skymap(asi_array_code, location_code, time)
 
     # Check that the map_alt is in the skymap calibration data.

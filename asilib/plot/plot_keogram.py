@@ -109,5 +109,7 @@ def plot_keogram(
     )
 
     if title:
-        ax.set_title(f'{time_range[0].date()} | {asi_array_code.upper()}-{location_code.upper()} keogram')
+        ax.set_title(
+            f'{time_range[0].date()} | {asi_array_code.upper()}-{location_code.upper()} keogram'
+        )
     return ax, im

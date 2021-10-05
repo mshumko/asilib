@@ -217,7 +217,10 @@ def plot_movie_generator(
         )
     except AssertionError as err:
         if '0 number of time stamps were found in time_range' in str(err):
-            print(f'The file exists for {asi_array_code}/{location_code}, but no data ' f'between {time_range}.')
+            print(
+                f'The file exists for {asi_array_code}/{location_code}, but no data '
+                f'between {time_range}.'
+            )
             raise
         else:
             raise
@@ -230,7 +233,8 @@ def plot_movie_generator(
         asilib.config['ASI_DATA_DIR'],
         'movies',
         'images',
-        f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_' f'{location_code.lower()}',
+        f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_'
+        f'{location_code.lower()}',
     )
     if not image_save_dir.is_dir():
         image_save_dir.mkdir(parents=True)
@@ -288,7 +292,8 @@ def plot_movie_generator(
 
         # Save the plot before the next iteration.
         save_name = (
-            f'{image_time.strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_' f'{location_code.lower()}.png'
+            f'{image_time.strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_'
+            f'{location_code.lower()}.png'
         )
         plt.savefig(image_save_dir / save_name)
 

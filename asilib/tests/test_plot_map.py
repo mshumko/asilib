@@ -55,7 +55,9 @@ class Test_plot_map(unittest.TestCase):
         ax.gridlines(linestyle=':')
 
         for location_code in location_codes:
-            plot_map(time, asi_array_code, location_code, map_alt, ax=ax, min_elevation=min_elevation)
+            plot_map(
+                time, asi_array_code, location_code, map_alt, ax=ax, min_elevation=min_elevation
+            )
 
         ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
 

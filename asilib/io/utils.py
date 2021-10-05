@@ -61,9 +61,7 @@ def _get_hours(time_range: _time_range_type) -> List[datetime]:
     # Modify time_range. If time_range[0] is not at the top of the hour, we zero the minutes
     # seconds, and milliseconds. This helps with keeping the + 1 hour offsets aligned to the
     # start of the hour.
-    current_hour = copy.copy(
-        time_range[0].replace(minute=0, second=0, microsecond=0)
-        )
+    current_hour = copy.copy(time_range[0].replace(minute=0, second=0, microsecond=0))
     hours = []
 
     # Not <= in while loop because we don't want to download the final hour if time_range[1] is,
@@ -74,7 +72,9 @@ def _get_hours(time_range: _time_range_type) -> List[datetime]:
     return hours
 
 
-def _stream_large_file(url: str, save_path: Union[pathlib.Path, str], test_flag: bool = False) -> None:
+def _stream_large_file(
+    url: str, save_path: Union[pathlib.Path, str], test_flag: bool = False
+) -> None:
     """
     Streams a file from url to save_path. In requests.get(), stream=True
     sets up a generator to download a small chuck of data at a time,

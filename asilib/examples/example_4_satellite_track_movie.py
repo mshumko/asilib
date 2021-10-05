@@ -47,7 +47,9 @@ image_data = movie_generator.send('data')
 
 # Calculate what pixels are in a box_km around the satellite, and convolve it
 # with the images to pick out the ASI intensity in that box.
-area_box_mask = asilib.equal_area(asi_array_code, location_code, time_range[0], lla, box_km=(20, 20))
+area_box_mask = asilib.equal_area(
+    asi_array_code, location_code, time_range[0], lla, box_km=(20, 20)
+)
 asi_brightness = np.nanmean(image_data.images * area_box_mask, axis=(1, 2))
 area_box_mask[np.isnan(area_box_mask)] = 0  # To play nice with plt.contour()
 
@@ -76,7 +78,12 @@ for i, (time, image, _, im) in enumerate(movie_generator):
     )
     satellite_str = f'Satellite LLA=({lla[i, 0]:.2f}, {lla[i, 1]:.2f}, {lla[i, 2]:.2f})'
     ax[0].text(
-        0, 1, location_code_str + '\n' + satellite_str, va='top', transform=ax[0].transAxes, color='red'
+        0,
+        1,
+        location_code_str + '\n' + satellite_str,
+        va='top',
+        transform=ax[0].transAxes,
+        color='red',
     )
     ax[1].set(xlabel='Time', ylabel='Mean ASI intensity [counts]')
 

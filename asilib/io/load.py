@@ -30,7 +30,7 @@ def load_image(
 ):
     """
     Given ASI array and location codes, load either: an ASI image and
-    time stamp when ``time`` is given, or images with time stamps 
+    time stamp when ``time`` is given, or images with time stamps
     when ``time_range`` is given.
 
     Parameters
@@ -40,14 +40,14 @@ def load_image(
     location_code: str
         The ASI location code, e.g. ``RANK``.
     time: datetime or str
-        The date and time to load a single image that is closest in time. 
+        The date and time to load a single image that is closest in time.
         If an image time stamp is not found within ``time_thresh_s``, an
         AssertionError will be raised.
-    time_range: list[datetime, str] 
+    time_range: list[datetime, str]
         A list of length 2 containing the start and end dates and times that
-        bound the ASI images. If ``ignore_missing_data`` is False, a 
+        bound the ASI images. If ``ignore_missing_data`` is False, a
         ``FileNotFoundError`` will be raised if an hour file was not found in the
-        time_range; Otherwise it will return ASI images and time stamps that 
+        time_range; Otherwise it will return ASI images and time stamps that
         possibly contain data gaps.
     force_download: bool
         If True, download the file even if it already exists.
@@ -62,12 +62,12 @@ def load_image(
     Returns
     -------
     times: datetime, or List[datetime]
-        The image timestamp if ``time`` is passed, or a list of timestamps if 
+        The image timestamp if ``time`` is passed, or a list of timestamps if
         ``time_range`` is passed. When ``time_range`` is passed, the timestamps
-        can include start time if a timestamp exactly matches, but will exclude 
+        can include start time if a timestamp exactly matches, but will exclude
         the timestamp that exactly matches the end time.
     images: np.ndarray
-        Either an (nPixelRows x nPixelCols) or (nTime x nPixelRows x nPixelCols) 
+        Either an (nPixelRows x nPixelCols) or (nTime x nPixelRows x nPixelCols)
         array containing the ASI images.
     """
     if (time is None) and (time_range is None):
@@ -113,11 +113,11 @@ def load_image_generator(
 
     Parameters
     ----------
-    time_range: list[datetime, str] 
+    time_range: list[datetime, str]
         A list of length 2 containing the start and end dates and times that
-        bound the ASI images. If ``ignore_missing_data`` is False, a 
+        bound the ASI images. If ``ignore_missing_data`` is False, a
         ``FileNotFoundError`` will be raised if an hour file was not found in the
-        time_range; Otherwise it will return ASI images and time stamps that 
+        time_range; Otherwise it will return ASI images and time stamps that
         possibly contain data gaps.
     asi_array_code: str
         The asi_array_code, can be either THEMIS or REGO.
@@ -154,7 +154,9 @@ def load_image_generator(
 
     for hour in hours:
         try:
-            cdf_path = _find_img_path(hour, asi_array_code, location_code, force_download=force_download)
+            cdf_path = _find_img_path(
+                hour, asi_array_code, location_code, force_download=force_download
+            )
             cdf_obj = cdflib.CDF(cdf_path)
         except FileNotFoundError:
             if ignore_missing_data:
@@ -169,7 +171,10 @@ def load_image_generator(
 
 
 def load_skymap(
-    asi_array_code: str, location_code: str, time: Union[datetime, str], force_download: bool = False
+    asi_array_code: str,
+    location_code: str,
+    time: Union[datetime, str],
+    force_download: bool = False,
 ) -> dict:
     """
     Loads (and downloads if it doesn't exist) the skymap file closest and before time.
@@ -466,7 +471,10 @@ def _load_images(
 
 
 def _find_img_path(
-    time: Union[datetime, str], asi_array_code: str, location_code: str, force_download: bool = False
+    time: Union[datetime, str],
+    asi_array_code: str,
+    location_code: str,
+    force_download: bool = False,
 ) -> cdflib.cdfread.CDF:
     """
     Returns a path to an all sky full-resolution image (THEMIS:ASF, REGO:rgf) file.

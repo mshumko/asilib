@@ -140,7 +140,11 @@ def plot_image(
         _, ax = plt.subplots()
 
     image_time, image = load.load_image(
-        asi_array_code, location_code, time=time, force_download=force_download, time_thresh_s=time_thresh_s
+        asi_array_code,
+        location_code,
+        time=time,
+        force_download=force_download,
+        time_thresh_s=time_thresh_s,
     )
 
     # Figure out the color_bounds from the image data.
@@ -173,7 +177,9 @@ def plot_image(
             color='white',
         )
     if azel_contours:
-        skymap_dict = load.load_skymap(asi_array_code, location_code, image_time, force_download=force_download)
+        skymap_dict = load.load_skymap(
+            asi_array_code, location_code, image_time, force_download=force_download
+        )
 
         az_contours = ax.contour(
             skymap_dict['FULL_AZIMUTH'][::-1, ::-1],

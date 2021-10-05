@@ -52,7 +52,7 @@ def download_themis_img(
         If True, download the file even if it already exists.
     ignore_missing_data: bool
         Flag to ignore the FileNotFoundError that is raised when ASI
-        data is unavailable for that date-hour. Only used when 
+        data is unavailable for that date-hour. Only used when
         ``time_range`` is specified.
 
     Returns

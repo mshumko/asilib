@@ -51,6 +51,13 @@ for i, (time, image, ax, im) in enumerate(movie_generator):
         f'{skymap_dict["SITE_MAP_LONGITUDE"]:.2f}, {skymap_dict["SITE_MAP_ALTITUDE"]:.2f})'
     )
     satellite_str = f'Satellite LLA=({lla[i, 0]:.2f}, {lla[i, 1]:.2f}, {lla[i, 2]:.2f})'
-    ax.text(0, 1, location_code_str + '\n' + satellite_str, va='top', transform=ax.transAxes, color='red')
+    ax.text(
+        0,
+        1,
+        location_code_str + '\n' + satellite_str,
+        va='top',
+        transform=ax.transAxes,
+        color='red',
+    )
 
 print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
