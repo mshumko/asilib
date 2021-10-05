@@ -1,5 +1,5 @@
 # How to Contribute
-I welcome collaboration on this project. I need the most help with keeping up with documentation, writing more unittests, and adding other ASI missions. Please contact me or start a Pull Request with your suggestions. 
+I welcome collaboration on this project. I need the most help with keeping up with documentation, writing more unittests, and adding other ASI arrays. Please contact me or start a Pull Request with your suggestions. 
 
 To install the developer dependencies, clone this repo, `cd aurora-asi-lib` and then run `python3 -m pip install -r requirements.txt -e .`
 

@@ -10,7 +10,7 @@ import asilib
 
 
 # ASI parameters
-mission = 'THEMIS'
+asi_array_code = 'THEMIS'
 station = 'RANK'
 time_range = (datetime(2017, 9, 15, 2, 32, 0), datetime(2017, 9, 15, 2, 35, 0))
 
@@ -19,7 +19,7 @@ fig, ax = plt.subplots(
 )
 
 # Load the skymap calibration data. This is only necessary to create a fake satellite track.
-skymap_dict = asilib.load_skymap(mission, station, time_range[0])
+skymap_dict = asilib.load_skymap(asi_array_code, station, time_range[0])
 
 # Create the fake satellite track coordinates: latitude, longitude, altitude (LLA).
 # This is a north-south satellite track oriented to the east of the THEMIS/RANK
@@ -34,11 +34,11 @@ lla = np.array([lats, lons, alts]).T
 # image pixels. NOTE: the mapping is not along the magnetic field lines! You need
 # to install IRBEM and then use asilib.lla2footprint() before
 # lla2azel() is called.
-sat_azel, sat_azel_pixels = asilib.lla2azel(mission, station, time_range[0], lla)
+sat_azel, sat_azel_pixels = asilib.lla2azel(asi_array_code, station, time_range[0], lla)
 
 # Initiate the movie generator function. Any errors with the data will be raised here.
 movie_generator = asilib.plot_movie_generator(
-    time_range, mission, station, azel_contours=True, overwrite=True, ax=ax[0]
+    time_range, asi_array_code, station, azel_contours=True, overwrite=True, ax=ax[0]
 )
 
 # Use the generator to get the images and time stamps to estimate mean the ASI
@@ -47,7 +47,7 @@ image_data = movie_generator.send('data')
 
 # Calculate what pixels are in a box_km around the satellite, and convolve it
 # with the images to pick out the ASI intensity in that box.
-area_box_mask = asilib.equal_area(mission, station, time_range[0], lla, box_km=(20, 20))
+area_box_mask = asilib.equal_area(asi_array_code, station, time_range[0], lla, box_km=(20, 20))
 asi_brightness = np.nanmean(image_data.images * area_box_mask, axis=(1, 2))
 area_box_mask[np.isnan(area_box_mask)] = 0  # To play nice with plt.contour()
 
@@ -70,7 +70,7 @@ for i, (time, image, _, im) in enumerate(movie_generator):
 
     # Annotate the station and satellite info in the top-left corner.
     station_str = (
-        f'{mission}/{station} '
+        f'{asi_array_code}/{station} '
         f'LLA=({skymap_dict["SITE_MAP_LATITUDE"]:.2f}, '
         f'{skymap_dict["SITE_MAP_LONGITUDE"]:.2f}, {skymap_dict["SITE_MAP_ALTITUDE"]:.2f})'
     )

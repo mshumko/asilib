@@ -8,7 +8,7 @@ from asilib.analysis.keogram import keogram
 
 def plot_keogram(
     time_range,
-    mission,
+    asi_array_code,
     station,
     map_alt=None,
     ax=None,
@@ -28,8 +28,8 @@ def plot_keogram(
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
-    mission: str
-        The mission id, can be either THEMIS or REGO.
+    asi_array_code: str
+        The asi_array_code, can be either THEMIS or REGO.
     station: str
         The station id to download the data from.
     map_alt: int, optional
@@ -45,7 +45,7 @@ def plot_keogram(
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
     title: bool
-        Toggles a default plot title with the format "date mission-station keogram".
+        Toggles a default plot title with the format "date ASI_array_code-location_code keogram".
     pcolormesh_kwargs: dict
         A dictionary of keyword arguments (kwargs) to pass directly into
         plt.pcolormesh. One use of this parameter is to change the colormap. For example,
@@ -70,11 +70,11 @@ def plot_keogram(
     |
     | import asilib
     |
-    | mission='REGO'
+    | asi_array_code='REGO'
     | station='LUCK'
     |
     | fig, ax = plt.subplots(figsize=(8, 6))
-    | ax, im = asilib.plot_keogram(['2017-09-27T07', '2017-09-27T09'], mission, station,
+    | ax, im = asilib.plot_keogram(['2017-09-27T07', '2017-09-27T09'], asi_array_code, station,
     |                ax=ax, map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
     |
     | plt.colorbar(im)
@@ -82,7 +82,7 @@ def plot_keogram(
     | plt.show()
     """
     time_range = utils._validate_time_range(time_range)
-    keo_df = keogram(time_range, mission, station, map_alt)
+    keo_df = keogram(time_range, asi_array_code, station, map_alt)
 
     if ax is None:
         _, ax = plt.subplots()
@@ -109,5 +109,5 @@ def plot_keogram(
     )
 
     if title:
-        ax.set_title(f'{time_range[0].date()} | {mission.upper()}-{station.upper()} keogram')
+        ax.set_title(f'{time_range[0].date()} | {asi_array_code.upper()}-{station.upper()} keogram')
     return ax, im

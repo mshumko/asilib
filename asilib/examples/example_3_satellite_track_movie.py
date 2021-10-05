@@ -11,12 +11,12 @@ from asilib import lla2azel
 from asilib import load_skymap
 
 # ASI parameters
-mission = 'THEMIS'
+asi_array_code = 'THEMIS'
 station = 'RANK'
 time_range = (datetime(2017, 9, 15, 2, 34, 0), datetime(2017, 9, 15, 2, 36, 0))
 
 # Load the skymap data.
-skymap_dict = load_skymap(mission, station, time_range[0])
+skymap_dict = load_skymap(asi_array_code, station, time_range[0])
 
 # Create the satellite track's latitude, longitude, altitude (LLA) coordinates.
 # This is an imaginary north-south satellite track oriented to the east
@@ -31,11 +31,11 @@ lla = np.array([lats, lons, alts]).T
 # image pixels
 # The mapping is not along the magnetic field lines! You need to install IRBEM and then use
 # asilib.lla2footprint().
-sat_azel, sat_azel_pixels = lla2azel(mission, station, time_range[0], lla)
+sat_azel, sat_azel_pixels = lla2azel(asi_array_code, station, time_range[0], lla)
 
 # Initiate the movie generator function.
 movie_generator = plot_movie_generator(
-    time_range, mission, station, azel_contours=True, overwrite=True
+    time_range, asi_array_code, station, azel_contours=True, overwrite=True
 )
 
 for i, (time, image, ax, im) in enumerate(movie_generator):
@@ -46,7 +46,7 @@ for i, (time, image, ax, im) in enumerate(movie_generator):
 
     # Annotate the station and satellite info in the top-left corner.
     station_str = (
-        f'{mission}/{station} '
+        f'{asi_array_code}/{station} '
         f'LLA=({skymap_dict["SITE_MAP_LATITUDE"]:.2f}, '
         f'{skymap_dict["SITE_MAP_LONGITUDE"]:.2f}, {skymap_dict["SITE_MAP_ALTITUDE"]:.2f})'
     )

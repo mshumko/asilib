@@ -47,7 +47,7 @@ Example 2: Project ASI images onto a map
 
     # First two code blocks set up the ASI parameters and the map subplot.
     time = datetime(2007, 3, 13, 5, 8, 45)
-    mission='THEMIS'
+    asi_array_code='THEMIS'
     stations = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
     map_alt = 110
     min_elevation = 2
@@ -65,7 +65,7 @@ Example 2: Project ASI images onto a map
     ax.gridlines(linestyle=':')
 
     for station in stations:
-        asilib.plot_map(time, mission, station, map_alt, ax=ax, min_elevation=min_elevation)
+        asilib.plot_map(time, asi_array_code, station, map_alt, ax=ax, min_elevation=min_elevation)
 
     ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
     plt.show()
@@ -84,12 +84,12 @@ Example 3: A keogram
 
     import asilib
 
-    mission='REGO'
+    asi_array_code='REGO'
     station='LUCK'
     map_alt_km = 230
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    ax, im = asilib.plot_keogram(['2017-09-27T07', '2017-09-27T09'], mission, station, 
+    ax, im = asilib.plot_keogram(['2017-09-27T07', '2017-09-27T09'], asi_array_code, station, 
                     ax=ax, map_alt=map_alt_km, color_bounds=(300, 800))
     plt.colorbar(im, label='Intensity')
     ax.set_xlabel('UTC')
@@ -140,12 +140,12 @@ This is a sophisticated example that maps a hypothetical satellite track to an i
     from asilib import load_skymap
 
     # ASI parameters
-    mission = 'THEMIS'
+    asi_array_code = 'THEMIS'
     station = 'RANK'
     time_range = (datetime(2017, 9, 15, 2, 34, 0), datetime(2017, 9, 15, 2, 36, 0))
 
     # Load the skymap calibration data.
-    skymap_dict = load_skymap(mission, station, time_range[0])
+    skymap_dict = load_skymap(asi_array_code, station, time_range[0])
 
     # Create the satellite track's latitude, longitude, altitude (LLA) coordinates.
     # This is an imaginary north-south satellite track oriented to the east
@@ -160,11 +160,11 @@ This is a sophisticated example that maps a hypothetical satellite track to an i
     # image pixels
     # The mapping is not along the magnetic field lines! You need to install IRBEM and then use
     # asilib.lla2footprint().
-    sat_azel, sat_azel_pixels = lla2azel(mission, station, lla)
+    sat_azel, sat_azel_pixels = lla2azel(asi_array_code, station, lla)
 
     # Initiate the movie generator function.
     movie_generator = plot_movie_generator(
-        time_range, mission, station, azel_contours=True, overwrite=True
+        time_range, asi_array_code, station, azel_contours=True, overwrite=True
     )
 
     for i, (time, image, ax, im) in enumerate(movie_generator):
@@ -175,7 +175,7 @@ This is a sophisticated example that maps a hypothetical satellite track to an i
 
         # Annotate the station and satellite info in the top-left corner.
         station_str = (
-            f'{mission}/{station} '
+            f'{asi_array_code}/{station} '
             f'LLA=({skymap_dict["SITE_MAP_LATITUDE"]:.2f}, '
             f'{skymap_dict["SITE_MAP_LONGITUDE"]:.2f}, {skymap_dict["SITE_MAP_ALTITUDE"]:.2f})'
         )
@@ -211,7 +211,7 @@ The `asilib` functionality used here:
     import asilib
 
     # ASI parameters
-    mission = 'THEMIS'
+    asi_array_code = 'THEMIS'
     station = 'RANK'
     time_range = (datetime(2017, 9, 15, 2, 32, 0), datetime(2017, 9, 15, 2, 35, 0))
 
@@ -219,7 +219,7 @@ The `asilib` functionality used here:
                             constrained_layout=True)
 
     # Load the skymap calibration data. This is only necessary to create a fake satellite track.
-    skymap_dict = asilib.load_skymap(mission, station, time_range[0])
+    skymap_dict = asilib.load_skymap(asi_array_code, station, time_range[0])
 
     # Create the fake satellite track coordinates: latitude, longitude, altitude (LLA).
     # This is a north-south satellite track oriented to the east of the THEMIS/RANK 
@@ -234,11 +234,11 @@ The `asilib` functionality used here:
     # image pixels. NOTE: the mapping is not along the magnetic field lines! You need
     # to install IRBEM and then use asilib.lla2footprint() before 
     # lla2azel() is called.
-    sat_azel, sat_azel_pixels = asilib.lla2azel(mission, station, lla)
+    sat_azel, sat_azel_pixels = asilib.lla2azel(asi_array_code, station, lla)
 
     # Initiate the movie generator function. Any errors with the data will be raised here.
     movie_generator = asilib.plot_movie_generator(
-        time_range, mission, station, azel_contours=True, overwrite=True,
+        time_range, asi_array_code, station, azel_contours=True, overwrite=True,
         ax=ax[0]
     )
 
@@ -248,7 +248,7 @@ The `asilib` functionality used here:
 
     # Calculate what pixels are in a box_km around the satellite, and convolve it
     # with the images to pick out the ASI intensity in that box.
-    area_box_mask = asilib.equal_area(mission, station, lla, box_km=(20, 20))
+    area_box_mask = asilib.equal_area(asi_array_code, station, lla, box_km=(20, 20))
     asi_brightness = np.nanmean(image_data.images*area_box_mask, axis=(1,2))
     area_box_mask[np.isnan(area_box_mask)] = 0  # To play nice with plt.contour()
 
@@ -271,7 +271,7 @@ The `asilib` functionality used here:
 
         # Annotate the station and satellite info in the top-left corner.
         station_str = (
-            f'{mission}/{station} '
+            f'{asi_array_code}/{station} '
             f'LLA=({skymap_dict["SITE_MAP_LATITUDE"]:.2f}, '
             f'{skymap_dict["SITE_MAP_LONGITUDE"]:.2f}, {skymap_dict["SITE_MAP_ALTITUDE"]:.2f})'
         )

@@ -16,7 +16,7 @@ from asilib.io import load
 
 def plot_frame(
     time: Union[datetime, str],
-    mission: str,
+    asi_array_code: str,
     station: str,
     force_download: bool = False,
     time_thresh_s: float = 3,
@@ -31,7 +31,7 @@ def plot_frame(
     warnings.warn('asilib.plot_frame is deprecated for asilib.plot_image.')
     return plot_image(
         time,
-        mission,
+        asi_array_code,
         station,
         force_download=force_download,
         time_thresh_s=time_thresh_s,
@@ -46,7 +46,7 @@ def plot_frame(
 
 def plot_image(
     time: Union[datetime, str],
-    mission: str,
+    asi_array_code: str,
     station: str,
     force_download: bool = False,
     time_thresh_s: float = 3,
@@ -58,7 +58,7 @@ def plot_image(
     azel_contours: bool = False,
 ) -> Tuple[datetime, plt.Axes, matplotlib.image.AxesImage]:
     """
-    Plots one ASI image image given the mission (THEMIS or REGO), station, and
+    Plots one ASI image image given the asi_array_code (THEMIS or REGO), station, and
     the day date-time parameters. If a file does not locally exist, the _find_img_path()
     function will attempt to download it.
 
@@ -69,8 +69,8 @@ def plot_image(
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
-    mission: str
-        The mission id, can be either THEMIS or REGO.
+    asi_array_code: str
+        The asi_array_code id, can be either THEMIS or REGO.
     station: str
         The station id to download the data from.
     force_download: bool (optional)
@@ -83,7 +83,7 @@ def plot_image(
         The subplot to plot the image on. If None, this function will
         create one.
     label: bool
-        Flag to add the "mission/station/image_time" text to the plot.
+        Flag to add the "asi_array_code/station/image_time" text to the plot.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
@@ -115,7 +115,7 @@ def plot_image(
     ------
     NotImplementedError
         If the colormap is unspecified ('auto' by default) and the
-        auto colormap is undefined for an ASI mission.
+        auto colormap is undefined for an ASI array.
     ValueError
         If the color_norm kwarg is not "log" or "lin".
 
@@ -140,7 +140,7 @@ def plot_image(
         _, ax = plt.subplots()
 
     image_time, image = load.load_image(
-        mission, station, time=time, force_download=force_download, time_thresh_s=time_thresh_s
+        asi_array_code, station, time=time, force_download=force_download, time_thresh_s=time_thresh_s
     )
 
     # Figure out the color_bounds from the image data.
@@ -148,12 +148,12 @@ def plot_image(
         lower, upper = np.quantile(image, (0.25, 0.98))
         color_bounds = [lower, np.min([upper, lower * 10])]
 
-    if (color_map == 'auto') and (mission.lower() == 'themis'):
+    if (color_map == 'auto') and (asi_array_code.lower() == 'themis'):
         color_map = 'Greys_r'
-    elif (color_map == 'auto') and (mission.lower() == 'rego'):
+    elif (color_map == 'auto') and (asi_array_code.lower() == 'rego'):
         color_map = colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
     else:
-        raise NotImplementedError('color_map == "auto" but the mission is unsupported')
+        raise NotImplementedError('color_map == "auto" but the ASI array is unsupported')
 
     if color_norm == 'log':
         norm = colors.LogNorm(vmin=color_bounds[0], vmax=color_bounds[1])
@@ -167,13 +167,13 @@ def plot_image(
         ax.text(
             0,
             0,
-            f"{mission.upper()}/{station.upper()}\n{image_time.strftime('%Y-%m-%d %H:%M:%S')}",
+            f"{asi_array_code.upper()}/{station.upper()}\n{image_time.strftime('%Y-%m-%d %H:%M:%S')}",
             va='bottom',
             transform=ax.transAxes,
             color='white',
         )
     if azel_contours:
-        skymap_dict = load.load_skymap(mission, station, image_time, force_download=force_download)
+        skymap_dict = load.load_skymap(asi_array_code, station, image_time, force_download=force_download)
 
         az_contours = ax.contour(
             skymap_dict['FULL_AZIMUTH'][::-1, ::-1],

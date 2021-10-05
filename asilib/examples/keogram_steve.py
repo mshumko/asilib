@@ -10,14 +10,14 @@ import matplotlib.pyplot as plt
 
 import asilib
 
-mission = 'REGO'
+asi_array_code = 'REGO'
 station = 'LUCK'
 map_alt_km = 230
 
 fig, ax = plt.subplots(figsize=(8, 6))
 ax, im = asilib.plot_keogram(
     ['2017-09-27T07', '2017-09-27T09'],
-    mission,
+    asi_array_code,
     station,
     ax=ax,
     map_alt=map_alt_km,
