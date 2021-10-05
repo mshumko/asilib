@@ -1,3 +1,6 @@
+# Version 0.7.5
+- Changed all instances of the word `station` and replaced it with `location_code`.
+
 # Version 0.7.4
 - The main change is the `ignore_missing_files` parameter that is passed to the download functions. When True, the `download_themis_img` and `download_rego_img` will not raise a missing file error when data from that hour does not exist.
 
