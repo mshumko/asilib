@@ -4,7 +4,6 @@ import pandas as pd
 from asilib.io.load import (
     load_image_generator,
     load_skymap,
-    _validate_time_range,
     _create_empty_data_arrays,
 )
 
@@ -40,9 +39,8 @@ def keogram(time_range, mission, station, map_alt=None):
     AssertionError
         If map_alt does not equal the mapped altitudes in the skymap mapped values.
     """
-    time_range = _validate_time_range(time_range)
-    keo_times, keo = _create_empty_data_arrays(mission, time_range, 'keogram')
     image_generator = load_image_generator(time_range, mission, station)
+    keo_times, keo = _create_empty_data_arrays(mission, time_range, 'keogram')
 
     start_time_index = 0
     for file_image_times, file_images in image_generator:

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 
-from asilib.io.load import _validate_time_range
+import asilib.io.utils as utils
 from asilib.analysis.keogram import keogram
 
 
@@ -81,7 +81,7 @@ def plot_keogram(
     | plt.tight_layout()
     | plt.show()
     """
-    time_range = _validate_time_range(time_range)
+    time_range = utils._validate_time_range(time_range)
     keo_df = keogram(time_range, mission, station, map_alt)
 
     if ax is None:

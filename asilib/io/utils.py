@@ -5,14 +5,18 @@ import dateutil.parser
 import pathlib
 from typing import List, Union
 import copy
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from bs4 import BeautifulSoup
 import requests
 import numpy as np
 
 
-def _validate_time(time):
+_time_type = Union[datetime, str]
+_time_range_type = List[_time_type, _time_type]
+
+
+def _validate_time(time: _time_type) -> List[datetime]:
     """
     Validates tries to parse the time into datetime objects.
     """
@@ -23,7 +27,7 @@ def _validate_time(time):
     return time
 
 
-def _validate_time_range(time_range):
+def _validate_time_range(time_range: _time_range_type) -> List[datetime]:
     """
     Validates tries to parse the time_range into datetime objects.
     """
@@ -49,7 +53,7 @@ def _validate_time_range(time_range):
     return time_range_parsed
 
 
-def _get_hours(time_range):
+def _get_hours(time_range: _time_range_type) -> List[datetime]:
     """
     Helper function to figure out what date-hour times are between the times in time_range.
     This function is useful to figure out what hourly ASI files to download.
@@ -70,7 +74,7 @@ def _get_hours(time_range):
     return hours
 
 
-def _stream_large_file(url, save_path, test_flag: bool = False):
+def _stream_large_file(url: str, save_path: Union[pathlib.Path, str], test_flag: bool = False) -> None:
     """
     Streams a file from url to save_path. In requests.get(), stream=True
     sets up a generator to download a small chuck of data at a time,
