@@ -20,7 +20,7 @@ class Test_plot_map(unittest.TestCase):
         Tests that plot_map() doesn't crash when making this plot:
         http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg.
         """
-        plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
+        plot_map('THEMIS', 'ATHA', datetime(2010, 4, 5, 6, 7, 0), 110)
         return
 
     def test_plot_map_altitude_error(self):
@@ -29,7 +29,7 @@ class Test_plot_map(unittest.TestCase):
         in the list of skymap calibration altitudes.
         """
         with self.assertRaises(AssertionError):
-            plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 500)
+            plot_map('THEMIS', 'ATHA', datetime(2010, 4, 5, 6, 7, 0), 500)
         return
 
     def test_donovan_et_al_2008_plot(self):
@@ -56,7 +56,7 @@ class Test_plot_map(unittest.TestCase):
 
         for location_code in location_codes:
             plot_map(
-                time, asi_array_code, location_code, map_alt, ax=ax, min_elevation=min_elevation
+                asi_array_code, location_code, time, map_alt, ax=ax, min_elevation=min_elevation
             )
 
         ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')

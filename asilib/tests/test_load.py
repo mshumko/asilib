@@ -22,13 +22,13 @@ class TestPlotImage(unittest.TestCase):
 
     def test_rego_find_img(self):
         """Checks that the REGO ASI image file can be loaded."""
-        cdf_path = load._find_img_path(self.load_date, 'REGO', self.location_code)
+        cdf_path = load._find_img_path('REGO', self.location_code, self.load_date)
         assert cdf_path.name == 'clg_l1_rgf_gill_2016102904_v01.cdf'
         return
 
     def test_themis_find_img(self):
         """Checks that the REGO ASI image file can be loaded."""
-        cdf_path = load._find_img_path(self.load_date, 'THEMIS', self.location_code)
+        cdf_path = load._find_img_path('THEMIS', self.location_code, self.load_date)
         assert cdf_path.name == 'thg_l1_asf_gill_2016102904_v01.cdf'
         return
 
