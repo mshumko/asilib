@@ -12,13 +12,14 @@ import asilib
 
 asi_array_code = 'REGO'
 location_code = 'LUCK'
+time_range = ['2017-09-27T07', '2017-09-27T09']
 map_alt_km = 230
 
 fig, ax = plt.subplots(figsize=(8, 6))
 ax, im = asilib.plot_keogram(
-    ['2017-09-27T07', '2017-09-27T09'],
     asi_array_code,
     location_code,
+    time_range,
     ax=ax,
     map_alt=map_alt_km,
     color_bounds=(300, 800),

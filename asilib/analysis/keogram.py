@@ -8,22 +8,22 @@ from asilib.io.load import (
 )
 
 
-def keogram(time_range, asi_array_code, location_code, map_alt=None):
+def keogram(asi_array_code, location_code, time_range, map_alt=None):
     """
     Makes a keogram pd.DataFrame along the central meridian.
 
     Parameters
     ----------
+    asi_array_code: str
+        The asi_array_code, can be either THEMIS or REGO.
+    location_code: str
+        The location_code to download the data from.
     time_range: List[Union[datetime, str]]
         A list with len(2) == 2 of the start and end time to get the
         images. If either start or end time is a string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
-    asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
-    location_code: str
-        The location_code to download the data from.
     map_alt: int, optional
         The mapping altitude, in kilometers, used to index the mapped latitude in the
         skymap data. If None, will plot pixel index for the y-axis.
@@ -39,7 +39,7 @@ def keogram(time_range, asi_array_code, location_code, map_alt=None):
     AssertionError
         If map_alt does not equal the mapped altitudes in the skymap mapped values.
     """
-    image_generator = load_image_generator(time_range, asi_array_code, location_code)
+    image_generator = load_image_generator(asi_array_code, location_code, time_range)
     keo_times, keo = _create_empty_data_arrays(asi_array_code, time_range, 'keogram')
 
     start_time_index = 0

@@ -69,9 +69,9 @@ def download_rego_img(
     |
     | import asilib
     |
-    | day = datetime(2017, 4, 13, 5)
     | location_code = 'LUCK'
-    | asilib.download_rego_img(location_code, time=day)
+    | time = datetime(2017, 4, 13, 5)
+    | asilib.download_rego_img(location_code, time=time)
     """
     if (time is None) and (time_range is None):
         raise AttributeError('Neither time or time_range is specified.')

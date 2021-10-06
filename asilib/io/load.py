@@ -77,18 +77,18 @@ def load_image(
 
     elif time is not None:
         return _load_image(
-            time,
             asi_array_code,
             location_code,
+            time,
             force_download=force_download,
             time_thresh_s=time_thresh_s,
         )
 
     elif time_range is not None:
         return _load_images(
-            time_range,
             asi_array_code,
             location_code,
+            time_range,
             force_download=force_download,
             ignore_missing_data=ignore_missing_data,
         )
@@ -97,9 +97,9 @@ def load_image(
 
 
 def load_image_generator(
-    time_range: utils._time_range_type,
     asi_array_code: str,
     location_code: str,
+    time_range: utils._time_range_type,
     force_download: bool = False,
     ignore_missing_data: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray]:
@@ -113,16 +113,16 @@ def load_image_generator(
 
     Parameters
     ----------
+    asi_array_code: str
+        The asi_array_code, can be either THEMIS or REGO.
+    location_code: str
+        The ASI location_code to download the data from.
     time_range: list[datetime, str]
         A list of length 2 containing the start and end dates and times that
         bound the ASI images. If ``ignore_missing_data`` is False, a
         ``FileNotFoundError`` will be raised if an hour file was not found in the
         time_range; Otherwise it will return ASI images and time stamps that
         possibly contain data gaps.
-    asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
-    location_code: str
-        The ASI location_code to download the data from.
     force_download: bool
         If True, download the file even if it already exists.
     ignore_missing_data: bool
@@ -155,7 +155,7 @@ def load_image_generator(
     for hour in hours:
         try:
             cdf_path = _find_img_path(
-                hour, asi_array_code, location_code, force_download=force_download
+                asi_array_code, location_code, hour, force_download=force_download
             )
             cdf_obj = cdflib.CDF(cdf_path)
         except FileNotFoundError:
@@ -293,18 +293,18 @@ def get_frame(
     warnings.warn('asilib.get_frame is deprecated for asilib.load_image')
 
     return _load_image(
-        time,
         asi_array_code,
         location_code,
+        time,
         force_download=force_download,
         time_thresh_s=time_thresh_s,
     )
 
 
 def _load_image(
-    time: Union[datetime, str],
     asi_array_code: str,
     location_code: str,
+    time: Union[datetime, str],
     force_download: bool = False,
     time_thresh_s: float = 3,
 ) -> Tuple[datetime, np.ndarray]:
@@ -315,15 +315,15 @@ def _load_image(
 
     Parameters
     ----------
+    asi_array_code: str
+        The asi_array_code id, can be either THEMIS or REGO.
+    location_code: str
+        The imager location code to download the data from.
     time: datetime.datetime or str
         The date and time to download the data from. If time is string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
-    asi_array_code: str
-        The asi_array_code id, can be either THEMIS or REGO.
-    location_code: str
-        The imager location code to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
     time_thresh_s: float
@@ -353,7 +353,7 @@ def _load_image(
     """
     time = utils._validate_time(time)
 
-    cdf_path = _find_img_path(time, asi_array_code, location_code, force_download=force_download)
+    cdf_path = _find_img_path(asi_array_code, location_code, time, force_download=force_download)
     cdf_obj = cdflib.CDF(cdf_path)
 
     if asi_array_code.lower() == 'rego':
@@ -386,13 +386,13 @@ def get_frames(
 
     warnings.warn('asilib.get_frames is deprecated for asilib.load_image.')
 
-    return _load_images(time_range, asi_array_code, location_code, force_download=force_download)
+    return _load_images(asi_array_code, location_code, time_range, force_download=force_download)
 
 
 def _load_images(
-    time_range: Sequence[Union[datetime, str]],
     asi_array_code: str,
     location_code: str,
+    time_range: Sequence[Union[datetime, str]],
     force_download: bool = False,
     ignore_missing_data: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray]:
@@ -404,16 +404,16 @@ def _load_images(
 
     Parameters
     ----------
+    asi_array_code: str
+        The asi_array_code, can be either THEMIS or REGO.
+    location_code: str
+        The location code to download the data from.
     time_range: List[Union[datetime, str]]
         A list with len(2) == 2 of the start and end time to get the
         images. If either start or end time is a string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
-    asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
-    location_code: str
-        The location code to download the data from.
     force_download: bool
         If True, download the file even if it already exists.
     ignore_missing_data: bool
@@ -444,13 +444,13 @@ def _load_images(
     | import asilib
     |
     | time_range = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
-    | times, images = asilib.io.load._load_images(time_range, 'REGO', 'GILL')
+    | times, images = asilib.io.load._load_images('REGO', 'GILL', time_range)
     """
     times, images = _create_empty_data_arrays(asi_array_code, time_range, 'images')
     image_generator = load_image_generator(
-        time_range,
         asi_array_code,
         location_code,
+        time_range,
         force_download=force_download,
         ignore_missing_data=ignore_missing_data,
     )
@@ -471,9 +471,9 @@ def _load_images(
 
 
 def _find_img_path(
-    time: Union[datetime, str],
     asi_array_code: str,
     location_code: str,
+    time: Union[datetime, str],
     force_download: bool = False,
 ) -> cdflib.cdfread.CDF:
     """
@@ -482,14 +482,14 @@ def _find_img_path(
 
     Parameters
     ----------
-    time: datetime.datetime or str
-        The date and time to download the data from. If time is string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. Must contain the date and the UT hour.
     asi_array_code: str
         The asi_array_code, can be either THEMIS or REGO.
     location_code: str
         The imager location code to download the data from.
+    time: datetime.datetime or str
+        The date and time to download the data from. If time is string,
+        dateutil.parser.parse will attempt to parse it into a datetime
+        object. Must contain the date and the UT hour.
     force_download: bool (optional)
         If True, download the file even if it already exists.
 
@@ -514,7 +514,7 @@ def _find_img_path(
     -------
     | import asilib
     |
-    | asi_file_path = asilib._find_img_path('2016-10-29T04', 'REGO', 'GILL')
+    | asi_file_path = asilib._find_img_path('REGO', 'GILL', '2016-10-29T04')
     """
     # Try to convert time to datetime object if it is a string.
     if isinstance(time, str):

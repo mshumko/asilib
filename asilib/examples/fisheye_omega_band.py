@@ -15,6 +15,6 @@ import asilib
 asi_array_code = 'THEMIS'
 location_code = 'KAPU'
 
-asilib.plot_image('2008-03-09T04:39:00', asi_array_code, location_code)
+asilib.plot_image(asi_array_code, location_code, '2008-03-09T04:39:00')
 plt.tight_layout()
 plt.show()

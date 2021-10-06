@@ -67,9 +67,9 @@ def download_themis_img(
 
     import asilib
 
-    | day = datetime(2017, 4, 13, 5)
     | location_code = 'LUCK'
-    | asilib.download_themis_img(day, location_code)
+    | time = datetime(2017, 4, 13, 5)
+    | asilib.download_themis_img(location_code, time)
     """
     if (time is None) and (time_range is None):
         raise AttributeError('Neither time or time_range is specified.')

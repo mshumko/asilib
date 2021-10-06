@@ -21,8 +21,8 @@ Example 1: Fisheye Lens View of an Arc
 
     import asilib
 
-    image_time, image, ax, im = asilib.plot_image(datetime(2017, 9, 15, 2, 34, 0), 
-        'THEMIS', 'RANK', color_norm='log', force_download=False)
+    image_time, image, ax, im = asilib.plot_image('THEMIS', 'RANK', 
+        datetime(2017, 9, 15, 2, 34, 0), color_norm='log', force_download=False)
     plt.colorbar(im)
     ax.axis('off')
     plt.show()
@@ -65,7 +65,7 @@ Example 2: Project ASI images onto a map
     ax.gridlines(linestyle=':')
 
     for location_code in location_codes:
-        asilib.plot_map(time, asi_array_code, location_code, map_alt, ax=ax, min_elevation=min_elevation)
+        asilib.plot_map(asi_array_code, location_code, time, map_alt, ax=ax, min_elevation=min_elevation)
 
     ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
     plt.show()
@@ -84,12 +84,13 @@ Example 3: A keogram
 
     import asilib
 
-    asi_array_code='REGO'
-    location_code='LUCK'
+    asi_array_code = 'REGO'
+    location_code = 'LUCK'
+    time_range = ['2017-09-27T07', '2017-09-27T09']
     map_alt_km = 230
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    ax, im = asilib.plot_keogram(['2017-09-27T07', '2017-09-27T09'], asi_array_code, location_code, 
+    ax, im = asilib.plot_keogram(asi_array_code, location_code, time_range, 
                     ax=ax, map_alt=map_alt_km, color_bounds=(300, 800))
     plt.colorbar(im, label='Intensity')
     ax.set_xlabel('UTC')
@@ -114,7 +115,7 @@ Example 4: Fisheye Movie
     import asilib
     
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 30))
-    asilib.plot_movie(time_range, 'THEMIS', 'FSMI', overwrite=True)
+    asilib.plot_movie('THEMIS', 'FSMI', time_range, overwrite=True)
     print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
 
 Example 5: A Satellite pass
@@ -164,7 +165,7 @@ This is a sophisticated example that maps a hypothetical satellite track to an i
 
     # Initiate the movie generator function.
     movie_generator = plot_movie_generator(
-        time_range, asi_array_code, location_code, azel_contours=True, overwrite=True
+        asi_array_code, location_code, time_range, azel_contours=True, overwrite=True
     )
 
     for i, (time, image, ax, im) in enumerate(movie_generator):
@@ -238,7 +239,7 @@ The `asilib` functionality used here:
 
     # Initiate the movie generator function. Any errors with the data will be raised here.
     movie_generator = asilib.plot_movie_generator(
-        time_range, asi_array_code, location_code, azel_contours=True, overwrite=True,
+        asi_array_code, location_code, time_range, azel_contours=True, overwrite=True,
         ax=ax[0]
     )
 

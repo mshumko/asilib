@@ -20,9 +20,9 @@ from asilib.io.load import load_skymap, load_image
 
 
 def plot_map(
-    time: Union[datetime, str],
     asi_array_code: str,
     location_code: str,
+    time: Union[datetime, str],
     map_alt: int,
     time_thresh_s: float = 3,
     ax: plt.subplot = None,
@@ -39,15 +39,15 @@ def plot_map(
 
     Parameters
     ----------
+    asi_array_code: str
+        The asi_array_code, can be either THEMIS or REGO.
+    location_code: str
+        The imager location code to download the data from.
     time: datetime.datetime or str
         The date and time to download the data from. If time is string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
-    asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
-    location_code: str
-        The imager location code to download the data from.
     map_alt: int
         The altitude in kilometers to project to. Must be an altitude value
         in the skymap calibration.
@@ -286,10 +286,10 @@ if __name__ == '__main__':
     # ax.coastlines()
     # ax.gridlines(linestyle=':')
 
-    # # image_time, image, skymap, ax = plot_map(time, asi_array_code, location_codes[0], map_alt,
+    # # image_time, image, skymap, ax = plot_map(asi_array_code, location_codes[0], time, map_alt,
     # #     min_elevation=min_elevation)
     # for location_code in location_codes:
-    #     plot_map(time, asi_array_code, location_code, map_alt, ax=ax, min_elevation=min_elevation)
+    #     plot_map(asi_array_code, location_code, time, map_alt, ax=ax, min_elevation=min_elevation)
 
     # ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
 
@@ -297,9 +297,9 @@ if __name__ == '__main__':
     # # time = datetime(2009, 1, 31, 7, 13, 0)
     # # asi_array_code='THEMIS'
     # # location_codes = ['GILL', 'SNKQ']#'FSMI', 'FSIM', 'TPAS', 'GILL']#, 'PINA', 'KAPU']
-    # # image_time, image, skymap, ax = plot_map(time, asi_array_code, location_codes[0], 110)
+    # # image_time, image, skymap, ax = plot_map(asi_array_code, location_codes[0], time, 110)
     # # for location_code in location_codes[1:]:
-    # #     plot_map(time, asi_array_code, location_code, 110, ax=ax)
+    # #     plot_map(asi_array_code, location_code, time, 110, ax=ax)
 
     # # https://www.essoar.org/doi/abs/10.1002/essoar.10507288.1
     # # plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)

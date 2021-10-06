@@ -7,9 +7,9 @@ from asilib.analysis.keogram import keogram
 
 
 def plot_keogram(
-    time_range,
     asi_array_code,
     location_code,
+    time_range,
     map_alt=None,
     ax=None,
     color_bounds=None,
@@ -22,16 +22,16 @@ def plot_keogram(
 
     Parameters
     ----------
+    asi_array_code: str
+        The asi_array_code, can be either THEMIS or REGO.
+    location_code: str
+        The imager location code to download the data from.
     time_range: List[Union[datetime, str]]
         A list with len(2) == 2 of the start and end time to get the
         images. If either start or end time is a string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
-    asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
-    location_code: str
-        The imager location code to download the data from.
     map_alt: int, optional
         The mapping altitude, in kilometers, used to index the mapped latitude in the
         skymap calibration data. If None, will plot pixel index for the y-axis.
@@ -72,9 +72,10 @@ def plot_keogram(
     |
     | asi_array_code='REGO'
     | location_code='LUCK'
+    | time_range=['2017-09-27T07', '2017-09-27T09']
     |
     | fig, ax = plt.subplots(figsize=(8, 6))
-    | ax, im = asilib.plot_keogram(['2017-09-27T07', '2017-09-27T09'], asi_array_code, location_code,
+    | ax, im = asilib.plot_keogram(asi_array_code, location_code, time_range,
     |                ax=ax, map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
     |
     | plt.colorbar(im)
@@ -82,7 +83,7 @@ def plot_keogram(
     | plt.show()
     """
     time_range = utils._validate_time_range(time_range)
-    keo_df = keogram(time_range, asi_array_code, location_code, map_alt)
+    keo_df = keogram(asi_array_code, location_code, time_range, map_alt)
 
     if ax is None:
         _, ax = plt.subplots()

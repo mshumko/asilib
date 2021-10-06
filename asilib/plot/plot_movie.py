@@ -15,7 +15,7 @@ from asilib.analysis.start_generator import start_generator
 
 
 def plot_movie(
-    time_range: Sequence[Union[datetime, str]], asi_array_code: str, location_code: str, **kwargs
+    asi_array_code: str, location_code: str, time_range: Sequence[Union[datetime, str]], **kwargs
 ) -> None:
     """
     A wrapper for plot_movie_generator() generator function. This function calls
@@ -26,16 +26,16 @@ def plot_movie(
 
     Parameters
     ----------
+    asi_array_code: str
+        The asi_array_code, can be either THEMIS or REGO.
+    location_code: str
+        The imager location code to download the data from.
     time_range: List[Union[datetime, str]]
         A list with len(2) == 2 of the start and end time to get the
         images. If either start or end time is a string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
-    asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
-    location_code: str
-        The imager location code to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
     label: bool
@@ -85,7 +85,7 @@ def plot_movie(
     | import asilib
     |
     | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    | asilib.plot_movie(time_range, 'THEMIS', 'FSMI')
+    | asilib.plot_movie('THEMIS', 'FSMI', time_range)
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
     """
 
@@ -96,7 +96,7 @@ def plot_movie(
         kwargs['ax'] = ax
         plt.tight_layout()
 
-    movie_generator = plot_movie_generator(time_range, asi_array_code, location_code, **kwargs)
+    movie_generator = plot_movie_generator(asi_array_code, location_code, time_range, **kwargs)
 
     for image_time, image, im, ax in movie_generator:
         pass
@@ -108,9 +108,9 @@ Images = collections.namedtuple('Images', ['time', 'images'])
 
 @start_generator
 def plot_movie_generator(
-    time_range: Sequence[Union[datetime, str]],
     asi_array_code: str,
     location_code: str,
+    time_range: Sequence[Union[datetime, str]],
     force_download: bool = False,
     label: bool = True,
     color_map: str = 'auto',
@@ -134,16 +134,16 @@ def plot_movie_generator(
 
     Parameters
     ----------
+    asi_array_code: str
+        The asi_array_code, can be either THEMIS or REGO.
+    location_code: str
+        The imager location code to download the data from.
     time_range: List[Union[datetime, str]]
         A list with len(2) == 2 of the start and end time to get the
         images. If either start or end time is a string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
-    asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
-    location_code: str
-        The imager location code to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
     label: bool
@@ -203,7 +203,7 @@ def plot_movie_generator(
     | import asilib
     |
     | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    | movie_generator = asilib.plot_movie_generator(time_range, 'THEMIS', 'FSMI')
+    | movie_generator = asilib.plot_movie_generator('THEMIS', 'FSMI', time_range)
     |
     | for image_time, image, im, ax in movie_generator:
     |       # The code that modifies each image here.

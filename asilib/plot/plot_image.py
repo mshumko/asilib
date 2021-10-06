@@ -30,9 +30,9 @@ def plot_frame(
 
     warnings.warn('asilib.plot_frame is deprecated for asilib.plot_image.')
     return plot_image(
-        time,
         asi_array_code,
         location_code,
+        time,
         force_download=force_download,
         time_thresh_s=time_thresh_s,
         ax=ax,
@@ -45,9 +45,9 @@ def plot_frame(
 
 
 def plot_image(
-    time: Union[datetime, str],
     asi_array_code: str,
     location_code: str,
+    time: Union[datetime, str],
     force_download: bool = False,
     time_thresh_s: float = 3,
     ax: plt.subplot = None,
@@ -64,15 +64,15 @@ def plot_image(
 
     Parameters
     ----------
+    asi_array_code: str
+        The asi_array_code id, can be either THEMIS or REGO.
+    location_code: str
+        The imager location code to download the data from.
     time: datetime.datetime or str
         The date and time to download the data from. If time is string,
         dateutil.parser.parse will attempt to parse it into a datetime
         object. The user must specify the UT hour and the first argument
         is assumed to be the start_time and is not checked.
-    asi_array_code: str
-        The asi_array_code id, can be either THEMIS or REGO.
-    location_code: str
-        The imager location code to download the data from.
     force_download: bool (optional)
         If True, download the file even if it already exists.
     time_thresh_s: float
@@ -129,7 +129,8 @@ def plot_image(
     |
     | # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active
     | # auroral arc powered by accelerated electrons from very high altitudes"
-    | image_time, ax, im = asilib.plot_image(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK',
+    | time = datetime(2017, 9, 15, 2, 34, 0)
+    | image_time, ax, im = asilib.plot_image('THEMIS', 'RANK', time,
     |     color_norm='log', force_download=False)
     |
     | plt.colorbar(im)
