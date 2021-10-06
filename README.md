@@ -13,7 +13,10 @@ Easily make ASI fisheye lens plots (example 1).
 ![Aurora plot from example 1.](https://github.com/mshumko/aurora-asi-lib/blob/main/docs/_static/example_1.png?raw=true)
 
 Or project the image onto a map
-![Aurora plot from example 1.](https://raw.githubusercontent.com/mshumko/aurora-asi-lib/main/docs/_static/donovan_2008_fig2b_map.png)
+![An ASI image projected onto a map](https://raw.githubusercontent.com/mshumko/aurora-asi-lib/main/docs/_static/donovan_2008_fig2b_map.png)
+
+And make a keogram
+![A keogram of a field line resonance](https://raw.githubusercontent.com/mshumko/aurora-asi-lib/mike_dev/docs/_static/keogram_gillies_2018_field_line_resonance.png)
 
 And you can make movies
 ![Aurora movie from example 4.](https://github.com/mshumko/aurora-asi-lib/blob/main/docs/_static/20170915_023400_023557_themis_rank.gif?raw=true)
