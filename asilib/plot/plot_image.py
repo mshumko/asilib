@@ -179,14 +179,14 @@ def plot_image(
         )
 
         az_contours = ax.contour(
-            skymap_dict['FULL_AZIMUTH'][::-1, ::-1],
+            skymap_dict['FULL_AZIMUTH'],
             colors='yellow',
             linestyles='dotted',
             levels=np.arange(0, 361, 90),
             alpha=1,
         )
         el_contours = ax.contour(
-            skymap_dict['FULL_ELEVATION'][::-1, ::-1],
+            skymap_dict['FULL_ELEVATION'],
             colors='yellow',
             linestyles='dotted',
             levels=np.arange(0, 91, 30),

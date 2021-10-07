@@ -374,14 +374,14 @@ def _add_azel_contours(
     skymap_dict = load_skymap(asi_array_code, location_code, time, force_download=force_download)
 
     az_contours = ax.contour(
-        skymap_dict['FULL_AZIMUTH'][::-1, ::-1],
+        skymap_dict['FULL_AZIMUTH'],
         colors=color,
         linestyles='dotted',
         levels=np.arange(0, 361, 90),
         alpha=1,
     )
     el_contours = ax.contour(
-        skymap_dict['FULL_ELEVATION'][::-1, ::-1],
+        skymap_dict['FULL_ELEVATION'],
         colors=color,
         linestyles='dotted',
         levels=np.arange(0, 91, 30),

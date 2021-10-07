@@ -67,7 +67,7 @@ for i, (time, image, _, im) in enumerate(movie_generator):
 
     # Plot the time series of the mean ASI intensity along the satellite path
     ax[1].plot(image_data.time, asi_brightness)
-    ax[1].axvline(time, c='k')
+    ax[1].axvline(time, c='b')
 
     # Annotate the location_code and satellite info in the top-left corner.
     location_code_str = (

@@ -85,8 +85,6 @@ def equal_area(asi_array_code, location_code, time, lla, box_km=(5, 5), alt_thre
             else:
                 multiplier += step
 
-    pixel_mask = pixel_mask[:, ::-1, ::-1]
-
     if len(initial_shape) == 1:
         return pixel_mask.reshape(lat_map.shape)
     else:

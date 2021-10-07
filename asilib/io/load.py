@@ -268,14 +268,10 @@ def load_skymap(
     # Load the skymap file and convert it to a dictionary.
     skymap_file = scipy.io.readsav(str(skymap_path), python_dict=True)['skymap']
     skymap_dict = {key: copy(skymap_file[key][0]) for key in skymap_file.dtype.names}
-    # Map longitude from 0 - 360 to -180 - 180.
-    skymap_dict['SITE_MAP_LONGITUDE'] = np.mod(skymap_dict['SITE_MAP_LONGITUDE'] + 180, 360) - 180
-    # Don't take the modulus of NaNs
-    valid_val_idx = np.where(~np.isnan(skymap_dict['FULL_MAP_LONGITUDE']))
-    skymap_dict['FULL_MAP_LONGITUDE'][valid_val_idx] = (
-        np.mod(skymap_dict['FULL_MAP_LONGITUDE'][valid_val_idx] + 180, 360) - 180
-    )
-    skymap_dict['skymap_path'] = skymap_path
+   
+    skymap_dict = _tranform_longitude_to_180(skymap_dict)
+    skymap_dict = _flip_skymap(skymap_dict)
+    skymap_dict['SKYMAP_PATH'] = skymap_path
     return skymap_dict
 
 
@@ -623,3 +619,33 @@ def _create_empty_data_arrays(asi_array_code, time_range, type):
     times = np.nan * np.zeros(max_n_timestamps, dtype=object)
     data = np.nan * np.zeros(data_shape)
     return times, data
+
+def _flip_skymap(skymap):
+    """
+    IDL saves arrays with indices starting at the lower-right corner? So we need to
+    flip all of the 2D arrays that map to pixels, as well as some of the 3D arrays.
+
+    This function checks that the flipped dimensions have identical sizes.
+    """
+    for key in skymap:
+        if hasattr(skymap[key], 'shape'):
+            shape = skymap[key].shape
+            if (len(shape) == 2) and (shape[0] == shape[1]):
+                skymap[key] = skymap[key][::-1, ::-1]  # For Az/El maps.
+            elif (len(shape) == 3) and (shape[1] == shape[2]):
+                skymap[key] = skymap[key][:, ::-1, ::-1]  # For lat/lon maps
+    return skymap
+
+def _tranform_longitude_to_180(skymap):
+    """
+    Transform the SITE_MAP_LONGITUDE and FULL_MAP_LONGITUDE arrays from 
+    (0 -> 360) to (-180 -> 180).
+    """
+    skymap['SITE_MAP_LONGITUDE'] = np.mod(skymap['SITE_MAP_LONGITUDE'] + 180, 360) - 180
+
+    # Don't take the modulus of NaNs
+    valid_val_idx = np.where(~np.isnan(skymap['FULL_MAP_LONGITUDE']))
+    skymap['FULL_MAP_LONGITUDE'][valid_val_idx] = (
+        np.mod(skymap['FULL_MAP_LONGITUDE'][valid_val_idx] + 180, 360) - 180
+    )
+    return skymap

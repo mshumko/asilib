@@ -71,7 +71,6 @@ def keogram(asi_array_code: str, location_code: str, time_range: utils._time_ran
         # Since keogram_latitude values are NaNs near the image edges, we want to filter
         # out those indices from keogram_latitude and keo.
         valid_lats = np.where(~np.isnan(keogram_latitude))[0]
-        # The ::-1 reverses the latitude array to make them in ascending order.
-        keogram_latitude = keogram_latitude[valid_lats][::-1]
+        keogram_latitude = keogram_latitude[valid_lats]
         keo = keo[:, valid_lats]
     return pd.DataFrame(data=keo, index=keo_times, columns=keogram_latitude)

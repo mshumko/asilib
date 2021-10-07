@@ -238,7 +238,7 @@ def _pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, 
     # TODO: skymap rotation.
     # old masked c code: np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1]
     p = ax.pcolormesh(
-        x, y, c[::-1, ::-1], cmap=cmap, shading='flat', transform=ccrs.PlateCarree(), norm=norm
+        x, y, c, cmap=cmap, shading='flat', transform=ccrs.PlateCarree(), norm=norm
     )
     return p
 
@@ -270,25 +270,3 @@ def _mask_low_horizon(image, lon_map, lat_map, el_map, min_elevation):
     lon_map_copy[idh_boundary_right] = np.nan
     lat_map_copy[idh_boundary_right] = np.nan
     return image_copy, lon_map_copy, lat_map_copy
-
-
-if __name__ == '__main__':
-
-    # http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
-    image_time, image, skymap, ax, p = plot_map(
-        datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110
-    )
-
-    # # https://deepblue.lib.umich.edu/bitstream/handle/2027.42/95671/jgra21670.pdf?sequence=1
-    # # time = datetime(2009, 1, 31, 7, 13, 0)
-    # # asi_array_code='THEMIS'
-    # # location_codes = ['GILL', 'SNKQ']#'FSMI', 'FSIM', 'TPAS', 'GILL']#, 'PINA', 'KAPU']
-    # # image_time, image, skymap, ax = plot_map(asi_array_code, location_codes[0], time, 110)
-    # # for location_code in location_codes[1:]:
-    # #     plot_map(asi_array_code, location_code, time, 110, ax=ax)
-
-    # # https://www.essoar.org/doi/abs/10.1002/essoar.10507288.1
-    # # plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)
-
-    # # plt.tight_layout()
-    plt.show()
