@@ -38,7 +38,7 @@ sat_azel, sat_azel_pixels = asilib.lla2azel(asi_array_code, location_code, time_
 
 # Initiate the movie generator function. Any errors with the data will be raised here.
 movie_generator = asilib.plot_movie_generator(
-    time_range, asi_array_code, location_code, azel_contours=True, overwrite=True, ax=ax[0]
+    asi_array_code, location_code, time_range, azel_contours=True, overwrite=True, ax=ax[0]
 )
 
 # Use the generator to get the images and time stamps to estimate mean the ASI
