@@ -12,6 +12,7 @@ import numpy as np
 
 try:
     import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
     import cartopy
 except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.plot_map().
@@ -26,6 +27,7 @@ def plot_map(
     map_alt: int,
     time_thresh_s: float = 3,
     ax: plt.subplot = None,
+    map_style = 'green',
     color_map: str = 'auto',
     min_elevation: float = 10,
     norm=True,
@@ -58,6 +60,10 @@ def plot_map(
     ax: plt.subplot
         The subplot to plot the image on. If None, this function will
         create one.
+    map_style: str
+        If ax is None, this kwarg toggles between two predefined map styles:
+        'green' map has blue oceans and green land, while the `white` map
+        has white oceans and land with black coastlines.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
@@ -125,15 +131,7 @@ def plot_map(
 
     # Set up the plot parameters
     if ax is None:
-        fig = plt.figure(figsize=(8, 5))
-        plot_extent = [-160, -52, 40, 82]
-        central_lon = np.mean(plot_extent[:2])
-        central_lat = np.mean(plot_extent[2:])
-        projection = ccrs.Orthographic(central_lon, central_lat)
-        ax = fig.add_subplot(1, 1, 1, projection=projection)
-        ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
-        ax.coastlines()
-        ax.gridlines(linestyle=':')
+        ax = _make_map(map_style)
 
     if color_bounds is None:
         lower, upper = np.nanquantile(image, (0.25, 0.98))
@@ -153,7 +151,7 @@ def plot_map(
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    p = pcolormesh_nan(lon_map, lat_map, image, ax, cmap=color_map, norm=norm)
+    p = _pcolormesh_nan(lon_map, lat_map, image, ax, cmap=color_map, norm=norm)
 
     if asi_label:
         ax.text(
@@ -167,8 +165,31 @@ def plot_map(
         )
     return image_time, image, skymap, ax, p
 
+def _make_map(map_style):
+    """
+    Helper function to make a few types of map styles.
+    """
+    fig = plt.figure(figsize=(8, 5))
+    plot_extent = [-160, -52, 40, 82]
+    central_lon = np.mean(plot_extent[:2])
+    central_lat = np.mean(plot_extent[2:])
+    projection = ccrs.Orthographic(central_lon, central_lat)
+    ax = fig.add_subplot(1, 1, 1, projection=projection)
+    ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
 
-def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, norm=None):
+    if map_style == 'white':
+        ax.coastlines()
+        ax.gridlines(linestyle=':')
+    elif map_style == 'green':
+        ax.add_feature(cfeature.LAND, color='green')
+        ax.add_feature(cfeature.OCEAN)
+        ax.add_feature(cfeature.COASTLINE)
+        ax.gridlines(linestyle=':')
+    else:
+        raise ValueError("Only the 'white' and 'green' map_style are implemented.")
+    return ax
+
+def _pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, norm=None):
     """
     Since pcolormesh cant handle nan lat/lon grid values, we will compress them to the
     nearest valid lat/lon grid. There are two main steps:
@@ -257,41 +278,11 @@ def _mask_low_horizon(image, lon_map, lat_map, el_map, min_elevation):
 
 
 if __name__ == '__main__':
-    # https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41598-020-79665-5/MediaObjects/41598_2020_79665_Fig1_HTML.jpg?as=webp
-    # plot_map(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 110)
-
-    # https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2008GL033794
-    # plot_map(datetime(2007, 3, 13, 5, 8, 45), 'THEMIS', 'TPAS', 110)
 
     # http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
     image_time, image, skymap, ax, p = plot_map(
         datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110
     )
-
-    # # https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2008GL033794
-    # # Figure 2b.
-    # time = datetime(2007, 3, 13, 5, 8, 45)
-    # asi_array_code = 'THEMIS'
-    # location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
-    # map_alt = 110
-    # min_elevation = 2
-
-    # fig = plt.figure(figsize=(8, 5))
-    # plot_extent = [-160, -52, 40, 82]
-    # central_lon = np.mean(plot_extent[:2])
-    # central_lat = np.mean(plot_extent[2:])
-    # projection = ccrs.Orthographic(central_lon, central_lat)
-    # ax = fig.add_subplot(1, 1, 1, projection=projection)
-    # ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
-    # ax.coastlines()
-    # ax.gridlines(linestyle=':')
-
-    # # image_time, image, skymap, ax = plot_map(asi_array_code, location_codes[0], time, map_alt,
-    # #     min_elevation=min_elevation)
-    # for location_code in location_codes:
-    #     plot_map(asi_array_code, location_code, time, map_alt, ax=ax, min_elevation=min_elevation)
-
-    # ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
 
     # # https://deepblue.lib.umich.edu/bitstream/handle/2027.42/95671/jgra21670.pdf?sequence=1
     # # time = datetime(2009, 1, 31, 7, 13, 0)
