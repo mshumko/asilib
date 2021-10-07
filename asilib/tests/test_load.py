@@ -35,13 +35,13 @@ class TestPlotImage(unittest.TestCase):
     def test_rego_load_skymap(self):
         """Load the REGO skymap file."""
         skymap = load.load_skymap('REGO', self.location_code, self.load_date)
-        assert skymap['skymap_path'].name == 'rego_skymap_gill_20160129_vXX.sav'
+        assert skymap['SKYMAP_PATH'].name == 'rego_skymap_gill_20160129_vXX.sav'
         return
 
     def test_themis_load_skymap(self):
         """Load the THEMIS skymap file."""
         skymap = load.load_skymap('THEMIS', self.location_code, self.load_date)
-        assert skymap['skymap_path'].name == 'themis_skymap_gill_20151121_vXX.sav'
+        assert skymap['SKYMAP_PATH'].name == 'themis_skymap_gill_20151121_vXX.sav'
         return
 
     def test_load_image_themis(self, create_reference=False):
