@@ -35,7 +35,7 @@ def plot_map(
     pcolormesh_kwargs={},
 ):
     """
-    Projects the ASI images to a map at an altitude in the skymap calibration file.
+    Projects the ASI images to a map at an altitude defined in the skymap calibration file.
 
     Parameters
     ----------

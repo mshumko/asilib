@@ -185,7 +185,7 @@ def load_skymap(
     force_download: bool = False,
 ) -> dict:
     """
-    Loads the appropriate THEMIS or REGO skymap file (closest and before ``time``).
+    Loads the appropriate THEMIS or REGO skymap file (closest and before ``time``) into memory.
 
     Parameters
     ----------

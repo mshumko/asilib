@@ -8,9 +8,7 @@ earth_radius_km = 6371  # Earth radius
 
 def equal_area(asi_array_code, location_code, time, lla, box_km=(5, 5), alt_thresh_km=3):
     """
-    Given a square are in kilometers and a series of (latitude,
-    longitude, altitude) coordinates, calculate the pixel box
-    width and height.
+    Calculate a ``box_km`` area at the aurora emission altitude.
 
     Parameters
     ----------

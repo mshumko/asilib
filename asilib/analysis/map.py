@@ -133,9 +133,9 @@ def lla2footprint(
     hemisphere: int = 0,
 ) -> np.ndarray:
     """
-    This function uses the IRBEM-Lib library to map the spacecraft's position:
-    latitude, longitude, altitude with the spacecraft's time to the map_alt
-    altitude in units of km, in the same hemisphere.
+    Map the spacecraft's position to ``map_alt`` along the magnetic field line. 
+    The mapping is implemeneted in ``IRBEM`` and by default it maps to the same 
+    hemisphere.
 
     Parameters
     ----------
