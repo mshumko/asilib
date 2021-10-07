@@ -12,17 +12,16 @@ import numpy as np
 try:
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
-    import cartopy
 except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.plot_map().
 
-from asilib.io.load import load_skymap, load_image
-
+from asilib.io import load
+from asilib.io import utils
 
 def plot_map(
     asi_array_code: str,
     location_code: str,
-    time: Union[datetime, str],
+    time: utils._time_type,
     map_alt: float,
     time_thresh_s: float = 3,
     ax: plt.Axes = None,
@@ -103,10 +102,10 @@ def plot_map(
             " and https://aurora-asi-lib.readthedocs.io/en/latest/installation.html."
         )
 
-    image_time, image = load_image(
+    image_time, image = load.load_image(
         asi_array_code, location_code, time=time, time_thresh_s=time_thresh_s
     )
-    skymap = load_skymap(asi_array_code, location_code, time)
+    skymap = load.load_skymap(asi_array_code, location_code, time)
 
     # Check that the map_alt is in the skymap calibration data.
     assert (

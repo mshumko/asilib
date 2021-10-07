@@ -293,7 +293,7 @@ def _extract_skymap_dates(skymap_paths):
 
 
 def get_frame(
-    time: Union[datetime, str],
+    time: utils._time_type,
     asi_array_code: str,
     location_code: str,
     force_download: bool = False,
@@ -388,7 +388,7 @@ def _load_image(
 
 
 def get_frames(
-    time_range: Sequence[Union[datetime, str]],
+    time_range: utils._time_range_type,
     asi_array_code: str,
     location_code: str,
     force_download: bool = False,

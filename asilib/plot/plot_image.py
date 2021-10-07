@@ -14,7 +14,7 @@ from asilib.io import utils
 
 
 def plot_frame(
-    time: Union[datetime, str],
+    time: utils._time_type,
     asi_array_code: str,
     location_code: str,
     force_download: bool = False,

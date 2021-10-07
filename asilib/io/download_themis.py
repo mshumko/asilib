@@ -26,8 +26,8 @@ if not themis_dir.exists():
 
 def download_themis_img(
     location_code: str,
-    time: Union[datetime, str] = None,
-    time_range: List[Union[datetime, str]] = None,
+    time: utils._time_type = None,
+    time_range: utils._time_range_type = None,
     force_download: bool = False,
     ignore_missing_data: bool = True,
 ) -> List[pathlib.Path]:

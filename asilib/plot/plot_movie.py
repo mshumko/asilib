@@ -348,7 +348,7 @@ def _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrit
 def _add_azel_contours(
     asi_array_code: str,
     location_code: str,
-    time: Union[datetime, str],
+    time: utils._time_type,
     ax: plt.Axes,
     force_download: bool,
     color: str = 'yellow',
