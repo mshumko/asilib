@@ -29,29 +29,27 @@ if not rego_dir.exists():
 def download_rego_img(
     location_code: str,
     time: Union[datetime, str] = None,
-    time_range: Union[datetime, str] = None,
+    time_range: List[Union[datetime, str]] = None,
     force_download: bool = False,
     ignore_missing_data: bool = True,
 ) -> List[pathlib.Path]:
     """
     The wrapper to download the REGO data given the day, imager location,
     and a flag to download a single hour file or the entire day. The images
-    are saved to the asilib.config['ASI_DATA_DIR'] / 'rego' directory.
+    are saved to the ``asilib.config['ASI_DATA_DIR'] / 'rego'`` directory.
 
     Parameters
     ----------
     location_code: str
-        The location_code to download the data from.
+        The ASI station code, i.e. ``ATHA``
     time: datetime.datetime or str
-        The date and time to download the data from. If day is string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object.
-    time_range: a list of len(2) of datetime.datetime or str
-        Two time to download the data from. If day is string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object.
-    force_download: bool (optional)
-        If True, download the file even if it already exists.
+        The date and time to download of the data. If str, ``time`` must be in the
+        ISO 8601 standard.
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
+    force_download: bool
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete. 
     ignore_missing_data: bool
         Flag to ignore the FileNotFoundError that is raised when ASI
         data is unavailable for that date-hour. Only used when
@@ -111,10 +109,11 @@ def download_rego_skymap(location_code: str, force_download: bool = False) -> Li
     Parameters
     ----------
     location_code: str
-        The imager location code, case insensitive
-    force_download: bool (optional)
-        If True, download the file even if it already exists.
-
+        The ASI station code, i.e. ``ATHA``
+    force_download: bool
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete.
+        
     Returns
     -------
     None
