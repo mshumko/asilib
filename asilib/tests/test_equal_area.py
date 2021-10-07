@@ -17,7 +17,7 @@ from asilib.analysis.equal_area import equal_area, _dlon, _dlat
 deg_distance_km = 111.321
 
 
-class Test_keogram(unittest.TestCase):
+class Test_equal_area(unittest.TestCase):
     def test_dlat(self):
         """
         Tests the _dlat() helper function. Given one altitude, these should be the same.
