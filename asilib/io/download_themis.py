@@ -32,9 +32,8 @@ def download_themis_img(
     ignore_missing_data: bool = True,
 ) -> List[pathlib.Path]:
     """
-    This function downloads the THEMIS ASI image data given the day, location_code,
-    and a flag to download a single hour file or the entire day. The images
-    are saved to the asilib.config['ASI_DATA_DIR'] / 'themis' directory.
+    Download one hourly THEMIS cdf file given the imager location and ``time``, or
+    multiple hourly files given ``time_range``.
 
     Parameters
     ----------
@@ -99,27 +98,9 @@ def download_themis_img(
     return download_paths
 
 
-def _download_one_img_file(location_code, time, force_download):
-    """
-    Download one hour-long file.
-    """
-    # Add the location/year/month url folders onto the url
-    url = IMG_BASE_URL + f'{location_code.lower()}/{time.year}/{str(time.month).zfill(2)}/'
-
-    search_pattern = f'{location_code.lower()}_{time.strftime("%Y%m%d%H")}'
-    file_names = utils._search_hrefs(url, search_pattern=search_pattern)
-
-    server_url = url + file_names[0]
-    download_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'themis', file_names[0])
-    if force_download or (not download_path.is_file()):
-        utils._stream_large_file(server_url, download_path)
-    return download_path
-
-
 def download_themis_skymap(location_code: str, force_download: bool = False):
     """
-    Download all of the (skymap) IDL .sav file and save
-    it to asilib.config['ASI_DATA_DIR']/themis/skymap/ directory.
+    Download all of the THEMIS skymap IDL .sav files.
 
     Parameters
     ----------
@@ -166,3 +147,20 @@ def download_themis_skymap(location_code: str, force_download: bool = False):
         if force_download or (not download_path.is_file()):
             utils._stream_large_file(skymap_folder_absolute + skymap_name, download_path)
     return download_paths
+
+
+def _download_one_img_file(location_code, time, force_download):
+    """
+    Download one hour-long file.
+    """
+    # Add the location/year/month url folders onto the url
+    url = IMG_BASE_URL + f'{location_code.lower()}/{time.year}/{str(time.month).zfill(2)}/'
+
+    search_pattern = f'{location_code.lower()}_{time.strftime("%Y%m%d%H")}'
+    file_names = utils._search_hrefs(url, search_pattern=search_pattern)
+
+    server_url = url + file_names[0]
+    download_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'themis', file_names[0])
+    if force_download or (not download_path.is_file()):
+        utils._stream_large_file(server_url, download_path)
+    return download_path

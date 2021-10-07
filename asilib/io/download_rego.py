@@ -34,9 +34,8 @@ def download_rego_img(
     ignore_missing_data: bool = True,
 ) -> List[pathlib.Path]:
     """
-    The wrapper to download the REGO data given the day, imager location,
-    and a flag to download a single hour file or the entire day. The images
-    are saved to the ``asilib.config['ASI_DATA_DIR'] / 'rego'`` directory.
+    Download one hourly REGO cdf file given the imager location and ``time``, or
+    multiple hourly files given ``time_range``.
 
     Parameters
     ----------
@@ -103,8 +102,7 @@ def download_rego_img(
 
 def download_rego_skymap(location_code: str, force_download: bool = False) -> List[pathlib.Path]:
     """
-    Download all of the (skymap) IDL .sav file and save
-    it to asilib.config['ASI_DATA_DIR']/rego/skymap/ directory.
+    Download all of the REGO skymap IDL .sav files.
 
     Parameters
     ----------
