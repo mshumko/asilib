@@ -42,9 +42,7 @@ STEVE projected onto a map
     :alt: STEVE mapped onto a map.
     :width: 75%
 
-    Maps an image of STEVE (the thin band). Reproduced from http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
-
-    Note: cartopy takes a few moments to make the necessary coordinate transforms.
+    Maps an image of STEVE (the thin band). Reproduced from http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg Note: cartopy takes a few moments to make the necessary coordinate transforms.
 
 .. code:: python
 
@@ -154,9 +152,7 @@ Keogram of a field line resonance
     :alt: A keogram of a field line resonance.
     :width: 75%
 
-    A field line resonance studied in: 
-
-    Gillies, D. M., Knudsen, D., Rankin, R., Milan, S., & Donovan, E. (2018). A statistical survey of the 630.0‐nm optical signature of periodic auroral arcs resulting from magnetospheric field line resonances. Geophysical Research Letters, 45(10), 4648-4655.
+    A field line resonance studied in: Gillies, D. M., Knudsen, D., Rankin, R., Milan, S., & Donovan, E. (2018). A statistical survey of the 630.0‐nm optical signature of periodic auroral arcs resulting from magnetospheric field line resonances. Geophysical Research Letters, 45(10), 4648-4655.
 
 .. code:: python
 
