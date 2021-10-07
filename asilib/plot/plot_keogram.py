@@ -1,3 +1,5 @@
+from typing import List
+
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
@@ -7,15 +9,15 @@ from asilib.analysis.keogram import keogram
 
 
 def plot_keogram(
-    asi_array_code,
-    location_code,
-    time_range,
-    map_alt=None,
-    ax=None,
-    color_bounds=None,
-    color_norm='lin',
-    title=True,
-    pcolormesh_kwargs={},
+    asi_array_code: str,
+    location_code: str,
+    time_range: utils._time_range_type,
+    map_alt: float=None,
+    ax: plt.Axes=None,
+    color_bounds: List[float]=None,
+    color_norm: str='lin',
+    title: bool=True,
+    pcolormesh_kwargs: dict={},
 ):
     """
     Makes a keogram along the central meridian.
@@ -23,33 +25,29 @@ def plot_keogram(
     Parameters
     ----------
     asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
-        The imager location code to download the data from.
-    time_range: List[Union[datetime, str]]
-        A list with len(2) == 2 of the start and end time to get the
-        images. If either start or end time is a string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. The user must specify the UT hour and the first argument
-        is assumed to be the start_time and is not checked.
-    map_alt: int, optional
+        The ASI station code, i.e. ``ATHA``
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
+    map_alt: int
         The mapping altitude, in kilometers, used to index the mapped latitude in the
         skymap calibration data. If None, will plot pixel index for the y-axis.
-    ax: plt.subplot
+    ax: plt.Axes
         The subplot to plot the image on. If None, this function will
         create one.
-    color_bounds: List[float] or None
+    color_bounds: List[float]
         The lower and upper values of the color scale. If None, will
         automatically set it to low=1st_quartile and
         high=min(3rd_quartile, 10*1st_quartile)
     color_norm: str
-        Sets the 'lin' linear or 'log' logarithmic color normalization.
+        Sets the linear ('lin') or logarithmic ('log') color normalization.
     title: bool
         Toggles a default plot title with the format "date ASI_array_code-location_code keogram".
     pcolormesh_kwargs: dict
         A dictionary of keyword arguments (kwargs) to pass directly into
         plt.pcolormesh. One use of this parameter is to change the colormap. For example,
-        pcolormesh_kwargs = {'cmap':'tu}
+        pcolormesh_kwargs = {'cmap':'tu'}
 
     Returns
     -------

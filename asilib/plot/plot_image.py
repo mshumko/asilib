@@ -1,6 +1,5 @@
 import pathlib
 from datetime import datetime, timedelta
-import dateutil.parser
 from typing import List, Union, Optional, Sequence, Tuple
 import warnings
 
@@ -8,10 +7,10 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
-import cdflib
 
 from asilib import config
 from asilib.io import load
+from asilib.io import utils
 
 
 def plot_frame(
@@ -47,13 +46,13 @@ def plot_frame(
 def plot_image(
     asi_array_code: str,
     location_code: str,
-    time: Union[datetime, str],
+    time: utils._time_type,
     force_download: bool = False,
     time_thresh_s: float = 3,
-    ax: plt.subplot = None,
+    ax: plt.Axes = None,
     label: bool = True,
     color_map: str = 'auto',
-    color_bounds: Union[List[float], None] = None,
+    color_bounds: List[float] = None,
     color_norm: str = 'log',
     azel_contours: bool = False,
 ) -> Tuple[datetime, plt.Axes, matplotlib.image.AxesImage]:
@@ -65,21 +64,20 @@ def plot_image(
     Parameters
     ----------
     asi_array_code: str
-        The asi_array_code id, can be either THEMIS or REGO.
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
-        The imager location code to download the data from.
+        The ASI station code, i.e. ``ATHA``
     time: datetime.datetime or str
-        The date and time to download the data from. If time is string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. The user must specify the UT hour and the first argument
-        is assumed to be the start_time and is not checked.
-    force_download: bool (optional)
-        If True, download the file even if it already exists.
+        The date and time to download of the data. If str, ``time`` must be in the
+        ISO 8601 standard.
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
+    force_download: bool
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete. 
     time_thresh_s: float
-        The maximum allowed time difference between a image time stamp
-        and the time argument in seconds. Will raise a ValueError if no
-        image time stamp is within the threshold.
-    ax: plt.subplot
+        The maximum allowable time difference between ``time`` and an ASI time stamp.
+    ax: plt.Axes
         The subplot to plot the image on. If None, this function will
         create one.
     label: bool
@@ -88,7 +86,7 @@ def plot_image(
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
         For more information See https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html
-    color_bounds: List[float] or None
+    color_bounds: List[float]
         The lower and upper values of the color scale. If None, will
         automatically set it to low=1st_quartile and
         high=min(3rd_quartile, 10*1st_quartile)

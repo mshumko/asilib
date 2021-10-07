@@ -1,5 +1,5 @@
 import pathlib
-from typing import List, Union, Optional, Sequence, Generator, Tuple
+from typing import List, Union, Sequence, Generator, Tuple
 from datetime import datetime
 import collections
 
@@ -10,34 +10,36 @@ import numpy as np
 import ffmpeg
 
 import asilib
+from asilib.io import utils
 from asilib.io.load import load_image, load_skymap
 from asilib.analysis.start_generator import start_generator
 
 
 def plot_movie(
-    asi_array_code: str, location_code: str, time_range: Sequence[Union[datetime, str]], **kwargs
+    asi_array_code: str, 
+    location_code: str, 
+    time_range: utils._time_range_type, 
+    **kwargs
 ) -> None:
     """
     A wrapper for plot_movie_generator() generator function. This function calls
-    plot_movie_generator() in a for loop, nothing more. The two function's arguments
-    and keyword arguments are identical.
+    plot_movie_generator() in a for loop. The two function's arguments
+    and keyword arguments are identical, so see plot_movie_generator() docs for 
+    the full argument list.
 
-    To make movies, you'll need to install ffmpeg in your operating system.
+    Note: To make movies, you'll need to install ffmpeg in your operating system.
 
     Parameters
     ----------
     asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
-        The imager location code to download the data from.
-    time_range: List[Union[datetime, str]]
-        A list with len(2) == 2 of the start and end time to get the
-        images. If either start or end time is a string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. The user must specify the UT hour and the first argument
-        is assumed to be the start_time and is not checked.
-    force_download: bool (optional)
-        If True, download the file even if it already exists.
+        The ASI station code, i.e. ``ATHA``
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
+    force_download: bool
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete. 
     label: bool
         Flag to add the "asi_array_code/location_code/image_time" text to the plot.
     color_map: str
@@ -110,7 +112,7 @@ Images = collections.namedtuple('Images', ['time', 'images'])
 def plot_movie_generator(
     asi_array_code: str,
     location_code: str,
-    time_range: Sequence[Union[datetime, str]],
+    time_range: utils._time_range_type,
     force_download: bool = False,
     label: bool = True,
     color_map: str = 'auto',
@@ -135,17 +137,14 @@ def plot_movie_generator(
     Parameters
     ----------
     asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
-        The imager location code to download the data from.
-    time_range: List[Union[datetime, str]]
-        A list with len(2) == 2 of the start and end time to get the
-        images. If either start or end time is a string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. The user must specify the UT hour and the first argument
-        is assumed to be the start_time and is not checked.
-    force_download: bool (optional)
-        If True, download the file even if it already exists.
+        The ASI station code, i.e. ``ATHA``
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
+    force_download: bool
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete.
     label: bool
         Flag to add the "asi_array_code/location_code/image_time" text to the plot.
     color_map: str

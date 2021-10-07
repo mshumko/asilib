@@ -1,9 +1,8 @@
 """
 This module contains functions to project the ASI images to a map.
 """
-from typing import List, Union, Optional, Sequence, Tuple
+from typing import List, Union
 from datetime import datetime
-import warnings
 import importlib
 
 import matplotlib.pyplot as plt
@@ -24,9 +23,9 @@ def plot_map(
     asi_array_code: str,
     location_code: str,
     time: Union[datetime, str],
-    map_alt: int,
+    map_alt: float,
     time_thresh_s: float = 3,
-    ax: plt.subplot = None,
+    ax: plt.Axes = None,
     map_style = 'green',
     color_map: str = 'auto',
     min_elevation: float = 10,
@@ -42,22 +41,19 @@ def plot_map(
     Parameters
     ----------
     asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
-        The imager location code to download the data from.
+        The ASI station code, i.e. ``ATHA``
     time: datetime.datetime or str
-        The date and time to download the data from. If time is string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. The user must specify the UT hour and the first argument
-        is assumed to be the start_time and is not checked.
-    map_alt: int
+        The date and time to download of the data. If str, ``time`` must be in the
+        ISO 8601 standard.
+    map_alt: float
         The altitude in kilometers to project to. Must be an altitude value
         in the skymap calibration.
     time_thresh_s: float
-        The maximum allowed time difference between an image time stamp
-        and the time argument in seconds. Will raise a ValueError if no
-        image time stamp is within the threshold.
-    ax: plt.subplot
+        The maximum allowable time difference between ``time`` and an ASI time stamp.
+        This is relevant only when ``time`` is specified.
+    ax: plt.Axes
         The subplot to plot the image on. If None, this function will
         create one.
     map_style: str
