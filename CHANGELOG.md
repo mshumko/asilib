@@ -1,3 +1,6 @@
+# Version 0.9.0
+- Rotated the 2- and 3-D `skymap` arrays and fixed a bug in `keogram.py` where the skymap latitudes were a few pixels off.
+
 # Version 0.8.0 
 - Swapped the order of most functions to `asi_array_code, location_code, time`. This is a major API change that is not backwards-compatible. 
 - Many edits the the docstrings.
