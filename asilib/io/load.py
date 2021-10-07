@@ -36,28 +36,24 @@ def load_image(
     Parameters
     ----------
     asi_array_code: str
-        The imager array code, i.e. ``THEMIS`` or ``REGO``.
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
-        The ASI location code, e.g. ``RANK``.
-    time: datetime or str
-        The date and time to load a single image that is closest in time.
-        If an image time stamp is not found within ``time_thresh_s``, an
-        AssertionError will be raised.
-    time_range: list[datetime, str]
-        A list of length 2 containing the start and end dates and times that
-        bound the ASI images. If ``ignore_missing_data`` is False, a
-        ``FileNotFoundError`` will be raised if an hour file was not found in the
-        time_range; Otherwise it will return ASI images and time stamps that
-        possibly contain data gaps.
+        The ASI station code, i.e. ``ATHA``
+    time: datetime.datetime or str
+        The date and time to download of the data. If str, ``time`` must be in the
+        ISO 8601 standard.
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
     force_download: bool
-        If True, download the file even if it already exists.
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete. 
+    time_thresh_s: float
+        The maximum allowable time difference between ``time`` and an ASI time stamp.
+        This is relevant only when ``time`` is specified.
     ignore_missing_data: bool
         Flag to ignore the ``FileNotFoundError`` that is raised when ASI
         data is unavailable for that date-hour. Only useful when ``time_range``
         is passed.
-    time_thresh_s: float
-        The maximum allowable time difference between ``time`` and an ASI time stamp.
-        This is relevant only when ``time`` is specified.
 
     Returns
     -------
@@ -69,6 +65,20 @@ def load_image(
     images: np.ndarray
         Either an (nPixelRows x nPixelCols) or (nTime x nPixelRows x nPixelCols)
         array containing the ASI images.
+
+    Example
+    -------
+    | # Load a single image
+    | asi_array_code = 'THEMIS'
+    | location_code = 'ATHA'
+    | time = datetime(2008, 3, 9, 9, 18, 0)
+    | image_time, image = asilib.load_image(asi_array_code, location_code, time=time, force_download=False)
+    | 
+    | # Load multiple images
+    | asi_array_code = 'REGO'
+    | location_code = 'LUCK'
+    | time_range = [datetime(2017, 9, 27, 7, 15), datetime(2017, 9, 27, 8, 15)]
+    | image_times, images = asilib.load_image(asi_array_code, location_code, time_range=time_range, force_download=False)
     """
     if (time is None) and (time_range is None):
         raise AttributeError('Neither time or time_range is specified.')
@@ -111,23 +121,23 @@ def load_image_generator(
     time stamps span a range from time_range[0], up to, but excluding a time stamp
     exactly matching time_range[1].
 
+    See asilib._load_images() for an example on how to use this function.
+
     Parameters
     ----------
     asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
-        The ASI location_code to download the data from.
-    time_range: list[datetime, str]
-        A list of length 2 containing the start and end dates and times that
-        bound the ASI images. If ``ignore_missing_data`` is False, a
-        ``FileNotFoundError`` will be raised if an hour file was not found in the
-        time_range; Otherwise it will return ASI images and time stamps that
-        possibly contain data gaps.
+        The ASI station code, i.e. ``ATHA``
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
     force_download: bool
-        If True, download the file even if it already exists.
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete. 
     ignore_missing_data: bool
-        Flag to ignore the FileNotFoundError that is raised when ASI
-        data is unavailable for that date-hour.
+        Flag to ignore the ``FileNotFoundError`` that is raised when ASI
+        data is unavailable for that date-hour. Only useful when ``time_range``
+        is passed.
 
     Yields
     -------
@@ -173,7 +183,7 @@ def load_image_generator(
 def load_skymap(
     asi_array_code: str,
     location_code: str,
-    time: Union[datetime, str],
+    time: utils._time_type,
     force_download: bool = False,
 ) -> dict:
     """
@@ -182,13 +192,15 @@ def load_skymap(
     Parameters
     ----------
     asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
-        The location_code to download the data from.
-    time: datetime, or str
-        Time is used to find the relevant skymap file: file created nearest to, and before, the time.
-    force_download: bool (optional)
-        If True, download the file even if it already exists.
+        The ASI station code, i.e. ``ATHA``
+    time: datetime.datetime or str
+        The date and time to download of the data. If str, ``time`` must be in the
+        ISO 8601 standard.
+    force_download: bool
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete.
 
     Returns
     -------
@@ -304,7 +316,7 @@ def get_frame(
 def _load_image(
     asi_array_code: str,
     location_code: str,
-    time: Union[datetime, str],
+    time: utils._time_type,
     force_download: bool = False,
     time_thresh_s: float = 3,
 ) -> Tuple[datetime, np.ndarray]:
@@ -316,20 +328,20 @@ def _load_image(
     Parameters
     ----------
     asi_array_code: str
-        The asi_array_code id, can be either THEMIS or REGO.
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
-        The imager location code to download the data from.
+        The ASI station code, i.e. ``ATHA``
     time: datetime.datetime or str
-        The date and time to download the data from. If time is string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. The user must specify the UT hour and the first argument
-        is assumed to be the start_time and is not checked.
-    force_download: bool (optional)
-        If True, download the file even if it already exists.
+        The date and time to download of the data. If str, ``time`` must be in the
+        ISO 8601 standard.
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
+    force_download: bool
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete. 
     time_thresh_s: float
-        The maximum allowed time difference between a image time stamp
-        and the time argument in seconds. Will raise a ValueError if no
-        image time stamp is within the threshold.
+        The maximum allowable time difference between ``time`` and an ASI time stamp.
+        This is relevant only when ``time`` is specified.
 
     Returns
     -------
@@ -392,7 +404,7 @@ def get_frames(
 def _load_images(
     asi_array_code: str,
     location_code: str,
-    time_range: Sequence[Union[datetime, str]],
+    time_range: utils._time_range_type,
     force_download: bool = False,
     ignore_missing_data: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray]:
@@ -405,20 +417,21 @@ def _load_images(
     Parameters
     ----------
     asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
-        The location code to download the data from.
-    time_range: List[Union[datetime, str]]
-        A list with len(2) == 2 of the start and end time to get the
-        images. If either start or end time is a string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. The user must specify the UT hour and the first argument
-        is assumed to be the start_time and is not checked.
+        The ASI station code, i.e. ``ATHA``
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
     force_download: bool
-        If True, download the file even if it already exists.
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete. 
+    time_thresh_s: float
+        The maximum allowable time difference between ``time`` and an ASI time stamp.
+        This is relevant only when ``time`` is specified.
     ignore_missing_data: bool
-        Flag to ignore the FileNotFoundError that is raised when ASI
-        data is unavailable for that date-hour.
+        Flag to ignore the ``FileNotFoundError`` that is raised when ASI
+        data is unavailable for that date-hour. Only useful when ``time_range``
+        is passed.
 
     Returns
     -------
@@ -473,9 +486,9 @@ def _load_images(
 def _find_img_path(
     asi_array_code: str,
     location_code: str,
-    time: Union[datetime, str],
+    time: utils._time_type,
     force_download: bool = False,
-) -> cdflib.cdfread.CDF:
+) -> pathlib.Path:
     """
     Returns a path to an all sky full-resolution image (THEMIS:ASF, REGO:rgf) file.
     If a file is not found locally, it will attempt to download it.
@@ -483,15 +496,15 @@ def _find_img_path(
     Parameters
     ----------
     asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
-        The imager location code to download the data from.
+        The ASI station code, i.e. ``ATHA``
     time: datetime.datetime or str
-        The date and time to download the data from. If time is string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. Must contain the date and the UT hour.
-    force_download: bool (optional)
-        If True, download the file even if it already exists.
+        The date and time to download of the data. If str, ``time`` must be in the
+        ISO 8601 standard.
+    force_download: bool
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete. 
 
     Returns
     -------
@@ -516,10 +529,8 @@ def _find_img_path(
     |
     | asi_file_path = asilib._find_img_path('REGO', 'GILL', '2016-10-29T04')
     """
-    # Try to convert time to datetime object if it is a string.
-    if isinstance(time, str):
-        time = dateutil.parser.parse(time)
-
+    time = utils._validate_time(time)
+    
     if force_download:
         if asi_array_code.lower() == 'themis':
             file_path = download_themis.download_themis_img(

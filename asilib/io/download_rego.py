@@ -28,8 +28,8 @@ if not rego_dir.exists():
 
 def download_rego_img(
     location_code: str,
-    time: Union[datetime, str] = None,
-    time_range: List[Union[datetime, str]] = None,
+    time: utils._time_type = None,
+    time_range: utils._time_range_type = None,
     force_download: bool = False,
     ignore_missing_data: bool = True,
 ) -> List[pathlib.Path]:
@@ -113,7 +113,7 @@ def download_rego_skymap(location_code: str, force_download: bool = False) -> Li
     force_download: bool
         If True, download the file even if it already exists. Useful if a prior 
         data download was incomplete.
-        
+
     Returns
     -------
     None

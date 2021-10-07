@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+from asilib.io import utils
 from asilib.io.load import (
     load_image_generator,
     load_skymap,
@@ -8,23 +9,19 @@ from asilib.io.load import (
 )
 
 
-def keogram(asi_array_code, location_code, time_range, map_alt=None):
+def keogram(asi_array_code: str, location_code: str, time_range: utils._time_range_type, map_alt: int=None):
     """
     Makes a keogram pd.DataFrame along the central meridian.
 
     Parameters
     ----------
     asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
-        The location_code to download the data from.
-    time_range: List[Union[datetime, str]]
-        A list with len(2) == 2 of the start and end time to get the
-        images. If either start or end time is a string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. The user must specify the UT hour and the first argument
-        is assumed to be the start_time and is not checked.
-    map_alt: int, optional
+        The ASI station code, i.e. ``ATHA``
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
+    map_alt: int
         The mapping altitude, in kilometers, used to index the mapped latitude in the
         skymap data. If None, will plot pixel index for the y-axis.
 

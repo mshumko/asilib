@@ -1,6 +1,4 @@
-from typing import Sequence, Tuple
-import pathlib
-import warnings
+from typing import Tuple
 import importlib
 
 import pandas as pd
@@ -14,10 +12,13 @@ except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.lla2footprint().
 
 import asilib
+from asilib.io import utils
 
 
 def lla2azel(
-    asi_array_code, location_code, time, sat_lla, force_download: bool = False
+    asi_array_code: str, location_code: str, 
+    time: utils._time_type, sat_lla: np.ndarray, 
+    force_download: bool = False
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Maps, a satellite's latitude, longitude, and altitude (LLA) coordinates
@@ -29,11 +30,12 @@ def lla2azel(
     Parameters
     ----------
     asi_array_code: str
-        The asi_array_code, can be either THEMIS or REGO.
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
-        The location code to download the data from.
-    time: datetime, or str
-        Time is used to find the relevant skymap file: file created nearest to, and before, the time.
+        The ASI station code, i.e. ``ATHA``
+    time: datetime.datetime or str
+        The date and time to find the relevant skymap file. If str, ``time`` 
+        must be in the ISO 8601 standard.
     sat_lla: np.ndarray or pd.DataFrame
         The satellite's latitude, longitude, and altitude coordinates in a 2d array
         with shape (nPosition, 3) where each row is the number of satellite positions
@@ -138,7 +140,7 @@ def lla2footprint(
     Parameters
     ----------
     space_time: np.ndarray
-        A 2d array with shape (nPositions, 4) with the columns containing the
+        A 2d array with shape (n_times, 4) with the columns containing the
         time, latitude, longitude, and altitude coordinates in that order.
     map_alt: float
         The altitude to map to, in km, in the same hemisphere.

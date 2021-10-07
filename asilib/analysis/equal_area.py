@@ -15,18 +15,18 @@ def equal_area(asi_array_code, location_code, time, lla, box_km=(5, 5), alt_thre
     Parameters
     ----------
     asi_array_code: str
-        The asi_array_code used to look up the skymap file.
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
-        The location code used to look up the skymap file.
-    time: datetime, or str
-        Time is used to find the relevant skymap file: file created nearest to, and before, the time.
+        The ASI station code, i.e. ``ATHA``
+    time: datetime.datetime or str
+        The date and time to download of the data. If str, ``time`` must be in the
+        ISO 8601 standard.
     lla: np.ndarray
         An array with (n_time, 3) dimensions with the columns
-        representing the latitude, longitude, and altitude
+        representing the latitude, longitude, and altitude (LLA)
         coordinates.
     box_size_km: iterable
-        A length 2 iterable with the box dimensions in
-        longitude and latitude in units of kilometers.
+        Bounds the emission box dimensions in longitude and latitude. Units are kilometers.
 
     Returns
     -------
