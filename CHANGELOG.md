@@ -1,3 +1,9 @@
+# Version 0.8.0 
+- Swapped the order of most functions to `asi_array_code, location_code, time`. This is a major API change that is not backwards-compatible. 
+- Many edits the the docstrings.
+- Renamed the example scripts and added example scripts for `plot_map`.
+- Finished a first complete draft of tutorial.ipynb.
+
 # Version 0.7.5
 - Changed all instances of the word `station` and replaced it with `location_code`.
 
