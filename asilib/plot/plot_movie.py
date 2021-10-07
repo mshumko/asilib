@@ -22,9 +22,10 @@ def plot_movie(
     **kwargs
 ) -> None:
     """
-    A wrapper for plot_movie_generator() generator function. This function calls
-    plot_movie_generator() in a for loop. The two function's arguments
-    and keyword arguments are identical, so see plot_movie_generator() docs for 
+    Make a movie of THEMIS or REGO fisheye images.
+
+    This function basically runs plot_movie_generator() in a for loop. The two function's
+    arguments and keyword arguments are identical, so see plot_movie_generator() docs for 
     the full argument list.
 
     Note: To make movies, you'll need to install ffmpeg in your operating system.

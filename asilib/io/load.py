@@ -29,8 +29,7 @@ def load_image(
     ignore_missing_data: bool = True,
 ):
     """
-    Given ASI array and location codes, load either: an ASI image and
-    time stamp when ``time`` is given, or images with time stamps
+    Load into memory an ASI image and time stamp when ``time`` is given, or images with time stamps
     when ``time_range`` is given.
 
     Parameters
@@ -114,9 +113,8 @@ def load_image_generator(
     ignore_missing_data: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Yields multiple ASI image files given the asi_array_code (THEMIS or REGO), location_code, and
-    time_range parameters. If a file does not locally exist, this function will attempt
-    to download it. This generator yields the ASI data, file by file, bounded by time_range.
+    Yields multiple ASI image files one by one and crops the time stamps by ``time_range``. 
+
     This generator is useful for loading lots of data---useful for keograms. The returned
     time stamps span a range from time_range[0], up to, but excluding a time stamp
     exactly matching time_range[1].
@@ -187,7 +185,7 @@ def load_skymap(
     force_download: bool = False,
 ) -> dict:
     """
-    Loads (and downloads if it doesn't exist) the skymap file closest and before time.
+    Loads the appropriate THEMIS or REGO skymap file (closest and before ``time``).
 
     Parameters
     ----------
@@ -530,7 +528,7 @@ def _find_img_path(
     | asi_file_path = asilib._find_img_path('REGO', 'GILL', '2016-10-29T04')
     """
     time = utils._validate_time(time)
-    
+
     if force_download:
         if asi_array_code.lower() == 'themis':
             file_path = download_themis.download_themis_img(

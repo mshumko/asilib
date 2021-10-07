@@ -57,9 +57,7 @@ def plot_image(
     azel_contours: bool = False,
 ) -> Tuple[datetime, plt.Axes, matplotlib.image.AxesImage]:
     """
-    Plots one ASI image image given the asi_array_code (THEMIS or REGO), imager location code, and
-    the day date-time parameters. If a file does not locally exist, the _find_img_path()
-    function will attempt to download it.
+    Plots one fisheye image, oriented with North on the top, and East on the right of the image.
 
     Parameters
     ----------
