@@ -42,7 +42,7 @@ movie_generator = asilib.plot_movie_generator(
 )
 
 # Use the generator to get the images and time stamps to estimate mean the ASI
-# brightness along the satellite path and in a (10x10 km) box.
+# brightness along the satellite path and in a (20x20 km) box.
 image_data = movie_generator.send('data')
 
 # Calculate what pixels are in a box_km around the satellite, and convolve it
@@ -54,21 +54,20 @@ asi_brightness = np.nanmean(image_data.images * area_box_mask, axis=(1, 2))
 area_box_mask[np.isnan(area_box_mask)] = 0  # To play nice with plt.contour()
 
 for i, (time, image, _, im) in enumerate(movie_generator):
-    # Note that because we are drawing moving data: ASI image in ax[0] and
-    # the ASI time series + a vertical bar at the image time in ax[1], we need
+    # Note that because we are drawing different data in each frame (a unique ASI 
+    # image in ax[0] and the ASI time series + a guide in ax[1], we need
     # to redraw everything at every iteration.
 
-    # Clear ax[1] (ax[0] cleared by asilib.plot_movie_generator())
-    ax[1].clear()
-    # Plot the entire satellite track
+    ax[1].clear() # ax[0] cleared by asilib.plot_movie_generator()
+    # Plot the entire satellite track, its current location, and a 20x20 km box 
+    # around its location.
     ax[0].plot(sat_azel_pixels[:, 0], sat_azel_pixels[:, 1], 'red')
-    ax[0].contour(area_box_mask[i, :, :], levels=[0.99], colors=['yellow'])
-    # Plot the current satellite position.
     ax[0].scatter(sat_azel_pixels[i, 0], sat_azel_pixels[i, 1], c='red', marker='o', s=50)
+    ax[0].contour(area_box_mask[i, :, :], levels=[0.99], colors=['yellow'])
 
     # Plot the time series of the mean ASI intensity along the satellite path
     ax[1].plot(image_data.time, asi_brightness)
-    ax[1].axvline(time, c='k')  # At the current image time.
+    ax[1].axvline(time, c='k')
 
     # Annotate the location_code and satellite info in the top-left corner.
     location_code_str = (
