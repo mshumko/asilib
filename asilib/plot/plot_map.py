@@ -1,9 +1,8 @@
 """
 This module contains functions to project the ASI images to a map.
 """
-from typing import List, Union, Optional, Sequence, Tuple
+from typing import List, Union
 from datetime import datetime
-import warnings
 import importlib
 
 import matplotlib.pyplot as plt
@@ -12,20 +11,21 @@ import numpy as np
 
 try:
     import cartopy.crs as ccrs
-    import cartopy
+    import cartopy.feature as cfeature
 except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.plot_map().
 
-from asilib.io.load import load_skymap, get_frame
-
+from asilib.io import load
+from asilib.io import utils
 
 def plot_map(
-    time: Union[datetime, str],
-    mission: str,
-    station: str,
-    map_alt: int,
+    asi_array_code: str,
+    location_code: str,
+    time: utils._time_type,
+    map_alt: float,
     time_thresh_s: float = 3,
-    ax: plt.subplot = None,
+    ax: plt.Axes = None,
+    map_style = 'green',
     color_map: str = 'auto',
     min_elevation: float = 10,
     norm=True,
@@ -35,29 +35,30 @@ def plot_map(
     pcolormesh_kwargs={},
 ):
     """
-    Projects the ASI images to a map at an altitude in the skymap calibration file.
+    Projects the ASI images to a map at an altitude defined in the skymap calibration file.
 
     Parameters
     ----------
+    asi_array_code: str
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
+    location_code: str
+        The ASI station code, i.e. ``ATHA``
     time: datetime.datetime or str
-        The date and time to download the data from. If time is string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. The user must specify the UT hour and the first argument
-        is assumed to be the start_time and is not checked.
-    mission: str
-        The mission id, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
-    map_alt: int
+        The date and time to download of the data. If str, ``time`` must be in the
+        ISO 8601 standard.
+    map_alt: float
         The altitude in kilometers to project to. Must be an altitude value
         in the skymap calibration.
     time_thresh_s: float
-        The maximum allowed time difference between a frame's time stamp
-        and the time argument in seconds. Will raise a ValueError if no
-        image time stamp is within the threshold.
-    ax: plt.subplot
-        The subplot to plot the frame on. If None, this function will
+        The maximum allowable time difference between ``time`` and an ASI time stamp.
+        This is relevant only when ``time`` is specified.
+    ax: plt.Axes
+        The subplot to plot the image on. If None, this function will
         create one.
+    map_style: str
+        If ax is None, this kwarg toggles between two predefined map styles:
+        'green' map has blue oceans and green land, while the `white` map
+        has white oceans and land with black coastlines.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
@@ -65,7 +66,7 @@ def plot_map(
     min_elevation: float
         Masks the pixels below min_elevation degrees.
     norm: bool
-        If True, normalizes the frame array to 0-1. This is useful when
+        If True, normalizes the image array to 0-1. This is useful when
         mapping images from multiple imagers.
     asi_label: bool
         Annotates the map with the ASI code in the center of the image.
@@ -82,10 +83,10 @@ def plot_map(
 
     Returns
     -------
-    frame_time: datetime.datetime
-        The time of the current frame.
-    frame: np.array
-        The 2d ASI image corresponding to frame_time.
+    image_time: datetime.datetime
+        The time of the current image.
+    image: np.array
+        The 2d ASI image corresponding to image_time.
     skyamp: dict
         The skymap calibration for that ASI.
     ax: plt.Axes
@@ -101,8 +102,10 @@ def plot_map(
             " and https://aurora-asi-lib.readthedocs.io/en/latest/installation.html."
         )
 
-    frame_time, frame = get_frame(time, mission, station, time_thresh_s=time_thresh_s)
-    skymap = load_skymap(mission, station, time)
+    image_time, image = load.load_image(
+        asi_array_code, location_code, time=time, time_thresh_s=time_thresh_s
+    )
+    skymap = load.load_skymap(asi_array_code, location_code, time)
 
     # Check that the map_alt is in the skymap calibration data.
     assert (
@@ -110,8 +113,8 @@ def plot_map(
     ), f'{map_alt} km is not in skymap calibration altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
     alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
 
-    frame, lon_map, lat_map = _mask_low_horizon(
-        frame,
+    image, lon_map, lat_map = _mask_low_horizon(
+        image,
         skymap['FULL_MAP_LONGITUDE'][alt_index, :, :],
         skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
         skymap['FULL_ELEVATION'],
@@ -119,30 +122,22 @@ def plot_map(
     )
 
     if norm:
-        frame /= np.nanmax(frame)
+        image /= np.nanmax(image)
 
     # Set up the plot parameters
     if ax is None:
-        fig = plt.figure(figsize=(8, 5))
-        plot_extent = [-160, -52, 40, 82]
-        central_lon = np.mean(plot_extent[:2])
-        central_lat = np.mean(plot_extent[2:])
-        projection = ccrs.Orthographic(central_lon, central_lat)
-        ax = fig.add_subplot(1, 1, 1, projection=projection)
-        ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
-        ax.coastlines()
-        ax.gridlines(linestyle=':')
+        ax = _make_map(map_style)
 
     if color_bounds is None:
-        lower, upper = np.nanquantile(frame, (0.25, 0.98))
+        lower, upper = np.nanquantile(image, (0.25, 0.98))
         color_bounds = [lower, np.min([upper, lower * 10])]
 
-    if (color_map == 'auto') and (mission.lower() == 'themis'):
+    if (color_map == 'auto') and (asi_array_code.lower() == 'themis'):
         color_map = 'Greys_r'
-    elif (color_map == 'auto') and (mission.lower() == 'rego'):
+    elif (color_map == 'auto') and (asi_array_code.lower() == 'rego'):
         color_map = colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
     else:
-        raise NotImplementedError('color_map == "auto" but the mission is unsupported')
+        raise NotImplementedError('color_map == "auto" but the asi_array_code is unsupported')
 
     if color_norm == 'log':
         norm = colors.LogNorm(vmin=color_bounds[0], vmax=color_bounds[1])
@@ -151,22 +146,45 @@ def plot_map(
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    p = pcolormesh_nan(lon_map, lat_map, frame, ax, cmap=color_map, norm=norm)
+    p = _pcolormesh_nan(lon_map, lat_map, image, ax, cmap=color_map, norm=norm)
 
     if asi_label:
         ax.text(
             skymap['SITE_MAP_LONGITUDE'],
             skymap['SITE_MAP_LATITUDE'],
-            station.upper(),
+            location_code.upper(),
             color='r',
             transform=ccrs.PlateCarree(),
             va='center',
             ha='center',
         )
-    return frame_time, frame, skymap, ax, p
+    return image_time, image, skymap, ax, p
 
+def _make_map(map_style):
+    """
+    Helper function to make a few types of map styles.
+    """
+    fig = plt.figure(figsize=(8, 5))
+    plot_extent = [-160, -52, 40, 82]
+    central_lon = np.mean(plot_extent[:2])
+    central_lat = np.mean(plot_extent[2:])
+    projection = ccrs.Orthographic(central_lon, central_lat)
+    ax = fig.add_subplot(1, 1, 1, projection=projection)
+    ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
 
-def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, norm=None):
+    if map_style == 'white':
+        ax.coastlines()
+        ax.gridlines(linestyle=':')
+    elif map_style == 'green':
+        ax.add_feature(cfeature.LAND, color='green')
+        ax.add_feature(cfeature.OCEAN)
+        ax.add_feature(cfeature.COASTLINE)
+        ax.gridlines(linestyle=':')
+    else:
+        raise ValueError("Only the 'white' and 'green' map_style are implemented.")
+    return ax
+
+def _pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, norm=None):
     """
     Since pcolormesh cant handle nan lat/lon grid values, we will compress them to the
     nearest valid lat/lon grid. There are two main steps:
@@ -220,25 +238,25 @@ def pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, n
     # TODO: skymap rotation.
     # old masked c code: np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1]
     p = ax.pcolormesh(
-        x, y, c[::-1, ::-1], cmap=cmap, shading='flat', transform=ccrs.PlateCarree(), norm=norm
+        x, y, c, cmap=cmap, shading='flat', transform=ccrs.PlateCarree(), norm=norm
     )
     return p
 
 
-def _mask_low_horizon(frame, lon_map, lat_map, el_map, min_elevation):
+def _mask_low_horizon(image, lon_map, lat_map, el_map, min_elevation):
     """
-    Mask the frame, skymap['FULL_MAP_LONGITUDE'], skymap['FULL_MAP_LONGITUDE'] arrays
+    Mask the image, skymap['FULL_MAP_LONGITUDE'], skymap['FULL_MAP_LONGITUDE'] arrays
     with np.nans where the skymap['FULL_ELEVATION'] is nan or
     skymap['FULL_ELEVATION'] < min_elevation.
     """
     idh = np.where(np.isnan(el_map) | (el_map < min_elevation))
     # Copy variables to not modify original np.arrays.
-    frame_copy = frame.copy()
+    image_copy = image.copy()
     lon_map_copy = lon_map.copy()
     lat_map_copy = lat_map.copy()
-    # Can't mask frame unless it is a float array.
-    frame_copy = frame_copy.astype(float)
-    frame_copy[idh] = np.nan
+    # Can't mask image unless it is a float array.
+    image_copy = image_copy.astype(float)
+    image_copy[idh] = np.nan
     lon_map_copy[idh] = np.nan
     lat_map_copy[idh] = np.nan
 
@@ -251,56 +269,4 @@ def _mask_low_horizon(frame, lon_map, lat_map, el_map, min_elevation):
     lat_map_copy[idh_boundary_bottom] = np.nan
     lon_map_copy[idh_boundary_right] = np.nan
     lat_map_copy[idh_boundary_right] = np.nan
-    return frame_copy, lon_map_copy, lat_map_copy
-
-
-if __name__ == '__main__':
-    # https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41598-020-79665-5/MediaObjects/41598_2020_79665_Fig1_HTML.jpg?as=webp
-    # plot_map(datetime(2017, 9, 15, 2, 34, 0), 'THEMIS', 'RANK', 110)
-
-    # https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2008GL033794
-    # plot_map(datetime(2007, 3, 13, 5, 8, 45), 'THEMIS', 'TPAS', 110)
-
-    # http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
-    frame_time, frame, skymap, ax, p = plot_map(
-        datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110
-    )
-
-    # # https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2008GL033794
-    # # Figure 2b.
-    # time = datetime(2007, 3, 13, 5, 8, 45)
-    # mission = 'THEMIS'
-    # stations = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
-    # map_alt = 110
-    # min_elevation = 2
-
-    # fig = plt.figure(figsize=(8, 5))
-    # plot_extent = [-160, -52, 40, 82]
-    # central_lon = np.mean(plot_extent[:2])
-    # central_lat = np.mean(plot_extent[2:])
-    # projection = ccrs.Orthographic(central_lon, central_lat)
-    # ax = fig.add_subplot(1, 1, 1, projection=projection)
-    # ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
-    # ax.coastlines()
-    # ax.gridlines(linestyle=':')
-
-    # # frame_time, frame, skymap, ax = plot_map(time, mission, stations[0], map_alt,
-    # #     min_elevation=min_elevation)
-    # for station in stations:
-    #     plot_map(time, mission, station, map_alt, ax=ax, min_elevation=min_elevation)
-
-    # ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
-
-    # # https://deepblue.lib.umich.edu/bitstream/handle/2027.42/95671/jgra21670.pdf?sequence=1
-    # # time = datetime(2009, 1, 31, 7, 13, 0)
-    # # mission='THEMIS'
-    # # stations = ['GILL', 'SNKQ']#'FSMI', 'FSIM', 'TPAS', 'GILL']#, 'PINA', 'KAPU']
-    # # frame_time, frame, skymap, ax = plot_map(time, mission, stations[0], 110)
-    # # for station in stations[1:]:
-    # #     plot_map(time, mission, station, 110, ax=ax)
-
-    # # https://www.essoar.org/doi/abs/10.1002/essoar.10507288.1
-    # # plot_map(datetime(2008, 1, 16, 11, 0, 0), 'THEMIS', 'GILL', 110)
-
-    # # plt.tight_layout()
-    plt.show()
+    return image_copy, lon_map_copy, lat_map_copy

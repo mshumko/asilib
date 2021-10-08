@@ -1,6 +1,4 @@
-from typing import Sequence, Tuple
-import pathlib
-import warnings
+from typing import Tuple
 import importlib
 
 import pandas as pd
@@ -14,10 +12,13 @@ except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.lla2footprint().
 
 import asilib
+from asilib.io import utils
 
 
 def lla2azel(
-    mission, station, time, sat_lla, force_download: bool = False
+    asi_array_code: str, location_code: str, 
+    time: utils._time_type, sat_lla: np.ndarray, 
+    force_download: bool = False
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Maps, a satellite's latitude, longitude, and altitude (LLA) coordinates
@@ -28,12 +29,13 @@ def lla2azel(
 
     Parameters
     ----------
-    mission: str
-        The mission id, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
-    time: datetime, or str
-        Time is used to find the relevant skymap file: file created nearest to, and before, the time.
+    asi_array_code: str
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
+    location_code: str
+        The ASI station code, i.e. ``ATHA``
+    time: datetime.datetime or str
+        The date and time to find the relevant skymap file. If str, ``time`` 
+        must be in the ISO 8601 standard.
     sat_lla: np.ndarray or pd.DataFrame
         The satellite's latitude, longitude, and altitude coordinates in a 2d array
         with shape (nPosition, 3) where each row is the number of satellite positions
@@ -85,7 +87,9 @@ def lla2azel(
     assert sat_lla.shape[1] == 3, 'sat_lla must have 3 columns.'
 
     # Load the catalog
-    skymap_dict = asilib.io.load.load_skymap(mission, station, time, force_download=force_download)
+    skymap_dict = asilib.io.load.load_skymap(
+        asi_array_code, location_code, time, force_download=force_download
+    )
 
     sat_azel = np.nan * np.zeros((sat_lla.shape[0], 2))
 
@@ -129,14 +133,14 @@ def lla2footprint(
     hemisphere: int = 0,
 ) -> np.ndarray:
     """
-    This function uses the IRBEM-Lib library to map the spacecraft's position:
-    latitude, longitude, altitude with the spacecraft's time to the map_alt
-    altitude in units of km, in the same hemisphere.
+    Map the spacecraft's position to ``map_alt`` along the magnetic field line. 
+    The mapping is implemeneted in ``IRBEM`` and by default it maps to the same 
+    hemisphere.
 
     Parameters
     ----------
     space_time: np.ndarray
-        A 2d array with shape (nPositions, 4) with the columns containing the
+        A 2d array with shape (n_times, 4) with the columns containing the
         time, latitude, longitude, and altitude coordinates in that order.
     map_alt: float
         The altitude to map to, in km, in the same hemisphere.
@@ -188,29 +192,6 @@ def lla2footprint(
     return magnetic_footprint
 
 
-def lla_to_skyfield(mission, station, sat_lla, force_download=False):
-    """
-    DEPRECATED for lla2azel()
-    """
-    warnings.warn('lla_to_skyfield is deprecated asilib.lla2azel() instead', DeprecationWarning)
-    return lla2azel(mission, station, sat_lla, force_download=force_download)
-
-
-def map_along_magnetic_field(
-    space_time: np.ndarray,
-    map_alt: float,
-    b_model: str = 'OPQ77',
-    maginput: dict = None,
-    hemisphere: int = 0,
-) -> np.ndarray:
-    """
-    DEPRECARED for lla2footprint()
-    """
-    return lla2footprint(
-        space_time, map_alt, b_model=b_model, maginput=maginput, hemisphere=hemisphere
-    )
-
-
 def _map_azel_to_pixel(sat_azel: np.ndarray, skymap_dict: dict) -> np.ndarray:
     """
     Given the 2d array of the satellite's azimuth and elevation, locate
@@ -232,9 +213,9 @@ def _map_azel_to_pixel(sat_azel: np.ndarray, skymap_dict: dict) -> np.ndarray:
         An array with the same shape as sat_azel, but representing the
         x- and y-axis pixel indices in the ASI image.
     """
-    az_coords = skymap_dict['FULL_AZIMUTH'][::-1, ::-1].ravel()
+    az_coords = skymap_dict['FULL_AZIMUTH'].ravel()
     az_coords[np.isnan(az_coords)] = -10000
-    el_coords = skymap_dict['FULL_ELEVATION'][::-1, ::-1].ravel()
+    el_coords = skymap_dict['FULL_ELEVATION'].ravel()
     el_coords[np.isnan(el_coords)] = -10000
     asi_azel_cal = np.stack((az_coords, el_coords), axis=-1)
 

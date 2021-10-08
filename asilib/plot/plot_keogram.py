@@ -1,55 +1,53 @@
+from typing import List
+
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 
-from asilib.io.load import _validate_time_range
+import asilib.io.utils as utils
 from asilib.analysis.keogram import keogram
 
 
 def plot_keogram(
-    time_range,
-    mission,
-    station,
-    map_alt=None,
-    ax=None,
-    color_bounds=None,
-    color_norm='lin',
-    title=True,
-    pcolormesh_kwargs={},
+    asi_array_code: str,
+    location_code: str,
+    time_range: utils._time_range_type,
+    map_alt: float=None,
+    ax: plt.Axes=None,
+    color_bounds: List[float]=None,
+    color_norm: str='lin',
+    title: bool=True,
+    pcolormesh_kwargs: dict={},
 ):
     """
     Makes a keogram along the central meridian.
 
     Parameters
     ----------
-    time_range: List[Union[datetime, str]]
-        A list with len(2) == 2 of the start and end time to get the
-        frames. If either start or end time is a string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. The user must specify the UT hour and the first argument
-        is assumed to be the start_time and is not checked.
-    mission: str
-        The mission id, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
-    map_alt: int, optional
+    asi_array_code: str
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
+    location_code: str
+        The ASI station code, i.e. ``ATHA``
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
+    map_alt: int
         The mapping altitude, in kilometers, used to index the mapped latitude in the
         skymap calibration data. If None, will plot pixel index for the y-axis.
-    ax: plt.subplot
-        The subplot to plot the frame on. If None, this function will
+    ax: plt.Axes
+        The subplot to plot the image on. If None, this function will
         create one.
-    color_bounds: List[float] or None
+    color_bounds: List[float]
         The lower and upper values of the color scale. If None, will
         automatically set it to low=1st_quartile and
         high=min(3rd_quartile, 10*1st_quartile)
     color_norm: str
-        Sets the 'lin' linear or 'log' logarithmic color normalization.
+        Sets the linear ('lin') or logarithmic ('log') color normalization.
     title: bool
-        Toggles a default plot title with the format "date mission-station keogram".
+        Toggles a default plot title with the format "date ASI_array_code-location_code keogram".
     pcolormesh_kwargs: dict
         A dictionary of keyword arguments (kwargs) to pass directly into
         plt.pcolormesh. One use of this parameter is to change the colormap. For example,
-        pcolormesh_kwargs = {'cmap':'tu}
+        pcolormesh_kwargs = {'cmap':'tu'}
 
     Returns
     -------
@@ -70,24 +68,25 @@ def plot_keogram(
     |
     | import asilib
     |
-    | mission='REGO'
-    | station='LUCK'
+    | asi_array_code='REGO'
+    | location_code='LUCK'
+    | time_range=['2017-09-27T07', '2017-09-27T09']
     |
     | fig, ax = plt.subplots(figsize=(8, 6))
-    | ax, im = asilib.plot_keogram(['2017-09-27T07', '2017-09-27T09'], mission, station,
+    | ax, im = asilib.plot_keogram(asi_array_code, location_code, time_range,
     |                ax=ax, map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
     |
     | plt.colorbar(im)
     | plt.tight_layout()
     | plt.show()
     """
-    time_range = _validate_time_range(time_range)
-    keo_df = keogram(time_range, mission, station, map_alt)
+    time_range = utils._validate_time_range(time_range)
+    keo_df = keogram(asi_array_code, location_code, time_range, map_alt)
 
     if ax is None:
         _, ax = plt.subplots()
 
-    # Figure out the color_bounds from the frame data.
+    # Figure out the color_bounds from the image data.
     if color_bounds is None:
         lower, upper = np.quantile(keo_df, (0.25, 0.98))
         color_bounds = [lower, np.min([upper, lower * 10])]
@@ -109,5 +108,7 @@ def plot_keogram(
     )
 
     if title:
-        ax.set_title(f'{time_range[0].date()} | {mission.upper()}-{station.upper()} keogram')
+        ax.set_title(
+            f'{time_range[0].date()} | {asi_array_code.upper()}-{location_code.upper()} keogram'
+        )
     return ax, im

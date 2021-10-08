@@ -6,38 +6,36 @@ import asilib
 earth_radius_km = 6371  # Earth radius
 
 
-def equal_area(mission, station, time, lla, box_km=(5, 5), alt_thresh_km=3):
+def equal_area(asi_array_code, location_code, time, lla, box_km=(5, 5), alt_thresh_km=3):
     """
-    Given a square are in kilometers and a series of (latitude,
-    longitude, altitude) coordinates, calculate the pixel box
-    width and height.
+    Calculate a ``box_km`` area at the aurora emission altitude.
 
     Parameters
     ----------
-    mission: str
-        The mission used to look up the skymap file.
-    station: str
-        The station used to look up the skymap file.
-    time: datetime, or str
-        Time is used to find the relevant skymap file: file created nearest to, and before, the time.
+    asi_array_code: str
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
+    location_code: str
+        The ASI station code, i.e. ``ATHA``
+    time: datetime.datetime or str
+        The date and time to download of the data. If str, ``time`` must be in the
+        ISO 8601 standard.
     lla: np.ndarray
         An array with (n_time, 3) dimensions with the columns
-        representing the latitude, longitude, and altitude
+        representing the latitude, longitude, and altitude (LLA)
         coordinates.
     box_size_km: iterable
-        A length 2 iterable with the box dimensions in
-        longitude and latitude in units of kilometers.
+        Bounds the emission box dimensions in longitude and latitude. Units are kilometers.
 
     Returns
     -------
     pixel_mask: np.ndarray
         An array with (n_time, n_x_pixels, n_y_pixels) dimensions with
         dimensions n_x_pixels and n_y_pixels dimensions the size of each
-        frame. Values inside the area are 1 and outside are np.nan.
+        image. Values inside the area are 1 and outside are np.nan.
     """
     assert len(box_km) == 2, 'The box_km parameter must have a length of 2.'
 
-    skymap_dict = asilib.load_skymap(mission, station, time)
+    skymap_dict = asilib.load_skymap(asi_array_code, location_code, time)
 
     # Get numpy array if pd.DataFrame passed
     if isinstance(lla, pd.DataFrame):
@@ -86,8 +84,6 @@ def equal_area(mission, station, time, lla, box_km=(5, 5), alt_thresh_km=3):
                 pixel_mask[i, idx_box[0], idx_box[1]] = 1
             else:
                 multiplier += step
-
-    pixel_mask = pixel_mask[:, ::-1, ::-1]
 
     if len(initial_shape) == 1:
         return pixel_mask.reshape(lat_map.shape)

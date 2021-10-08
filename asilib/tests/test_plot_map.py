@@ -20,7 +20,7 @@ class Test_plot_map(unittest.TestCase):
         Tests that plot_map() doesn't crash when making this plot:
         http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg.
         """
-        plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 110)
+        plot_map('THEMIS', 'ATHA', datetime(2010, 4, 5, 6, 7, 0), 110)
         return
 
     def test_plot_map_altitude_error(self):
@@ -29,7 +29,7 @@ class Test_plot_map(unittest.TestCase):
         in the list of skymap calibration altitudes.
         """
         with self.assertRaises(AssertionError):
-            plot_map(datetime(2010, 4, 5, 6, 7, 0), 'THEMIS', 'ATHA', 500)
+            plot_map('THEMIS', 'ATHA', datetime(2010, 4, 5, 6, 7, 0), 500)
         return
 
     def test_donovan_et_al_2008_plot(self):
@@ -39,8 +39,8 @@ class Test_plot_map(unittest.TestCase):
         https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2008GL033794
         """
         time = datetime(2007, 3, 13, 5, 8, 45)
-        mission = 'THEMIS'
-        stations = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+        asi_array_code = 'THEMIS'
+        location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
         map_alt = 110
         min_elevation = 2
 
@@ -54,10 +54,10 @@ class Test_plot_map(unittest.TestCase):
         ax.coastlines()
         ax.gridlines(linestyle=':')
 
-        # frame_time, frame, skymap, ax = plot_map(time, mission, stations[0], map_alt,
-        #     min_elevation=min_elevation)
-        for station in stations:
-            plot_map(time, mission, station, map_alt, ax=ax, min_elevation=min_elevation)
+        for location_code in location_codes:
+            plot_map(
+                asi_array_code, location_code, time, map_alt, ax=ax, min_elevation=min_elevation
+            )
 
         ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
 

@@ -17,7 +17,7 @@ from asilib.analysis.equal_area import equal_area, _dlon, _dlat
 deg_distance_km = 111.321
 
 
-class Test_keogram(unittest.TestCase):
+class Test_equal_area(unittest.TestCase):
     def test_dlat(self):
         """
         Tests the _dlat() helper function. Given one altitude, these should be the same.
@@ -60,14 +60,14 @@ class Test_keogram(unittest.TestCase):
         return
 
     def test_equal_area(self, create_reference=False):
-        mission = 'THEMIS'
-        station = 'RANK'
+        asi_array_code = 'THEMIS'
+        location_code = 'RANK'
         time = datetime(2020, 1, 1)
         box_km = (10, 10)  # in (Lat, Lon) directions.
-        skymap_dict = load_skymap(mission, station, time)
+        skymap_dict = load_skymap(asi_array_code, location_code, time)
 
         # Set up a north-south satellite track oriented to the east of the THEMIS/RANK
-        # station.
+        # imager.
         n = 10
         lats = np.linspace(
             skymap_dict["SITE_MAP_LATITUDE"] + 5, skymap_dict["SITE_MAP_LATITUDE"] - 5, n
@@ -76,7 +76,7 @@ class Test_keogram(unittest.TestCase):
         alts = 110 * np.ones(n)
         lla = np.array([lats, lons, alts]).T
 
-        area_box_mask = asilib.equal_area(mission, station, time, lla, box_km=(20, 20))
+        area_box_mask = asilib.equal_area(asi_array_code, location_code, time, lla, box_km=(20, 20))
 
         reference_path = pathlib.Path(
             asilib.config['ASILIB_DIR'], 'tests', 'data', 'area_box_mask.npy'

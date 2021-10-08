@@ -15,127 +15,190 @@ import matplotlib.pyplot as plt
 
 from asilib.io import download_rego
 from asilib.io import download_themis
+from asilib.io import utils
 import asilib
 
 
-def _find_img_path(
-    time: Union[datetime, str], mission: str, station: str, force_download: bool = False
-) -> cdflib.cdfread.CDF:
+def load_image(
+    asi_array_code: str,
+    location_code: str,
+    time: utils._time_type = None,
+    time_range: utils._time_range_type = None,
+    force_download: bool = False,
+    time_thresh_s: float = 3,
+    ignore_missing_data: bool = True,
+):
     """
-    Returns a path to an all sky full-resolution image (THEMIS:ASF, REGO:rgf) file.
-    If a file is not found locally, it will attempt to download it.
+    Load into memory an ASI image and time stamp when ``time`` is given, or images with time stamps
+    when ``time_range`` is given.
 
     Parameters
     ----------
+    asi_array_code: str
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
+    location_code: str
+        The ASI station code, i.e. ``ATHA``
     time: datetime.datetime or str
-        The date and time to download the data from. If time is string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. Must contain the date and the UT hour.
-    mission: str
-        The mission id, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
-    force_download: bool (optional)
-        If True, download the file even if it already exists.
+        The date and time to download of the data. If str, ``time`` must be in the
+        ISO 8601 standard.
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
+    force_download: bool
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete. 
+    time_thresh_s: float
+        The maximum allowable time difference between ``time`` and an ASI time stamp.
+        This is relevant only when ``time`` is specified.
+    ignore_missing_data: bool
+        Flag to ignore the ``FileNotFoundError`` that is raised when ASI
+        data is unavailable for that date-hour. Only useful when ``time_range``
+        is passed.
 
     Returns
     -------
-    pathlib.Path
-        The path to the full image file. See the implementation in
-        asilib.io.load.get_frame() or asilib.io.load.get_frames() on
-        how to use cdflib to load the image cdf files.
-
-    Raises
-    ------
-    FileNotFoundError
-        Catches the NotADirectoryError raised by download.py, and raises
-        this FileNotFoundError that clearly conveys that the file was not
-        found in the file system or online.
-    ValueError
-        Raised if there is an error with the file finding logic (ideally
-        should not be raised).
+    times: datetime, or List[datetime]
+        The image timestamp if ``time`` is passed, or a list of timestamps if
+        ``time_range`` is passed. When ``time_range`` is passed, the timestamps
+        can include start time if a timestamp exactly matches, but will exclude
+        the timestamp that exactly matches the end time.
+    images: np.ndarray
+        Either an (nPixelRows x nPixelCols) or (nTime x nPixelRows x nPixelCols)
+        array containing the ASI images.
 
     Example
     -------
-    | import asilib
-    |
-    | asi_file_path = asilib._find_img_path('2016-10-29T04', 'REGO', 'GILL')
+    | # Load a single image
+    | asi_array_code = 'THEMIS'
+    | location_code = 'ATHA'
+    | time = datetime(2008, 3, 9, 9, 18, 0)
+    | image_time, image = asilib.load_image(asi_array_code, location_code, time=time, force_download=False)
+    | 
+    | # Load multiple images
+    | asi_array_code = 'REGO'
+    | location_code = 'LUCK'
+    | time_range = [datetime(2017, 9, 27, 7, 15), datetime(2017, 9, 27, 8, 15)]
+    | image_times, images = asilib.load_image(asi_array_code, location_code, time_range=time_range, force_download=False)
     """
-    # Try to convert time to datetime object if it is a string.
-    if isinstance(time, str):
-        time = dateutil.parser.parse(time)
+    if (time is None) and (time_range is None):
+        raise AttributeError('Neither time or time_range is specified.')
+    elif (time is not None) and (time_range is not None):
+        raise AttributeError('Both time and time_range can not be simultaneously specified.')
 
-    if force_download:
-        if mission.lower() == 'themis':
-            file_path = download_themis.download_themis_img(
-                time, station, force_download=force_download
-            )[0]
-        elif mission.lower() == 'rego':
-            file_path = download_rego.download_rego_img(
-                time, station, force_download=force_download
-            )[0]
+    elif time is not None:
+        return _load_image(
+            asi_array_code,
+            location_code,
+            time,
+            force_download=force_download,
+            time_thresh_s=time_thresh_s,
+        )
+
+    elif time_range is not None:
+        return _load_images(
+            asi_array_code,
+            location_code,
+            time_range,
+            force_download=force_download,
+            ignore_missing_data=ignore_missing_data,
+        )
     else:
-        # If the user does not want to force a download, look for a file on the
-        # computer. If a local file is not found, try to download one.
-        search_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], mission.lower())
-        if mission.lower() == 'themis':
-            search_pattern = f'*asf*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
-        elif mission.lower() == 'rego':
-            search_pattern = f'*rgf*{station.lower()}*{time.strftime("%Y%m%d%H")}*'
-        matched_paths = list(search_path.rglob(search_pattern))
-
-        if len(matched_paths) == 1:  # A local file found
-            file_path = matched_paths[0]
-
-        elif len(matched_paths) == 0:  # No local file found
-            if mission.lower() == 'themis':
-                try:
-                    file_path = download_themis.download_themis_img(
-                        time, station, force_download=force_download
-                    )[0]
-                except NotADirectoryError:
-                    raise FileNotFoundError(
-                        f'THEMIS ASI data not found for station {station} at {time}'
-                    )
-            elif mission.lower() == 'rego':
-                try:
-                    file_path = download_rego.download_rego_img(
-                        time, station, force_download=force_download
-                    )[0]
-                except NotADirectoryError:
-                    raise FileNotFoundError(
-                        f'REGO ASI data not found for station {station} at {time}'
-                    )
-        else:  # Multiple files found?
-            raise ValueError(f"Not sure what happend here. I found {matched_paths} matching paths.")
-
-    return file_path
+        raise ValueError("Not supposed to get here.")
 
 
-def load_img(time, mission: str, station: str, force_download: bool = False):
+def load_image_generator(
+    asi_array_code: str,
+    location_code: str,
+    time_range: utils._time_range_type,
+    force_download: bool = False,
+    ignore_missing_data: bool = True,
+) -> Tuple[np.ndarray, np.ndarray]:
     """
-    DEPRECATED for _find_img_path()
-    """
-    warnings.warn('load_img is deprecated. Use asilib._find_img_path() instead', DeprecationWarning)
-    return _find_img_path(time, mission, station, force_download)
+    Yields multiple ASI image files one by one and crops the time stamps by ``time_range``. 
 
+    This generator is useful for loading lots of data---useful for keograms. The returned
+    time stamps span a range from time_range[0], up to, but excluding a time stamp
+    exactly matching time_range[1].
 
-def load_skymap(
-    mission: str, station: str, time: Union[datetime, str], force_download: bool = False
-) -> dict:
-    """
-    Loads (and downloads if it doesn't exist) the skymap file closest and before time.
+    See asilib._load_images() for an example on how to use this function.
 
     Parameters
     ----------
-    mission: str
-        The mission id, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
-    time: datetime, or str
-        Time is used to find the relevant skymap file: file created nearest to, and before, the time.
-    force_download: bool (optional)
-        If True, download the file even if it already exists.
+    asi_array_code: str
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
+    location_code: str
+        The ASI station code, i.e. ``ATHA``
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
+    force_download: bool
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete. 
+    ignore_missing_data: bool
+        Flag to ignore the ``FileNotFoundError`` that is raised when ASI
+        data is unavailable for that date-hour. Only useful when ``time_range``
+        is passed.
+
+    Yields
+    -------
+    times: datetime
+        The image timestamps contained in time_range, including the start time
+        and excluding the end time (if time_range[1] exactly matches a ASI time
+        stamp).
+    images: np.ndarray
+        An (nTime x nPixelRows x nPixelCols) array containing the ASI images
+        for times contained in time_range.
+    """
+
+    time_range = utils._validate_time_range(time_range)
+
+    # Figure out the data keys to load.
+    if asi_array_code.lower() == 'rego':
+        image_key = f'clg_rgf_{location_code.lower()}'
+        time_key = f'clg_rgf_{location_code.lower()}_epoch'
+    elif asi_array_code.lower() == 'themis':
+        image_key = f'thg_asf_{location_code.lower()}'
+        time_key = f'thg_asf_{location_code.lower()}_epoch'
+
+    hours = utils._get_hours(time_range)
+
+    for hour in hours:
+        try:
+            cdf_path = _find_img_path(
+                asi_array_code, location_code, hour, force_download=force_download
+            )
+            cdf_obj = cdflib.CDF(cdf_path)
+        except FileNotFoundError:
+            if ignore_missing_data:
+                pass
+            else:
+                raise
+
+        epoch = _get_epoch(cdf_obj, time_key, hour, asi_array_code, location_code)
+
+        idx = np.where((epoch >= time_range[0]) & (epoch < time_range[1]))[0]
+        yield epoch[idx], cdf_obj.varget(image_key, startrec=idx[0], endrec=idx[-1])
+
+
+def load_skymap(
+    asi_array_code: str,
+    location_code: str,
+    time: utils._time_type,
+    force_download: bool = False,
+) -> dict:
+    """
+    Loads the appropriate THEMIS or REGO skymap file (closest and before ``time``) into memory.
+
+    Parameters
+    ----------
+    asi_array_code: str
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
+    location_code: str
+        The ASI station code, i.e. ``ATHA``
+    time: datetime.datetime or str
+        The date and time to download of the data. If str, ``time`` must be in the
+        ISO 8601 standard.
+    force_download: bool
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete.
 
     Returns
     -------
@@ -153,13 +216,13 @@ def load_skymap(
         time = dateutil.parser.parse(time)
 
     if force_download:
-        if mission.lower() == 'themis':
+        if asi_array_code.lower() == 'themis':
             skymap_paths = download_themis.download_themis_skymap(
-                station, force_download=force_download
+                location_code, force_download=force_download
             )
-        elif mission.lower() == 'rego':
+        elif asi_array_code.lower() == 'rego':
             skymap_paths = download_rego.download_rego_skymap(
-                station, force_download=force_download
+                location_code, force_download=force_download
             )
 
     else:
@@ -168,21 +231,21 @@ def load_skymap(
         # skymap file is not found, download them all and look for the
         # appropriate file.
         skymap_dir = pathlib.Path(
-            asilib.config['ASI_DATA_DIR'], mission.lower(), 'skymap', station.lower()
+            asilib.config['ASI_DATA_DIR'], asi_array_code.lower(), 'skymap', location_code.lower()
         )
         skymap_paths = sorted(
-            list(skymap_dir.rglob(f'{mission.lower()}_skymap_{station.lower()}*'))
+            list(skymap_dir.rglob(f'{asi_array_code.lower()}_skymap_{location_code.lower()}*'))
         )
 
         # Download skymap files if they are not downloaded yet.
         if len(skymap_paths) == 0:
-            if mission.lower() == 'themis':
+            if asi_array_code.lower() == 'themis':
                 skymap_paths = download_themis.download_themis_skymap(
-                    station, force_download=force_download
+                    location_code, force_download=force_download
                 )
-            elif mission.lower() == 'rego':
+            elif asi_array_code.lower() == 'rego':
                 skymap_paths = download_rego.download_rego_skymap(
-                    station, force_download=force_download
+                    location_code, force_download=force_download
                 )
 
     skymap_dates = _extract_skymap_dates(skymap_paths)
@@ -195,7 +258,7 @@ def load_skymap(
         # Edge case when time is before the first skymap_date.
         closest_index = 0
         warnings.warn(
-            f'The requested skymap time={time} for {mission}/{station} is before first '
+            f'The requested skymap time={time} for {asi_array_code}/{location_code} is before first '
             f'skymap file: {skymap_paths[0].name}. This skymap file will be used.'
         )
     else:
@@ -205,14 +268,10 @@ def load_skymap(
     # Load the skymap file and convert it to a dictionary.
     skymap_file = scipy.io.readsav(str(skymap_path), python_dict=True)['skymap']
     skymap_dict = {key: copy(skymap_file[key][0]) for key in skymap_file.dtype.names}
-    # Map longitude from 0 - 360 to -180 - 180.
-    skymap_dict['SITE_MAP_LONGITUDE'] = np.mod(skymap_dict['SITE_MAP_LONGITUDE'] + 180, 360) - 180
-    # Don't take the modulus of NaNs
-    valid_val_idx = np.where(~np.isnan(skymap_dict['FULL_MAP_LONGITUDE']))
-    skymap_dict['FULL_MAP_LONGITUDE'][valid_val_idx] = (
-        np.mod(skymap_dict['FULL_MAP_LONGITUDE'][valid_val_idx] + 180, 360) - 180
-    )
-    skymap_dict['skymap_path'] = skymap_path
+   
+    skymap_dict = _tranform_longitude_to_180(skymap_dict)
+    skymap_dict = _flip_skymap(skymap_dict)
+    skymap_dict['SKYMAP_PATH'] = skymap_path
     return skymap_dict
 
 
@@ -229,61 +288,60 @@ def _extract_skymap_dates(skymap_paths):
     return skymap_dates
 
 
-def load_cal(mission: str, station: str, time, force_download: bool = False):
-    """
-    DEPRECATED for load_skymap()
-    """
-    warnings.warn(
-        'asilib.load_cal() is deprecated, use asilib.load_skymap() instead', DeprecationWarning
-    )
-    return load_skymap(mission, station, time, force_download)
-
-
-def load_cal_file(mission: str, station: str, force_download: bool = False):
-    """
-    DEPRECATED for load_cal()
-    """
-    warnings.warn(
-        'asilib.load_cal_file() is deprecated, use asilib.load_skymap() instead', DeprecationWarning
-    )
-    return load_cal(mission, station, force_download)
-
-
 def get_frame(
-    time: Union[datetime, str],
-    mission: str,
-    station: str,
+    time: utils._time_type,
+    asi_array_code: str,
+    location_code: str,
+    force_download: bool = False,
+    time_thresh_s: float = 3,
+) -> Tuple[datetime, np.ndarray]:
+
+    warnings.warn('asilib.get_frame is deprecated for asilib.load_image')
+
+    return _load_image(
+        asi_array_code,
+        location_code,
+        time,
+        force_download=force_download,
+        time_thresh_s=time_thresh_s,
+    )
+
+
+def _load_image(
+    asi_array_code: str,
+    location_code: str,
+    time: utils._time_type,
     force_download: bool = False,
     time_thresh_s: float = 3,
 ) -> Tuple[datetime, np.ndarray]:
     """
-    Gets one ASI image frame given the mission (THEMIS or REGO), station, and
+    Gets one ASI image image given the ASI array code (THEMIS or REGO), imager location (location_code), and
     the day date-time parameters. If a file does not locally exist, this
     function will attempt to download it.
 
     Parameters
     ----------
+    asi_array_code: str
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
+    location_code: str
+        The ASI station code, i.e. ``ATHA``
     time: datetime.datetime or str
-        The date and time to download the data from. If time is string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. The user must specify the UT hour and the first argument
-        is assumed to be the start_time and is not checked.
-    mission: str
-        The mission id, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
-    force_download: bool (optional)
-        If True, download the file even if it already exists.
+        The date and time to download of the data. If str, ``time`` must be in the
+        ISO 8601 standard.
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
+    force_download: bool
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete. 
     time_thresh_s: float
-        The maximum allowed time difference between a frame's time stamp
-        and the time argument in seconds. Will raise a ValueError if no
-        image time stamp is within the threshold.
+        The maximum allowable time difference between ``time`` and an ASI time stamp.
+        This is relevant only when ``time`` is specified.
 
     Returns
     -------
-    frame_time: datetime
-        The frame timestamp.
-    frame: np.ndarray
+    image_time: datetime
+        The image timestamp.
+    image: np.ndarray
         A 2D array of the ASI image at the date-time nearest to the
         time argument.
 
@@ -297,25 +355,23 @@ def get_frame(
     -------
     | import asilib
     |
-    | time, frame = asilib.get_frame('2016-10-29T04:15:00', 'REGO', 'GILL')
+    | time, image = asilib.io.load._load_image('2016-10-29T04:15:00', 'REGO', 'GILL')
     """
-    # Try to convert time to datetime object if it is a string.
-    if isinstance(time, str):
-        time = dateutil.parser.parse(time)
+    time = utils._validate_time(time)
 
-    cdf_path = _find_img_path(time, mission, station, force_download=force_download)
+    cdf_path = _find_img_path(asi_array_code, location_code, time, force_download=force_download)
     cdf_obj = cdflib.CDF(cdf_path)
 
-    if mission.lower() == 'rego':
-        frame_key = f'clg_rgf_{station.lower()}'
-        time_key = f'clg_rgf_{station.lower()}_epoch'
-    elif mission.lower() == 'themis':
-        frame_key = f'thg_asf_{station.lower()}'
-        time_key = f'thg_asf_{station.lower()}_epoch'
+    if asi_array_code.lower() == 'rego':
+        image_key = f'clg_rgf_{location_code.lower()}'
+        time_key = f'clg_rgf_{location_code.lower()}_epoch'
+    elif asi_array_code.lower() == 'themis':
+        image_key = f'thg_asf_{location_code.lower()}'
+        time_key = f'thg_asf_{location_code.lower()}_epoch'
 
     # Convert the CDF_EPOCH (milliseconds from 01-Jan-0000 00:00:00)
     # to datetime objects.
-    epoch = _get_epoch(cdf_obj, time_key, time, mission, station)
+    epoch = _get_epoch(cdf_obj, time_key, time, asi_array_code, location_code)
     # Find the closest time stamp to time
     idx = np.where((epoch >= time) & (epoch < time + timedelta(seconds=time_thresh_s)))[0]
     assert len(idx) == 1, (
@@ -324,54 +380,67 @@ def get_frame(
         f'You can change the time_thresh_s kwarg to find a '
         f'time stamp further away.'
     )
-    return epoch[idx[0]], cdf_obj.varget(frame_key)[idx[0], :, :]
+    return epoch[idx[0]], cdf_obj.varget(image_key)[idx[0], :, :]
 
 
 def get_frames(
-    time_range: Sequence[Union[datetime, str]],
-    mission: str,
-    station: str,
+    time_range: utils._time_range_type,
+    asi_array_code: str,
+    location_code: str,
+    force_download: bool = False,
+) -> Tuple[datetime, np.ndarray]:
+
+    warnings.warn('asilib.get_frames is deprecated for asilib.load_image.')
+
+    return _load_images(asi_array_code, location_code, time_range, force_download=force_download)
+
+
+def _load_images(
+    asi_array_code: str,
+    location_code: str,
+    time_range: utils._time_range_type,
     force_download: bool = False,
     ignore_missing_data: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Gets multiple ASI image frames given the mission (THEMIS or REGO), station, and
+    Gets multiple ASI image images given the asi_array_code (THEMIS or REGO), imager location code, and
     the time_range date-time parameters. If a file does not locally exist, this
     function will attempt to download it. The returned time stamps span a range
     from time_range[0], up to, but excluding a time stamp exactly matching time_range[1].
 
     Parameters
     ----------
-    time_range: List[Union[datetime, str]]
-        A list with len(2) == 2 of the start and end time to get the
-        frames. If either start or end time is a string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. The user must specify the UT hour and the first argument
-        is assumed to be the start_time and is not checked.
-    mission: str
-        The mission id, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
+    asi_array_code: str
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
+    location_code: str
+        The ASI station code, i.e. ``ATHA``
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
     force_download: bool
-        If True, download the file even if it already exists.
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete. 
+    time_thresh_s: float
+        The maximum allowable time difference between ``time`` and an ASI time stamp.
+        This is relevant only when ``time`` is specified.
     ignore_missing_data: bool
-        Flag to ignore the FileNotFoundError that is raised when ASI
-        data is unavailable for that date-hour.
+        Flag to ignore the ``FileNotFoundError`` that is raised when ASI
+        data is unavailable for that date-hour. Only useful when ``time_range``
+        is passed.
 
     Returns
     -------
     times: datetime
-        The frame timestamps contained in time_range, including the start time
+        The image timestamps contained in time_range, including the start time
         and excluding the end time (if time_range[1] exactly matches a ASI time
         stamp).
-    frame: np.ndarray
+    image: np.ndarray
         An (nTime x nPixelRows x nPixelCols) array containing the ASI images
         for times contained in time_range.
 
     Raises
     ------
     NotImplementedError
-        If the image dimensions are not specified for an ASI mission.
+        If the image dimensions are not specified for an ASI array.
     AssertionError
         If len(time_range) != 2.
 
@@ -382,147 +451,128 @@ def get_frames(
     | import asilib
     |
     | time_range = [datetime(2016, 10, 29, 4, 15), datetime(2016, 10, 29, 4, 20)]
-    | times, frames = asilib.get_frames(time_range, 'REGO', 'GILL')
+    | times, images = asilib.io.load._load_images('REGO', 'GILL', time_range)
     """
-    times, frames = _create_empty_data_arrays(mission, time_range, 'frames')
-    frames_generator = get_frames_generator(time_range, mission, station)
+    times, images = _create_empty_data_arrays(asi_array_code, time_range, 'images')
+    image_generator = load_image_generator(
+        asi_array_code,
+        location_code,
+        time_range,
+        force_download=force_download,
+        ignore_missing_data=ignore_missing_data,
+    )
 
     start_time_index = 0
-    for file_frame_times, file_frames in frames_generator:
-        end_time_index = start_time_index + file_frames.shape[0]
+    for file_image_times, file_images in image_generator:
+        end_time_index = start_time_index + file_images.shape[0]
 
-        frames[start_time_index:end_time_index, :, :] = file_frames
-        times[start_time_index:end_time_index] = file_frame_times
+        images[start_time_index:end_time_index, :, :] = file_images
+        times[start_time_index:end_time_index] = file_image_times
 
-        start_time_index += file_frames.shape[0]
+        start_time_index += file_images.shape[0]
 
-    i_nan = np.where(~np.isnan(frames[:, 0, 0]))[0]
-    frames = frames[i_nan, :, :]
+    i_nan = np.where(~np.isnan(images[:, 0, 0]))[0]
+    images = images[i_nan, :, :]
     times = times[i_nan]
-    return times, frames
+    return times, images
 
 
-def get_frames_generator(
-    time_range: Sequence[Union[datetime, str]],
-    mission: str,
-    station: str,
+def _find_img_path(
+    asi_array_code: str,
+    location_code: str,
+    time: utils._time_type,
     force_download: bool = False,
-    ignore_missing_data: bool = True,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> pathlib.Path:
     """
-    Yields multiple ASI image frames given the mission (THEMIS or REGO), station, and
-    time_range parameters. If a file does not locally exist, this function will attempt
-    to download it. This generator yields the ASI data, file by file, bounded by time_range.
-    This generator is useful for loading lots of data---useful for keograms. The returned
-    time stamps span a range from time_range[0], up to, but excluding a time stamp
-    exactly matching time_range[1].
+    Returns a path to an all sky full-resolution image (THEMIS:ASF, REGO:rgf) file.
+    If a file is not found locally, it will attempt to download it.
 
     Parameters
     ----------
-    time_range: List[Union[datetime, str]]
-        A list with len(2) == 2 of the start and end time to get the
-        frames. If either start or end time is a string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. The user must specify the UT hour and the first argument
-        is assumed to be the start_time and is not checked.
-    mission: str
-        The mission id, can be either THEMIS or REGO.
-    station: str
-        The station id to download the data from.
+    asi_array_code: str
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
+    location_code: str
+        The ASI station code, i.e. ``ATHA``
+    time: datetime.datetime or str
+        The date and time to download of the data. If str, ``time`` must be in the
+        ISO 8601 standard.
     force_download: bool
-        If True, download the file even if it already exists.
-    ignore_missing_data: bool
-        Flag to ignore the FileNotFoundError that is raised when ASI
-        data is unavailable for that date-hour.
-
-    Yields
-    -------
-    times: datetime
-        The frame timestamps contained in time_range, including the start time
-        and excluding the end time (if time_range[1] exactly matches a ASI time
-        stamp).
-    frame: np.ndarray
-        An (nTime x nPixelRows x nPixelCols) array containing the ASI images
-        for times contained in time_range.
-    """
-
-    time_range = _validate_time_range(time_range)
-
-    # Figure out the data keys to load.
-    if mission.lower() == 'rego':
-        frame_key = f'clg_rgf_{station.lower()}'
-        time_key = f'clg_rgf_{station.lower()}_epoch'
-    elif mission.lower() == 'themis':
-        frame_key = f'thg_asf_{station.lower()}'
-        time_key = f'thg_asf_{station.lower()}_epoch'
-
-    hours = _get_hours(time_range)
-
-    for hour in hours:
-        try:
-            cdf_path = _find_img_path(hour, mission, station, force_download=force_download)
-            cdf_obj = cdflib.CDF(cdf_path)
-        except FileNotFoundError:
-            if ignore_missing_data:
-                pass
-            else:
-                raise
-
-        epoch = _get_epoch(cdf_obj, time_key, hour, mission, station)
-
-        idx = np.where((epoch >= time_range[0]) & (epoch < time_range[1]))[0]
-        yield epoch[idx], cdf_obj.varget(frame_key, startrec=idx[0], endrec=idx[-1])
-
-
-def _validate_time_range(time_range):
-    """
-    Checks that len(time_range) == 2 and that it can be converted to datetime objects,
-    if necessary.
-
-    Parameters
-    ----------
-    time_range: List[Union[datetime, str]]
-        A list with len(2) == 2 of the start and end time to get the
-        frames. If either start or end time is a string,
-        dateutil.parser.parse will attempt to parse it into a datetime
-        object. The user must specify the UT hour and the first argument
-        is assumed to be the start_time and is not checked.
+        If True, download the file even if it already exists. Useful if a prior 
+        data download was incomplete. 
 
     Returns
     -------
-    time_range: np.array
-        An array of length two with the sorted datetime.datetime objects.
+    pathlib.Path
+        The path to the full image file. See the implementation in
+        asilib.io.load._load_image() or asilib.io.load._load_images() on
+        how to use cdflib to load the image cdf files.
 
     Raises
     ------
-    AssertionError
-        If len(time_range) != 2.
+    FileNotFoundError
+        Catches the NotADirectoryError raised by download.py, and raises
+        this FileNotFoundError that clearly conveys that the file was not
+        found in the file system or online.
+    ValueError
+        Raised if there is an error with the file finding logic (ideally
+        should not be raised).
+
+    Example
+    -------
+    | import asilib
+    |
+    | asi_file_path = asilib._find_img_path('REGO', 'GILL', '2016-10-29T04')
     """
-    assert len(time_range) == 2, f'len(time_range) = {len(time_range)} is not 2.'
+    time = utils._validate_time(time)
 
-    # Create a list version of time_range in case it is a tuple.
-    time_range_list = []
+    if force_download:
+        if asi_array_code.lower() == 'themis':
+            file_path = download_themis.download_themis_img(
+                location_code, time=time, force_download=force_download
+            )[0]
+        elif asi_array_code.lower() == 'rego':
+            file_path = download_rego.download_rego_img(
+                location_code, time=time, force_download=force_download
+            )[0]
+    else:
+        # If the user does not want to force a download, look for a file on the
+        # computer. If a local file is not found, try to download one.
+        search_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], asi_array_code.lower())
+        if asi_array_code.lower() == 'themis':
+            search_pattern = f'*asf*{location_code.lower()}*{time.strftime("%Y%m%d%H")}*'
+        elif asi_array_code.lower() == 'rego':
+            search_pattern = f'*rgf*{location_code.lower()}*{time.strftime("%Y%m%d%H")}*'
+        matched_paths = list(search_path.rglob(search_pattern))
 
-    for t_i in time_range:
-        if isinstance(t_i, str):
-            # Try to parse it if passed a string.
-            time_range_list.append(dateutil.parser.parse(t_i))
-        elif isinstance(t_i, (datetime, pd.Timestamp)):
-            # If passed a the native or pandas datetime object.
-            time_range_list.append(t_i)
-        else:
-            raise ValueError(
-                f'Unknown time_range format. Got {time_range}. Start/end times must be '
-                'strings that can be parsed by dateutil.parser.parse, or '
-                'datetime.datetime, or pd.Timestamp objects.'
-            )
+        if len(matched_paths) == 1:  # A local file found
+            file_path = matched_paths[0]
 
-    # Sort time_range if the user passed it in out of order.
-    time_range_list = sorted(time_range_list)
-    return time_range_list
+        elif len(matched_paths) == 0:  # No local file found
+            if asi_array_code.lower() == 'themis':
+                try:
+                    file_path = download_themis.download_themis_img(
+                        location_code, time=time, force_download=force_download
+                    )[0]
+                except NotADirectoryError:
+                    raise FileNotFoundError(
+                        f'THEMIS ASI data not found for location_code={location_code} at {time}'
+                    )
+            elif asi_array_code.lower() == 'rego':
+                try:
+                    file_path = download_rego.download_rego_img(
+                        location_code, time=time, force_download=force_download
+                    )[0]
+                except NotADirectoryError:
+                    raise FileNotFoundError(
+                        f'REGO ASI data not found for location_code={location_code} at {time}'
+                    )
+        else:  # Multiple files found?
+            raise ValueError(f"Not sure what happend here. I found {matched_paths} matching paths.")
+
+    return file_path
 
 
-def _get_epoch(cdf_obj, time_key, hour_date_time, mission, station):
+def _get_epoch(cdf_obj, time_key, hour_date_time, asi_array_code, location_code):
     """
     Gets the CDF epoch array and modifies a ValueError when a CDF file is corrupted.
     """
@@ -532,7 +582,7 @@ def _get_epoch(cdf_obj, time_key, hour_date_time, mission, station):
         if str(err) == 'read length must be non-negative or -1':
             raise ValueError(
                 str(err) + '\n\n ASI data is probably corrupted for '
-                f'time={hour_date_time}, mission={mission}, station={station}. '
+                f'time={hour_date_time}, asi_array_code={asi_array_code}, location_code={location_code}. '
                 'download the data again with force_download=True).'
             )
         else:
@@ -540,58 +590,62 @@ def _get_epoch(cdf_obj, time_key, hour_date_time, mission, station):
     return epoch
 
 
-def _get_hours(time_range):
-    """
-    Helper function to figure out what date-hour times are between the times in time_range.
-    This function is useful to figure out what hourly ASI files to download.
-    """
-    time_range = _validate_time_range(time_range)
-
-    # Modify time_range. If time_range[0] is not at the top of the hour, we zero the minutes
-    # seconds, and milliseconds. This helps with keeping the + 1 hour offsets aligned to the
-    # start of the hour.
-    time_range[0] = time_range[0].replace(minute=0, second=0, microsecond=0)
-
-    current_hour = copy(time_range[0])
-    hours = []
-
-    # Not <= because we down want to download the final hour if time_range[1] is, for example,
-    # 05:00:00 [HH:MM:SS]
-    while current_hour < time_range[1]:
-        hours.append(current_hour)
-        current_hour += timedelta(hours=1)
-    return hours
-
-
-def _create_empty_data_arrays(mission, time_range, type):
+def _create_empty_data_arrays(asi_array_code, time_range, type):
     """
     Creates two appropriately sized np.arrays full of np.nan. The first is a 1d times array,
     and the second is either: a 2d array (n_steps, n_pixels) if type=='keogram', or a 3d array
-    (n_times, n_pixels, n_pixels) if type='frames'.
+    (n_times, n_pixels, n_pixels) if type='images'.
     """
-    if mission.lower() == 'themis':
+    if asi_array_code.lower() == 'themis':
         img_size = 256
         cadence_s = 3
-        max_n_timestamps = int((time_range[1] - time_range[0]).total_seconds() / cadence_s)
-    elif mission.lower() == 'rego':
+    elif asi_array_code.lower() == 'rego':
         img_size = 512
         cadence_s = 3
-        max_n_timestamps = int((time_range[1] - time_range[0]).total_seconds() / cadence_s)
     else:
         raise NotImplementedError
 
+    time_range = utils._validate_time_range(time_range)
+    max_n_timestamps = int((time_range[1] - time_range[0]).total_seconds() / cadence_s)
+
     if type.lower() == 'keogram':
         data_shape = (max_n_timestamps, img_size)
-    elif type.lower() == 'frames':
+    elif type.lower() == 'images':
         data_shape = (max_n_timestamps, img_size, img_size)
     else:
-        raise ValueError('type must be "keogram" or "frames".')
+        raise ValueError('type must be "keogram" or "images".')
 
     # object is the only dtype that can contain datetime objects
     times = np.nan * np.zeros(max_n_timestamps, dtype=object)
     data = np.nan * np.zeros(data_shape)
     return times, data
 
+def _flip_skymap(skymap):
+    """
+    IDL saves arrays with indices starting at the lower-right corner? So we need to
+    flip all of the 2D arrays that map to pixels, as well as some of the 3D arrays.
 
-if __name__ == '__main__':
-    d = asilib.load_skymap('THEMIS', 'GILL', '2000-01-01', force_download=False)
+    This function checks that the flipped dimensions have identical sizes.
+    """
+    for key in skymap:
+        if hasattr(skymap[key], 'shape'):
+            shape = skymap[key].shape
+            if (len(shape) == 2) and (shape[0] == shape[1]):
+                skymap[key] = skymap[key][::-1, ::-1]  # For Az/El maps.
+            elif (len(shape) == 3) and (shape[1] == shape[2]):
+                skymap[key] = skymap[key][:, ::-1, ::-1]  # For lat/lon maps
+    return skymap
+
+def _tranform_longitude_to_180(skymap):
+    """
+    Transform the SITE_MAP_LONGITUDE and FULL_MAP_LONGITUDE arrays from 
+    (0 -> 360) to (-180 -> 180).
+    """
+    skymap['SITE_MAP_LONGITUDE'] = np.mod(skymap['SITE_MAP_LONGITUDE'] + 180, 360) - 180
+
+    # Don't take the modulus of NaNs
+    valid_val_idx = np.where(~np.isnan(skymap['FULL_MAP_LONGITUDE']))
+    skymap['FULL_MAP_LONGITUDE'][valid_val_idx] = (
+        np.mod(skymap['FULL_MAP_LONGITUDE'][valid_val_idx] + 180, 360) - 180
+    )
+    return skymap

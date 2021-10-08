@@ -14,8 +14,8 @@ from asilib.plot.plot_keogram import plot_keogram
 
 class Test_keogram(unittest.TestCase):
     def setUp(self):
-        self.mission = 'REGO'
-        self.station = 'LUCK'
+        self.asi_array_code = 'REGO'
+        self.location_code = 'LUCK'
         return
 
     def test_steve_keogram(self, create_reference=False):
@@ -23,7 +23,10 @@ class Test_keogram(unittest.TestCase):
         Tests that the STEVE keogram pd.DataFrame is identical.
         """
         keo = keogram(
-            ['2017-09-27T08', '2017-09-27T08:10'], self.mission, self.station, map_alt=230
+            self.asi_array_code,
+            self.location_code,
+            ['2017-09-27T08', '2017-09-27T08:10'],
+            map_alt=230,
         )
         reference_path = pathlib.Path(
             asilib.config['ASILIB_DIR'], 'tests', 'data', 'test_steve_keogram.csv'
@@ -49,29 +52,37 @@ class Test_keogram(unittest.TestCase):
         """
         with self.assertRaises(AssertionError):
             keo = keogram(
-                ['2017-09-27T08', '2017-09-27T08:10'], self.mission, self.station, map_alt=200
+                self.asi_array_code,
+                self.location_code,
+                ['2017-09-27T08', '2017-09-27T08:10'],
+                map_alt=200,
             )
         return
 
 
 class Test_plot_keogram(unittest.TestCase):
     def setUp(self):
-        self.mission = 'REGO'
-        self.station = 'LUCK'
+        self.asi_array_code = 'REGO'
+        self.location_code = 'LUCK'
         return
 
     def test_steve_plot_keogram_alt(self):
         """
         Tests that the STEVE keogram plot is made without an error.
         """
-        plot_keogram(['2017-09-27T08', '2017-09-27T08:10'], self.mission, self.station, map_alt=230)
+        plot_keogram(
+            self.asi_array_code,
+            self.location_code,
+            ['2017-09-27T08', '2017-09-27T08:10'],
+            map_alt=230,
+        )
         return
 
     def test_steve_plot_keogram_alt(self):
         """
         Tests that the STEVE keogram plot is made without an altitude (columns are the image indices).
         """
-        plot_keogram(['2017-09-27T08', '2017-09-27T08:10'], self.mission, self.station)
+        plot_keogram(self.asi_array_code, self.location_code, ['2017-09-27T08', '2017-09-27T08:10'])
         return
 
 

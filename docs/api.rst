@@ -20,12 +20,12 @@ The below functions can be imported and called using either of the following way
 - .. code-block:: python
 
     import asilib
-    asilib.get_frame(...)
+    asilib.load_image(...)
 
 - .. code-block:: python
 
-    from asilib.io.load import get_frame
-    get_frame(...)
+    from asilib.io.load import load_image
+    load_image(...)
 
 The former option is possible because these functions are all imported by default. However, this may change in a future release, so absolute import (shown in the latter example) is preferred.
 
@@ -35,19 +35,21 @@ The former option is possible because these functions are all imported by defaul
 .. note::
     The longitude units are converted from 0->360 to -180->180 degrees in the skymap calibration files.
 
-Summary
-=======
+Function Summary
+================
 
 .. autosummary::
+   :nosignatures:
+
     asilib.io.download_themis.download_themis_img
-    asilib.io.download_themis.download_themis_cal
+    asilib.io.download_themis.download_themis_skymap
     asilib.io.download_rego.download_rego_img
-    asilib.io.download_rego.download_rego_cal
+    asilib.io.download_rego.download_rego_skymap
     asilib.io.load.load_skymap
-    asilib.io.load.get_frame
-    asilib.io.load.get_frames
+    asilib.io.load.load_image
+    asilib.io.load.load_image_generator
     asilib.plot.plot_keogram.plot_keogram 
-    asilib.plot.plot_frame.plot_frame
+    asilib.plot.plot_image.plot_image
     asilib.plot.plot_map.plot_map
     asilib.plot.plot_movie.plot_movie
     asilib.plot.plot_movie.plot_movie_generator
@@ -67,12 +69,12 @@ Download
 ========
 
 .. automodule:: asilib.io.download_themis
-   :members:
+   :members: download_themis_img, download_themis_skymap
    :undoc-members:
    :show-inheritance:
 
 .. automodule:: asilib.io.download_rego
-   :members: download_rego_img, download_rego_cal
+   :members: download_rego_img, download_rego_skymap
    :undoc-members:
    :show-inheritance:
 
@@ -81,7 +83,7 @@ Load
 The following functions are very useful if you want to work with the raw image and skymap data without dealing without explicitly downloading them.
 
 .. automodule:: asilib.io.load
-   :members: load_skymap, get_frame, get_frames
+   :members: load_skymap, load_image, load_image_generator
    :undoc-members:
    :show-inheritance:
 
@@ -93,8 +95,8 @@ Plot
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: asilib.plot.plot_frame
-   :members: plot_frame
+.. automodule:: asilib.plot.plot_image
+   :members: plot_image
    :undoc-members:
    :show-inheritance:
 

@@ -13,8 +13,8 @@
 
 Easily download, plot, animate, and analyze auroral all sky imager (ASI) data.
 
-Supported ASI missions
-----------------------
+Supported ASI arrays (camera systems)
+-------------------------------------
 
 - Red-line Emission Geospace Observatory (REGO)
 - Time History of Events and Macroscale Interactions during Substorms (THEMIS).
