@@ -91,6 +91,11 @@ We describe our progress towards that goal in this article. First, we showcase t
             \item Plug-in based architecture that allows new ASI arrays to be added and called by the core aurorax-asilib software.
       \end{itemize}
 }
+
+aurorax-asilib allows researchers to analyze ASI data on a PC. It provides a set of functions for common data analysis tasks using ASI data.
+
+The asilib functions are designed to help the user with the lower-level function calls. For example, if you want to load imager data, asilib will try to download it if it is not already saved on the PC. Likewise, if you call \verb|asilib.plot_keogram()|, it will automatically load (and optionally download) the ASI data for you.
+
 \subsection{Download and load ASI image and skymap data}
 \textcolor{blue}{
       OUTLINE
