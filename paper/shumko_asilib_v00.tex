@@ -24,7 +24,7 @@
 \begin{keypoints}
 \item AuroraX is an online interface to visualize the aurora and calculate conjunctions
 \item aurorax-asilib is a companion Python package for detailed analysis of auroral all-sky imager data 
-\item Together, these tools enable the end-to-end analysis of the aurora
+\item Together, these tools enable effortless end-to-end discovery and analysis of the aurora
 \end{keypoints}
 
 
@@ -51,6 +51,10 @@ Abstract
             \item remove the need for scientists needing to write duplicate code to use these popular missions. AS a result, this will enable scientists to dive right into the science and not need to know the details of data management (downloading and loading data, as well as applying routine data processing steps
       \end{itemize}
 }
+
+The rapidly increasing amount of imager data, together with unique data formats, significantly burdens space physicists with mondale and duplicated software engineering tasks---download data, load and parse the data correctly, etc. This unnecessary burden can also lead to mistakes in analysis software that may require unnecessary troubleshooting time from the ASI team. The goal of AuroraX is to overcome these drawbacks by providing a set of robust tools that most researchers need to analyze all-sky images. 
+
+We describe our progress towards that goal in this article. First, we showcase the main features of the online AuroraX interface (https://aurorax.space/) such as the conjunction finder and the keogram finder. Second, we describe the aurorax-api, a Python library containing the interface to the AuroraX server to automatically download keograms and identify conjunctions. Third, we describe aurorax-asilib, the Python all-sky imager library. aurorax-asilib provides functions to the download, load, process data, and visualize THEMIS and REGO ASI data. 
 
 
 \section{Design Philosophy (Principals?)}
@@ -81,7 +85,7 @@ Abstract
 \textcolor{blue}{
       OUTLINE
       \begin{itemize}
-            \item What is it? A Python library that helps researchers analyze THEMIS and REGO ASI images.The main functions are summarized in Table 1. It is designed to be simple and runnable on personal machines (relatively low memory usage).
+            \item What is it? A Python library that helps researchers analyze THEMIS and REGO ASI images.The main functions are summarized in Table 1. It is designed to be simple and runnable on personal machines (relatively low memory usage). We strived to strike a balance between complicated and user-friendly tools.
             \item A table of function names and one sentence to describe their functions.
             \item The large file sizes lead to relatively long processing time. This is a fact that can be partly mitigated by an SSD. 
             \item Plug-in based architecture that allows new ASI arrays to be added and called by the core aurorax-asilib software.
