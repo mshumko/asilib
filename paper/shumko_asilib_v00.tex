@@ -117,7 +117,11 @@ The four functions that download and load ASI image and skymap data are:
 
 The \verb|asilib.download_image()| function downloads the level 1 hourly Common Data Format (CDF) files from \url{http://themis.ssl.berkeley.edu/data/themis/thg/l1/asi/} for THEMIS, and \url{http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/} for REGO. The files are saved in the \verb|asilib.config['ASI_DATA_DIR']| directory that at \verb|~/asilib-data/| be default, and is customizable.
 
-The \verb|asilib.download_skymap()| function downloads all of the skymap files from \url{https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/skymaps/} and \url{https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/} for a given set of \verb|asi_array_code| and \verb|location_code|. The skymap files are in the Interactive Data Language (IDL) \verb|.sav| file format. Noteworthy is that \verb|asilib| downloads all of the skymap files for an imager because the skymaps are only valid for a set time period (typically a year).
+The \verb|asilib.download_skymap()| function downloads all of the skymap files from \url{https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/skymaps/} and \url{https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/} for a given set of \verb|asi_array_code| and \verb|location_code|. The skymap files are in the Interactive Data Language (IDL) \verb|.sav| file format. Noteworthy is that \verb|asilib| downloads all of the skymap files for an imager because the skymaps are only valid for a set time period (typically a year; see \verb|asilib.load_skymap()|below).
+
+As the name implies, \verb|asilib.load_image()| loads into memory and returns the ASI time stamps and images for a specified imager. This function loads both single and multiple images: a single time stamp and image if \verb|time| is provided, and an array of time stamps and images if \verb|time_range| is provided. As previously mentioned,\verb|asilib.load_image()| will try to download an hourly CDF file if it does not exist locally.
+
+\verb|asilib.load_skymap()| is the last noteworthy input function; it loads the relevant skymap file into memory and returns the data in a dictionary. A relevant skymap file is the latest one before the specified \verb|time|. As with \verb|asilib.load_image()|, \verb|asilib.load_skymap()| will attempt to download the skymap functions if they are not already downloaded.
 
 \subsection{Plotting single images}
 \textcolor{blue}{
