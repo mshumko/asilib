@@ -92,7 +92,7 @@ We describe our progress towards that goal in this article. First, we showcase t
       \end{itemize}
 }
 
-aurorax-asilib allows researchers to analyze ASI data on a PC. It provides a set of functions for common data analysis tasks using ASI data.
+aurorax-asilib allows researchers to analyze ASI data on a PC. It provides a set of functions for common data analysis tasks using ASI data. Here we overview the functions and the online documentation has more examples, a tutorial, and a thorough API reference \url{https://aurora-asi-lib.readthedocs.io/}
 
 The asilib functions are designed to help the user with the lower-level function calls. For example, if you want to load imager data, asilib will try to download it if it is not already saved on the PC. Likewise, if you call \verb|asilib.plot_keogram()|, it will automatically load (and optionally download) the ASI data for you.
 
@@ -105,6 +105,19 @@ The asilib functions are designed to help the user with the lower-level function
             \item If a file is already downloaded, you do not need an internet connection to work with the data
       \end{itemize}
 }
+
+The four functions that download and load ASI image and skymap data are: 
+
+\begin{itemize}
+      \item \verb|asilib.download_image()|,
+      \item \verb|asilib.download_skymap()|,
+      \item \verb|asilib.load_image()|, and
+      \item \verb|asilib.load_skymap()|
+\end{itemize} that are described below.
+
+The \verb|asilib.download_image()| function downloads the level 1 hourly Common Data Format (CDF) files from \url{http://themis.ssl.berkeley.edu/data/themis/thg/l1/asi/} for THEMIS, and \url{http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/} for REGO. The files are saved in the \verb|asilib.config['ASI_DATA_DIR']| directory that at \verb|~/asilib-data/| be default, and is customizable.
+
+The \verb|asilib.download_skymap()| function downloads all of the skymap files from \url{https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/skymaps/} and \url{https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/} for a given set of \verb|asi_array_code| and \verb|location_code|. The skymap files are in the Interactive Data Language (IDL) \verb|.sav| file format. Noteworthy is that \verb|asilib| downloads all of the skymap files for an imager because the skymaps are only valid for a set time period (typically a year).
 
 \subsection{Plotting single images}
 \textcolor{blue}{
@@ -166,6 +179,17 @@ The asilib functions are designed to help the user with the lower-level function
             \item THEMIS and REGO data formats are set and won't change.
       \end{itemize}
 }
+
+\section{Future Development}
+\textcolor{blue}{
+      OUTLINE
+      \begin{itemize}
+            \item Switch from CDF to pgm files.
+            \item Support more ASI arrays such as TREx
+            \item Combine into a class architecture to share data.
+      \end{itemize}
+}
+While aurorax-asilib is feature complete, we plan to keep developing it.
 
 \section{Conclusion}
 
