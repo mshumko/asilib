@@ -50,9 +50,9 @@ def keogram(asi_array_code: str, location_code: str, time_range: utils._time_ran
 
     # This code block removes any filler nan values if the ASI images were not sampled at the instrument
     # cadence throughout time_range.
-    i_nan = np.where(~np.isnan(keo[:, 0]))[0]
-    keo = keo[i_nan, :]
-    keo_times = keo_times[i_nan]
+    i_valid = np.where(~np.isnan(keo[:, 0]))[0]
+    keo = keo[i_valid, :]
+    keo_times = keo_times[i_valid]
 
     if map_alt is None:
         keogram_latitude = np.arange(keo.shape[1])  # Dummy index values for latitudes.
