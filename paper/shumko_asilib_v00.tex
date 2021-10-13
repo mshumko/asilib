@@ -94,7 +94,7 @@ We describe our progress towards that goal in this article. First, we showcase t
 
 aurorax-asilib allows researchers to analyze ASI data on a PC. It provides a set of functions for common data analysis tasks using ASI data. Here we overview the functions and the online documentation has more examples, a tutorial, and a thorough API reference \url{https://aurora-asi-lib.readthedocs.io/}
 
-As we tour the asilib functions, keep in mind that asilib is designed to help you with the lower-level tasks. For example, if you want to load the image data via \verb|asilib.load_image()|, asilib will attempt to download it if it is not already saved on the PC. Likewise, if you call \verb|asilib.plot_keogram()|, it will automatically load (and optionally download) the ASI data for you.
+As we tour the asilib functions, keep in mind that asilib is designed to help you with the lower-level tasks. For example, if you want to load the image data via \verb|asilib.load_image()|, asilib will attempt to download it if it is not already saved on the PC. Likewise, if you call \verb|asilib.plot_keogram()|, it will automatically load (and optionally download) the ASI data for you. Lastly, Figs. 2-X were made using the code in a Jupyter Notebook that is provided with this article (in both the ipynb and pdf formats).
 
 \subsection{Download and load ASI image and skymap data}
 \textcolor{blue}{
@@ -117,7 +117,7 @@ Let us start with the four functions that download and load ASI image and skymap
 
 The \verb|asilib.download_image()| function downloads the level 1 hourly Common Data Format (CDF) files from \url{http://themis.ssl.berkeley.edu/data/themis/thg/l1/asi/} for THEMIS, and \url{http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/} for REGO. The files are saved in the \verb|asilib.config['ASI_DATA_DIR']| directory that at \verb|~/asilib-data/| be default, and is customizable.
 
-The \verb|asilib.download_skymap()| function downloads all of the skymap files from \url{https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/skymaps/} and \url{https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/} for a given set of \verb|asi_array_code| and \verb|location_code|. The skymap files are in the Interactive Data Language (IDL) \verb|.sav| file format. Noteworthy is that \verb|asilib| downloads all of the skymap files for an imager because the skymaps are only valid for a set time period (typically a year; see \verb|asilib.load_skymap()|below).
+The \verb|asilib.download_skymap()| function downloads all of the skymap files from \url{https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/skymaps/} and \url{https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/} for a given set of \verb|asi_array_code| and \verb|location_code|. The skymap files are in the Interactive Data Language (IDL) \verb|.sav| file format. Noteworthy is that \verb|asilib| downloads all of the skymap files for a given imager because the skymaps are only valid for a set time period (typically a year; see the logic for \verb|asilib.load_skymap()| that is described below).
 
 As the name implies, \verb|asilib.load_image()| loads into memory and returns the ASI time stamps and images for a specified imager. This function loads both single and multiple images: a single time stamp and image if \verb|time| is provided, and an array of time stamps and images if \verb|time_range| is provided. As previously mentioned,\verb|asilib.load_image()| will try to download an hourly CDF file if it does not exist locally.
 
@@ -126,23 +126,17 @@ As the name implies, \verb|asilib.load_image()| loads into memory and returns th
 Before we discuss the plotting functions, we emphasize that the \verb|asilib.download_image()| and \verb|asilib.download_skymap()| functions are often unnecessary to call since they are called by \verb|asilib.load_image()| and \verb|asilib.load_skymap()|. However, the download functions are very useful if you need to download ASI image and calibration data in bulk---useful to analyze data offline, for example.
 
 \subsection{Plotting single images}
-\textcolor{blue}{
-      OUTLINE
-      \begin{itemize}
-            \item Fisheye lens view
-            \item Project onto a geographic map
-            \item Figure 2: a) fisheye view, b) that fisheye view mapped to 110 km. (THEMIS)
-      \end{itemize}
-}
 
-\verb|asilib| provides two functions to plot single images:
+\verb|asilib| provides two functions to plot a single ASI image in the two common formats:
 
 \begin{itemize}
       \item \verb|asilib.plot_fisheye()| and
       \item \verb|asilib.plot_map()|.
 \end{itemize}
 
-\verb|asilib.plot_fisheye()| plots the raw ASI images with North at the top and East to the right of the image. As a guide, the \verb|azel_contours| keyword argument superposes contours of elevation and azimuth in the fisheye image. The term fisheye comes from the fisheye lens that expands the imager's field of view to nearly $180^\circ$.
+One common way to visualize all-sky images is with \verb|asilib.plot_fisheye()|. It plots the raw ASI images with North at the top and East to the right of each image. The term fisheye comes from the fisheye lens that expands the imager's field of view to nearly $180^\circ$. For reference, the \verb|azel_contours| keyword argument superposes contours of elevation and azimuth in the fisheye image. Figure \ref{fig2}a,c show an example of an auroral arc observed concurrently by the THEMIS and REGO ASIs stationed at Rankin Inlet (RANK). If you don't override the parameters, the color map is automatically chosen: black-to-white for THEMIS and black-to-red for REGO. Also the color scale is dynamically calculated using percentile logic described in the documentation.
+
+Another common way to visualize images is by projecting the fisheye image onto a geographic map using \verb|asilib.plot_map()|. asilib uses the skymap files to map each pixel's vertices to a (latitude, longitude) point at an assumed aurora emission altitude (typically 110 km for THEMIS and 230 km for REGO). Figure \ref{fig2}b,d show the fisheye images mapped to 110 km altitude. By default, pixels that look at $< 10^\circ$ elevations are not mapped.
 
 \begin{figure}
       \includegraphics[width=\textwidth]{figures/fig2.png}
