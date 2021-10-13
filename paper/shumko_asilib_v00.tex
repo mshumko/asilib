@@ -41,7 +41,7 @@ Abstract
 \textcolor{blue}{
       OUTLINE
       \begin{itemize}
-            \item Brief history of ASIs and ASI arrays. Talk about why THEMIS ASI exists. Discuss CANOPUS?
+            \item Brief history of ASIs and ASI arrays. Talk about why THEMIS ASI exists. Discuss CANOPUS? Linage.
             \item Breadth of possible science questions that can be answered with aurora image data.
             \item Problem: modern ASI arrays produce an immense volume of data.
             \item Why this software? Aurora ASI data formats very greatly, each with their own caveats. This centralized software package is maintained by the AuroraX team. 
@@ -127,16 +127,16 @@ Before we discuss the plotting functions, we emphasize that the \verb|asilib.dow
 
 \subsection{Plotting single images}
 
-\verb|asilib| provides two functions to plot a single ASI image in the two common formats:
+The \verb|asilib| provides two ways to plot a single ASI image:
 
 \begin{itemize}
       \item \verb|asilib.plot_fisheye()| and
       \item \verb|asilib.plot_map()|.
 \end{itemize}
 
-One common way to visualize all-sky images is with \verb|asilib.plot_fisheye()|. It plots the raw ASI images with North at the top and East to the right of each image. The term fisheye comes from the fisheye lens that expands the imager's field of view to nearly $180^\circ$. For reference, the \verb|azel_contours| keyword argument superposes contours of elevation and azimuth in the fisheye image. Figure \ref{fig2}a,c show an example of an auroral arc observed concurrently by the THEMIS and REGO ASIs stationed at Rankin Inlet (RANK). If you don't override the parameters, the color map is automatically chosen: black-to-white for THEMIS and black-to-red for REGO. Also the color scale is dynamically calculated using percentile logic described in the documentation.
+One common way to visualize all-sky images is with \verb|asilib.plot_fisheye()|. It plots the raw ASI images oriented with North at the top and East to the right of each image. The term fisheye comes from the fisheye lens that expands the imager's field of view to nearly $180^\circ$. For reference, the \verb|azel_contours| keyword argument superposes contours of elevation and azimuth in the fisheye image. Figure \ref{fig2}a,c show an example of an auroral arc observed concurrently by the THEMIS and REGO ASIs stationed at Rankin Inlet (RANK). If you don't override the parameters, the color map is automatically chosen: black-to-white for THEMIS and black-to-red for REGO. Also the color scale is dynamically calculated using percentile logic described in the documentation.
 
-Another common way to visualize images is by projecting the fisheye image onto a geographic map using \verb|asilib.plot_map()|. asilib uses the skymap files to map each pixel's vertices to a (latitude, longitude) point at an assumed aurora emission altitude (typically 110 km for THEMIS and 230 km for REGO). Figure \ref{fig2}b,d show the fisheye images mapped to 110 km altitude. By default, pixels that look at $< 10^\circ$ elevations are not mapped. And lastly, \verb|asilib.plot_map()| provides default map styles that can be overwritten by your custom \verb|cartopy| map passed in via the \verb|ax| keyword argument.
+Another common way to visualize images is by projecting the fisheye image onto a geographic map using \verb|asilib.plot_map()|. asilib uses the skymap files to map each pixel's vertices to a (latitude, longitude) point at an assumed aurora emission altitude (typically 110 km for THEMIS and 230 km for REGO). Figure \ref{fig2}b,d show the fisheye images mapped to 110 km altitude. By default, pixels that look at $< 10^\circ$ elevations are not mapped due to the stretching of pixels closest to the horizon. And lastly, \verb|asilib.plot_map()| provides default map styles that can be overwritten by your custom \verb|cartopy| map passed in via the \verb|ax| keyword argument.
 
 \begin{figure}
       \includegraphics[width=\textwidth]{figures/fig2.png}
@@ -152,7 +152,7 @@ Another common way to visualize images is by projecting the fisheye image onto a
       \end{itemize}
 }
 
-A ubiquitous way to visualize ASI images and identify different types of aurora is with keograms---an image of pixel intensity as a function of latitude and time. It is assembled by slicing and concatenating pixels that are oriented North-South through zenith (or through a custom path such a path of a stellite) in each image. This is done with the \verb|asilib.plot_keogram()| function (that in turn calls \verb|asilib.keogram()|). Similar to \verb|asilib.plot_map()|, \verb|asilib.plot_keogram()| takes an optional \verb|map_alt| keyword argument. If it is not provided, the keogram's vertical axis is pixel index, but if a valid map altitude is provided, the vertical axis is geographic latitude. To minimize the PC's memory usage, \verb|asilib.keogram()| calls \verb|asilib.load_image_generator()| to load and process one image file at a time. Figure \ref{fig3} is a keogram showing the movement of the auroral arc shown in Fig. \ref{fig2}a.
+A ubiquitous way to visualize ASI images and identify different types of aurora is with keograms---an image of pixel intensity as a function of latitude and time. Typically, they are assembled by slicing and concatenating pixels that are oriented North-South through zenith (or through a custom path such a path of a stellite) in each image. This is done with the \verb|asilib.plot_keogram()| function (that in turn calls \verb|asilib.keogram()|). Similar to \verb|asilib.plot_map()|, \verb|asilib.plot_keogram()| takes an optional \verb|map_alt| keyword argument. If it is not provided, the keogram's vertical axis is pixel index, but if a valid map altitude is provided, the vertical axis is geographic latitude. To minimize the PC's memory usage, \verb|asilib.keogram()| calls \verb|asilib.load_image_generator()| to load and process one image file at a time. Figure \ref{fig3} is a keogram showing the movement of the auroral arc shown in Fig. \ref{fig2}a.
 
 \begin{figure}
       \includegraphics[width=\textwidth]{figures/fig3.png}
@@ -212,6 +212,7 @@ Animating raw fisheye images is somewhat limiting, thus \verb|asilib| also inclu
       \begin{itemize}
             \item Switch from CDF to pgm files.
             \item Support more ASI arrays such as TREx
+            \item Community challenge. This package is made for the space physics community, so we will seek feedback (in the form of issues and bugs) that are discovered during a community challenge time period. 
             \item Combine into a class architecture to share data.
       \end{itemize}
 }
