@@ -94,7 +94,7 @@ We describe our progress towards that goal in this article. First, we showcase t
 
 aurorax-asilib allows researchers to analyze ASI data on a PC. It provides a set of functions for common data analysis tasks using ASI data. Here we overview the functions and the online documentation has more examples, a tutorial, and a thorough API reference \url{https://aurora-asi-lib.readthedocs.io/}
 
-The asilib functions are designed to help the user with the lower-level function calls. For example, if you want to load imager data, asilib will try to download it if it is not already saved on the PC. Likewise, if you call \verb|asilib.plot_keogram()|, it will automatically load (and optionally download) the ASI data for you.
+As we tour the asilib functions, keep in mind that asilib is designed to help you with the lower-level tasks. For example, if you want to load the image data via \verb|asilib.load_image()|, asilib will attempt to download it if it is not already saved on the PC. Likewise, if you call \verb|asilib.plot_keogram()|, it will automatically load (and optionally download) the ASI data for you.
 
 \subsection{Download and load ASI image and skymap data}
 \textcolor{blue}{
@@ -106,7 +106,7 @@ The asilib functions are designed to help the user with the lower-level function
       \end{itemize}
 }
 
-The four functions that download and load ASI image and skymap data are: 
+Let us start with the four functions that download and load ASI image and skymap data: 
 
 \begin{itemize}
       \item \verb|asilib.download_image()|,
@@ -122,6 +122,8 @@ The \verb|asilib.download_skymap()| function downloads all of the skymap files f
 As the name implies, \verb|asilib.load_image()| loads into memory and returns the ASI time stamps and images for a specified imager. This function loads both single and multiple images: a single time stamp and image if \verb|time| is provided, and an array of time stamps and images if \verb|time_range| is provided. As previously mentioned,\verb|asilib.load_image()| will try to download an hourly CDF file if it does not exist locally.
 
 \verb|asilib.load_skymap()| is the last noteworthy input function; it loads the relevant skymap file into memory and returns the data in a dictionary. A relevant skymap file is the latest one before the specified \verb|time|. As with \verb|asilib.load_image()|, \verb|asilib.load_skymap()| will attempt to download the skymap functions if they are not already downloaded.
+
+Before we discuss the plotting functions, we emphasize that the \verb|asilib.download_image()| and \verb|asilib.download_skymap()| functions are often unnecessary to call since they are called by \verb|asilib.load_image()| and \verb|asilib.load_skymap()|. However, the download functions are very useful if you need to download ASI image and calibration data in bulk---useful to analyze data offline, for example.
 
 \subsection{Plotting single images}
 \textcolor{blue}{
