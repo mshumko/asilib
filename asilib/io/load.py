@@ -168,7 +168,7 @@ def load_image_generator(
             cdf_obj = cdflib.CDF(cdf_path)
         except FileNotFoundError:
             if ignore_missing_data:
-                pass
+                continue
             else:
                 raise
 
