@@ -35,6 +35,8 @@ def keogram(asi_array_code: str, location_code: str, time_range: utils._time_ran
     ------
     AssertionError
         If map_alt does not equal the mapped altitudes in the skymap mapped values.
+    ValueError
+        If no imager data is found in ``time_range``.
     """
     image_generator = load_image_generator(asi_array_code, location_code, time_range)
     keo_times, keo = _create_empty_data_arrays(asi_array_code, time_range, 'keogram')
@@ -53,6 +55,11 @@ def keogram(asi_array_code: str, location_code: str, time_range: utils._time_ran
     i_valid = np.where(~np.isnan(keo[:, 0]))[0]
     keo = keo[i_valid, :]
     keo_times = keo_times[i_valid]
+
+    if not keo.shape[0]:
+        raise ValueError(f'The keogram is empty for {asi_array_code}/{location_code} '
+                        f'during {time_range}. The image data probably does not exist '
+                        f'in this time interval')
 
     if map_alt is None:
         keogram_latitude = np.arange(keo.shape[1])  # Dummy index values for latitudes.
