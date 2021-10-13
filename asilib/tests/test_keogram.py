@@ -3,6 +3,7 @@ Tests for keogram.py and plot_keogram.py.
 """
 import unittest
 import pathlib
+from datetime import datetime
 
 import pandas as pd
 import numpy as np
@@ -56,6 +57,19 @@ class Test_keogram(unittest.TestCase):
                 self.location_code,
                 ['2017-09-27T08', '2017-09-27T08:10'],
                 map_alt=200,
+            )
+        return
+
+    def test_keogram_no_images(self):
+        """
+        Checks that keogram() raises a ValueError if it tries to make a keogram with 
+        nonexistant data.
+        """
+        with self.assertRaises(ValueError):
+            keo = keogram(
+                "THEMIS",
+                "ATHA",
+                (datetime(2017, 9, 15, 2, 0, 0), datetime(2017, 9, 15, 3, 0, 0))
             )
         return
 
