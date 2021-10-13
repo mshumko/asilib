@@ -152,11 +152,13 @@ Another common way to visualize images is by projecting the fisheye image onto a
       \end{itemize}
 }
 
-A ubiquitous way to visualize ASI images and identify different types of aurora is with keograms---an image of pixel intensity as a function of latitude and time. Typically, they are assembled by slicing and concatenating pixels that are oriented North-South through zenith (or through a custom path such a path of a stellite) in each image. This is done with the \verb|asilib.plot_keogram()| function (that in turn calls \verb|asilib.keogram()|). Similar to \verb|asilib.plot_map()|, \verb|asilib.plot_keogram()| takes an optional \verb|map_alt| keyword argument. If it is not provided, the keogram's vertical axis is pixel index, but if a valid map altitude is provided, the vertical axis is geographic latitude. To minimize the PC's memory usage, \verb|asilib.keogram()| calls \verb|asilib.load_image_generator()| to load and process one image file at a time. Figure \ref{fig3} is a keogram showing the movement of the auroral arc shown in Fig. \ref{fig2}a.
+A ubiquitous way to visualize ASI images and identify different types of aurora is with keograms---an image of pixel intensity as a function of latitude and time. Typically, they are assembled by slicing and concatenating pixels that are oriented North-South through zenith (or through a custom path such a path of a stellite) from each image. Keograms are an essential tool that compress the information contained in hours of images into one plot. Objects in the sky such as auroral arcs, pulsating aurora, substorms, clouds, the moon, etc. all have unique keogram signatures that allow you to quickly classify what the imager observed. 
+
+You can make a keogram using the \verb|asilib.plot_keogram()| function (that in turn calls \verb|asilib.keogram()|). Similar to \verb|asilib.plot_map()|, \verb|asilib.plot_keogram()| takes an optional \verb|map_alt| keyword argument. If it is not provided, the keogram's vertical axis is pixel index, but if a valid map altitude is provided, the vertical axis is geographic latitude. To minimize the PC's memory usage, \verb|asilib.keogram()| loads image data using \verb|asilib.load_image_generator()| that processes one image file at a time. The keogram shown in Fig. \ref{fig3} shows the dynamic nature of the aurora. Furthermore, the latitude  mapping transformation between panels a and b is substantial---low elevation pixels map to much wider sections of latitude as compared to the pixels near zenith.
 
 \begin{figure}
       \includegraphics[width=\textwidth]{figures/fig3.png}
-      \caption{A keogram of the auroral arc shown in Fig. \ref{fig2}a.}
+      \caption{A full-night keogram showing the dynamic aurora observed at Gillam, Canada. Panel a shows the unmapped keogram with the pixel index vertical axis, while panel b shows the latitude of the pixels mapped to 110 km altitude.}
       \label{fig3}
 \end{figure}
 
