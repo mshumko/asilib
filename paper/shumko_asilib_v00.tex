@@ -94,7 +94,7 @@ We describe our progress towards that goal in this article. First, we showcase t
 
 aurorax-asilib allows researchers to analyze ASI data on a PC. It provides a set of functions for common data analysis tasks using ASI data. Here we overview the functions and the online documentation has more examples, a tutorial, and a thorough API reference \url{https://aurora-asi-lib.readthedocs.io/}
 
-As we tour the asilib functions, keep in mind that asilib is designed to help you with the lower-level tasks. For example, if you want to load the image data via \verb|asilib.load_image()|, asilib will attempt to download it if it is not already saved on the PC. Likewise, if you call \verb|asilib.plot_keogram()|, it will automatically load (and optionally download) the ASI data for you. Lastly, Figs. 2-X were made using the code in a Jupyter Notebook that is provided with this article (in both the ipynb and pdf formats).
+As we tour the asilib functions, keep in mind that asilib is designed to help you with the lower-level tasks. For example, if you want to load the image data via \verb|asilib.load_image()|, asilib will attempt to download it if it is not already saved on the PC. Likewise, if you call \verb|asilib.plot_keogram()|, it will automatically load (and optionally download) the ASI data for you. Lastly, Figs. 2-\textcolor{red}{X} were made using the code in a Jupyter Notebook that is provided with this article (in both the ipynb and pdf formats).
 
 \subsection{Download and load ASI image and skymap data}
 \textcolor{blue}{
@@ -136,7 +136,7 @@ Before we discuss the plotting functions, we emphasize that the \verb|asilib.dow
 
 One common way to visualize all-sky images is with \verb|asilib.plot_fisheye()|. It plots the raw ASI images with North at the top and East to the right of each image. The term fisheye comes from the fisheye lens that expands the imager's field of view to nearly $180^\circ$. For reference, the \verb|azel_contours| keyword argument superposes contours of elevation and azimuth in the fisheye image. Figure \ref{fig2}a,c show an example of an auroral arc observed concurrently by the THEMIS and REGO ASIs stationed at Rankin Inlet (RANK). If you don't override the parameters, the color map is automatically chosen: black-to-white for THEMIS and black-to-red for REGO. Also the color scale is dynamically calculated using percentile logic described in the documentation.
 
-Another common way to visualize images is by projecting the fisheye image onto a geographic map using \verb|asilib.plot_map()|. asilib uses the skymap files to map each pixel's vertices to a (latitude, longitude) point at an assumed aurora emission altitude (typically 110 km for THEMIS and 230 km for REGO). Figure \ref{fig2}b,d show the fisheye images mapped to 110 km altitude. By default, pixels that look at $< 10^\circ$ elevations are not mapped. And lastly, \verb|asilib.plot_map()| provides default map styles that can be overwritten by your custom \verb|cartopy| map passed in via ax.
+Another common way to visualize images is by projecting the fisheye image onto a geographic map using \verb|asilib.plot_map()|. asilib uses the skymap files to map each pixel's vertices to a (latitude, longitude) point at an assumed aurora emission altitude (typically 110 km for THEMIS and 230 km for REGO). Figure \ref{fig2}b,d show the fisheye images mapped to 110 km altitude. By default, pixels that look at $< 10^\circ$ elevations are not mapped. And lastly, \verb|asilib.plot_map()| provides default map styles that can be overwritten by your custom \verb|cartopy| map passed in via the \verb|ax| keyword argument.
 
 \begin{figure}
       \includegraphics[width=\textwidth]{figures/fig2.png}
@@ -171,6 +171,10 @@ A ubiquitous way to visualize ASI images and identify different types of aurora 
             \item Reference SI movie 1.
       \end{itemize}
 }
+
+You can easily animate ASI fisheye images using \verb|asilib.plot_fisheye_movie()|. It first saves png images in a unique subfolder in the \verb|~/asilib-data/movies/frames/| folder, and then animates them using the \verb|ffmpeg| library. Movie S1 in the supporting information (SI) document shows an example of \textcolor{red}{X}. \textcolor{red}{Add} \verb|asilib.plot_map_movie()|?
+
+Animating raw fisheye images is somewhat limiting, thus \verb|asilib| also includes \verb|asilib.plot_movie_generator()| (technically a coroutine) to create a stream of customizable ASI images. You can then modify each image before \verb|asilib.plot_movie_generator()| saves the image frame and combines it into a movie. A common use of this function is to superpose your data onto each ASI image, as for a conjunction described below.
 
 \subsection{ASI analysis tools}
 \textcolor{blue}{
