@@ -260,15 +260,20 @@ def plot_movie_generator(
             continue
         ax.clear()
         ax.axis('off')
-        # Figure out the color_bounds from the image data.
+        # if-else statement is to recalculate color_bounds for every image 
+        # and set it to _color_bounds. If _color_bounds did not exist, 
+        # color_bounds will be overwritten after the first iteration which will 
+        # disable the dynamic color bounds for each image. 
         if color_bounds is None:
             lower, upper = np.quantile(image, (0.25, 0.98))
-            color_bounds = [lower, np.min([upper, lower * 10])]
+            _color_bounds = [lower, np.min([upper, lower * 10])]
+        else:
+            _color_bounds = color_bounds
 
         if color_norm == 'log':
-            norm = colors.LogNorm(vmin=color_bounds[0], vmax=color_bounds[1])
+            norm = colors.LogNorm(vmin=_color_bounds[0], vmax=_color_bounds[1])
         elif color_norm == 'lin':
-            norm = colors.Normalize(vmin=color_bounds[0], vmax=color_bounds[1])
+            norm = colors.Normalize(vmin=_color_bounds[0], vmax=_color_bounds[1])
         else:
             raise ValueError('color_norm must be either "log" or "lin".')
 
