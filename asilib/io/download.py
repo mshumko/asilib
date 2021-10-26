@@ -73,6 +73,39 @@ def download_image(
     return paths
 
 
+def download_skymap(asi_array_code: str, location_code: str, force_download: bool = False)
+    """
+    Download all of the THEMIS or REGO skymap IDL .sav files.
+
+    Parameters
+    ----------
+    asi_array_code: str
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
+    location_code: str
+        The ASI station code, i.e. ``ATHA``
+    force_download: bool
+        If True, download the file even if it already exists. Useful if a prior
+        data download was incomplete.
+
+    Returns
+    -------
+    None
+
+    Example
+    -------
+    | import asilib
+    |
+    | asi_array_code = 'THEMIS'
+    | location_code = 'LUCK'
+    | asilib.download_skymap(asi_array_code, location_code)
+    """
+    if asi_array_code.lower() == 'themis':
+        paths = download_themis_skymap(location_code)
+    elif asi_array_code.lower() == 'rego':
+        paths = download_rego_skymap(location_code)
+    return paths
+
+
 def download_themis_img(
     location_code: str,
     time: utils._time_type = None,
