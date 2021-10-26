@@ -2,7 +2,6 @@ from typing import List
 import pathlib
 
 import asilib
-from asilib.io.download_rego import IMG_BASE_URL
 import asilib.io.utils as utils
 
 

@@ -11,10 +11,9 @@ import pandas as pd
 import numpy as np
 import cdflib
 import scipy.io
-import matplotlib.pyplot as plt
 
-from asilib.io import download_rego
-from asilib.io import download_themis
+from asilib.io.download import download_image
+from asilib.io.download import download_skymap
 from asilib.io import utils
 import asilib
 
@@ -216,14 +215,9 @@ def load_skymap(
         time = dateutil.parser.parse(time)
 
     if force_download:
-        if asi_array_code.lower() == 'themis':
-            skymap_paths = download_themis.download_themis_skymap(
-                location_code, force_download=force_download
-            )
-        elif asi_array_code.lower() == 'rego':
-            skymap_paths = download_rego.download_rego_skymap(
-                location_code, force_download=force_download
-            )
+        skymap_paths = download_skymap(asi_array_code.lower(),
+            location_code, force_download=force_download
+        )
 
     else:
         # If the user does not want to force download skymap files,
@@ -239,14 +233,9 @@ def load_skymap(
 
         # Download skymap files if they are not downloaded yet.
         if len(skymap_paths) == 0:
-            if asi_array_code.lower() == 'themis':
-                skymap_paths = download_themis.download_themis_skymap(
-                    location_code, force_download=force_download
-                )
-            elif asi_array_code.lower() == 'rego':
-                skymap_paths = download_rego.download_rego_skymap(
-                    location_code, force_download=force_download
-                )
+            skymap_paths = download_skymap(asi_array_code.lower(),
+                location_code, force_download=force_download
+            )
 
     skymap_dates = _extract_skymap_dates(skymap_paths)
 
@@ -526,14 +515,9 @@ def _find_img_path(
     time = utils._validate_time(time)
 
     if force_download:
-        if asi_array_code.lower() == 'themis':
-            file_path = download_themis.download_themis_img(
-                location_code, time=time, force_download=force_download
-            )[0]
-        elif asi_array_code.lower() == 'rego':
-            file_path = download_rego.download_rego_img(
-                location_code, time=time, force_download=force_download
-            )[0]
+        file_path = download_image(asi_array_code.lower(), 
+            location_code, time=time, force_download=force_download
+        )[0]
     else:
         # If the user does not want to force a download, look for a file on the
         # computer. If a local file is not found, try to download one.
@@ -548,24 +532,14 @@ def _find_img_path(
             file_path = matched_paths[0]
 
         elif len(matched_paths) == 0:  # No local file found
-            if asi_array_code.lower() == 'themis':
-                try:
-                    file_path = download_themis.download_themis_img(
-                        location_code, time=time, force_download=force_download
-                    )[0]
-                except NotADirectoryError:
-                    raise FileNotFoundError(
-                        f'THEMIS ASI data not found for location_code={location_code} at {time}'
-                    )
-            elif asi_array_code.lower() == 'rego':
-                try:
-                    file_path = download_rego.download_rego_img(
-                        location_code, time=time, force_download=force_download
-                    )[0]
-                except NotADirectoryError:
-                    raise FileNotFoundError(
-                        f'REGO ASI data not found for location_code={location_code} at {time}'
-                    )
+            try:
+                file_path = download_image(asi_array_code.lower(),
+                    location_code, time=time, force_download=force_download
+                )[0]
+            except NotADirectoryError:
+                raise FileNotFoundError(
+                    f'{asi_array_code.upper()} ASI data not found for location_code={location_code} at {time}'
+                )
         else:  # Multiple files found?
             raise ValueError(f"Not sure what happend here. I found {matched_paths} matching paths.")
 
