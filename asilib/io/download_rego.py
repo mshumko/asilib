@@ -47,8 +47,8 @@ def download_rego_img(
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
     force_download: bool
-        If True, download the file even if it already exists. Useful if a prior 
-        data download was incomplete. 
+        If True, download the file even if it already exists. Useful if a prior
+        data download was incomplete.
     ignore_missing_data: bool
         Flag to ignore the FileNotFoundError that is raised when ASI
         data is unavailable for that date-hour. Only used when
@@ -109,7 +109,7 @@ def download_rego_skymap(location_code: str, force_download: bool = False) -> Li
     location_code: str
         The ASI station code, i.e. ``ATHA``
     force_download: bool
-        If True, download the file even if it already exists. Useful if a prior 
+        If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
 
     Returns

@@ -9,7 +9,9 @@ from asilib.io.load import (
 )
 
 
-def keogram(asi_array_code: str, location_code: str, time_range: utils._time_range_type, map_alt: int=None):
+def keogram(
+    asi_array_code: str, location_code: str, time_range: utils._time_range_type, map_alt: int = None
+):
     """
     Makes a keogram pd.DataFrame along the central meridian.
 
@@ -57,9 +59,11 @@ def keogram(asi_array_code: str, location_code: str, time_range: utils._time_ran
     keo_times = keo_times[i_valid]
 
     if not keo.shape[0]:
-        raise ValueError(f'The keogram is empty for {asi_array_code}/{location_code} '
-                        f'during {time_range}. The image data probably does not exist '
-                        f'in this time interval')
+        raise ValueError(
+            f'The keogram is empty for {asi_array_code}/{location_code} '
+            f'during {time_range}. The image data probably does not exist '
+            f'in this time interval'
+        )
 
     if map_alt is None:
         keogram_latitude = np.arange(keo.shape[1])  # Dummy index values for latitudes.

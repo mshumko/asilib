@@ -18,6 +18,7 @@ except ImportError:
 from asilib.io import load
 from asilib.io import utils
 
+
 def plot_map(
     asi_array_code: str,
     location_code: str,
@@ -25,7 +26,7 @@ def plot_map(
     map_alt: float,
     time_thresh_s: float = 3,
     ax: plt.Axes = None,
-    map_style = 'green',
+    map_style='green',
     color_map: str = 'auto',
     min_elevation: float = 10,
     norm=True,
@@ -146,8 +147,9 @@ def plot_map(
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    p = _pcolormesh_nan(lon_map, lat_map, image, ax, cmap=color_map, norm=norm, 
-                        pcolormesh_kwargs=pcolormesh_kwargs)
+    p = _pcolormesh_nan(
+        lon_map, lat_map, image, ax, cmap=color_map, norm=norm, pcolormesh_kwargs=pcolormesh_kwargs
+    )
 
     if asi_label:
         ax.text(
@@ -161,7 +163,10 @@ def plot_map(
         )
     return image_time, image, skymap, ax, p
 
-def create_cartopy_map(map_style: str='green', lon_bounds: tuple=(-160, 52), lat_bounds:tuple=(40, 82)) -> plt.Axes:
+
+def create_cartopy_map(
+    map_style: str = 'green', lon_bounds: tuple = (-160, 52), lat_bounds: tuple = (40, 82)
+) -> plt.Axes:
     """
     A helper function to create two map styles: a simple black and white map, and
     a more sophisticated map with green land.
@@ -205,8 +210,10 @@ def create_cartopy_map(map_style: str='green', lon_bounds: tuple=(-160, 52), lat
         raise ValueError("Only the 'white' and 'green' map_style are implemented.")
     return ax
 
-def _pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, norm=None,
-                    pcolormesh_kwargs={}):
+
+def _pcolormesh_nan(
+    x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, norm=None, pcolormesh_kwargs={}
+):
     """
     Since pcolormesh cant handle nan lat/lon grid values, we will compress them to the
     nearest valid lat/lon grid. There are two main steps:
@@ -260,8 +267,14 @@ def _pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, 
     # TODO: skymap rotation.
     # old masked c code: np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1]
     p = ax.pcolormesh(
-        x, y, c, cmap=cmap, shading='flat', transform=ccrs.PlateCarree(), norm=norm,
-        **pcolormesh_kwargs
+        x,
+        y,
+        c,
+        cmap=cmap,
+        shading='flat',
+        transform=ccrs.PlateCarree(),
+        norm=norm,
+        **pcolormesh_kwargs,
     )
     return p
 

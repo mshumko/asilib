@@ -57,9 +57,19 @@ def plot_image(
 ) -> Tuple[datetime, plt.Axes, matplotlib.image.AxesImage]:
     warnings.warn('asilib.plot_image is renamed to asilib.plot_fisheye and is now deprecated.')
 
-    return plot_fisheye(asi_array_code, location_code, time, force_download=force_download, 
-            time_thresh_s=time_thresh_s, ax=ax, label=label, color_map=color_map, 
-            color_bounds=color_bounds, color_norm=color_norm, azel_contours=azel_contours)
+    return plot_fisheye(
+        asi_array_code,
+        location_code,
+        time,
+        force_download=force_download,
+        time_thresh_s=time_thresh_s,
+        ax=ax,
+        label=label,
+        color_map=color_map,
+        color_bounds=color_bounds,
+        color_norm=color_norm,
+        azel_contours=azel_contours,
+    )
 
 
 def plot_fisheye(
@@ -90,8 +100,8 @@ def plot_fisheye(
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
     force_download: bool
-        If True, download the file even if it already exists. Useful if a prior 
-        data download was incomplete. 
+        If True, download the file even if it already exists. Useful if a prior
+        data download was incomplete.
     time_thresh_s: float
         The maximum allowable time difference between ``time`` and an ASI time stamp.
     ax: plt.Axes
@@ -106,7 +116,7 @@ def plot_fisheye(
     color_bounds: List[float]
         The lower and upper values of the color scale. If None, will
         automatically set it to low=1st_quartile and
-        high=min(3rd_quartile, 10*1st_quartile). This range works well 
+        high=min(3rd_quartile, 10*1st_quartile). This range works well
         for most cases.
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.

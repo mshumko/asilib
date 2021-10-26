@@ -12,12 +12,12 @@ def plot_keogram(
     asi_array_code: str,
     location_code: str,
     time_range: utils._time_range_type,
-    map_alt: float=None,
-    ax: plt.Axes=None,
-    color_bounds: List[float]=None,
-    color_norm: str='lin',
-    title: bool=True,
-    pcolormesh_kwargs: dict={},
+    map_alt: float = None,
+    ax: plt.Axes = None,
+    color_bounds: List[float] = None,
+    color_norm: str = 'lin',
+    title: bool = True,
+    pcolormesh_kwargs: dict = {},
 ):
     """
     Makes a keogram along the central meridian.

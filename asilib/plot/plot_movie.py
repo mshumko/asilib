@@ -16,16 +16,13 @@ from asilib.analysis.start_generator import start_generator
 
 
 def plot_movie(
-    asi_array_code: str, 
-    location_code: str, 
-    time_range: utils._time_range_type, 
-    **kwargs
+    asi_array_code: str, location_code: str, time_range: utils._time_range_type, **kwargs
 ) -> None:
     """
     Make a movie of THEMIS or REGO fisheye images.
 
     This function basically runs plot_movie_generator() in a for loop. The two function's
-    arguments and keyword arguments are identical, so see plot_movie_generator() docs for 
+    arguments and keyword arguments are identical, so see plot_movie_generator() docs for
     the full argument list.
 
     Note: To make movies, you'll need to install ffmpeg in your operating system.
@@ -39,8 +36,8 @@ def plot_movie(
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
     force_download: bool
-        If True, download the file even if it already exists. Useful if a prior 
-        data download was incomplete. 
+        If True, download the file even if it already exists. Useful if a prior
+        data download was incomplete.
     label: bool
         Flag to add the "asi_array_code/location_code/image_time" text to the plot.
     color_map: str
@@ -144,7 +141,7 @@ def plot_movie_generator(
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
     force_download: bool
-        If True, download the file even if it already exists. Useful if a prior 
+        If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
     label: bool
         Flag to add the "asi_array_code/location_code/image_time" text to the plot.
@@ -260,10 +257,10 @@ def plot_movie_generator(
             continue
         ax.clear()
         ax.axis('off')
-        # if-else statement is to recalculate color_bounds for every image 
-        # and set it to _color_bounds. If _color_bounds did not exist, 
-        # color_bounds will be overwritten after the first iteration which will 
-        # disable the dynamic color bounds for each image. 
+        # if-else statement is to recalculate color_bounds for every image
+        # and set it to _color_bounds. If _color_bounds did not exist,
+        # color_bounds will be overwritten after the first iteration which will
+        # disable the dynamic color bounds for each image.
         if color_bounds is None:
             lower, upper = np.quantile(image, (0.25, 0.98))
             _color_bounds = [lower, np.min([upper, lower * 10])]

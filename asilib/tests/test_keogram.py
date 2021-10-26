@@ -62,14 +62,12 @@ class Test_keogram(unittest.TestCase):
 
     def test_keogram_no_images(self):
         """
-        Checks that keogram() raises a ValueError if it tries to make a keogram with 
+        Checks that keogram() raises a ValueError if it tries to make a keogram with
         nonexistant data.
         """
         with self.assertRaises(ValueError):
             keo = keogram(
-                "THEMIS",
-                "ATHA",
-                (datetime(2017, 9, 15, 2, 0, 0), datetime(2017, 9, 15, 3, 0, 0))
+                "THEMIS", "ATHA", (datetime(2017, 9, 15, 2, 0, 0), datetime(2017, 9, 15, 3, 0, 0))
             )
         return
 

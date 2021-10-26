@@ -32,7 +32,7 @@ from asilib.io.load import get_frames  # Deprecated
 
 # Import the plotting and animating functions.
 from asilib.plot.plot_fisheye import plot_fisheye
-from asilib.plot.plot_fisheye import plot_frame  # Deprecated  
+from asilib.plot.plot_fisheye import plot_frame  # Deprecated
 from asilib.plot.plot_fisheye import plot_image  # Deprecated
 from asilib.plot.plot_map import plot_map
 from asilib.plot.plot_map import create_cartopy_map
