@@ -1,4 +1,4 @@
-# Version 0.9.1
+# Version 0.9.2
 - Fixed a bug where the `color_bounds` in `plot_movie_generator()` were static after the first image.
 - Renamed and deprecated `plot_image` for `plot_fisheye`.
 
