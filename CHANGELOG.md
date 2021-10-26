@@ -1,6 +1,6 @@
 # Version 0.9.3
 - Renamed and deprecated `plot_movie` and `plot_movie_generator` for `animate_fisheye` and `animate_fisheye_generator` functions. This change is necessary for consistency with new functions such as `animate_map` and `animate_map_generator` functions.
-- Added the `create_cartopy_map()` function to generalize the map making process for most cases.
+- Renamed the `_make_map` function to `create_cartopy_map()` so users can use this function to create maps from now on.
 
 # Version 0.9.2
 - Fixed a bug where the `color_bounds` in `plot_movie_generator()` were static after the first image.

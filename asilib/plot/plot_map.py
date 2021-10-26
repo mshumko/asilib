@@ -161,7 +161,7 @@ def plot_map(
         )
     return image_time, image, skymap, ax, p
 
-def create_cartopy_map(map_style: str='green', lon_bounds: tuple=(-160, 52), lat_bounds:tuple=(40, 82)):
+def create_cartopy_map(map_style: str='green', lon_bounds: tuple=(-160, 52), lat_bounds:tuple=(40, 82)) -> plt.Axes:
     """
     A helper function to create two map styles: a simple black and white map, and
     a more sophisticated map with green land.
@@ -174,6 +174,16 @@ def create_cartopy_map(map_style: str='green', lon_bounds: tuple=(-160, 52), lat
         A tuple of length 2 specifying the map's longitude bounds.
     lat_bounds: tuple or list
         A tuple of length 2 specifying the map's latitude bounds.
+
+    Returns
+    -------
+    ax: plt.Axes
+        The subplot object with a cartopy map.
+
+    Raises
+    ------
+    ValueError:
+        When a map_style other than 'green' or 'white' is chosen.
     """
     fig = plt.figure(figsize=(8, 5))
     plot_extent = [*lon_bounds, *lat_bounds]
