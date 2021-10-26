@@ -2,7 +2,7 @@
 Examples
 ========
 
-This example gallery using the best practices and illustrates functionality throughout `asilib`. 
+This example gallery using the best practices and illustrates functionality throughout `asilib`. These are complete examples that are also included in the ``asilib/examples/`` directory on GitHub. 
 
 Fisheye Lens View of an Arc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -198,8 +198,8 @@ The `asilib` functionality used here:
     
 .. raw:: html
 
-    <iframe width="100%", height="900px"
-    src="_static/20170915_023300_023457_themis_rank.mp4"
+    <iframe width="75%", height="850px"
+    src="_static/20170915_023200_023457_themis_rank.mp4"
     allowfullscreen></iframe>
 
 .. code:: python
