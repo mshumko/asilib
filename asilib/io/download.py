@@ -156,6 +156,13 @@ def download_themis_img(
     elif (time is not None) and (time_range is not None):
         raise AttributeError('Both time and time_range can not be simultaneously specified.')
 
+    elif time is not None:
+        time = utils._validate_time(time)
+        download_path = _download_one_img_file('themis', location_code, base_url, time, force_download)
+        download_paths = [
+            download_path
+        ]  # List for constancy with the time_range code chunk output.
+
     elif time_range is not None:
         time_range = utils._validate_time_range(time_range)
         download_hours = utils._get_hours(time_range)
@@ -163,7 +170,7 @@ def download_themis_img(
 
         for hour in download_hours:
             try:
-                download_path = _download_one_img_file(base_url, location_code, hour, force_download)
+                download_path = _download_one_img_file('themis', location_code, base_url, hour, force_download)
                 download_paths.append(download_path)
             except NotADirectoryError:
                 if ignore_missing_data:
@@ -279,7 +286,7 @@ def download_rego_img(
 
     elif time is not None:
         time = utils._validate_time(time)
-        download_path = _download_one_img_file(base_url, location_code, time, force_download)
+        download_path = _download_one_img_file('rego', location_code, base_url, time, force_download)
         download_paths = [
             download_path
         ]  # List for constancy with the time_range code chunk output.
@@ -291,7 +298,7 @@ def download_rego_img(
 
         for hour in download_hours:
             try:
-                download_path = _download_one_img_file(base_url, location_code, hour, force_download)
+                download_path = _download_one_img_file('rego', location_code, base_url, hour, force_download)
                 download_paths.append(download_path)
             except NotADirectoryError:
                 if ignore_missing_data:
@@ -354,7 +361,7 @@ def download_rego_skymap(location_code: str, force_download: bool = False) -> Li
     return download_paths
 
 
-def _download_one_img_file(base_url, location_code, time, force_download):
+def _download_one_img_file(asi_array_code, location_code, base_url, time, force_download):
     """
     Download one hour-long file.
     """ 
@@ -365,7 +372,7 @@ def _download_one_img_file(base_url, location_code, time, force_download):
     file_names = utils._search_hrefs(url, search_pattern=search_pattern)
 
     server_url = url + file_names[0]
-    download_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], 'themis', file_names[0])
+    download_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], asi_array_code.lower(), file_names[0])
     if force_download or (not download_path.is_file()):
         utils._stream_large_file(server_url, download_path)
     return download_path

@@ -18,10 +18,8 @@ except KeyError:  # Raised if config.ini does not have Paths.
 config = {'ASILIB_DIR': HERE, 'ASI_DATA_DIR': ASI_DATA_DIR}
 
 # Import download programs.
-from asilib.io.download_rego import download_rego_img
-from asilib.io.download_rego import download_rego_skymap
-from asilib.io.download_themis import download_themis_img
-from asilib.io.download_themis import download_themis_skymap
+from asilib.io.download import download_image
+from asilib.io.download import download_skymap
 
 # Import the loading functions.
 from asilib.io.load import load_skymap
