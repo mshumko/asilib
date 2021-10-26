@@ -44,15 +44,8 @@ class Test_plot_map(unittest.TestCase):
         map_alt = 110
         min_elevation = 2
 
-        fig = plt.figure(figsize=(8, 5))
-        plot_extent = [-160, -52, 40, 82]
-        central_lon = np.mean(plot_extent[:2])
-        central_lat = np.mean(plot_extent[2:])
-        projection = ccrs.Orthographic(central_lon, central_lat)
-        ax = fig.add_subplot(1, 1, 1, projection=projection)
-        ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
-        ax.coastlines()
-        ax.gridlines(linestyle=':')
+        ax = asilib.create_cartopy_map(map_style='green', lon_bounds=(-160, -52), lat_bounds=(40, 82))
+
 
         for location_code in location_codes:
             plot_map(
