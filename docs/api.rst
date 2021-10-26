@@ -49,7 +49,7 @@ Function Summary
     asilib.io.load.load_image
     asilib.io.load.load_image_generator
     asilib.plot.plot_keogram.plot_keogram 
-    asilib.plot.plot_image.plot_image
+    asilib.plot.plot_fisheye.plot_fisheye
     asilib.plot.plot_map.plot_map
     asilib.plot.plot_movie.plot_movie
     asilib.plot.plot_movie.plot_movie_generator
@@ -95,8 +95,8 @@ Plot
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: asilib.plot.plot_image
-   :members: plot_image
+.. automodule:: asilib.plot.plot_fisheye
+   :members: plot_fisheye
    :undoc-members:
    :show-inheritance:
 

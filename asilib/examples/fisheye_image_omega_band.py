@@ -16,6 +16,6 @@ asi_array_code = 'THEMIS'
 location_code = 'KAPU'
 time = '2008-03-09T04:39:00'
 
-asilib.plot_image(asi_array_code, location_code, time)
+asilib.plot_fisheye(asi_array_code, location_code, time)
 plt.tight_layout()
 plt.show()

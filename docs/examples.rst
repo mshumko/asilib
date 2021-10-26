@@ -27,7 +27,7 @@ Fisheye Lens View of an Arc
 
     # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active
     # auroral arc powered by accelerated electrons from very high altitudes"
-    image_time, image, ax, im = asilib.plot_image(
+    image_time, image, ax, im = asilib.plot_fisheye(
         asi_array_code, location_code, time, color_norm='log', force_download=False
     )
     plt.colorbar(im)
