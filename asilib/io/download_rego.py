@@ -1,11 +1,6 @@
-import requests
-from datetime import datetime
-from typing import List, Union
-import dateutil.parser
+from typing import List
 import pathlib
 import warnings
-
-from bs4 import BeautifulSoup
 
 import asilib
 import asilib.io.utils as utils
