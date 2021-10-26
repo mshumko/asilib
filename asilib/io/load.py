@@ -2,7 +2,7 @@ from os import stat
 import pathlib
 from datetime import datetime, timedelta
 import dateutil.parser
-from typing import List, Union, Sequence, Tuple
+from typing import List, Tuple
 from copy import copy
 import warnings
 import re

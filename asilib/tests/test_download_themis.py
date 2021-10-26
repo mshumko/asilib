@@ -3,11 +3,10 @@ import requests
 import pathlib
 from datetime import datetime
 
-from asilib.io import download_themis
 import asilib
 
 """
-Unit tests to check that the functions in download_themis.py are working correctly.
+Unit tests to check that the functions in download.py are working correctly.
 Run with "python3 test_download_themis.py -v" for the verbose output.
 """
 
@@ -20,7 +19,7 @@ class TestDownloadThemis(unittest.TestCase):
         self.asi_array_code = 'THEMIs'
 
         self.url = (
-            download_themis.IMG_BASE_URL
+            'http://themis.ssl.berkeley.edu/data/themis/thg/l1/asi/'
             + f'{self.location_code.lower()}/{self.day.year}/{str(self.day.month).zfill(2)}/'
         )
         return
