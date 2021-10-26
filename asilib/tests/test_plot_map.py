@@ -46,7 +46,6 @@ class Test_plot_map(unittest.TestCase):
 
         ax = asilib.create_cartopy_map(map_style='green', lon_bounds=(-160, -52), lat_bounds=(40, 82))
 
-
         for location_code in location_codes:
             plot_map(
                 asi_array_code, location_code, time, map_alt, ax=ax, min_elevation=min_elevation
