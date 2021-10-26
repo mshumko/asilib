@@ -17,13 +17,9 @@ location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
 map_alt = 110
 min_elevation = 2
 
-# At this time asilib doesn't have an intuitive way to map multiple ASI images, so you need
-# to plot the first imager, and reuse the retuned subplot map to plot the other images.
-image_time, image, skymap, ax, pcolormesh_obj = asilib.plot_map(
-    asi_array_code, location_codes[0], time, map_alt, map_style='green', min_elevation=min_elevation
-)
+ax = asilib.create_cartopy_map(map_style='white', lon_bounds=(-160, -52), lat_bounds=(40, 82))
 
-for location_code in location_codes[1:]:
+for location_code in location_codes:
     asilib.plot_map(
         asi_array_code, location_code, time, map_alt, ax=ax, min_elevation=min_elevation
     )

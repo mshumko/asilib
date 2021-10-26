@@ -46,31 +46,15 @@ STEVE projected onto a map
 
 .. code:: python
 
-    from datetime import datetime
-
     import matplotlib.pyplot as plt
-    import numpy as np
-    import cartopy.crs as ccrs
-    import cartopy.feature as cfeature
 
     import asilib
 
-    # Create a custom map subplot from a satellite's perspective.
-    sat_lat = 54
-    sat_lon = -112
-    sat_altitude_km = 500
-
-    fig = plt.figure(figsize=(7, 7))
-    projection = ccrs.NearsidePerspective(sat_lon, sat_lat, satellite_height=1000*sat_altitude_km)
-    ax = fig.add_subplot(1, 1, 1, projection=projection)
-    ax.add_feature(cfeature.LAND, color='green')
-    ax.add_feature(cfeature.OCEAN)
-    ax.add_feature(cfeature.COASTLINE)
-    ax.gridlines(linestyle=':')
+    ax = asilib.create_cartopy_map(map_style='green', lon_bounds=(-127, -100), lat_bounds=(45, 65))
 
     image_time, image, skymap, ax, p = asilib.plot_map(
-            'THEMIS', 'ATHA', datetime(2010, 4, 5, 6, 7, 0), 110, ax=ax
-        )
+        'THEMIS', 'ATHA', datetime(2010, 4, 5, 6, 7, 0), 110, ax=ax
+    )
     plt.tight_layout()
     plt.show()
 
@@ -98,14 +82,12 @@ Auroral arc projected onto a map
     map_alt = 110
     min_elevation = 2
 
-    # At this time asilib doesn't have an intuitive way to map multiple ASI images, so you need
-    # to plot the first imager, and reuse the retuned subplot map to plot the other images.
-    image_time, image, skymap, ax, pcolormesh_obj = asilib.plot_map(
-        asi_array_code, location_codes[0], time, map_alt, 
-        map_style='green', min_elevation=min_elevation)
+    ax = asilib.create_cartopy_map(map_style='white', lon_bounds=(-160, -52), lat_bounds=(40, 82))
 
-    for location_code in location_codes[1:]:
-        asilib.plot_map(asi_array_code, location_code, time, map_alt, ax=ax, min_elevation=min_elevation)
+    for location_code in location_codes:
+        asilib.plot_map(
+            asi_array_code, location_code, time, map_alt, ax=ax, min_elevation=min_elevation
+        )
 
     ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
     plt.show()

@@ -88,7 +88,9 @@ def download_skymap(asi_array_code: str, location_code: str, force_download: boo
 
     Returns
     -------
-    None
+    download_paths: list
+        A list of pathlib.Path objects that contain the skymap file
+        path(s).
 
     Example
     -------
