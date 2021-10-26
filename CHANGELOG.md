@@ -1,3 +1,16 @@
+# Version 0.9.5
+- Renamed and deprecated `plot_movie` and `plot_movie_generator` for `animate_fisheye` and `animate_fisheye_generator` functions. This change is necessary for consistency with new functions such as `animate_map` and `animate_map_generator` functions.
+- Updated the examples.
+- Combined the download functions to `download_image` and `download_skymap`.
+
+# Version 0.9.3
+- Renamed the `_make_map` function to `create_cartopy_map()` so users can use this function to create maps from now on.
+- Updated the information in `CONTRIBUTE.md`.
+
+# Version 0.9.2
+- Fixed a bug where the `color_bounds` in `plot_movie_generator()` were static after the first image.
+- Renamed and deprecated `plot_image` for `plot_fisheye`.
+
 # Version 0.9.0
 - Rotated the 2- and 3-D `skymap` arrays and fixed a bug in `keogram.py` where the skymap latitudes were a few pixels off.
 
@@ -19,7 +32,7 @@
 # Version 0.7.2
 - For consistency, I removed most instances of the word "frame" and changed them to "image". This propagated to the following function renaming (deprecation of the old name).
 - Deprecated the get_frame and get_frames functions for load_image. It is a wrapper for _load_image and _load_images functions that were once get_frame and get_frames. I added this function to standardize the load/download names. It returns either one or multiple images, depending on if the time or time_range keyword arguments are given; it will raise an error unless time or time_range is passed (not both).
-- Renamed the plot_frame function to plot_image; plot_frame is now deprecated.
+- Renamed the plot_frame function to `plot_image`; plot_frame is now deprecated.
 
 # Version 0.7.1
 - Removed deprecated functions

@@ -1,7 +1,8 @@
 import pathlib
-from typing import List, Union, Sequence, Generator, Tuple
+from typing import List, Union, Generator, Tuple
 from datetime import datetime
 import collections
+import warnings
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -14,18 +15,20 @@ from asilib.io import utils
 from asilib.io.load import load_image, load_skymap
 from asilib.analysis.start_generator import start_generator
 
-
 def plot_movie(
-    asi_array_code: str, 
-    location_code: str, 
-    time_range: utils._time_range_type, 
-    **kwargs
+    asi_array_code: str, location_code: str, time_range: utils._time_range_type, **kwargs
+) -> None:
+    warnings.warn('asilib.plot_movie is deprecated for asilib.animate_fisheye')
+    return animate_fisheye(asi_array_code, location_code, time_range, **kwargs)
+
+def animate_fisheye(
+    asi_array_code: str, location_code: str, time_range: utils._time_range_type, **kwargs
 ) -> None:
     """
-    Make a movie of THEMIS or REGO fisheye images.
+    Animate a series of THEMIS or REGO fisheye images.
 
-    This function basically runs plot_movie_generator() in a for loop. The two function's
-    arguments and keyword arguments are identical, so see plot_movie_generator() docs for 
+    This function basically runs animate_fisheye_generator() in a for loop. The two function's
+    arguments and keyword arguments are identical, so see animate_fisheye_generator() docs for
     the full argument list.
 
     Note: To make movies, you'll need to install ffmpeg in your operating system.
@@ -39,8 +42,8 @@ def plot_movie(
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
     force_download: bool
-        If True, download the file even if it already exists. Useful if a prior 
-        data download was incomplete. 
+        If True, download the file even if it already exists. Useful if a prior
+        data download was incomplete.
     label: bool
         Flag to add the "asi_array_code/location_code/image_time" text to the plot.
     color_map: str
@@ -88,7 +91,7 @@ def plot_movie(
     | import asilib
     |
     | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    | asilib.plot_movie('THEMIS', 'FSMI', time_range)
+    | asilib.animate_fisheye('THEMIS', 'FSMI', time_range)
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
     """
 
@@ -99,7 +102,7 @@ def plot_movie(
         kwargs['ax'] = ax
         plt.tight_layout()
 
-    movie_generator = plot_movie_generator(asi_array_code, location_code, time_range, **kwargs)
+    movie_generator = animate_fisheye_generator(asi_array_code, location_code, time_range, **kwargs)
 
     for image_time, image, im, ax in movie_generator:
         pass
@@ -108,9 +111,38 @@ def plot_movie(
 
 Images = collections.namedtuple('Images', ['time', 'images'])
 
+def plot_movie_generator(
+    asi_array_code: str,
+    location_code: str,
+    time_range: utils._time_range_type,
+    force_download: bool = False,
+    label: bool = True,
+    color_map: str = 'auto',
+    color_bounds: Union[List[float], None] = None,
+    color_norm: str = 'log',
+    azel_contours: bool = False,
+    ax: plt.Axes = None,
+    movie_container: str = 'mp4',
+    ffmpeg_output_params={},
+    overwrite: bool = False,
+) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
+
+    warnings.warn('asilib.plot_movie_generator is deprecated for asilib.animate_fisheye_generator')
+
+    return animate_fisheye_generator(asi_array_code, location_code, time_range, 
+        force_download=force_download,
+        label=label,
+        color_map=color_map,
+        color_bounds=color_bounds,
+        color_norm=color_norm,
+        azel_contours=azel_contours,
+        ax=ax,
+        movie_container=movie_container,
+        ffmpeg_output_params=ffmpeg_output_params,
+        overwrite=overwrite)
 
 @start_generator
-def plot_movie_generator(
+def animate_fisheye_generator(
     asi_array_code: str,
     location_code: str,
     time_range: utils._time_range_type,
@@ -129,7 +161,7 @@ def plot_movie_generator(
     A generator function that loads the ASI data and then yields individual ASI images,
     image by image. This allows the user to add content to each image, such as the
     spacecraft position, and that will convert it to a movie. If you just want to make
-    an ASI movie, use the wrapper for this function, plot_movie().
+    an ASI fisheye movie, use the wrapper for this function, called animate_fisheye().
 
     Once this generator is initiated with the name `gen`, but **before** the for loop,
     you can get the ASI images and times by calling `gen.send('data')`. This will yield a
@@ -144,7 +176,7 @@ def plot_movie_generator(
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
     force_download: bool
-        If True, download the file even if it already exists. Useful if a prior 
+        If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
     label: bool
         Flag to add the "asi_array_code/location_code/image_time" text to the plot.
@@ -203,7 +235,7 @@ def plot_movie_generator(
     | import asilib
     |
     | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    | movie_generator = asilib.plot_movie_generator('THEMIS', 'FSMI', time_range)
+    | movie_generator = asilib.animate_fisheye_generator('THEMIS', 'FSMI', time_range)
     |
     | for image_time, image, im, ax in movie_generator:
     |       # The code that modifies each image here.
@@ -260,10 +292,10 @@ def plot_movie_generator(
             continue
         ax.clear()
         ax.axis('off')
-        # if-else statement is to recalculate color_bounds for every image 
-        # and set it to _color_bounds. If _color_bounds did not exist, 
-        # color_bounds will be overwritten after the first iteration which will 
-        # disable the dynamic color bounds for each image. 
+        # if-else statement is to recalculate color_bounds for every image
+        # and set it to _color_bounds. If _color_bounds did not exist,
+        # color_bounds will be overwritten after the first iteration which will
+        # disable the dynamic color bounds for each image.
         if color_bounds is None:
             lower, upper = np.quantile(image, (0.25, 0.98))
             _color_bounds = [lower, np.min([upper, lower * 10])]

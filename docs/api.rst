@@ -41,40 +41,27 @@ Function Summary
 .. autosummary::
    :nosignatures:
 
-    asilib.io.download_themis.download_themis_img
-    asilib.io.download_themis.download_themis_skymap
-    asilib.io.download_rego.download_rego_img
-    asilib.io.download_rego.download_rego_skymap
-    asilib.io.load.load_skymap
-    asilib.io.load.load_image
-    asilib.io.load.load_image_generator
-    asilib.plot.plot_keogram.plot_keogram 
-    asilib.plot.plot_image.plot_image
-    asilib.plot.plot_map.plot_map
-    asilib.plot.plot_movie.plot_movie
-    asilib.plot.plot_movie.plot_movie_generator
-    asilib.analysis.keogram.keogram
-    asilib.analysis.map.lla2azel
-    asilib.analysis.map.lla2footprint
-    asilib.analysis.equal_area.equal_area
+   asilib.io.download.download_image
+   asilib.io.download.download_skymap
+   asilib.io.load.load_skymap
+   asilib.io.load.load_image
+   asilib.io.load.load_image_generator
+   asilib.plot.plot_keogram.plot_keogram 
+   asilib.plot.plot_fisheye.plot_fisheye
+   asilib.plot.plot_map.plot_map
+   asilib.plot.animate_fisheye.animate_fisheye
+   asilib.plot.animate_fisheye.animate_fisheye_generator
+   asilib.analysis.keogram.keogram
+   asilib.analysis.map.lla2azel
+   asilib.analysis.map.lla2footprint
+   asilib.analysis.equal_area.equal_area
 
-Imager
-======
-
-.. note::
-
-    COMING SOON: All of the asilib functionality will soon be combined into an Imager() class.
 
 Download
 ========
 
-.. automodule:: asilib.io.download_themis
-   :members: download_themis_img, download_themis_skymap
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: asilib.io.download_rego
-   :members: download_rego_img, download_rego_skymap
+.. automodule:: asilib.io.download
+   :members: download_image, download_skymap
    :undoc-members:
    :show-inheritance:
 
@@ -95,18 +82,18 @@ Plot
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: asilib.plot.plot_image
-   :members: plot_image
+.. automodule:: asilib.plot.plot_fisheye
+   :members: plot_fisheye
    :undoc-members:
    :show-inheritance:
 
 .. automodule:: asilib.plot.plot_map
-   :members: plot_map
+   :members: plot_map, create_cartopy_map
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: asilib.plot.plot_movie
-   :members: plot_movie, plot_movie_generator
+.. automodule:: asilib.plot.animate_fisheye
+   :members: animate_fisheye, animate_fisheye_generator
    :undoc-members:
    :show-inheritance:
 

@@ -2,7 +2,7 @@ import warnings
 import pathlib
 import configparser
 
-__version__ = '0.9.1'
+__version__ = '0.9.5'
 
 # Load the configuration settings.
 HERE = pathlib.Path(__file__).parent.resolve()
@@ -18,10 +18,8 @@ except KeyError:  # Raised if config.ini does not have Paths.
 config = {'ASILIB_DIR': HERE, 'ASI_DATA_DIR': ASI_DATA_DIR}
 
 # Import download programs.
-from asilib.io.download_rego import download_rego_img
-from asilib.io.download_rego import download_rego_skymap
-from asilib.io.download_themis import download_themis_img
-from asilib.io.download_themis import download_themis_skymap
+from asilib.io.download import download_image
+from asilib.io.download import download_skymap
 
 # Import the loading functions.
 from asilib.io.load import load_skymap
@@ -31,12 +29,16 @@ from asilib.io.load import get_frame  # Deprecated
 from asilib.io.load import get_frames  # Deprecated
 
 # Import the plotting and animating functions.
-from asilib.plot.plot_image import plot_frame  # Deprecated
-from asilib.plot.plot_image import plot_image
+from asilib.plot.plot_fisheye import plot_fisheye
+from asilib.plot.plot_fisheye import plot_frame  # Deprecated
+from asilib.plot.plot_fisheye import plot_image  # Deprecated
 from asilib.plot.plot_map import plot_map
+from asilib.plot.plot_map import create_cartopy_map
 from asilib.plot.plot_keogram import plot_keogram
-from asilib.plot.plot_movie import plot_movie
-from asilib.plot.plot_movie import plot_movie_generator
+from asilib.plot.animate_fisheye import plot_movie  # Deprecated
+from asilib.plot.animate_fisheye import plot_movie_generator  # Deprecated
+from asilib.plot.animate_fisheye import animate_fisheye
+from asilib.plot.animate_fisheye import animate_fisheye_generator
 
 # Import the analysis functions.
 from asilib.analysis.map import lla2azel

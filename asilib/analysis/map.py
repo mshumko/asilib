@@ -16,9 +16,11 @@ from asilib.io import utils
 
 
 def lla2azel(
-    asi_array_code: str, location_code: str, 
-    time: utils._time_type, sat_lla: np.ndarray, 
-    force_download: bool = False
+    asi_array_code: str,
+    location_code: str,
+    time: utils._time_type,
+    sat_lla: np.ndarray,
+    force_download: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Maps, a satellite's latitude, longitude, and altitude (LLA) coordinates
@@ -34,7 +36,7 @@ def lla2azel(
     location_code: str
         The ASI station code, i.e. ``ATHA``
     time: datetime.datetime or str
-        The date and time to find the relevant skymap file. If str, ``time`` 
+        The date and time to find the relevant skymap file. If str, ``time``
         must be in the ISO 8601 standard.
     sat_lla: np.ndarray or pd.DataFrame
         The satellite's latitude, longitude, and altitude coordinates in a 2d array
@@ -133,8 +135,8 @@ def lla2footprint(
     hemisphere: int = 0,
 ) -> np.ndarray:
     """
-    Map the spacecraft's position to ``map_alt`` along the magnetic field line. 
-    The mapping is implemeneted in ``IRBEM`` and by default it maps to the same 
+    Map the spacecraft's position to ``map_alt`` along the magnetic field line.
+    The mapping is implemeneted in ``IRBEM`` and by default it maps to the same
     hemisphere.
 
     Parameters

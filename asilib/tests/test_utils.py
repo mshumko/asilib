@@ -18,7 +18,7 @@ class TestUtils(unittest.TestCase):
         self.day = datetime(2020, 8, 1, 4)
         self.location_code = 'LuCk'
         self.url = (
-            asilib.io.download_rego.IMG_BASE_URL
+            'http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/'
             + f'{self.location_code.lower()}/{self.day.year}/{str(self.day.month).zfill(2)}/'
         )
         return

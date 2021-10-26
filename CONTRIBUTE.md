@@ -3,10 +3,10 @@ I welcome collaboration on this project. I need the most help with keeping up wi
 
 To install the developer dependencies, clone this repo, `cd aurora-asi-lib` and then run `python3 -m pip install -r requirements.txt -e .`
 
-# Build HTML documentation from scratch
-Install Python 3's Sphinx using `apt-get install python3-sphinx`. The `sphinx-rtd-theme` dependency is defined in `requirements.txt`. Before you update the documentation, if README.md changed, convert it to README.rst using `m2r2 README.md`.
+# Build HTML documentation
+Install Python 3's Sphinx using `apt-get install python3-sphinx`. The `sphinx-rtd-theme` dependency is defined in `requirements.txt`.
 
-To compile the documentation with sphinx, `make html` in the `aurora-asi-lib/docs` directory. The overall documentation configuration is in `conf.py` and `index.rst` contains the reStructuredText instructions that are translated by Sphinx into `docs/_build/html/index.html.`
+To compile the documentation with sphinx, change diretcory into `aurora-asi-lib/docs` and execute `make html`. The new documentation is accessed at `aurora-asi-lib/docs/_build/html/index.html` using your favorite Internet browser. If you need to modify the documentation format, many settings are saved in `conf.py` and `index.rst`.
 
 # PyPI Release Checklist
 - [ ] Commit your latest changes:
@@ -40,9 +40,9 @@ rm -r env/
 ```
 
 ## Test
-To run the asilib unit tests, change directory into `asi-lib` and run ```python3 -m unittest discover -v```. These tests take a few minutes to run because it must download REGO and THEMIS image files. 
+To run the asilib unit tests, change directory into `asilib` and run `pytest` (or alternatively ```python3 -m unittest discover -v```). These tests take a while to run because it must download REGO and THEMIS image files. 
 
-These tests are continously intergrated when the `main` branch is updated by a GitHub runner (virtual machine) using `pytest` and the configuration is saved in `.github/workflows/ci.yml`.
+These tests are also continuously run when the `main` branch is updated. A GitHub runner (accessed via the `Actions` tab on GitHub) uses `pytest` to run the tests.
 
 ## Style and with black
 I adoped the [black](https://pypi.org/project/black/) style with two modifications: line length is set to 100 characters, and I suppress the double-quote string setting. To run black from the `aurora-asi-lib` directory, run 

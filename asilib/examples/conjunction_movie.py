@@ -37,7 +37,7 @@ lla = np.array([lats, lons, alts]).T
 sat_azel, sat_azel_pixels = asilib.lla2azel(asi_array_code, location_code, time_range[0], lla)
 
 # Initiate the movie generator function. Any errors with the data will be raised here.
-movie_generator = asilib.plot_movie_generator(
+movie_generator = asilib.animate_fisheye_generator(
     asi_array_code, location_code, time_range, azel_contours=True, overwrite=True, ax=ax[0]
 )
 
@@ -54,12 +54,12 @@ asi_brightness = np.nanmean(image_data.images * area_box_mask, axis=(1, 2))
 area_box_mask[np.isnan(area_box_mask)] = 0  # To play nice with plt.contour()
 
 for i, (time, image, _, im) in enumerate(movie_generator):
-    # Note that because we are drawing different data in each frame (a unique ASI 
+    # Note that because we are drawing different data in each frame (a unique ASI
     # image in ax[0] and the ASI time series + a guide in ax[1], we need
     # to redraw everything at every iteration.
 
-    ax[1].clear() # ax[0] cleared by asilib.plot_movie_generator()
-    # Plot the entire satellite track, its current location, and a 20x20 km box 
+    ax[1].clear()  # ax[0] cleared by asilib.animate_fisheye_generator()
+    # Plot the entire satellite track, its current location, and a 20x20 km box
     # around its location.
     ax[0].plot(sat_azel_pixels[:, 0], sat_azel_pixels[:, 1], 'red')
     ax[0].scatter(sat_azel_pixels[i, 0], sat_azel_pixels[i, 1], c='red', marker='o', s=50)

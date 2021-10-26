@@ -2,7 +2,7 @@ from os import stat
 import pathlib
 from datetime import datetime, timedelta
 import dateutil.parser
-from typing import List, Union, Sequence, Tuple
+from typing import List, Tuple
 from copy import copy
 import warnings
 import re
@@ -11,10 +11,9 @@ import pandas as pd
 import numpy as np
 import cdflib
 import scipy.io
-import matplotlib.pyplot as plt
 
-from asilib.io import download_rego
-from asilib.io import download_themis
+from asilib.io.download import download_image
+from asilib.io.download import download_skymap
 from asilib.io import utils
 import asilib
 
@@ -44,8 +43,8 @@ def load_image(
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
     force_download: bool
-        If True, download the file even if it already exists. Useful if a prior 
-        data download was incomplete. 
+        If True, download the file even if it already exists. Useful if a prior
+        data download was incomplete.
     time_thresh_s: float
         The maximum allowable time difference between ``time`` and an ASI time stamp.
         This is relevant only when ``time`` is specified.
@@ -72,7 +71,7 @@ def load_image(
     | location_code = 'ATHA'
     | time = datetime(2008, 3, 9, 9, 18, 0)
     | image_time, image = asilib.load_image(asi_array_code, location_code, time=time, force_download=False)
-    | 
+    |
     | # Load multiple images
     | asi_array_code = 'REGO'
     | location_code = 'LUCK'
@@ -113,7 +112,7 @@ def load_image_generator(
     ignore_missing_data: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Yields multiple ASI image files one by one and crops the time stamps by ``time_range``. 
+    Yields multiple ASI image files one by one and crops the time stamps by ``time_range``.
 
     This generator is useful for loading lots of data---useful for keograms. The returned
     time stamps span a range from time_range[0], up to, but excluding a time stamp
@@ -130,8 +129,8 @@ def load_image_generator(
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
     force_download: bool
-        If True, download the file even if it already exists. Useful if a prior 
-        data download was incomplete. 
+        If True, download the file even if it already exists. Useful if a prior
+        data download was incomplete.
     ignore_missing_data: bool
         Flag to ignore the ``FileNotFoundError`` that is raised when ASI
         data is unavailable for that date-hour. Only useful when ``time_range``
@@ -197,7 +196,7 @@ def load_skymap(
         The date and time to download of the data. If str, ``time`` must be in the
         ISO 8601 standard.
     force_download: bool
-        If True, download the file even if it already exists. Useful if a prior 
+        If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
 
     Returns
@@ -216,14 +215,9 @@ def load_skymap(
         time = dateutil.parser.parse(time)
 
     if force_download:
-        if asi_array_code.lower() == 'themis':
-            skymap_paths = download_themis.download_themis_skymap(
-                location_code, force_download=force_download
-            )
-        elif asi_array_code.lower() == 'rego':
-            skymap_paths = download_rego.download_rego_skymap(
-                location_code, force_download=force_download
-            )
+        skymap_paths = download_skymap(asi_array_code.lower(),
+            location_code, force_download=force_download
+        )
 
     else:
         # If the user does not want to force download skymap files,
@@ -239,14 +233,9 @@ def load_skymap(
 
         # Download skymap files if they are not downloaded yet.
         if len(skymap_paths) == 0:
-            if asi_array_code.lower() == 'themis':
-                skymap_paths = download_themis.download_themis_skymap(
-                    location_code, force_download=force_download
-                )
-            elif asi_array_code.lower() == 'rego':
-                skymap_paths = download_rego.download_rego_skymap(
-                    location_code, force_download=force_download
-                )
+            skymap_paths = download_skymap(asi_array_code.lower(),
+                location_code, force_download=force_download
+            )
 
     skymap_dates = _extract_skymap_dates(skymap_paths)
 
@@ -268,7 +257,7 @@ def load_skymap(
     # Load the skymap file and convert it to a dictionary.
     skymap_file = scipy.io.readsav(str(skymap_path), python_dict=True)['skymap']
     skymap_dict = {key: copy(skymap_file[key][0]) for key in skymap_file.dtype.names}
-   
+
     skymap_dict = _tranform_longitude_to_180(skymap_dict)
     skymap_dict = _flip_skymap(skymap_dict)
     skymap_dict['SKYMAP_PATH'] = skymap_path
@@ -331,8 +320,8 @@ def _load_image(
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
     force_download: bool
-        If True, download the file even if it already exists. Useful if a prior 
-        data download was incomplete. 
+        If True, download the file even if it already exists. Useful if a prior
+        data download was incomplete.
     time_thresh_s: float
         The maximum allowable time difference between ``time`` and an ASI time stamp.
         This is relevant only when ``time`` is specified.
@@ -417,8 +406,8 @@ def _load_images(
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
     force_download: bool
-        If True, download the file even if it already exists. Useful if a prior 
-        data download was incomplete. 
+        If True, download the file even if it already exists. Useful if a prior
+        data download was incomplete.
     time_thresh_s: float
         The maximum allowable time difference between ``time`` and an ASI time stamp.
         This is relevant only when ``time`` is specified.
@@ -497,8 +486,8 @@ def _find_img_path(
         The date and time to download of the data. If str, ``time`` must be in the
         ISO 8601 standard.
     force_download: bool
-        If True, download the file even if it already exists. Useful if a prior 
-        data download was incomplete. 
+        If True, download the file even if it already exists. Useful if a prior
+        data download was incomplete.
 
     Returns
     -------
@@ -526,14 +515,9 @@ def _find_img_path(
     time = utils._validate_time(time)
 
     if force_download:
-        if asi_array_code.lower() == 'themis':
-            file_path = download_themis.download_themis_img(
-                location_code, time=time, force_download=force_download
-            )[0]
-        elif asi_array_code.lower() == 'rego':
-            file_path = download_rego.download_rego_img(
-                location_code, time=time, force_download=force_download
-            )[0]
+        file_path = download_image(asi_array_code.lower(), 
+            location_code, time=time, force_download=force_download
+        )[0]
     else:
         # If the user does not want to force a download, look for a file on the
         # computer. If a local file is not found, try to download one.
@@ -548,24 +532,14 @@ def _find_img_path(
             file_path = matched_paths[0]
 
         elif len(matched_paths) == 0:  # No local file found
-            if asi_array_code.lower() == 'themis':
-                try:
-                    file_path = download_themis.download_themis_img(
-                        location_code, time=time, force_download=force_download
-                    )[0]
-                except NotADirectoryError:
-                    raise FileNotFoundError(
-                        f'THEMIS ASI data not found for location_code={location_code} at {time}'
-                    )
-            elif asi_array_code.lower() == 'rego':
-                try:
-                    file_path = download_rego.download_rego_img(
-                        location_code, time=time, force_download=force_download
-                    )[0]
-                except NotADirectoryError:
-                    raise FileNotFoundError(
-                        f'REGO ASI data not found for location_code={location_code} at {time}'
-                    )
+            try:
+                file_path = download_image(asi_array_code.lower(),
+                    location_code, time=time, force_download=force_download
+                )[0]
+            except NotADirectoryError:
+                raise FileNotFoundError(
+                    f'{asi_array_code.upper()} ASI data not found for location_code={location_code} at {time}'
+                )
         else:  # Multiple files found?
             raise ValueError(f"Not sure what happend here. I found {matched_paths} matching paths.")
 
@@ -620,6 +594,7 @@ def _create_empty_data_arrays(asi_array_code, time_range, type):
     data = np.nan * np.zeros(data_shape)
     return times, data
 
+
 def _flip_skymap(skymap):
     """
     IDL saves arrays with indices starting at the lower-right corner? So we need to
@@ -636,9 +611,10 @@ def _flip_skymap(skymap):
                 skymap[key] = skymap[key][:, ::-1, ::-1]  # For lat/lon maps
     return skymap
 
+
 def _tranform_longitude_to_180(skymap):
     """
-    Transform the SITE_MAP_LONGITUDE and FULL_MAP_LONGITUDE arrays from 
+    Transform the SITE_MAP_LONGITUDE and FULL_MAP_LONGITUDE arrays from
     (0 -> 360) to (-180 -> 180).
     """
     skymap['SITE_MAP_LONGITUDE'] = np.mod(skymap['SITE_MAP_LONGITUDE'] + 180, 360) - 180
