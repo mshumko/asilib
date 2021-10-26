@@ -73,7 +73,7 @@ def download_image(
     return paths
 
 
-def download_skymap(asi_array_code: str, location_code: str, force_download: bool = False)
+def download_skymap(asi_array_code: str, location_code: str, force_download: bool = False) -> List[pathlib.Path]:
     """
     Download all of the THEMIS or REGO skymap IDL .sav files.
 
@@ -100,9 +100,9 @@ def download_skymap(asi_array_code: str, location_code: str, force_download: boo
     | asilib.download_skymap(asi_array_code, location_code)
     """
     if asi_array_code.lower() == 'themis':
-        paths = download_themis_skymap(location_code)
+        paths = download_themis_skymap(location_code, force_download=force_download)
     elif asi_array_code.lower() == 'rego':
-        paths = download_rego_skymap(location_code)
+        paths = download_rego_skymap(location_code, force_download=force_download)
     return paths
 
 
@@ -174,7 +174,7 @@ def download_themis_img(
     return download_paths
 
 
-def download_themis_skymap(location_code: str, force_download: bool = False):
+def download_themis_skymap(location_code: str, force_download: bool = False) -> List[pathlib.Path]:
     """
     Download all of the THEMIS skymap IDL .sav files.
 
