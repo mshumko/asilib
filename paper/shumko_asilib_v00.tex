@@ -176,7 +176,7 @@ You can make a keogram using the \verb|asilib.plot_keogram()| function (that in 
 
 You can easily animate ASI fisheye images using \verb|asilib.plot_fisheye_movie()|. It first saves png images in a unique subfolder in the \verb|~/asilib-data/movies/frames/| folder, and then animates them using the \verb|ffmpeg| library. Movie S1 in the supporting information (SI) document shows an example of \textcolor{red}{X}. \textcolor{red}{Add} \verb|asilib.plot_map_movie()|?
 
-Animating raw fisheye images is somewhat limiting, thus \verb|asilib| also includes \verb|asilib.plot_movie_generator()| (technically a coroutine) to create a stream of customizable ASI images. You can then modify each image before \verb|asilib.plot_movie_generator()| saves the image frame and combines it into a movie. A common use of this generator function is to superpose your data onto each ASI image, as for a conjunction described in Section \ref{satellite_conjunction}.
+Animating just the raw fisheye images is somewhat limiting, thus \verb|asilib| also includes \verb|asilib.plot_movie_generator()| (technically a coroutine) to iterate over customizable ASI images during which you can modify each image. After all of the images are iterated over, \verb|asilib.plot_movie_generator()| combines the modified images into a movie. What sort of modifications can you make? For example you can use it to superpose an overhead satellite path (a conjunction) through each image as described in Section \ref{satellite_conjunction}.
 
 \subsection{ASI analysis tools}
 \textcolor{blue}{
