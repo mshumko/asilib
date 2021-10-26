@@ -199,7 +199,7 @@ Fisheye Movie
     location_code = 'FSMI'
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 30))
 
-    asilib.plot_movie(asi_array_code, location_code, time_range, overwrite=True)
+    asilib.animate_fisheye(asi_array_code, location_code, time_range, overwrite=True)
     print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
 
 
@@ -210,7 +210,7 @@ A comprehensive example that maps a hypothetical satellite track to an image and
 
 The `asilib` functionality used here: 
 
-* `asilib.plot_movie_generator().send()` to get all the images and image times
+* `asilib.animate_fisheye_generator().send()` to get all the images and image times
 * `asilib.lla2azel()` to map the satelites latitude, longitude, altitude (LLA) coordinates to the imager's azimuth and elevation (values and nearest image pixels).
 * `asilib.equal_area()` to create a masked array of pixels within a X by Y km sized box at the emission altitude. The masked array is `np.nan` outside of the box and 1 inside.
     
@@ -258,7 +258,7 @@ The `asilib` functionality used here:
     sat_azel, sat_azel_pixels = asilib.lla2azel(asi_array_code, location_code, time_range[0], lla)
 
     # Initiate the movie generator function. Any errors with the data will be raised here.
-    movie_generator = asilib.plot_movie_generator(
+    movie_generator = asilib.animate_fisheye_generator(
         asi_array_code, location_code, time_range, azel_contours=True, overwrite=True, ax=ax[0]
     )
 
@@ -279,7 +279,7 @@ The `asilib` functionality used here:
         # image in ax[0] and the ASI time series + a guide in ax[1], we need
         # to redraw everything at every iteration.
 
-        ax[1].clear() # ax[0] cleared by asilib.plot_movie_generator()
+        ax[1].clear() # ax[0] cleared by asilib.animate_fisheye_generator()
         # Plot the entire satellite track, its current location, and a 20x20 km box 
         # around its location.
         ax[0].plot(sat_azel_pixels[:, 0], sat_azel_pixels[:, 1], 'red')

@@ -5,10 +5,10 @@ import asilib
 
 
 class TestPlotImage(unittest.TestCase):
-    def test_plot_movie_generator(self):
-        """Checks that the example in plot_movie_generator() works."""
+    def test_animate_fisheye_generator(self):
+        """Checks that the example in animate_fisheye_generator() works."""
         time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-        movie_generator = asilib.plot_movie_generator(
+        movie_generator = asilib.animate_fisheye_generator(
             time_range, 'THEMIS', 'FSMI', azel_contours=True, overwrite=True
         )
 
@@ -17,16 +17,16 @@ class TestPlotImage(unittest.TestCase):
             pass
         return
 
-    def test_plot_movie(self):
-        """Checks that plot_movie() works."""
+    def test_animate_fisheye(self):
+        """Checks that animate_fisheye() works."""
         time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-        asilib.plot_movie('THEMIS', 'FSMI', time_range, azel_contours=True, overwrite=True)
+        asilib.animate_fisheye('THEMIS', 'FSMI', time_range, azel_contours=True, overwrite=True)
         return
 
-    def test_plot_movie_generator(self):
+    def test_animate_fisheye_generator(self):
         """Check that the generator function and the .send() method works"""
         time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-        gen = asilib.plot_movie_generator(
+        gen = asilib.animate_fisheye_generator(
             'THEMIS', 'FSMI', time_range, azel_contours=True, overwrite=True
         )
         tup = gen.send("get_image_data")

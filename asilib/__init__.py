@@ -37,8 +37,10 @@ from asilib.plot.plot_fisheye import plot_image  # Deprecated
 from asilib.plot.plot_map import plot_map
 from asilib.plot.plot_map import create_cartopy_map
 from asilib.plot.plot_keogram import plot_keogram
-from asilib.plot.plot_movie import plot_movie
-from asilib.plot.plot_movie import plot_movie_generator
+from asilib.plot.animate_fisheye import plot_movie  # Deprecated
+from asilib.plot.animate_fisheye import plot_movie_generator  # Deprecated
+from asilib.plot.animate_fisheye import animate_fisheye
+from asilib.plot.animate_fisheye import animate_fisheye_generator
 
 # Import the analysis functions.
 from asilib.analysis.map import lla2azel
