@@ -126,7 +126,7 @@ def plot_map(
 
     # Set up the plot parameters
     if ax is None:
-        ax = _make_map(map_style)
+        ax = create_cartopy_map(map_style=map_style)
 
     if color_bounds is None:
         lower, upper = np.nanquantile(image, (0.25, 0.98))
@@ -146,7 +146,8 @@ def plot_map(
     else:
         raise ValueError('color_norm must be either "log" or "lin".')
 
-    p = _pcolormesh_nan(lon_map, lat_map, image, ax, cmap=color_map, norm=norm)
+    p = _pcolormesh_nan(lon_map, lat_map, image, ax, cmap=color_map, norm=norm, 
+                        pcolormesh_kwargs=pcolormesh_kwargs)
 
     if asi_label:
         ax.text(
@@ -160,31 +161,42 @@ def plot_map(
         )
     return image_time, image, skymap, ax, p
 
-def _make_map(map_style):
+def create_cartopy_map(map_style: str='green', lon_bounds: tuple=(-160, 52), lat_bounds:tuple=(40, 82)):
     """
-    Helper function to make a few types of map styles.
+    A helper function to create two map styles: a simple black and white map, and
+    a more sophisticated map with green land.
+
+    Parameters
+    ----------
+    map_style: str
+        The map color style, can be either 'green' or 'white'.
+    lon_bounds: tuple or list
+        A tuple of length 2 specifying the map's longitude bounds.
+    lat_bounds: tuple or list
+        A tuple of length 2 specifying the map's latitude bounds.
     """
     fig = plt.figure(figsize=(8, 5))
-    plot_extent = [-160, -52, 40, 82]
-    central_lon = np.mean(plot_extent[:2])
-    central_lat = np.mean(plot_extent[2:])
+    plot_extent = [*lon_bounds, *lat_bounds]
+    central_lon = np.mean(lon_bounds)
+    central_lat = np.mean(lat_bounds)
     projection = ccrs.Orthographic(central_lon, central_lat)
     ax = fig.add_subplot(1, 1, 1, projection=projection)
     ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
 
-    if map_style == 'white':
-        ax.coastlines()
-        ax.gridlines(linestyle=':')
-    elif map_style == 'green':
+    if map_style == 'green':
         ax.add_feature(cfeature.LAND, color='green')
         ax.add_feature(cfeature.OCEAN)
         ax.add_feature(cfeature.COASTLINE)
+        ax.gridlines(linestyle=':')
+    elif map_style == 'white':
+        ax.coastlines()
         ax.gridlines(linestyle=':')
     else:
         raise ValueError("Only the 'white' and 'green' map_style are implemented.")
     return ax
 
-def _pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, norm=None):
+def _pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, norm=None,
+                    pcolormesh_kwargs={}):
     """
     Since pcolormesh cant handle nan lat/lon grid values, we will compress them to the
     nearest valid lat/lon grid. There are two main steps:
@@ -238,7 +250,8 @@ def _pcolormesh_nan(x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, 
     # TODO: skymap rotation.
     # old masked c code: np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1]
     p = ax.pcolormesh(
-        x, y, c, cmap=cmap, shading='flat', transform=ccrs.PlateCarree(), norm=norm
+        x, y, c, cmap=cmap, shading='flat', transform=ccrs.PlateCarree(), norm=norm,
+        **pcolormesh_kwargs
     )
     return p
 
