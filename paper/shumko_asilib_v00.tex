@@ -147,7 +147,7 @@ Another common way to visualize images is by projecting the fisheye image onto a
 \subsection{Keograms}
 A ubiquitous way to visualize ASI images and identify different types of aurora is with keograms. A keogram is a compression of many sequential ASI images into a single image showing pixel intensity as a function of latitude and time. Typically, they are assembled by looping over every image and slicing pixels that are oriented North-South through zenith (or through a custom path such a path of a stellite). Keograms are an essential tool that compress the information contained in hours of images into one plot. Objects in the sky such as auroral arcs, pulsating aurora, substorms, clouds, the moon, etc. all have unique keogram signatures that allow you to quickly classify what the imager observed. 
 
-You can make a keogram using the \verb|asilib.plot_keogram()| function (that in turn calls \verb|asilib.keogram()|). Similar to \verb|asilib.plot_map()|, \verb|asilib.plot_keogram()| takes an optional \verb|map_alt| keyword argument. If it is not provided, the keogram's vertical axis is pixel index, but if a valid map altitude is provided, the vertical axis is geographic latitude. To minimize the PC's memory usage, \verb|asilib.keogram()| loads image data using \verb|asilib.load_image_generator()| that processes one image file at a time. The keogram shown in Fig. \ref{fig3} shows the dynamic nature of the aurora. Furthermore, the latitude  mapping transformation between panels a and b is substantial---low elevation pixels map to much wider sections of latitude as compared to the pixels near zenith.
+You can make a keogram using the \verb|asilib.plot_keogram()| function (that in turn calls \verb|asilib.keogram()|). Similar to \verb|asilib.plot_map()|, \verb|asilib.plot_keogram()| takes an optional \verb|map_alt| keyword argument. If it is not provided, the keogram's vertical axis is pixel index, but if a valid map altitude is provided, the vertical axis is geographic latitude. To minimize the PC's memory usage, \verb|asilib.keogram()| loads image data using \verb|asilib.load_image_generator()| that loads one image file at a time. The keogram shown in Fig. \ref{fig3} shows the dynamic nature of the aurora. Furthermore, the latitude  mapping transformation between panels a and b is substantial---low elevation pixels map to much wider sections of latitude as compared to the pixels near zenith.
 
 \begin{figure}
       \includegraphics[width=\textwidth]{figures/fig3.png}
@@ -156,22 +156,12 @@ You can make a keogram using the \verb|asilib.plot_keogram()| function (that in 
 \end{figure}
 
 
-\subsection{Creating ASI movies}
-\textcolor{blue}{
-      OUTLINE
-      \begin{itemize}
-            \item Basic fisheye animation
-            \item Basic map animation (need to add functionality)
-            \item Using co-routines to superpose data onto images (extensively used for conjunctions).
-            \item Reference SI movie 1.
-      \end{itemize}
-}
-
-You can easily animate ASI fisheye images using \verb|asilib.animate_fisheye()|. It first saves png images in a unique subfolder in the \verb|~/asilib-data/movies/images/| folder, and then animates them using the \verb|ffmpeg| library. Movie S1 in the supporting information (SI) document shows an example of \textcolor{red}{X}.
+\subsection{Animating Images}
+You can easily animate ASI fisheye images using \verb|asilib.animate_fisheye()|. It first saves png images in a unique subfolder in the \verb|~/asilib-data/movies/images/| folder, and then animates them using the \verb|ffmpeg| library. Movie S1 in the supporting information (SI) document shows an example of \textcolor{red}{X type of aurora}.
 
 Animating just the fisheye images is somewhat limiting. Thus, \verb|asilib| also includes \verb|asilib.animate_fisheye_generator()| (which is technically a coroutine) to iterate over and pause after each ASI image to allow you to modify it. Then, after the iteration is complete, \verb|asilib.animate_fisheye_generator()| combines the modified images into a movie. What sort of modifications can you make? For example, you can use it to superpose a satellite path and estimate the auroral intensity at its footprint during a conjunction. This is further described in the next two sections. 
 
-We mentioned earlier that the \verb|asilib.animate_fisheye_generator()| is technically a coroutine. So what does that mean? Here, it means that before looping over each ASI image, you can request the raw data from \verb|asilib.animate_fisheye_generator()| using the \verb|.send('data')| method. Then you can, for example, review the available ASI time stamps to appropriately process the satellite data.
+We mentioned earlier that the \verb|asilib.animate_fisheye_generator()| is technically a coroutine. So what does that mean? Here, it means that before looping over each ASI image, you can request the raw data from \verb|asilib.animate_fisheye_generator()| using the \verb|.send('data')| method. You can use this to, for example, use the available ASI time stamps to appropriately sample the satellite location.
 
 \subsection{ASI analysis tools}
 \textcolor{blue}{
@@ -182,6 +172,10 @@ We mentioned earlier that the \verb|asilib.animate_fisheye_generator()| is techn
             \item area2pixels
       \end{itemize}
 }
+
+Currently, \verb|asilib| provides three analysis functions that are useful for conjunction analysis: \verb|asilib.lla2footprint|, \verb|asilib.lla2azel|, and \verb|asilib.area2pixels|. 
+
+\verb|asilib.lla2footprint| uses IRBEM-Lib (CITE; requires a separate installation and compilation of the Fortran source code) to trace a satellite's position along the magnetic field line using one of the magnetic field models that are supported by IRBEM. The primary use of this function is to map the satellite's location at, say, 500 km altitude, to the assumed auroral emission altitude (previously mentioned).
 
 \subsection{An example: a satellite-ASI conjunction}\label{satellite_conjunction}
 \textcolor{blue}{
@@ -210,7 +204,7 @@ We mentioned earlier that the \verb|asilib.animate_fisheye_generator()| is techn
             \item Switch from CDF to pgm files.
             \item Support more ASI arrays such as TREx
             \item Community challenge. This package is made for the space physics community, so we will seek feedback (in the form of issues and bugs) that are discovered during a community challenge time period. 
-            \item Combine into a class architecture to share data.
+            \item Combine into a class architecture to share data. This is proving to be difficult to balance usability and maintainability.
       \end{itemize}
 }
 While aurorax-asilib is feature complete, we plan to keep developing it.
