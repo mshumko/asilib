@@ -164,18 +164,17 @@ Animating just the fisheye images is somewhat limiting. Thus, \verb|asilib| also
 We mentioned earlier that the \verb|asilib.animate_fisheye_generator()| is technically a coroutine. So what does that mean? Here, it means that before looping over each ASI image, you can request the raw data from \verb|asilib.animate_fisheye_generator()| using the \verb|.send('data')| method. You can use this to, for example, use the available ASI time stamps to appropriately sample the satellite location.
 
 \subsection{ASI analysis tools}
-\textcolor{blue}{
-      OUTLINE
-      \begin{itemize}
-            \item lla2azel
-            \item lla2footprint (requires IRBEM)
-            \item area2pixels
-      \end{itemize}
-}
+Currently, \verb|asilib| provides three analysis functions that are useful for conjunction analysis: \verb|asilib.lla2footprint()|, \verb|asilib.lla2azel()|, and \verb|asilib.area2pixels()|.
 
-Currently, \verb|asilib| provides three analysis functions that are useful for conjunction analysis: \verb|asilib.lla2footprint|, \verb|asilib.lla2azel|, and \verb|asilib.area2pixels|. 
+\verb|asilib.lla2footprint()| uses IRBEM-Lib (CITE; requires a separate installation and compilation of the Fortran source code) to trace a satellite's position, in (latitude, longitude, altitude) (LLA) coordinates, along a magnetic field line. This field line is defined using one of the magnetic field models that are supported by IRBEM. The primary use of this function is to map a low Earth orbiting satellite's location at, say, 500 km altitude, to its magnetic footprint at the assumed auroral emission altitude, e.g. 110 km for THEMIS or 230 km for REGO as previously mentioned.
 
-\verb|asilib.lla2footprint| uses IRBEM-Lib (CITE; requires a separate installation and compilation of the Fortran source code) to trace a satellite's position along the magnetic field line using one of the magnetic field models that are supported by IRBEM. The primary use of this function is to map the satellite's location at, say, 500 km altitude, to the assumed auroral emission altitude (previously mentioned).
+The next function is \verb|asilib.lla2azel()|. It maps the satellite's footprint location, in LLA coordinates, to the ASI's (azimuth, elevation) coordinates (AzEl) using the \verb|FULL_AZIMUTH| and \verb|FULL_ELEVATION| skymap arrays. This function returns both the AzEl coordinates as well as the corresponding pixels in the image.
+
+And the last analysis function that we describe here is \verb|asilib.area2pixels()| that calculates a pixel mask of pixels inside an area. This function is useful to calculate the mean ASI intensity (or another statistical method) using pixels that map to a physical area in the sky. The mask has 1s inside of the area and \verb|numpy.nan| outside of it. You multiply the image with the mask: the pixel intensities outside of the area are then \verb|numpy.nan| and unchanged in the area. We chose to use \verb|numpy.nan| to ensure that the mean of the intensity is correctly applied---it will fail if you call \verb|numpy.mean(image*mask)|, but \verb|numpy.nanmean(image*mask)| will ignore NaNs and correctly calculate the mean intensity inside the area)
+
+If you give it one LLA coordinate, the mask will have the same shape as the ASI image. On the other hand, if you pass multiple LLA coordinates, the mask's will have a new first dimension corresponding to the number of coordinates.
+
+By default, the area is 5x5 km. \textcolor{red}{Think about how this function works for LLA values outside of the ASI's field of view. Maybe have a check for LLA values are completely outside of lat map or lon map? Also raise a warning if some of the 2d mask arrays are all nans.} If the area is so small that not even one pixel is contained within it (but it is above the horizon), \verb|asilib.area2pixels()| will slowly increase the area tolerance until at least one pixel is found.
 
 \subsection{An example: a satellite-ASI conjunction}\label{satellite_conjunction}
 \textcolor{blue}{
@@ -183,10 +182,11 @@ Currently, \verb|asilib| provides three analysis functions that are useful for c
       \begin{itemize}
             \item Combine everything above into an example showing where the footprint of a LEO satellite is, and what 
             \item Figure 4: A conjunction montage and a time series
-            \item (Implement an Imager.conjunction function)
             \item Reference movie S2
       \end{itemize}
 }
+
+In this example we combine the aforementioned analysis functions into a conjunction example. 
 
 \section{Quality Assurance}
 \textcolor{blue}{
