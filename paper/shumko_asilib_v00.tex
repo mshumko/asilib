@@ -167,9 +167,11 @@ You can make a keogram using the \verb|asilib.plot_keogram()| function (that in 
       \end{itemize}
 }
 
-You can easily animate ASI fisheye images using \verb|asilib.plot_fisheye_movie()|. It first saves png images in a unique subfolder in the \verb|~/asilib-data/movies/frames/| folder, and then animates them using the \verb|ffmpeg| library. Movie S1 in the supporting information (SI) document shows an example of \textcolor{red}{X}. \textcolor{red}{Add} \verb|asilib.plot_map_movie()|?
+You can easily animate ASI fisheye images using \verb|asilib.animate_fisheye()|. It first saves png images in a unique subfolder in the \verb|~/asilib-data/movies/images/| folder, and then animates them using the \verb|ffmpeg| library. Movie S1 in the supporting information (SI) document shows an example of \textcolor{red}{X}.
 
-Animating just the raw fisheye images is somewhat limiting, thus \verb|asilib| also includes \verb|asilib.plot_movie_generator()| (technically a coroutine) to iterate over customizable ASI images during which you can modify each image. After all of the images are iterated over, \verb|asilib.plot_movie_generator()| combines the modified images into a movie. What sort of modifications can you make? For example you can use it to superpose an overhead satellite path (a conjunction) through each image as described in Section \ref{satellite_conjunction}.
+Animating just the fisheye images is somewhat limiting. Thus, \verb|asilib| also includes \verb|asilib.animate_fisheye_generator()| (which is technically a coroutine) to iterate over and pause after each ASI image to allow you to modify it. Then, after the iteration is complete, \verb|asilib.animate_fisheye_generator()| combines the modified images into a movie. What sort of modifications can you make? For example, you can use it to superpose a satellite path and estimate the auroral intensity at its footprint during a conjunction. This is further described in the next two sections. 
+
+We mentioned earlier that the \verb|asilib.animate_fisheye_generator()| is technically a coroutine. So what does that mean? Here, it means that before looping over each ASI image, you can request the raw data from \verb|asilib.animate_fisheye_generator()| using the \verb|.send('data')| method. Then you can, for example, review the available ASI time stamps to appropriately process the satellite data.
 
 \subsection{ASI analysis tools}
 \textcolor{blue}{
