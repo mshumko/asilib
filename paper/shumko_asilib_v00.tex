@@ -174,7 +174,7 @@ And the last analysis function that we describe here is \verb|asilib.area2pixels
 
 If you give it one LLA coordinate, the mask will have the same shape as the ASI image. On the other hand, if you pass multiple LLA coordinates, the mask's will have a new first dimension corresponding to the number of coordinates.
 
-By default, the area is 5x5 km. \textcolor{red}{Think about how this function works for LLA values outside of the ASI's field of view. Maybe have a check for LLA values are completely outside of lat map or lon map? Also raise a warning if some of the 2d mask arrays are all nans.} If the area is so small that not even one pixel is contained within it (but it is above the horizon), \verb|asilib.area2pixels()| will slowly increase the area tolerance until at least one pixel is found.
+By default, the area is 5x5 km. \textcolor{red}{Think about how this function works for LLA values outside of the ASI's field of view. Maybe have a check for LLA values are completely outside of lat map or lon map? Also raise a warning if some of the 2d mask arrays are all nans.} If the area is so small that not even one pixel is contained inside it (but it is above the horizon), \verb|asilib.area2pixels()| will slowly increase the area tolerance until at least one pixel is found.
 
 \subsection{An example: a satellite-ASI conjunction}\label{satellite_conjunction}
 \textcolor{blue}{
