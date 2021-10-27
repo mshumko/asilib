@@ -186,16 +186,16 @@ By default, the area is 5x5 km. \textcolor{red}{Think about how this function wo
       \end{itemize}
 }
 
-In this example we combine the aforementioned analysis functions into a conjunction example. 
+In this example we combine the aforementioned analysis functions into an example of a conjunction between a THEMIS ASI and a fictional satellite in low Earth orbit. 
 
 \section{Quality Assurance}
-\textcolor{blue}{
-      OUTLINE
-      \begin{itemize}
-            \item asilib on GitHub. unit and integration tests run automatically before every release.
-            \item THEMIS and REGO data formats are set and won't change.
-      \end{itemize}
-}
+We developed \verb|asilib| with useability and maintainability at the forefront. The Python source code is available on \verb|aurora-asi-lib| GitHub repository (URL). It is also archived on Zenodo and the Python Packaging Index (PyPI). On GitHub you can submit an Issue for bugs or feature requests, and you can contribute to \verb|asilib| using a Pull Request. 
+
+To ensure code stability, the \verb|asilib| source code includes a few dozen unit and integration tests that you can run locally, and are automatically run on GitHub Actions every time a change is pushed to the repository. These tests test the main library functions and will quickly warn us if a proposed change broke anything.
+
+Furthermore, we use semantic versioning and a \verb|CAHNGELOG.md| to communicate all major, minor, and patch changes with the community. We made many backward-incompatible changes before version 1.0.0, but henceforth we will indicate future backward-incompatible changes with major releases (i.e. version X.0.0). 
+
+Lastly, the data format is integral to \verb|asilib|. The REGO and THEMIS data formats are fixed and are guaranteed to not change in the future.
 
 \section{Future Development}
 \textcolor{blue}{
