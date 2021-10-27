@@ -177,16 +177,11 @@ If you give it one LLA coordinate, the mask will have the same shape as the ASI 
 By default, the area is 5x5 km. \textcolor{red}{Think about how this function works for LLA values outside of the ASI's field of view. Maybe have a check for LLA values are completely outside of lat map or lon map? Also raise a warning if some of the 2d mask arrays are all nans.} If the area is so small that not even one pixel is contained inside it (but it is above the horizon), \verb|asilib.area2pixels()| will slowly increase the area tolerance until at least one pixel is found.
 
 \subsection{An example: a satellite-ASI conjunction}\label{satellite_conjunction}
-\textcolor{blue}{
-      OUTLINE
-      \begin{itemize}
-            \item Combine everything above into an example showing where the footprint of a LEO satellite is, and what 
-            \item Figure 4: A conjunction montage and a time series
-            \item Reference movie S2
-      \end{itemize}
-}
+In this example we combine the aforementioned analysis functions into an example of a conjunction between a THEMIS ASI and a fictional satellite in low Earth orbit. We will calculate and show the mean ASI intensity in a 10x10 km satellite footprint for the conjunction, and then animate the images and mean ASI intensity into a movie figure.
 
-In this example we combine the aforementioned analysis functions into an example of a conjunction between a THEMIS ASI and a fictional satellite in low Earth orbit. 
+To make this plot we assume that we have the satellite's location in LLA coordinates and time stamps. In real data, the satellite and ASI time stamps are unlikely to line up, so to be accurate you'll need to interpolate the satellite locations to the ASI time stamps. 
+
+The conjunction movie is shown in Movie S2 and the corresponding five-frame montage in Fig. Y.
 
 \section{Quality Assurance}
 We developed \verb|asilib| with useability and maintainability at the forefront. The Python source code is available on \verb|aurora-asi-lib| GitHub repository (URL). It is also archived on Zenodo and the Python Packaging Index (PyPI). On GitHub you can submit an Issue for bugs or feature requests, and you can contribute to \verb|asilib| using a Pull Request. 
