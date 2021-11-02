@@ -58,6 +58,7 @@ We describe our progress towards that goal in this article. First, we showcase t
 
 
 \section{Design Philosophy (Principals?)}
+\textcolor{red}{I don't think that this section is necessary.}
 \textcolor{blue}{
       OUTLINE
       \begin{itemize}
@@ -94,7 +95,7 @@ We describe our progress towards that goal in this article. First, we showcase t
 
 aurorax-asilib allows researchers to analyze ASI data on a PC. It provides a set of functions for common data analysis tasks using ASI data. Here we overview the functions and the online documentation has more examples, a tutorial, and a thorough API reference \url{https://aurora-asi-lib.readthedocs.io/}
 
-As we tour the asilib functions, keep in mind that asilib is designed to help you with the lower-level tasks. For example, if you want to load the image data via \verb|asilib.load_image()|, asilib will attempt to download it if it is not already saved on the PC. Likewise, if you call \verb|asilib.plot_keogram()|, it will automatically load (and optionally download) the ASI data for you. Lastly, Figs. 2-\textcolor{red}{X} were made using the code in a Jupyter Notebook that is provided with this article (in both the ipynb and pdf formats).
+As we tour the asilib functions, keep in mind that asilib is designed to help you with the lower-level tasks. For example, if you want to load the image data via \verb|asilib.load_image()|, asilib will attempt to download it if it is not already saved on the PC. Likewise, if you call \verb|asilib.plot_keogram()|, it will automatically load (and optionally download) the ASI data for you. Lastly, Figs. 2-4 were made using the code in a Jupyter Notebook that is provided with this article (in both the ipynb and pdf formats).
 
 \subsection{Download and load ASI image and skymap data}
 \textcolor{blue}{
@@ -181,7 +182,13 @@ In this example we combine the aforementioned analysis functions into an example
 
 To make this plot we assume that we have the satellite's location in LLA coordinates and time stamps. In real data, the satellite and ASI time stamps are unlikely to line up, so to be accurate you'll need to interpolate the satellite locations to the ASI time stamps. 
 
-The conjunction movie is shown in Movie S2 and the corresponding five-frame montage in Fig. Y.
+\begin{figure}
+      \includegraphics[width=\textwidth]{figures/fig4.png}
+      \caption{A conjunction montage of Movie S2. Panels a-d shows the auroral arc evolution. The red line is the satellite track and the red dot is its instantaneous position. The yellow quadrilateral shows the pixels contained in a 20x20 km area at a 110 km altitude. Lastly, panel e shows the mean ASI intensity, as a function of time, inside the yellow quadrilaterals. When the satellite passed through the arc between 2:33:30 and 2:34:15, the ASI count enhanced.}
+      \label{fig4}
+\end{figure}
+
+The conjunction movie is shown in Movie S2 and the corresponding five-frame montage in Fig. \ref{fig4}.
 
 \section{Quality Assurance}
 We developed \verb|asilib| with useability and maintainability at the forefront. The Python source code is available on \verb|aurora-asi-lib| GitHub repository (URL). It is also archived on Zenodo and the Python Packaging Index (PyPI). On GitHub you can submit an Issue for bugs or feature requests, and you can contribute to \verb|asilib| using a Pull Request. 
