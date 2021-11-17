@@ -115,6 +115,9 @@ def animate_map_generator(
         If the color_norm kwarg is not "log" or "lin".
     ImportError
         If the cartopy library can't be imported.
+    AssertionError
+        If the ASI data exists for that time period, but without time stamps
+        inside time_range.
 
     Example
     -------
@@ -172,13 +175,6 @@ def animate_map_generator(
         ax = create_cartopy_map(map_style=map_style)
 
     color_map = asilib.plot.utils.get_color_map(asi_array_code, color_map)
-
-    # if (color_map == 'auto') and (asi_array_code.lower() == 'themis'):
-    #     color_map = 'Greys_r'
-    # elif (color_map == 'auto') and (asi_array_code.lower() == 'rego'):
-    #     color_map = colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
-    # else:
-    #     raise NotImplementedError('color_map == "auto" but the asi_array_code is unsupported')
 
     for image_time, image in zip(image_times, images):
         if 'p' in locals():

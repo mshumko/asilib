@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.colors as colors
 
+#TODO: Make all of the other plot functions call these ones.
 
 def get_color_bounds(image):
     """
