@@ -152,7 +152,7 @@ def plot_map(
 
 
 def create_cartopy_map(
-    map_style: str = 'green', lon_bounds: tuple = (-160, 52), lat_bounds: tuple = (40, 82)
+    map_style: str = 'green', lon_bounds: tuple = (-160, -50), lat_bounds: tuple = (40, 82)
 ) -> plt.Axes:
     """
     A helper function to create two map styles: a simple black and white map, and

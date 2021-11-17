@@ -43,6 +43,7 @@ def animate_map_generator(
 ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
     """
     TODO: Update the doc string.
+    TODO: Add lat_range and lon_range kwargs and defaults.
     Projects the fisheye images into the ionosphere at map_alt (altitude in kilometers) and 
     animates them using ffmpeg. 
 
@@ -241,7 +242,7 @@ def animate_map_generator(
     movie_file_name = (
         f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_'
         f'{image_times[-1].strftime("%H%M%S")}_'
-        f'{asi_array_code.lower()}_{location_code.lower()}.{movie_container}'
+        f'{asi_array_code.lower()}_{location_code.lower()}_map.{movie_container}'
     )
     _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrite)
     return
@@ -277,7 +278,9 @@ def _mask_low_horizon(images, lon_map, lat_map, el_map, min_elevation):
 
 if __name__ == '__main__':
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    map_generator = animate_map_generator('THEMIS', 'FSMI', time_range, 110)
+    asi_array_code = 'THEMIS'
+    asi_location_code = 'FSMI'
+    map_generator = animate_map_generator(asi_array_code, asi_location_code, time_range, 110, overwrite=True)
 
     for image_time, image, im, ax in map_generator:
         # The code that modifies each image here.

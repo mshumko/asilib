@@ -338,7 +338,7 @@ def animate_fisheye_generator(
     movie_file_name = (
         f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_'
         f'{image_times[-1].strftime("%H%M%S")}_'
-        f'{asi_array_code.lower()}_{location_code.lower()}.{movie_container}'
+        f'{asi_array_code.lower()}_{location_code.lower()}_fisheye.{movie_container}'
     )
     _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrite)
     return
