@@ -266,7 +266,7 @@ def animate_fisheye_generator(
         'movies',
         'images',
         f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_'
-        f'{location_code.lower()}',
+        f'{location_code.lower()}_fisheye',
     )
     if not image_save_dir.is_dir():
         image_save_dir.mkdir(parents=True)

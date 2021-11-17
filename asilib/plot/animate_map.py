@@ -1,25 +1,30 @@
 import importlib
+import pathlib
 from datetime import datetime
 from typing import List, Union, Generator, Tuple
 
 import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
 import numpy as np
-import ffmpeg
+
+try:
+    import cartopy.crs as ccrs
+except ImportError:
+    pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.plot_map()
 
 import asilib
-# from asilib.io import utils
-# from asilib.plot import utils
+import asilib.plot.utils
 from asilib.io.load import load_image, load_skymap
 from asilib.plot.plot_map import create_cartopy_map, _pcolormesh_nan
 from asilib.analysis.start_generator import start_generator
+from asilib.plot.animate_fisheye import _write_movie, _add_azel_contours
+
 
 @start_generator
 def animate_map_generator(
     asi_array_code: str,
     location_code: str,
-    time_range: utils.io._time_range_type,
+    time_range: asilib.io.utils._time_range_type,
     map_alt: float,
     min_elevation: float = 10,
     force_download: bool = False,
@@ -30,6 +35,7 @@ def animate_map_generator(
     azel_contours: bool = False,
     ax: plt.Axes = None,
     map_style: str = 'green',
+    asi_label: bool = True,
     movie_container: str = 'mp4',
     ffmpeg_output_params={},
     overwrite: bool = False,
@@ -51,7 +57,7 @@ def animate_map_generator(
     map_alt: float
         The altitude in kilometers to project to. Must be an altitude value
         in the skymap calibration.
-    min_elevation: float
+    min_elevation: floatasilib.plot.utils
         Masks the pixels below min_elevation degrees.
     force_download: bool
         If True, download the file even if it already exists. Useful if a prior
@@ -73,6 +79,8 @@ def animate_map_generator(
         If ax is None, this kwarg toggles between two predefined map styles:
         'green' map has blue oceans and green land, while the `white` map
         has white oceans and land with black coastlines.
+    asi_label: bool
+        Annotates the map with the ASI code in the center of the image.
     movie_container: str
         The movie container: mp4 has better compression but avi was determined
         to be the official container for preserving digital video by the
@@ -101,10 +109,7 @@ def animate_map_generator(
     ax: plt.Axes
         The subplot object to modify the axis, labels, etc.
     im: plt.AxesImage
-        The plt.imshow image object. Common use for im is to add a colorbar.
-        The image is oriented in the map orientation (north is up, south is down,
-        east is right, and west is left), contrary to the camera orientation where
-        the east/west directions are flipped. Set azel_contours=True to confirm.
+        The plt.pcolormesh object.
 
     Raises
     ------
@@ -126,9 +131,9 @@ def animate_map_generator(
     | import asilib
     |
     | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    | movie_generator = asilib.animate_map_generator('THEMIS', 'FSMI', time_range)
+    | map_generator = asilib.animate_map_generator('THEMIS', 'FSMI', time_range)
     |
-    | for image_time, image, im, ax in movie_generator:
+    | for image_time, image, im, ax in map_generator:
     |       # The code that modifies each image here.
     |       pass
     |
@@ -157,6 +162,19 @@ def animate_map_generator(
         else:
             raise
     skymap = load_skymap(asi_array_code, location_code, time_range[0])
+
+    # Create the movie directory inside asilib.config['ASI_DATA_DIR'] if it does
+    # not exist.
+    image_save_dir = pathlib.Path(
+        asilib.config['ASI_DATA_DIR'],
+        'movies',
+        'images',
+        f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_'
+        f'{location_code.lower()}_map',
+    )
+    if not image_save_dir.is_dir():
+        image_save_dir.mkdir(parents=True)
+        print(f'Created a {image_save_dir} directory')
 
     # Check that the map_alt is in the skymap calibration data.
     assert (
@@ -195,17 +213,37 @@ def animate_map_generator(
             lon_map, lat_map, image, ax, cmap=color_map, norm=norm, pcolormesh_kwargs=pcolormesh_kwargs
         )
 
-    # if asi_label:
-    #     ax.text(
-    #         skymap['SITE_MAP_LONGITUDE'],
-    #         skymap['SITE_MAP_LATITUDE'],
-    #         location_code.upper(),
-    #         color='r',
-    #         transform=ccrs.PlateCarree(),
-    #         va='center',
-    #         ha='center',
-    #     )
+        if azel_contours:
+            _add_azel_contours(asi_array_code, location_code, image_time, ax, force_download)
 
+        # Give the user the control of the subplot, image object, and return the image time
+        # so that the user can manipulate the image to add, for example, the satellite track.
+        yield image_time, image, ax, p
+
+        # Save the plot before the next iteration.
+        save_name = (
+            f'{image_time.strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_'
+            f'{location_code.lower()}.png'
+        )
+        plt.savefig(image_save_dir / save_name)
+
+    if asi_label:
+        ax.text(
+            skymap['SITE_MAP_LONGITUDE'],
+            skymap['SITE_MAP_LATITUDE'],
+            location_code.upper(),
+            color='r',
+            transform=ccrs.PlateCarree(),
+            va='center',
+            ha='center',
+        )
+    # Make the movie
+    movie_file_name = (
+        f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_'
+        f'{image_times[-1].strftime("%H%M%S")}_'
+        f'{asi_array_code.lower()}_{location_code.lower()}.{movie_container}'
+    )
+    _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrite)
     return
 
 
@@ -236,3 +274,13 @@ def _mask_low_horizon(images, lon_map, lat_map, el_map, min_elevation):
     lon_map_copy[idh_boundary_right] = np.nan
     lat_map_copy[idh_boundary_right] = np.nan
     return images_copy, lon_map_copy, lat_map_copy
+
+if __name__ == '__main__':
+    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+    map_generator = animate_map_generator('THEMIS', 'FSMI', time_range, 110)
+
+    for image_time, image, im, ax in map_generator:
+        # The code that modifies each image here.
+        pass
+
+    print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
