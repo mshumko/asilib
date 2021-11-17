@@ -26,14 +26,14 @@ def plot_map(
     map_alt: float,
     time_thresh_s: float = 3,
     ax: plt.Axes = None,
-    map_style='green',
+    map_style: str = 'green',
     color_map: str = 'auto',
     min_elevation: float = 10,
-    norm=True,
-    asi_label=True,
+    norm: bool = True,
+    asi_label: bool = True,
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
-    pcolormesh_kwargs={},
+    pcolormesh_kwargs: dict = {},
 ):
     """
     Projects the ASI images to a map at an altitude defined in the skymap calibration file.

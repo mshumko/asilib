@@ -9,11 +9,9 @@ def start_generator(func):
 
     Source: http://dabeaz.com/coroutines/coroutine.py
     """
-
-    @functools.wraps(func)
+    @functools.wraps(func)  # To preserve the docstring of the wrapped generator.
     def start(*args, **kwargs):
         cr = func(*args, **kwargs)
         next(cr)
         return cr
-
     return start
