@@ -28,14 +28,13 @@ def animate_map_generator(
     map_alt: float,
     min_elevation: float = 10,
     force_download: bool = False,
-    label: bool = True,
     color_map: str = 'auto',
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
     azel_contours: bool = False,
     ax: plt.Axes = None,
     map_style: str = 'green',
-    asi_label: bool = True,
+    label: bool = True,
     movie_container: str = 'mp4',
     ffmpeg_output_params={},
     overwrite: bool = False,
@@ -63,8 +62,6 @@ def animate_map_generator(
     force_download: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
-    label: bool
-        Flag to add the "asi_array_code/location_code/image_time" text to the plot.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
@@ -80,7 +77,7 @@ def animate_map_generator(
         If ax is None, this kwarg toggles between two predefined map styles:
         'green' map has blue oceans and green land, while the `white` map
         has white oceans and land with black coastlines.
-    asi_label: bool
+    label: bool
         Annotates the map with the ASI code in the center of the image.
     movie_container: str
         The movie container: mp4 has better compression but avi was determined
@@ -140,7 +137,6 @@ def animate_map_generator(
     |
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
     """
-
     # Halt here if cartopy is not installed.
     if importlib.util.find_spec("cartopy") is None:
         raise ImportError(
@@ -228,7 +224,7 @@ def animate_map_generator(
         )
         plt.savefig(image_save_dir / save_name)
 
-    if asi_label:
+    if label:
         ax.text(
             skymap['SITE_MAP_LONGITUDE'],
             skymap['SITE_MAP_LATITUDE'],
