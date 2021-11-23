@@ -432,6 +432,8 @@ def _load_images(
         If the image dimensions are not specified for an ASI array.
     AssertionError
         If len(time_range) != 2.
+    AssertionError
+        If no time stamps were found in time_range.
 
     Example
     -------
@@ -461,6 +463,7 @@ def _load_images(
         start_time_index += file_images.shape[0]
 
     i_nan = np.where(~np.isnan(images[:, 0, 0]))[0]
+    assert len(i_nan) == images.shape[0], f'0 number of time stamps were found in time_range={time_range}'
     images = images[i_nan, :, :]
     times = times[i_nan]
     return times, images

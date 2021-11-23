@@ -24,8 +24,8 @@ def _validate_time(time: _time_type) -> List[datetime]:
         time = dateutil.parser.parse(time)
     elif isinstance(time, (int, float)):
         raise ValueError(f'Unknown time format, {time}')
+    _is_valid_year(time)
     return time
-
 
 def _validate_time_range(time_range: _time_range_type) -> List[datetime]:
     """
@@ -49,9 +49,22 @@ def _validate_time_range(time_range: _time_range_type) -> List[datetime]:
         else:
             time_range_parsed.append(t)
 
+    for t in time_range_parsed:
+        _is_valid_year(t)
+
     time_range_parsed.sort()
     return time_range_parsed
 
+def _is_valid_year(time):
+    """
+    Provides a sanity check that the year is after 2000 and before the current year + 1.
+    """
+    year = time.year
+    if year < 2000:
+        raise ValueError(f'The passed year={year} must be greater than 2000.')
+    elif year > datetime.now().year + 1:
+        raise ValueError(f'The passed year={year} must be less than the current year + 1.')
+    return
 
 def _get_hours(time_range: _time_range_type) -> List[datetime]:
     """

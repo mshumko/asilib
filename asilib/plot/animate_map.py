@@ -75,7 +75,7 @@ def animate_map(
     | asilib.animate_map('THEMIS', 'FSMI', time_range)
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
     """
-    map_generator = animate_map_generator(asi_array_code, asi_location_code, time_range, map_alt, 
+    map_generator = animate_map_generator(asi_array_code, location_code, time_range, map_alt, 
         **kwargs)
 
     for _ in map_generator:
