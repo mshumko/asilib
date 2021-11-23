@@ -1,3 +1,4 @@
+# TODO: Add tests for these functions.
 import importlib
 import pathlib
 from datetime import datetime
@@ -105,8 +106,6 @@ def animate_map_generator(
     pcolormesh_kwargs : dict = {}
 ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
     """
-    TODO: Update the doc string.
-    TODO: Add lat_range and lon_range kwargs and defaults.
     Projects the fisheye images into the ionosphere at map_alt (altitude in kilometers) and 
     animates them using ffmpeg. 
 
