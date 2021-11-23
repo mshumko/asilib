@@ -39,6 +39,7 @@ from asilib.plot.animate_fisheye import plot_movie  # Deprecated
 from asilib.plot.animate_fisheye import plot_movie_generator  # Deprecated
 from asilib.plot.animate_fisheye import animate_fisheye
 from asilib.plot.animate_fisheye import animate_fisheye_generator
+from asilib.plot.animate_map import animate_map
 from asilib.plot.animate_map import animate_map_generator
 
 # Import the analysis functions.
