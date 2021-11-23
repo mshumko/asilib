@@ -163,9 +163,9 @@ def animate_fisheye_generator(
     spacecraft position, and that will convert it to a movie. If you just want to make
     an ASI fisheye movie, use the wrapper for this function, called animate_fisheye().
 
-    Once this generator is initiated with the name `gen`, but **before** the for loop,
-    you can get the ASI images and times by calling `gen.send('data')`. This will yield a
-    collections.namedtuple with `time` and `images` attributes.
+    Once this generator is initiated with the name `gen`, for example, but **before** 
+    the for loop, you can get the ASI images and times by calling `gen.send('data')`. 
+    This will yield a collections.namedtuple with `time` and `images` attributes.
 
     Parameters
     ----------

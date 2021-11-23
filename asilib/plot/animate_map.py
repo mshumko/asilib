@@ -14,11 +14,14 @@ except ImportError:
 
 import asilib
 import asilib.plot.utils
-from asilib.io.load import load_image, load_skymap
-from asilib.plot.plot_map import create_cartopy_map, _pcolormesh_nan
+from asilib.io.load import load_image
+from asilib.io.load import load_skymap
+from asilib.plot.plot_map import create_cartopy_map
+from asilib.plot.plot_map import _pcolormesh_nan
 from asilib.analysis.start_generator import start_generator
-from asilib.plot.animate_fisheye import _write_movie, _add_azel_contours
-
+from asilib.plot.animate_fisheye import _write_movie
+from asilib.plot.animate_fisheye import _add_azel_contours
+from asilib.plot.animate_fisheye import Images
 
 @start_generator
 def animate_map_generator(
@@ -27,6 +30,8 @@ def animate_map_generator(
     time_range: asilib.io.utils._time_range_type,
     map_alt: float,
     min_elevation: float = 10,
+    lon_bounds: tuple = (-160, -50), 
+    lat_bounds: tuple = (40, 82),
     force_download: bool = False,
     color_map: str = 'auto',
     color_bounds: Union[List[float], None] = None,
@@ -46,6 +51,10 @@ def animate_map_generator(
     Projects the fisheye images into the ionosphere at map_alt (altitude in kilometers) and 
     animates them using ffmpeg. 
 
+    Once this generator is initiated with the name `gen`, for example, but **before** 
+    the for loop, you can get the ASI images and times by calling `gen.send('data')`. 
+    This will yield a collections.namedtuple with `time` and `images` attributes.
+
     Parameters
     ----------
     asi_array_code: str
@@ -59,6 +68,10 @@ def animate_map_generator(
         in the skymap calibration.
     min_elevation: floatasilib.plot.utils
         Masks the pixels below min_elevation degrees.
+    lon_bounds: tuple
+        The map's longitude bounds. If unspecified, the default parameters make a map of Canada.
+    lat_bounds: tuple
+        The map's latitude bounds. If unspecified, the default parameters make a map of Canada.
     force_download: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
@@ -187,9 +200,16 @@ def animate_map_generator(
     )
 
     if ax is None:
-        ax = create_cartopy_map(map_style=map_style)
+        ax = create_cartopy_map(map_style=map_style, lon_bounds=lon_bounds, lat_bounds=lat_bounds)
 
     color_map = asilib.plot.utils.get_color_map(asi_array_code, color_map)
+
+    # With the @start_generator decorator, when this generator first gets called, it
+    # will halt here. This way the errors due to missing data will be raised up front.
+    # user_input can be used to get the image_times and images out of the generator.
+    user_input = yield
+    if isinstance(user_input, str) and 'data' in user_input.lower():
+        yield Images(image_times, images)
 
     for image_time, image in zip(image_times, images):
         if 'p' in locals():
