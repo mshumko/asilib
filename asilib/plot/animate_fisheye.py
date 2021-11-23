@@ -27,11 +27,11 @@ def animate_fisheye(
     """
     Animate a series of THEMIS or REGO fisheye images.
 
-    This function basically runs animate_fisheye_generator() in a for loop. The two function's
-    arguments and keyword arguments are identical, so see animate_fisheye_generator() docs for
+    This function basically runs ``animate_fisheye_generator()`` in a for loop. The two function's
+    arguments and keyword arguments are identical, so see ``animate_fisheye_generator()`` docs for
     the full argument list.
 
-    Note: To make movies, you'll need to install ffmpeg in your operating system.
+    Note: To make movies, you'll need to install ``ffmpeg`` in your operating system.
 
     Parameters
     ----------

@@ -33,11 +33,11 @@ def animate_map(
     """
     Animate a series of THEMIS or REGO images projected onto a map.
 
-    This function basically runs animate_map_generator() in a for loop. The two function's
-    arguments and keyword arguments are identical, so see animate_map_generator() docs for
+    This function basically runs ``animate_map_generator()`` in a for loop. The two function's
+    arguments and keyword arguments are identical, so see ``animate_map_generator()`` docs for
     the full argument list.
 
-    Note: To make movies, you'll need to install ffmpeg in your operating system.
+    Note: To make movies, you'll need to install ``ffmpeg`` in your operating system.
 
     Parameters
     ----------
