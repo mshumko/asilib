@@ -41,36 +41,6 @@ def animate_fisheye(
         The ASI station code, i.e. ``ATHA``
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
-    force_download: bool
-        If True, download the file even if it already exists. Useful if a prior
-        data download was incomplete.
-    label: bool
-        Flag to add the "asi_array_code/location_code/image_time" text to the plot.
-    color_map: str
-        The matplotlib colormap to use. If 'auto', will default to a
-        black-red colormap for REGO and black-white colormap for THEMIS.
-        For more information See
-        https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html
-    color_bounds: List[float] or None
-        The lower and upper values of the color scale. If None, will
-        automatically set it to low=1st_quartile and
-        high=min(3rd_quartile, 10*1st_quartile)
-    ax: plt.Axes
-        The optional subplot that will be drawn on.
-    azel_contours: bool
-        Switch azimuth and elevation contours on or off.
-    movie_container: str
-        The movie container: mp4 has better compression but avi was determined
-        to be the official container for preserving digital video by the
-        National Archives and Records Administration.
-    ffmpeg_output_params: dict
-        The additional/overwitten ffmpeg output prameters. The default parameters are:
-        framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
-    overwrite: bool
-        If true, the output will be overwritten automatically. If false it will
-        prompt the user to answer y/n.
-    color_norm: str
-        Sets the 'lin' linear or 'log' logarithmic color normalization.
 
     Returns
     -------

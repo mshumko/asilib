@@ -23,6 +23,65 @@ from asilib.plot.animate_fisheye import _write_movie
 from asilib.plot.animate_fisheye import _add_azel_contours
 from asilib.plot.animate_fisheye import Images
 
+def animate_map(
+    asi_array_code: str, 
+    location_code: str, 
+    time_range: asilib.io.utils._time_range_type, 
+    map_alt: float,
+    **kwargs):
+    """
+    Animate a series of THEMIS or REGO images projected onto a map.
+
+    This function basically runs animate_map_generator() in a for loop. The two function's
+    arguments and keyword arguments are identical, so see animate_map_generator() docs for
+    the full argument list.
+
+    Note: To make movies, you'll need to install ffmpeg in your operating system.
+
+    Parameters
+    ----------
+    asi_array_code: str
+        The imager array name, i.e. ``THEMIS`` or ``REGO``.
+    location_code: str
+        The ASI station code, i.e. ``ATHA``
+    time_range: list of datetime.datetimes or stings
+        Defined the duration of data to download. Must be of length 2.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    NotImplementedError
+        If the colormap is unspecified ('auto' by default) and the
+        auto colormap is undefined for an ASI array.
+    ValueError
+        If the color_norm kwarg is not "log" or "lin".
+    ImportError
+        If the cartopy library can't be imported.
+    AssertionError
+        If the ASI data exists for that time period, but without time stamps
+        inside time_range.
+
+    Example
+    -------
+    | from datetime import datetime
+    |
+    | import asilib
+    |
+    | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+    | asilib.animate_map('THEMIS', 'FSMI', time_range)
+    | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
+    """
+    map_generator = animate_map_generator(asi_array_code, asi_location_code, time_range, map_alt, 
+        **kwargs)
+
+    for _ in map_generator:
+        pass
+    return
+
+
 @start_generator
 def animate_map_generator(
     asi_array_code: str,
