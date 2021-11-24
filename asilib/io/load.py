@@ -462,10 +462,11 @@ def _load_images(
 
         start_time_index += file_images.shape[0]
 
-    i_nan = np.where(~np.isnan(images[:, 0, 0]))[0]
-    assert len(i_nan) == images.shape[0], f'0 number of time stamps were found in time_range={time_range}'
-    images = images[i_nan, :, :]
-    times = times[i_nan]
+    i_not_nan = np.where(~np.isnan(images[:, 0, 0]))[0]
+    assert len(i_not_nan) > 0, (f'{len(i_not_nan)} number of time stamps'
+        ' were found in time_range={time_range}')
+    images = images[i_not_nan, :, :]
+    times = times[i_not_nan]
     return times, images
 
 
