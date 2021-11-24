@@ -202,7 +202,7 @@ def animate_map_generator(
     | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     | map_generator = asilib.animate_map_generator('THEMIS', 'FSMI', time_range)
     |
-    | for image_time, image, im, ax in map_generator:
+    | for (image_time1, image, ax, p) in map_generator:
     |       # The code that modifies each image here.
     |       pass
     |
