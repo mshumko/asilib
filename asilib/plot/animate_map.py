@@ -124,7 +124,7 @@ def animate_map_generator(
     map_alt: float
         The altitude in kilometers to project to. Must be an altitude value
         in the skymap calibration.
-    min_elevation: floatasilib.plot.utils
+    min_elevation: float
         Masks the pixels below min_elevation degrees.
     lon_bounds: tuple
         The map's longitude bounds. If unspecified, the default parameters make a map of Canada.
