@@ -414,7 +414,7 @@ def _load_images(
     ignore_missing_data: bool
         Flag to ignore the ``FileNotFoundError`` that is raised when ASI
         data is unavailable for that date-hour. Only useful when ``time_range``
-        is passed.
+        is passed. If no data is loaded at all, an AssertionError is raised.
 
     Returns
     -------
@@ -433,7 +433,8 @@ def _load_images(
     AssertionError
         If len(time_range) != 2.
     AssertionError
-        If no time stamps were found in time_range.
+        If no time stamps were found in time_range, regardless of the
+        ignore_missing_data value.
 
     Example
     -------
