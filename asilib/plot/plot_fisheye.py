@@ -84,7 +84,7 @@ def plot_fisheye(
     color_bounds: List[float] = None,
     color_norm: str = 'log',
     azel_contours: bool = False,
-) -> Tuple[datetime, plt.Axes, matplotlib.image.AxesImage]:
+) -> Tuple[datetime, np.array, plt.Axes, matplotlib.image.AxesImage]:
     """
     Plots one fisheye image, oriented with North on the top, and East on the right of the image.
 
