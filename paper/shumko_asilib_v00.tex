@@ -52,6 +52,10 @@ Abstract
       \end{itemize}
 }
 
+Since the 1960s the space physics community has utilized optical ground-based instrumentation that has led to discoveries and from which great advancements in the field have been derided.  Some of these discoveries include the early description of a substorm introduced by Akasofu (1964), and several descriptions of new phenomena that highlight the tight connections between the magnetosphere and ionosphere (e.g., ). 
+
+Meridian Scanning photometers (MSP), such as the Canadian Auroral Network for the OPEN (Origins of Plasmas in Earth’s Neighborhood) Program Unified Study (CANOPUS) array, were first utilized for remote sensing the high-latitude ionosphere (e.g., Rostoker et al. 1985). These MSPs were later followed by two dimensional All-sky Imagers (ASIs) that took the space physics field into a deeper understanding of the ionosphere-magnetosphere coupled system. In the present day, the space physics community has carried a long legacy of ground-based optical instruments, with perhaps the THEMIS-ASI observatories being one of the most successful ones. Currently, many different optical arrays are in operation or under development (e.g., THEMIS-ASI, REGO, MANGO, TREx, among others). These modern ASIs work continuously in high temporal and spatial resolution, where each camera produces ~7.2k images per night for which robust analysis tools are required.
+
 The rapidly increasing amount of imager data, together with unique data formats, significantly burdens space physicists with mondale and duplicated software engineering tasks---download data, load and parse the data correctly, etc. This unnecessary burden can also lead to mistakes in analysis software that may require unnecessary troubleshooting time from the ASI team. The goal of AuroraX is to overcome these drawbacks by providing a set of robust tools that most researchers need to analyze all-sky images. 
 
 We describe our progress towards that goal in this article. First, we showcase the main features of the online AuroraX interface (https://aurorax.space/) such as the conjunction finder and the keogram finder. Second, we describe the aurorax-api, a Python library containing the interface to the AuroraX server to automatically download keograms and identify conjunctions. Third, we describe aurorax-asilib, the Python all-sky imager library. aurorax-asilib provides functions to the download, load, process data, and visualize THEMIS and REGO ASI data. 
@@ -207,17 +211,17 @@ Furthermore, we use semantic versioning and a \verb|CAHNGELOG.md| to communicate
 
 Lastly, the data format is integral to \verb|asilib|. The REGO and THEMIS data formats are fixed and are guaranteed to not change in the future.
 
-\section{Future Development}
-\textcolor{blue}{
-      OUTLINE
-      \begin{itemize}
-            \item Switch from CDF to pgm files.
-            \item Support more ASI arrays such as TREx
-            \item Community challenge. This package is made for the space physics community, so we will seek feedback (in the form of issues and bugs) that are discovered during a community challenge time period. 
-            \item Combine into a class architecture to share data. This is proving to be difficult to balance usability and maintainability.
-      \end{itemize}
-}
-While aurorax-asilib is feature complete, we plan to keep developing it.
+% \section{Future Development}
+% \textcolor{blue}{
+%       OUTLINE
+%       \begin{itemize}
+%             \item Switch from CDF to pgm files.
+%             \item Support more ASI arrays such as TREx
+%             \item Community challenge. This package is made for the space physics community, so we will seek feedback (in the form of issues and bugs) that are discovered during a community challenge time period. 
+%             \item Combine into a class architecture to share data. This is proving to be difficult to balance usability and maintainability.
+%       \end{itemize}
+% }
+% While aurorax-asilib is feature complete, we plan to keep developing it.
 
 \section{Conclusion}
 
@@ -230,6 +234,7 @@ While aurorax-asilib is feature complete, we plan to keep developing it.
             \item This is an end-to-end solution
             \item Plan to add support for other ASI arrays and satellites
             \item Help promote a uniform ASI data format for future cameras
+            \item Add a paragraph to discuss the future work for this library includes...
       \end{itemize}
 }
 Hopefully we made a convincing case that AuroraX and aurorax-asilib are a useful set of tools to analyze the aurora. Our aim is to keep the implementation as simple as possible: enough for beginners who are starting to use this data, while also enabling sophisticated analysis.
