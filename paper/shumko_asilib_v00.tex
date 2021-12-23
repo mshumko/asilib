@@ -172,7 +172,7 @@ You can easily animate ASI fisheye images using \verb|asilib.animate_fisheye()|.
 
 Animating just the fisheye images is somewhat limiting. Thus, \verb|asilib| also includes \verb|asilib.animate_fisheye_generator()| (which is technically a coroutine) to iterate over and pause after each ASI image to allow you to modify it. Then, after the iteration is complete, \verb|asilib.animate_fisheye_generator()| combines the modified images into a movie. What sort of modifications can you make? For example, you can use it to superpose a satellite path and estimate the auroral intensity at its footprint during a conjunction. This is further described in the next two sections. 
 
-We mentioned earlier that the \verb|asilib.animate_fisheye_generator()| is technically a coroutine. So what does that mean? Here, it means that before looping over each ASI image, you can request the raw data from \verb|asilib.animate_fisheye_generator()| using the \verb|.send('data')| method. You can use this to, for example, use the available ASI time stamps to appropriately sample the satellite location.
+We mentioned earlier that the \verb|asilib.animate_fisheye_generator()| is technically a coroutine. So what does that mean? In this context, it means that before looping over each ASI image, you can request the raw data from \verb|asilib.animate_fisheye_generator()| using the \verb|.send("data")| method. This approach appears rather contrived, however, a major advantage of this design is that the user sees exactly what ASI data the generator function will loop over. This is useful, for example, if you need the ASI time stamps to appropriately sample and plot the satellite location and calculate the mean intensity of the aurora. We will discuss this application later.
 
 \subsection{ASI analysis tools}
 Currently, \verb|asilib| provides three analysis functions that are useful for conjunction analysis: \verb|asilib.lla2footprint()|, \verb|asilib.lla2azel()|, and \verb|asilib.area2pixels()|.
@@ -203,7 +203,9 @@ Movie S2 shows the result of this conjunction analysis. Also, for a paper-friend
 \end{figure}
 
 \section{Quality Assurance}
-We developed \verb|asilib| with useability and maintainability at the forefront. The Python source code is available on \verb|aurora-asi-lib| GitHub repository (URL). It is also archived on Zenodo and the Python Packaging Index (PyPI). On GitHub you can submit an Issue for bugs or feature requests, and you can contribute to \verb|asilib| using a Pull Request. 
+We developed \verb|asilib| with useability and maintainability at the forefront. The Python source code is available on \verb|aurora-asi-lib| GitHub repository \url{https://github.com/mshumko/aurora-asi-lib}. It is also archived on Zenodo and the Python Packaging Index (PyPI). On GitHub you can submit an Issue for bugs or feature requests, and you can contribute to \verb|asilib| using a Pull Request. 
+
+Since documentation is critically important to the survival and usability of software, \url{readthedocs.org} hosts the \verb|aurora-asi-lib| documentation at \url{https://aurora-asi-lib.readthedocs.io/}. It contains installation instructions, examples, a comprehensive tutorial, and a detailed Application Programming Interface (API). The documentation source code is in the \verb|aurora-asi-lib/docs/| folder, useful in case a user needs to recreate the documentation on their computer with the Sphinx Python document generator.
 
 To ensure code stability, the \verb|asilib| source code includes a few dozen unit and integration tests that you can run locally, and are automatically run on GitHub Actions every time a change is pushed to the repository. These tests test the main library functions and will quickly warn us if a proposed change broke anything.
 
