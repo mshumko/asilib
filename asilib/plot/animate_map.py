@@ -31,7 +31,8 @@ def animate_map(
     map_alt: float,
     **kwargs):
     """
-    Animate a series of THEMIS or REGO images projected onto a map.
+    Projects a series of THEMIS or REGO images on a map at map_alt altitude in kilometers and 
+    animates them.
 
     This function basically runs ``animate_map_generator()`` in a for loop. The two function's
     arguments and keyword arguments are identical, so see ``animate_map_generator()`` docs for
@@ -106,8 +107,9 @@ def animate_map_generator(
     pcolormesh_kwargs : dict = {}
 ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
     """
-    Projects the fisheye images into the ionosphere at map_alt (altitude in kilometers) and 
-    animates them using ffmpeg. 
+    Projects a series of THEMIS or REGO images on a map at map_alt altitude in kilometers and 
+    animates them. This generator function is useful if you need to superpose other data onto a
+    map in the movie.
 
     Once this generator is initiated with the name `gen`, for example, but **before** 
     the for loop, you can get the ASI images and times by calling `gen.send('data')`. 
