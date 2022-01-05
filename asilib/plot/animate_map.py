@@ -324,7 +324,7 @@ def animate_map_generator(
 
 def _mask_low_horizon(images, lon_map, lat_map, el_map, min_elevation):
     """
-    Mask the image, skymap['FULL_MAP_LONGITUDE'], skymap['FULL_MAP_LONGITUDE'] arrays
+    Mask the images, skymap['FULL_MAP_LONGITUDE'], skymap['FULL_MAP_LONGITUDE'] arrays
     with np.nans where the skymap['FULL_ELEVATION'] is nan or
     skymap['FULL_ELEVATION'] < min_elevation.
     """
