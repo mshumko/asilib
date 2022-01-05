@@ -349,15 +349,3 @@ def _mask_low_horizon(images, lon_map, lat_map, el_map, min_elevation):
     lon_map_copy[idh_boundary_right] = np.nan
     lat_map_copy[idh_boundary_right] = np.nan
     return images_copy, lon_map_copy, lat_map_copy
-
-if __name__ == '__main__':
-    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    asi_array_code = 'THEMIS'
-    asi_location_code = 'FSMI'
-    map_generator = animate_map_generator(asi_array_code, asi_location_code, time_range, 110, overwrite=True)
-
-    for image_time, image, im, ax in map_generator:
-        # The code that modifies each image here.
-        pass
-
-    print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
