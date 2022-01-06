@@ -2,7 +2,7 @@ import warnings
 import pathlib
 import configparser
 
-__version__ = '0.9.5'
+__version__ = '0.10.0'
 
 # Load the configuration settings.
 HERE = pathlib.Path(__file__).parent.resolve()
@@ -39,6 +39,8 @@ from asilib.plot.animate_fisheye import plot_movie  # Deprecated
 from asilib.plot.animate_fisheye import plot_movie_generator  # Deprecated
 from asilib.plot.animate_fisheye import animate_fisheye
 from asilib.plot.animate_fisheye import animate_fisheye_generator
+from asilib.plot.animate_map import animate_map
+from asilib.plot.animate_map import animate_map_generator
 
 # Import the analysis functions.
 from asilib.analysis.map import lla2azel

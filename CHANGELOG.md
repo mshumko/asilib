@@ -1,3 +1,7 @@
+# Version 0.10.0
+- Added `animate_map` and `animate_map_generator` functions to asilib. I also added examples to the examples and tutorial sections of the docs. 
+- Added a warning in `equal_area` if the lat/lon values are outside of the skymap range.
+
 # Version 0.9.5
 - Renamed and deprecated `plot_movie` and `plot_movie_generator` for `animate_fisheye` and `animate_fisheye_generator` functions. This change is necessary for consistency with new functions such as `animate_map` and `animate_map_generator` functions.
 - Updated the examples.

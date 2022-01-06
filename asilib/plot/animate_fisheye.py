@@ -15,11 +15,13 @@ from asilib.io import utils
 from asilib.io.load import load_image, load_skymap
 from asilib.analysis.start_generator import start_generator
 
+
 def plot_movie(
     asi_array_code: str, location_code: str, time_range: utils._time_range_type, **kwargs
 ) -> None:
     warnings.warn('asilib.plot_movie is deprecated for asilib.animate_fisheye')
     return animate_fisheye(asi_array_code, location_code, time_range, **kwargs)
+
 
 def animate_fisheye(
     asi_array_code: str, location_code: str, time_range: utils._time_range_type, **kwargs
@@ -27,11 +29,11 @@ def animate_fisheye(
     """
     Animate a series of THEMIS or REGO fisheye images.
 
-    This function basically runs animate_fisheye_generator() in a for loop. The two function's
-    arguments and keyword arguments are identical, so see animate_fisheye_generator() docs for
+    This function basically runs ``animate_fisheye_generator()`` in a for loop. The two function's
+    arguments and keyword arguments are identical, so see ``animate_fisheye_generator()`` docs for
     the full argument list.
 
-    Note: To make movies, you'll need to install ffmpeg in your operating system.
+    Note: To make movies, you'll need to install ``ffmpeg`` in your operating system.
 
     Parameters
     ----------
@@ -41,36 +43,6 @@ def animate_fisheye(
         The ASI station code, i.e. ``ATHA``
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
-    force_download: bool
-        If True, download the file even if it already exists. Useful if a prior
-        data download was incomplete.
-    label: bool
-        Flag to add the "asi_array_code/location_code/image_time" text to the plot.
-    color_map: str
-        The matplotlib colormap to use. If 'auto', will default to a
-        black-red colormap for REGO and black-white colormap for THEMIS.
-        For more information See
-        https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html
-    color_bounds: List[float] or None
-        The lower and upper values of the color scale. If None, will
-        automatically set it to low=1st_quartile and
-        high=min(3rd_quartile, 10*1st_quartile)
-    ax: plt.Axes
-        The optional subplot that will be drawn on.
-    azel_contours: bool
-        Switch azimuth and elevation contours on or off.
-    movie_container: str
-        The movie container: mp4 has better compression but avi was determined
-        to be the official container for preserving digital video by the
-        National Archives and Records Administration.
-    ffmpeg_output_params: dict
-        The additional/overwitten ffmpeg output prameters. The default parameters are:
-        framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
-    overwrite: bool
-        If true, the output will be overwritten automatically. If false it will
-        prompt the user to answer y/n.
-    color_norm: str
-        Sets the 'lin' linear or 'log' logarithmic color normalization.
 
     Returns
     -------
@@ -111,6 +83,7 @@ def animate_fisheye(
 
 Images = collections.namedtuple('Images', ['time', 'images'])
 
+
 def plot_movie_generator(
     asi_array_code: str,
     location_code: str,
@@ -129,7 +102,10 @@ def plot_movie_generator(
 
     warnings.warn('asilib.plot_movie_generator is deprecated for asilib.animate_fisheye_generator')
 
-    return animate_fisheye_generator(asi_array_code, location_code, time_range, 
+    return animate_fisheye_generator(
+        asi_array_code,
+        location_code,
+        time_range,
         force_download=force_download,
         label=label,
         color_map=color_map,
@@ -139,7 +115,9 @@ def plot_movie_generator(
         ax=ax,
         movie_container=movie_container,
         ffmpeg_output_params=ffmpeg_output_params,
-        overwrite=overwrite)
+        overwrite=overwrite,
+    )
+
 
 @start_generator
 def animate_fisheye_generator(
@@ -163,9 +141,9 @@ def animate_fisheye_generator(
     spacecraft position, and that will convert it to a movie. If you just want to make
     an ASI fisheye movie, use the wrapper for this function, called animate_fisheye().
 
-    Once this generator is initiated with the name `gen`, but **before** the for loop,
-    you can get the ASI images and times by calling `gen.send('data')`. This will yield a
-    collections.namedtuple with `time` and `images` attributes.
+    Once this generator is initiated with the name `gen`, for example, but **before**
+    the for loop, you can get the ASI images and times by calling `gen.send('data')`.
+    This will yield a collections.namedtuple with `time` and `images` attributes.
 
     Parameters
     ----------
@@ -266,7 +244,7 @@ def animate_fisheye_generator(
         'movies',
         'images',
         f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_'
-        f'{location_code.lower()}',
+        f'{location_code.lower()}_fisheye',
     )
     if not image_save_dir.is_dir():
         image_save_dir.mkdir(parents=True)
@@ -338,7 +316,7 @@ def animate_fisheye_generator(
     movie_file_name = (
         f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_'
         f'{image_times[-1].strftime("%H%M%S")}_'
-        f'{asi_array_code.lower()}_{location_code.lower()}.{movie_container}'
+        f'{asi_array_code.lower()}_{location_code.lower()}_fisheye.{movie_container}'
     )
     _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrite)
     return

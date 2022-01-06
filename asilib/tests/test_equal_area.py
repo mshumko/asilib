@@ -7,6 +7,7 @@ from os import path
 import unittest
 import pathlib
 
+import pytest
 import numpy as np
 
 import asilib
@@ -86,6 +87,27 @@ class Test_equal_area(unittest.TestCase):
         else:
             area_box_mask_reference = np.load(reference_path)
             assert np.array_equal(area_box_mask, area_box_mask_reference, equal_nan=True)
+        return
+
+    def test_equal_area_below_horizon(self):
+        asi_array_code = 'THEMIS'
+        location_code = 'RANK'
+        time = datetime(2020, 1, 1)
+        box_km = (10, 10)  # in (Lat, Lon) directions.
+        skymap_dict = load_skymap(asi_array_code, location_code, time)
+
+        # Set up a north-south satellite track oriented to the east of the THEMIS/RANK
+        # imager.
+        n = 10
+        lats = np.linspace(0, 5, n)  # Just above the equator, way below the horizon.
+        lons = (skymap_dict["SITE_MAP_LONGITUDE"] - 0.5) * np.ones(n)
+        alts = 110 * np.ones(n)
+        lla = np.array([lats, lons, alts]).T
+        with pytest.warns(UserWarning):
+            area_box_mask = asilib.equal_area(
+                asi_array_code, location_code, time, lla, box_km=(20, 20)
+            )
+        assert np.all(np.isnan(area_box_mask))
         return
 
 

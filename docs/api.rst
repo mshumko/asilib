@@ -51,6 +51,8 @@ Function Summary
    asilib.plot.plot_map.plot_map
    asilib.plot.animate_fisheye.animate_fisheye
    asilib.plot.animate_fisheye.animate_fisheye_generator
+   asilib.plot.animate_map.animate_map
+   asilib.plot.animate_map.animate_map_generator
    asilib.analysis.keogram.keogram
    asilib.analysis.map.lla2azel
    asilib.analysis.map.lla2footprint
@@ -96,6 +98,12 @@ Plot
    :members: animate_fisheye, animate_fisheye_generator
    :undoc-members:
    :show-inheritance:
+
+.. automodule:: asilib.plot.animate_map
+   :members: animate_map, animate_map_generator
+   :undoc-members:
+   :show-inheritance:
+
 
 Analysis
 ========

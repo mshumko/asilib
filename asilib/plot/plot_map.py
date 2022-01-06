@@ -15,25 +15,25 @@ try:
 except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.plot_map().
 
+import asilib
 from asilib.io import load
-from asilib.io import utils
 
 
 def plot_map(
     asi_array_code: str,
     location_code: str,
-    time: utils._time_type,
+    time: asilib.io.utils._time_type,
     map_alt: float,
     time_thresh_s: float = 3,
     ax: plt.Axes = None,
-    map_style='green',
+    map_style: str = 'green',
     color_map: str = 'auto',
     min_elevation: float = 10,
-    norm=True,
-    asi_label=True,
+    norm: bool = True,
+    asi_label: bool = True,
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
-    pcolormesh_kwargs={},
+    pcolormesh_kwargs: dict = {},
 ):
     """
     Projects the ASI images to a map at an altitude defined in the skymap calibration file.
@@ -130,25 +130,18 @@ def plot_map(
         ax = create_cartopy_map(map_style=map_style)
 
     if color_bounds is None:
-        lower, upper = np.nanquantile(image, (0.25, 0.98))
-        color_bounds = [lower, np.min([upper, lower * 10])]
-
-    if (color_map == 'auto') and (asi_array_code.lower() == 'themis'):
-        color_map = 'Greys_r'
-    elif (color_map == 'auto') and (asi_array_code.lower() == 'rego'):
-        color_map = colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
-    else:
-        raise NotImplementedError('color_map == "auto" but the asi_array_code is unsupported')
-
-    if color_norm == 'log':
-        norm = colors.LogNorm(vmin=color_bounds[0], vmax=color_bounds[1])
-    elif color_norm == 'lin':
-        norm = colors.Normalize(vmin=color_bounds[0], vmax=color_bounds[1])
-    else:
-        raise ValueError('color_norm must be either "log" or "lin".')
+        color_bounds = asilib.plot.utils.get_color_bounds(image)
+    _color_map = asilib.plot.utils.get_color_map(asi_array_code, color_map)
+    _norm = asilib.plot.utils.get_color_norm(color_norm, color_bounds)
 
     p = _pcolormesh_nan(
-        lon_map, lat_map, image, ax, cmap=color_map, norm=norm, pcolormesh_kwargs=pcolormesh_kwargs
+        lon_map,
+        lat_map,
+        image,
+        ax,
+        cmap=_color_map,
+        norm=_norm,
+        pcolormesh_kwargs=pcolormesh_kwargs,
     )
 
     if asi_label:
@@ -165,7 +158,7 @@ def plot_map(
 
 
 def create_cartopy_map(
-    map_style: str = 'green', lon_bounds: tuple = (-160, 52), lat_bounds: tuple = (40, 82)
+    map_style: str = 'green', lon_bounds: tuple = (-160, -50), lat_bounds: tuple = (40, 82)
 ) -> plt.Axes:
     """
     A helper function to create two map styles: a simple black and white map, and
