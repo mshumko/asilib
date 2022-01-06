@@ -3,6 +3,7 @@ import matplotlib.colors as colors
 
 # TODO: Make all of the other plot functions call these ones.
 
+
 def get_color_bounds(image):
     """
     A decent default for the minimum and maximum colorbar values for aurora images. This way
@@ -12,9 +13,10 @@ def get_color_bounds(image):
     color_bounds = [lower, np.min([upper, lower * 10])]
     return color_bounds
 
+
 def get_color_map(asi_array_code, color_map):
     """
-    Color maps for the THEMIS and REGO ASIs. 
+    Color maps for the THEMIS and REGO ASIs.
     """
     if (color_map == 'auto') and (asi_array_code.lower() == 'themis'):
         color_map = 'Greys_r'
@@ -23,6 +25,7 @@ def get_color_map(asi_array_code, color_map):
     else:
         raise NotImplementedError('color_map == "auto" but the asi_array_code is unsupported')
     return color_map
+
 
 def get_color_norm(color_norm, color_bounds):
     """

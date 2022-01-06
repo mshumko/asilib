@@ -135,7 +135,13 @@ def plot_map(
     _norm = asilib.plot.utils.get_color_norm(color_norm, color_bounds)
 
     p = _pcolormesh_nan(
-        lon_map, lat_map, image, ax, cmap=_color_map, norm=_norm, pcolormesh_kwargs=pcolormesh_kwargs
+        lon_map,
+        lat_map,
+        image,
+        ax,
+        cmap=_color_map,
+        norm=_norm,
+        pcolormesh_kwargs=pcolormesh_kwargs,
     )
 
     if asi_label:

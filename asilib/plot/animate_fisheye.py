@@ -15,11 +15,13 @@ from asilib.io import utils
 from asilib.io.load import load_image, load_skymap
 from asilib.analysis.start_generator import start_generator
 
+
 def plot_movie(
     asi_array_code: str, location_code: str, time_range: utils._time_range_type, **kwargs
 ) -> None:
     warnings.warn('asilib.plot_movie is deprecated for asilib.animate_fisheye')
     return animate_fisheye(asi_array_code, location_code, time_range, **kwargs)
+
 
 def animate_fisheye(
     asi_array_code: str, location_code: str, time_range: utils._time_range_type, **kwargs
@@ -81,6 +83,7 @@ def animate_fisheye(
 
 Images = collections.namedtuple('Images', ['time', 'images'])
 
+
 def plot_movie_generator(
     asi_array_code: str,
     location_code: str,
@@ -99,7 +102,10 @@ def plot_movie_generator(
 
     warnings.warn('asilib.plot_movie_generator is deprecated for asilib.animate_fisheye_generator')
 
-    return animate_fisheye_generator(asi_array_code, location_code, time_range, 
+    return animate_fisheye_generator(
+        asi_array_code,
+        location_code,
+        time_range,
         force_download=force_download,
         label=label,
         color_map=color_map,
@@ -109,7 +115,9 @@ def plot_movie_generator(
         ax=ax,
         movie_container=movie_container,
         ffmpeg_output_params=ffmpeg_output_params,
-        overwrite=overwrite)
+        overwrite=overwrite,
+    )
+
 
 @start_generator
 def animate_fisheye_generator(
@@ -133,8 +141,8 @@ def animate_fisheye_generator(
     spacecraft position, and that will convert it to a movie. If you just want to make
     an ASI fisheye movie, use the wrapper for this function, called animate_fisheye().
 
-    Once this generator is initiated with the name `gen`, for example, but **before** 
-    the for loop, you can get the ASI images and times by calling `gen.send('data')`. 
+    Once this generator is initiated with the name `gen`, for example, but **before**
+    the for loop, you can get the ASI images and times by calling `gen.send('data')`.
     This will yield a collections.namedtuple with `time` and `images` attributes.
 
     Parameters

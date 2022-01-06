@@ -56,7 +56,7 @@ def download_image(
     | from datetime import datetime
     |
     | import asilib
-    | 
+    |
     | asi_array_code = 'THEMIS'
     | location_code = 'LUCK'
     | time = datetime(2017, 4, 13, 5)
@@ -64,15 +64,27 @@ def download_image(
     """
 
     if asi_array_code.lower() == 'themis':
-        paths = download_themis_img(location_code, time=time, time_range=time_range, 
-            force_download=force_download, ignore_missing_data=ignore_missing_data)
+        paths = download_themis_img(
+            location_code,
+            time=time,
+            time_range=time_range,
+            force_download=force_download,
+            ignore_missing_data=ignore_missing_data,
+        )
     elif asi_array_code.lower() == 'rego':
-        paths = download_rego_img(location_code, time=time, time_range=time_range, 
-            force_download=force_download, ignore_missing_data=ignore_missing_data)
+        paths = download_rego_img(
+            location_code,
+            time=time,
+            time_range=time_range,
+            force_download=force_download,
+            ignore_missing_data=ignore_missing_data,
+        )
     return paths
 
 
-def download_skymap(asi_array_code: str, location_code: str, force_download: bool = False) -> List[pathlib.Path]:
+def download_skymap(
+    asi_array_code: str, location_code: str, force_download: bool = False
+) -> List[pathlib.Path]:
     """
     Download all of the THEMIS or REGO skymap IDL .sav files.
 
@@ -159,7 +171,9 @@ def download_themis_img(
 
     elif time is not None:
         time = utils._validate_time(time)
-        download_path = _download_one_img_file('themis', location_code, base_url, time, force_download)
+        download_path = _download_one_img_file(
+            'themis', location_code, base_url, time, force_download
+        )
         download_paths = [
             download_path
         ]  # List for constancy with the time_range code chunk output.
@@ -171,7 +185,9 @@ def download_themis_img(
 
         for hour in download_hours:
             try:
-                download_path = _download_one_img_file('themis', location_code, base_url, hour, force_download)
+                download_path = _download_one_img_file(
+                    'themis', location_code, base_url, hour, force_download
+                )
                 download_paths.append(download_path)
             except NotADirectoryError:
                 if ignore_missing_data:
@@ -287,7 +303,9 @@ def download_rego_img(
 
     elif time is not None:
         time = utils._validate_time(time)
-        download_path = _download_one_img_file('rego', location_code, base_url, time, force_download)
+        download_path = _download_one_img_file(
+            'rego', location_code, base_url, time, force_download
+        )
         download_paths = [
             download_path
         ]  # List for constancy with the time_range code chunk output.
@@ -299,7 +317,9 @@ def download_rego_img(
 
         for hour in download_hours:
             try:
-                download_path = _download_one_img_file('rego', location_code, base_url, hour, force_download)
+                download_path = _download_one_img_file(
+                    'rego', location_code, base_url, hour, force_download
+                )
                 download_paths.append(download_path)
             except NotADirectoryError:
                 if ignore_missing_data:
@@ -365,7 +385,7 @@ def download_rego_skymap(location_code: str, force_download: bool = False) -> Li
 def _download_one_img_file(asi_array_code, location_code, base_url, time, force_download):
     """
     Download one hour-long file.
-    """ 
+    """
     # Add the location/year/month url folders onto the url
     url = f'{base_url}/{location_code.lower()}/{time.year}/{str(time.month).zfill(2)}/'
 
@@ -373,7 +393,9 @@ def _download_one_img_file(asi_array_code, location_code, base_url, time, force_
     file_names = utils._search_hrefs(url, search_pattern=search_pattern)
 
     server_url = url + file_names[0]
-    download_path = pathlib.Path(asilib.config['ASI_DATA_DIR'], asi_array_code.lower(), file_names[0])
+    download_path = pathlib.Path(
+        asilib.config['ASI_DATA_DIR'], asi_array_code.lower(), file_names[0]
+    )
     if force_download or (not download_path.is_file()):
         utils._stream_large_file(server_url, download_path)
     return download_path

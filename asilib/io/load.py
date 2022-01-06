@@ -215,8 +215,8 @@ def load_skymap(
         time = dateutil.parser.parse(time)
 
     if force_download:
-        skymap_paths = download_skymap(asi_array_code.lower(),
-            location_code, force_download=force_download
+        skymap_paths = download_skymap(
+            asi_array_code.lower(), location_code, force_download=force_download
         )
 
     else:
@@ -233,8 +233,8 @@ def load_skymap(
 
         # Download skymap files if they are not downloaded yet.
         if len(skymap_paths) == 0:
-            skymap_paths = download_skymap(asi_array_code.lower(),
-                location_code, force_download=force_download
+            skymap_paths = download_skymap(
+                asi_array_code.lower(), location_code, force_download=force_download
             )
 
     skymap_dates = _extract_skymap_dates(skymap_paths)
@@ -464,8 +464,9 @@ def _load_images(
         start_time_index += file_images.shape[0]
 
     i_not_nan = np.where(~np.isnan(images[:, 0, 0]))[0]
-    assert len(i_not_nan) > 0, (f'{len(i_not_nan)} number of time stamps'
-        ' were found in time_range={time_range}')
+    assert len(i_not_nan) > 0, (
+        f'{len(i_not_nan)} number of time stamps' ' were found in time_range={time_range}'
+    )
     images = images[i_not_nan, :, :]
     times = times[i_not_nan]
     return times, images
@@ -520,8 +521,8 @@ def _find_img_path(
     time = utils._validate_time(time)
 
     if force_download:
-        file_path = download_image(asi_array_code.lower(), 
-            location_code, time=time, force_download=force_download
+        file_path = download_image(
+            asi_array_code.lower(), location_code, time=time, force_download=force_download
         )[0]
     else:
         # If the user does not want to force a download, look for a file on the
@@ -538,8 +539,8 @@ def _find_img_path(
 
         elif len(matched_paths) == 0:  # No local file found
             try:
-                file_path = download_image(asi_array_code.lower(),
-                    location_code, time=time, force_download=force_download
+                file_path = download_image(
+                    asi_array_code.lower(), location_code, time=time, force_download=force_download
                 )[0]
             except NotADirectoryError:
                 raise FileNotFoundError(

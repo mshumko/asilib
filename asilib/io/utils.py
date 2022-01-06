@@ -27,6 +27,7 @@ def _validate_time(time: _time_type) -> List[datetime]:
     _is_valid_year(time)
     return time
 
+
 def _validate_time_range(time_range: _time_range_type) -> List[datetime]:
     """
     Validates tries to parse the time_range into datetime objects.
@@ -55,6 +56,7 @@ def _validate_time_range(time_range: _time_range_type) -> List[datetime]:
     time_range_parsed.sort()
     return time_range_parsed
 
+
 def _is_valid_year(time):
     """
     Provides a sanity check that the year is after 2000 and before the current year + 1.
@@ -65,6 +67,7 @@ def _is_valid_year(time):
     elif year > datetime.now().year + 1:
         raise ValueError(f'The passed year={year} must be less than the current year + 1.')
     return
+
 
 def _get_hours(time_range: _time_range_type) -> List[datetime]:
     """

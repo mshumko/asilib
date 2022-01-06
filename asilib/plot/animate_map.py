@@ -24,14 +24,16 @@ from asilib.plot.animate_fisheye import _write_movie
 from asilib.plot.animate_fisheye import _add_azel_contours
 from asilib.plot.animate_fisheye import Images
 
+
 def animate_map(
-    asi_array_code: str, 
-    location_code: str, 
-    time_range: asilib.io.utils._time_range_type, 
+    asi_array_code: str,
+    location_code: str,
+    time_range: asilib.io.utils._time_range_type,
     map_alt: float,
-    **kwargs):
+    **kwargs,
+):
     """
-    Projects a series of THEMIS or REGO images on a map at map_alt altitude in kilometers and 
+    Projects a series of THEMIS or REGO images on a map at map_alt altitude in kilometers and
     animates them.
 
     This function basically runs ``animate_map_generator()`` in a for loop. The two function's
@@ -76,8 +78,9 @@ def animate_map(
     | asilib.animate_map('THEMIS', 'FSMI', time_range)
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
     """
-    map_generator = animate_map_generator(asi_array_code, location_code, time_range, map_alt, 
-        **kwargs)
+    map_generator = animate_map_generator(
+        asi_array_code, location_code, time_range, map_alt, **kwargs
+    )
 
     for _ in map_generator:
         pass
@@ -91,7 +94,7 @@ def animate_map_generator(
     time_range: asilib.io.utils._time_range_type,
     map_alt: float,
     min_elevation: float = 10,
-    lon_bounds: tuple = (-160, -50), 
+    lon_bounds: tuple = (-160, -50),
     lat_bounds: tuple = (40, 82),
     force_download: bool = False,
     color_map: str = 'auto',
@@ -104,15 +107,15 @@ def animate_map_generator(
     movie_container: str = 'mp4',
     ffmpeg_output_params={},
     overwrite: bool = False,
-    pcolormesh_kwargs : dict = {}
+    pcolormesh_kwargs: dict = {},
 ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
     """
-    Projects a series of THEMIS or REGO images on a map at map_alt altitude in kilometers and 
+    Projects a series of THEMIS or REGO images on a map at map_alt altitude in kilometers and
     animates them. This generator function is useful if you need to superpose other data onto a
     map in the movie.
 
-    Once this generator is initiated with the name `gen`, for example, but **before** 
-    the for loop, you can get the ASI images and times by calling `gen.send('data')`. 
+    Once this generator is initiated with the name `gen`, for example, but **before**
+    the for loop, you can get the ASI images and times by calling `gen.send('data')`.
     This will yield a collections.namedtuple with `time` and `images` attributes.
 
     Parameters
@@ -287,7 +290,13 @@ def animate_map_generator(
         norm = asilib.plot.utils.get_color_norm(color_norm, _color_bounds)
 
         p = _pcolormesh_nan(
-            lon_map, lat_map, image, ax, cmap=color_map, norm=norm, pcolormesh_kwargs=pcolormesh_kwargs
+            lon_map,
+            lat_map,
+            image,
+            ax,
+            cmap=color_map,
+            norm=norm,
+            pcolormesh_kwargs=pcolormesh_kwargs,
         )
 
         if azel_contours:
