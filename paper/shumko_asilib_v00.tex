@@ -185,7 +185,7 @@ And the last analysis function that we describe here is \verb|asilib.area2pixels
 
 If you give it one LLA coordinate, the mask will have the same shape as the ASI image. On the other hand, if you pass multiple LLA coordinates, the mask's will have a new first dimension corresponding to the number of coordinates.
 
-By default, the area is 5x5 km. \textcolor{red}{Think about how this function works for LLA values outside of the ASI's field of view. Maybe have a check for LLA values are completely outside of lat map or lon map? Also raise a warning if some of the 2d mask arrays are all nans.} If the area is so small that not even one pixel is contained inside it (but it is above the horizon), \verb|asilib.area2pixels()| will slowly increase the area tolerance until at least one pixel is found.
+By default, the area is 5x5 km. If the area is so small that not even one pixel is contained inside it (but it is above the horizon), \verb|asilib.area2pixels()| will slowly increase the area tolerance until at least one pixel is found. Lastly, if the area is completely outside of the skymap, \verb|asilib| will raise a warning and the corresponding mask will be all NaNs. 
 
 \subsection{An example: a satellite-ASI conjunction}\label{satellite_conjunction}
 In this example we combine the aforementioned analysis functions into an example of a conjunction between a THEMIS ASI and a fictional satellite in 500-km altitude low Earth orbit. We will calculate and show the mean ASI intensity in a 20x20 km area, at 110 km altitude, around the satellite footprint and animate it.
