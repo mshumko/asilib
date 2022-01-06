@@ -104,7 +104,9 @@ class Test_equal_area(unittest.TestCase):
         alts = 110 * np.ones(n)
         lla = np.array([lats, lons, alts]).T
         with pytest.warns(UserWarning):
-            area_box_mask = asilib.equal_area(asi_array_code, location_code, time, lla, box_km=(20, 20))
+            area_box_mask = asilib.equal_area(
+                asi_array_code, location_code, time, lla, box_km=(20, 20)
+            )
         assert np.all(np.isnan(area_box_mask))
         return
 

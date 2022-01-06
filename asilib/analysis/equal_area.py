@@ -68,13 +68,15 @@ def equal_area(asi_array_code, location_code, time, lla, box_km=(5, 5), alt_thre
     for i, ((lat, lon, _), dlon_i, dlat_i) in enumerate(zip(lla, dlon, dlat)):
         # Check that the lat/lon values are inside the skymap coordinates.
         if (
-            (lat > np.nanmax(lat_map)) or (lat < np.nanmin(lat_map)) or 
-            (lon > np.nanmax(lon_map)) or (lon < np.nanmin(lon_map)) 
-            ):
+            (lat > np.nanmax(lat_map))
+            or (lat < np.nanmin(lat_map))
+            or (lon > np.nanmax(lon_map))
+            or (lon < np.nanmin(lon_map))
+        ):
             warnings.warn(
                 'Some latitude or longitude values are outside of the skymap '
                 'lat/lon arrays. The equal area mask will be all NaNs.'
-                )
+            )
             continue
 
         # Find the indices of the box. If none were found (pixel smaller than
