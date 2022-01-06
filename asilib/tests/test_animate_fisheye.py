@@ -4,12 +4,12 @@ from datetime import datetime
 import asilib
 
 
-class TestPlotImage(unittest.TestCase):
+class TestAnimateFisheye(unittest.TestCase):
     def test_animate_fisheye_generator(self):
         """Checks that the example in animate_fisheye_generator() works."""
         time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
         movie_generator = asilib.animate_fisheye_generator(
-            time_range, 'THEMIS', 'FSMI', azel_contours=True, overwrite=True
+            'THEMIS', 'FSMI', time_range, azel_contours=True, overwrite=True
         )
 
         for image_time, image, im, ax in movie_generator:
@@ -23,7 +23,7 @@ class TestPlotImage(unittest.TestCase):
         asilib.animate_fisheye('THEMIS', 'FSMI', time_range, azel_contours=True, overwrite=True)
         return
 
-    def test_animate_fisheye_generator(self):
+    def test_animate_fisheye_generator_send(self):
         """Check that the generator function and the .send() method works"""
         time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
         gen = asilib.animate_fisheye_generator(
