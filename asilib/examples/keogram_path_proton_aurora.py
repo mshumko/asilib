@@ -24,7 +24,7 @@ msp_df.columns = [column.split('_')[1] for column in msp_df.columns]
 print(msp_df.head())
 
 # Create the map and keogram subplots
-fig = plt.figure(figsize=(12, 4))
+fig = plt.figure(figsize=(12, 3))
 ax = asilib.create_cartopy_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds,
     fig_ax={'fig':fig, 'ax':131}
     ) 
@@ -32,7 +32,8 @@ bx = fig.add_subplot(132)
 cx = fig.add_subplot(133)
 
 # Plot the mapped image from one time stamp.
-asilib.plot_map(asi_array_code, location_code, time, map_alt, ax=ax)
+# asilib.plot_map(asi_array_code, location_code, time, map_alt, ax=ax)
+ax.set_title(f'{asi_array_code}-{location_code} {time}')
 
 # Plot the MSP field of view.
 s = ax.plot(msp_df.loc[:, 'glon'], msp_df.loc[:, 'glat'], c='r',
@@ -46,8 +47,13 @@ keogram_longitude = skymap['FULL_MAP_LONGITUDE'][alt_index, :, skymap['FULL_MAP_
 ax.plot(keogram_longitude, keogram_latitude, c='c',
     transform=ccrs.PlateCarree())
 
-# Plot the keogram
-asilib.plot_keogram(asi_array_code, location_code, time_range, map_alt, ax=bx)
+# Plot the keogram along the meridian
+# asilib.plot_keogram(asi_array_code, location_code, time_range, map_alt, ax=bx)
+bx.text(0, 1, f'Keogram along zenith (cyan line in left panel).', 
+    transform=bx.transAxes, va='top', c='w')
+# Plot the keogram along the MSP field of view
+asilib.plot_keogram(asi_array_code, location_code, time_range, map_alt, ax=cx, 
+    path=msp_df.loc[:, ['glat', 'glon']])
 
 # n_mlat_labels = 10
 # mlat_indices = np.arange(0, msp_df.shape[0]+1, msp_df.shape[0]//n_mlat_labels).astype(int)

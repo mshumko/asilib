@@ -18,6 +18,7 @@ def plot_keogram(
     color_norm: str = 'lin',
     title: bool = True,
     pcolormesh_kwargs: dict = {},
+    path: np.array = None
 ):
     """
     Makes a keogram along the central meridian.
@@ -48,6 +49,10 @@ def plot_keogram(
         A dictionary of keyword arguments (kwargs) to pass directly into
         plt.pcolormesh. One use of this parameter is to change the colormap. For example,
         pcolormesh_kwargs = {'cmap':'tu'}
+    path: array
+        Make a keogram along a custom path. Path shape must be (n, 2) and contain the 
+        lat/lon coordinates that are mapped to map_alt. If map_alt is unspecified, will
+        raise a ValueError.
 
     Returns
     -------
@@ -81,7 +86,7 @@ def plot_keogram(
     | plt.show()
     """
     time_range = utils._validate_time_range(time_range)
-    keo_df = keogram(asi_array_code, location_code, time_range, map_alt)
+    keo_df = keogram(asi_array_code, location_code, time_range, map_alt, path=path)
 
     if ax is None:
         _, ax = plt.subplots()

@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import scipy.spatial
 
 from asilib.io import utils
 from asilib.io.load import (
@@ -51,7 +52,16 @@ def keogram(
         raise ValueError(f'If you need a keogram along a path, you need to provide the map altitude.')
     image_generator = load_image_generator(asi_array_code, location_code, time_range)
     keo_times, keo = _create_empty_data_arrays(asi_array_code, time_range, 'keogram')
+    skymap = load_skymap(asi_array_code, location_code, time_range[0])
 
+    # Check for a valid map_alt.
+    if map_alt is not None:
+        assert (
+            map_alt in skymap['FULL_MAP_ALTITUDE'] / 1000
+        ), f'{map_alt} km is not in skymap altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
+        alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
+
+    # Load and slice the image data.
     start_time_index = 0
     for file_image_times, file_images in image_generator:
         end_time_index = start_time_index + file_images.shape[0]
@@ -60,6 +70,15 @@ def keogram(
                 :, :, keo.shape[1] // 2
             ]  
         else:
+            path_pixels = np.nan*np.ones_like(path)
+            # Find the nearest neighbors using KDTree
+            tree = scipy.spatial.KDTree(
+                np.c_(
+                    skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
+                    skymap['FULL_MAP_LONGITUDE'][alt_index, :, :]
+                    )
+                )
+            distances, closest_pixels = tree.query(path, k=1)
             raise NotImplementedError
         keo_times[start_time_index:end_time_index] = file_image_times
         start_time_index += file_images.shape[0]
@@ -80,11 +99,6 @@ def keogram(
     if map_alt is None:
         keogram_latitude = np.arange(keo.shape[1])  # Dummy index values for latitudes.
     else:
-        skymap = load_skymap(asi_array_code, location_code, time_range[0])
-        assert (
-            map_alt in skymap['FULL_MAP_ALTITUDE'] / 1000
-        ), f'{map_alt} km is not in skymap altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
-        alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
         keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, :, keo.shape[1] // 2]
 
         # keogram_latitude array are at the pixel edges. Remap it to the centers
