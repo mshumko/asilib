@@ -73,10 +73,10 @@ def keogram(
             path_pixels = np.nan*np.ones_like(path)
             # Find the nearest neighbors using KDTree
             tree = scipy.spatial.KDTree(
-                np.c_(
-                    skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
-                    skymap['FULL_MAP_LONGITUDE'][alt_index, :, :]
-                    )
+                np.column_stack((
+                    skymap['FULL_MAP_LATITUDE'][alt_index, :, :].ravel(),
+                    skymap['FULL_MAP_LONGITUDE'][alt_index, :, :].ravel()
+                    ))
                 )
             distances, closest_pixels = tree.query(path, k=1)
             raise NotImplementedError
