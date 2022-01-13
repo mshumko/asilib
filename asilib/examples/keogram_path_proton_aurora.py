@@ -21,6 +21,8 @@ msp_url = ('https://github.com/mshumko/aurora-asi-lib/raw/'
     '73ef9bd5220b781436aea3281c70da0f5b08ac05/asilib/data/GILL_MSP_coords.csv')
 msp_df = pd.read_csv(msp_url)
 msp_df.columns = [column.split('_')[1] for column in msp_df.columns]
+# Convert longitudes (0 -> 360) to (-180 -> 180)
+msp_df['glon'] = np.mod(msp_df['glon'] + 180, 360) - 180
 print(msp_df.head())
 
 # Create the map and keogram subplots
@@ -67,5 +69,5 @@ asilib.plot_keogram(asi_array_code, location_code, time_range, map_alt, ax=cx,
 #             f'<- $\lambda$={round(msp_df.loc[mlat_index, "glat"], 1)}', 
 #             transform=ccrs.PlateCarree(), color='red', va='center')
 
-plt.tight_layout()
-plt.show()
+# plt.tight_layout()
+# plt.show()
