@@ -34,7 +34,7 @@ bx = fig.add_subplot(132)
 cx = fig.add_subplot(133)
 
 # Plot the mapped image from one time stamp.
-# asilib.plot_map(asi_array_code, location_code, time, map_alt, ax=ax)
+asilib.plot_map(asi_array_code, location_code, time, map_alt, ax=ax)
 ax.set_title(f'{asi_array_code}-{location_code} {time}')
 
 # Plot the MSP field of view.
@@ -50,7 +50,7 @@ ax.plot(keogram_longitude, keogram_latitude, c='c',
     transform=ccrs.PlateCarree())
 
 # Plot the keogram along the meridian
-# asilib.plot_keogram(asi_array_code, location_code, time_range, map_alt, ax=bx)
+asilib.plot_keogram(asi_array_code, location_code, time_range, map_alt, ax=bx)
 bx.text(0, 1, f'Keogram along zenith (cyan line in left panel).', 
     transform=bx.transAxes, va='top', c='w')
 # Plot the keogram along the MSP field of view
