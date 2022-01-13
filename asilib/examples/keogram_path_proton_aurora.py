@@ -10,6 +10,7 @@ import cartopy.crs as ccrs
 import asilib
 
 time = datetime(2007, 1, 20, 0, 40)
+time_range = [datetime(2007, 1, 20, 0, 0), datetime(2007, 1, 20, 1, 0)]
 asi_array_code = 'THEMIS'
 location_code = 'TPAS'
 map_alt = 110
@@ -22,13 +23,31 @@ msp_df = pd.read_csv(msp_url)
 msp_df.columns = [column.split('_')[1] for column in msp_df.columns]
 print(msp_df.head())
 
-fig = plt.figure(figsize=(10, 6))
+# Create the map and keogram subplots
+fig = plt.figure(figsize=(12, 4))
 ax = asilib.create_cartopy_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds,
-    fig_ax={'fig':fig, 'ax':121}
+    fig_ax={'fig':fig, 'ax':131}
     ) 
+bx = fig.add_subplot(132)
+cx = fig.add_subplot(133)
+
+# Plot the mapped image from one time stamp.
 asilib.plot_map(asi_array_code, location_code, time, map_alt, ax=ax)
+
+# Plot the MSP field of view.
 s = ax.plot(msp_df.loc[:, 'glon'], msp_df.loc[:, 'glat'], c='r',
     transform=ccrs.PlateCarree())
+
+# Plot the THEMIS-TPAS meridian
+skymap = asilib.load_skymap(asi_array_code, location_code, time)
+alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
+keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, :, skymap['FULL_MAP_LATITUDE'].shape[1] // 2]
+keogram_longitude = skymap['FULL_MAP_LONGITUDE'][alt_index, :, skymap['FULL_MAP_LATITUDE'].shape[1] // 2]
+ax.plot(keogram_longitude, keogram_latitude, c='c',
+    transform=ccrs.PlateCarree())
+
+# Plot the keogram
+asilib.plot_keogram(asi_array_code, location_code, time_range, map_alt, ax=bx)
 
 # n_mlat_labels = 10
 # mlat_indices = np.arange(0, msp_df.shape[0]+1, msp_df.shape[0]//n_mlat_labels).astype(int)
