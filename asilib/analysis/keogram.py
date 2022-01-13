@@ -55,9 +55,12 @@ def keogram(
     start_time_index = 0
     for file_image_times, file_images in image_generator:
         end_time_index = start_time_index + file_images.shape[0]
-        keo[start_time_index:end_time_index, :] = file_images[
-            :, :, keo.shape[1] // 2
-        ]  
+        if path is None:
+            keo[start_time_index:end_time_index, :] = file_images[
+                :, :, keo.shape[1] // 2
+            ]  
+        else:
+            raise NotImplementedError
         keo_times[start_time_index:end_time_index] = file_image_times
         start_time_index += file_images.shape[0]
 
