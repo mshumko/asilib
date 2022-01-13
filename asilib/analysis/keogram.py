@@ -61,6 +61,34 @@ def keogram(
         ), f'{map_alt} km is not in skymap altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
         alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
 
+    if path is not None:
+        # Path is specified so we'll find the nearest ASI pixel to 
+        # each path point using KDTree nearest neighbors algorithm.
+        tree = scipy.spatial.KDTree(
+            np.column_stack((
+                skymap['FULL_MAP_LATITUDE'][alt_index, :, :].ravel(),
+                skymap['FULL_MAP_LONGITUDE'][alt_index, :, :].ravel()
+                ))
+            )
+        distances, closest_pixels_flattened = tree.query(path, k=1, 
+            distance_upper_bound=1)
+        valid_distances = np.where(np.isfinite(distances))[0]
+        path_x_pixels = closest_pixels_flattened[valid_distances]//skymap['FULL_MAP_LATITUDE'].shape[1]
+        path_y_pixels = np.mod(closest_pixels_flattened[valid_distances], skymap['FULL_MAP_LATITUDE'].shape[1])
+        # the skymap size is one larger than the image size, so we need to subtract 1 before we 
+        # use them to index the image.
+        path_x_pixels[
+            path_x_pixels >= skymap['FULL_MAP_LATITUDE'].shape[1]-1
+            ] = skymap['FULL_MAP_LATITUDE'].shape[1]-2
+        path_y_pixels[
+            path_y_pixels >= skymap['FULL_MAP_LATITUDE'].shape[2]-1
+            ] = skymap['FULL_MAP_LATITUDE'].shape[2]-2
+        keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, path_x_pixels, path_y_pixels]
+
+
+        # Reshape the keogram's vertical axis.
+        keo = keo[:, np.arange(valid_distances.shape[0])]
+
     # Load and slice the image data.
     start_time_index = 0
     for file_image_times, file_images in image_generator:
@@ -70,16 +98,9 @@ def keogram(
                 :, :, keo.shape[1] // 2
             ]  
         else:
-            path_pixels = np.nan*np.ones_like(path)
-            # Find the nearest neighbors using KDTree
-            tree = scipy.spatial.KDTree(
-                np.column_stack((
-                    skymap['FULL_MAP_LATITUDE'][alt_index, :, :].ravel(),
-                    skymap['FULL_MAP_LONGITUDE'][alt_index, :, :].ravel()
-                    ))
-                )
-            distances, closest_pixels = tree.query(path, k=1)
-            raise NotImplementedError
+            keo[start_time_index:end_time_index, :] = file_images[
+                :, path_x_pixels, path_y_pixels
+            ]  
         keo_times[start_time_index:end_time_index] = file_image_times
         start_time_index += file_images.shape[0]
 
@@ -98,7 +119,7 @@ def keogram(
 
     if map_alt is None:
         keogram_latitude = np.arange(keo.shape[1])  # Dummy index values for latitudes.
-    else:
+    elif (map_alt is not None) and (path is None):
         keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, :, keo.shape[1] // 2]
 
         # keogram_latitude array are at the pixel edges. Remap it to the centers
