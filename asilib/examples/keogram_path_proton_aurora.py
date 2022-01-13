@@ -69,5 +69,5 @@ asilib.plot_keogram(asi_array_code, location_code, time_range, map_alt, ax=cx,
 #             f'<- $\lambda$={round(msp_df.loc[mlat_index, "glat"], 1)}', 
 #             transform=ccrs.PlateCarree(), color='red', va='center')
 
-# plt.tight_layout()
-# plt.show()
+plt.tight_layout()
+plt.show()

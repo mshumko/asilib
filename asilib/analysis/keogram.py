@@ -72,6 +72,7 @@ def keogram(
             )
         distances, closest_pixels_flattened = tree.query(path, k=1, 
             distance_upper_bound=1)
+        # TODO: Mask when elevation < 0.
         valid_distances = np.where(np.isfinite(distances))[0]
         path_x_pixels = closest_pixels_flattened[valid_distances]//skymap['FULL_MAP_LATITUDE'].shape[1]
         path_y_pixels = np.mod(closest_pixels_flattened[valid_distances], skymap['FULL_MAP_LATITUDE'].shape[1])
