@@ -10,7 +10,8 @@ from asilib.io.load import (
 
 
 def keogram(
-    asi_array_code: str, location_code: str, time_range: utils._time_range_type, map_alt: int = None
+    asi_array_code: str, location_code: str, time_range: utils._time_range_type, 
+    map_alt: int = None, mode: str = 'keo', path: np.array = None
 ):
     """
     Makes a keogram pd.DataFrame along the central meridian.
@@ -26,6 +27,13 @@ def keogram(
     map_alt: int
         The mapping altitude, in kilometers, used to index the mapped latitude in the
         skymap data. If None, will plot pixel index for the y-axis.
+    mode: str
+        The keogram mode. If ``keo`` then this makes a keogram and if ``ewo`` to make
+        an ewogram.
+    path: array
+        Make a keogram along a custom path. Path shape must be (n, 2) and contain the 
+        lat/lon coordinates that are mapped to map_alt. If map_alt is unspecified, will
+        raise a ValueError.
 
     Returns
     -------
@@ -39,6 +47,10 @@ def keogram(
         If map_alt does not equal the mapped altitudes in the skymap mapped values.
     ValueError
         If no imager data is found in ``time_range``.
+    ValueError
+        If the mode kwarg is not ``keo`` or ``ewo``.
+    ValueError
+        If a custom path is supplied but not map_alt.
     """
     image_generator = load_image_generator(asi_array_code, location_code, time_range)
     keo_times, keo = _create_empty_data_arrays(asi_array_code, time_range, 'keogram')
@@ -46,9 +58,23 @@ def keogram(
     start_time_index = 0
     for file_image_times, file_images in image_generator:
         end_time_index = start_time_index + file_images.shape[0]
-        keo[start_time_index:end_time_index, :] = file_images[
-            :, :, keo.shape[1] // 2
-        ]  # Slice the meridian
+        if path is None:
+            if mode == 'keo':  # Slice the meridian
+                keo[start_time_index:end_time_index, :] = file_images[
+                    :, :, keo.shape[2] // 2
+                ]  
+            elif mode == 'ewo':  # East-West slice
+                keo[start_time_index:end_time_index, :] = file_images[
+                    :, keo.shape[1] // 2, :
+                ]  
+            else:
+                raise ValueError(f'The asilib.keogram() mode kwarg must be "keo" or "ewo", or '
+                                 f'you must supply a path; Got mode={mode}.')
+        else:
+            if map_alt is None:
+                raise ValueError(f'If you need a keogram along a path, you need to supply the map altitude.')
+        
+
         keo_times[start_time_index:end_time_index] = file_image_times
         start_time_index += file_images.shape[0]
 
