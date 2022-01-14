@@ -34,6 +34,7 @@ def keogram(
         raise a ValueError.
     to_aacgm: bool
         TODO: Add a flag to convert the vertical axis to AACGM coordinates.
+        https://github.com/aburrell/aacgmv2
 
     Returns
     -------
@@ -65,7 +66,7 @@ def keogram(
 
     if path is not None:
         # TODO: Test this by calling this function with the path that represents the
-        # meridian. It shoud output the same keogram.
+        # meridian. It should output the same keogram.
         
         # Path is specified so we'll find the nearest ASI pixel to 
         # each path point using KDTree nearest neighbors algorithm.
