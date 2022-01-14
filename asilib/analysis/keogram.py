@@ -32,6 +32,8 @@ def keogram(
         Make a keogram along a custom path. Path shape must be (n, 2) and contain the 
         lat/lon coordinates that are mapped to map_alt. If map_alt is unspecified, will
         raise a ValueError.
+    to_aacgm: bool
+        TODO: Add a flag to convert the vertical axis to AACGM coordinates.
 
     Returns
     -------
@@ -62,6 +64,9 @@ def keogram(
         alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
 
     if path is not None:
+        # TODO: Test this by calling this function with the path that represents the
+        # meridian. It shoud output the same keogram.
+        
         # Path is specified so we'll find the nearest ASI pixel to 
         # each path point using KDTree nearest neighbors algorithm.
         tree = scipy.spatial.KDTree(
