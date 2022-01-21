@@ -92,7 +92,7 @@ class Test_keogram(unittest.TestCase):
         maridian_keogram = keogram(self.asi_array_code, self.location_code, time_range, map_alt)
         custom_keogram = keogram(self.asi_array_code, self.location_code, time_range, map_alt, 
                                         path=latlon)
-
+        custom_keogram = custom_keogram.iloc[:, :-1]  # To 
         intensity_diff = maridian_keogram.to_numpy() - custom_keogram.to_numpy()
         fractional_intensity_diff = intensity_diff / maridian_keogram.to_numpy()
         # The max intensity difference between the keograms should be less than 8%

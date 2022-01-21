@@ -91,8 +91,8 @@ def keogram(
             ] = skymap['FULL_MAP_LATITUDE'].shape[2]-2
         keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, path_x_pixels, path_y_pixels]
         # keogram_latitude array are at the pixel edges. Remap it to the centers
-        dl = keogram_latitude[1:] - keogram_latitude[:-1]
-        keogram_latitude = keogram_latitude[0:-1] + dl / 2
+        # dl = keogram_latitude[1:] - keogram_latitude[:-1]
+        # keogram_latitude = keogram_latitude[0:-1] + dl / 2
         keo = keo[:, valid_distances]
 
     # Load and slice the image data.
