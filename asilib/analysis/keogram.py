@@ -30,9 +30,9 @@ def keogram(
         skymap data. If None, will plot pixel index for the y-axis.
     path: array
         Make a keogram along a custom path. Path shape must be (n, 2) and contain the 
-        lat/lon coordinates that are mapped to map_alt. If map_alt is unspecified, will
-        raise a ValueError.
-    to_aacgm: bool
+        lat/lon coordinates that are mapped to map_alt. If the map_alt kwarg is 
+        unspecified, this function will raise a ValueError.
+    to_aacgm: bool (NOT IMPLEMENTED)
         TODO: Add a flag to convert the vertical axis to AACGM coordinates.
         https://github.com/aburrell/aacgmv2
 
@@ -64,10 +64,8 @@ def keogram(
         ), f'{map_alt} km is not in skymap altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
         alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
 
+    # Determine what pixels to use.
     if path is not None:
-        # TODO: Test this by calling this function with the path that represents the
-        # meridian. It should output the same keogram.
-        
         # Path is specified so we'll find the nearest ASI pixel to 
         # each path point using KDTree nearest neighbors algorithm.
         tree = scipy.spatial.KDTree(
@@ -76,9 +74,10 @@ def keogram(
                 skymap['FULL_MAP_LONGITUDE'][alt_index, :, :].ravel()
                 ))
             )
+        # A smaller distance_upper_bound (like 1 degree) will result in more inf distances
+        # near the horizon.
         distances, closest_pixels_flattened = tree.query(path, k=1, 
-            distance_upper_bound=1)
-        # TODO: Mask when elevation < 0.
+            distance_upper_bound=np.inf)  
         valid_distances = np.where(np.isfinite(distances))[0]
         path_x_pixels = closest_pixels_flattened[valid_distances]//skymap['FULL_MAP_LATITUDE'].shape[1]
         path_y_pixels = np.mod(closest_pixels_flattened[valid_distances], skymap['FULL_MAP_LATITUDE'].shape[1])
@@ -91,10 +90,10 @@ def keogram(
             path_y_pixels >= skymap['FULL_MAP_LATITUDE'].shape[2]-1
             ] = skymap['FULL_MAP_LATITUDE'].shape[2]-2
         keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, path_x_pixels, path_y_pixels]
-
-
-        # Reshape the keogram's vertical axis.
-        keo = keo[:, np.arange(valid_distances.shape[0])]
+        # keogram_latitude array are at the pixel edges. Remap it to the centers
+        dl = keogram_latitude[1:] - keogram_latitude[:-1]
+        keogram_latitude = keogram_latitude[0:-1] + dl / 2
+        keo = keo[:, valid_distances]
 
     # Load and slice the image data.
     start_time_index = 0
@@ -138,6 +137,9 @@ def keogram(
         valid_lats = np.where(~np.isnan(keogram_latitude))[0]
         keogram_latitude = keogram_latitude[valid_lats]
         keo = keo[:, valid_lats]
+    # elif (map_alt is not None) and (path is not None):
+    #     # Reshape the keogram's vertical axis.
+    #     keo = keo[:, valid_distances]
     return pd.DataFrame(data=keo, index=keo_times, columns=keogram_latitude)
 
 

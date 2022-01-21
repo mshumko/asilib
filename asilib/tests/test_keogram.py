@@ -71,6 +71,37 @@ class Test_keogram(unittest.TestCase):
             )
         return
 
+    def test_keogram_path(self):
+        """
+        Makes a keogram along a custom path (the meridian) and compares against the usual keogram
+        that is also along the merdidian.
+        """
+        map_alt = 110
+        time_range = (datetime(2017, 9, 15, 2, 37, 0), datetime(2017, 9, 15, 3, 0, 0))
+
+        # Set up the custom path along the meridian.
+        skymap = asilib.load_skymap(self.asi_array_code, self.location_code, time_range[0])
+        alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
+
+        image_resolution = skymap['FULL_MAP_LATITUDE'].shape[1:]
+        latlon = np.column_stack((
+                        skymap['FULL_MAP_LATITUDE'][alt_index, :, image_resolution[0]//2],
+                        skymap['FULL_MAP_LONGITUDE'][alt_index, :, image_resolution[0]//2]
+                        ))
+
+        maridian_keogram = keogram(self.asi_array_code, self.location_code, time_range, map_alt)
+        custom_keogram = keogram(self.asi_array_code, self.location_code, time_range, map_alt, 
+                                        path=latlon)
+
+        intensity_diff = maridian_keogram.to_numpy() - custom_keogram.to_numpy()
+        fractional_intensity_diff = intensity_diff / maridian_keogram.to_numpy()
+        # The max intensity difference between the keograms should be less than 8%
+        print(f'Max intensity diff: {100*fractional_intensity_diff.max()}')
+        print(f'Max lat diff: {np.abs(custom_keogram.columns - maridian_keogram.columns).max() < 1}')
+        # assert 100*fractional_intensity_diff.max() < 8 
+        # assert np.abs(custom_keogram.columns - maridian_keogram.columns).max() < 1  # 1 degree lat.
+        return
+
 
 class Test_plot_keogram(unittest.TestCase):
     def setUp(self):
