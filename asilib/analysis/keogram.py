@@ -68,7 +68,7 @@ def keogram(
     if path is not None:
         if np.any(np.isnan(path)):
             raise ValueError("The lat/lon path can't contain NaNs.")
-        if np.max(path) > 180 or np.min(path) < -180: 
+        if np.any(np.max(path) > 180) or np.any(np.min(path) < -180): 
             raise ValueError("The lat/lon values must be in the range -180 to 180.")
 
         # Path is specified so we'll find the nearest ASI pixel to 
