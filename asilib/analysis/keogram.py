@@ -66,6 +66,11 @@ def keogram(
 
     # Determine what pixels to use.
     if path is not None:
+        if np.any(np.isnan(path)):
+            raise ValueError("The lat/lon path can't contain NaNs.")
+        if np.max(path) > 180 or np.min(path) < -180: 
+            raise ValueError("The lat/lon values must be in the range -180 to 180.")
+
         # Path is specified so we'll find the nearest ASI pixel to 
         # each path point using KDTree nearest neighbors algorithm.
         tree = scipy.spatial.KDTree(
@@ -81,14 +86,6 @@ def keogram(
         valid_distances = np.where(np.isfinite(distances))[0]
         path_x_pixels = closest_pixels_flattened[valid_distances]//skymap['FULL_MAP_LATITUDE'].shape[1]
         path_y_pixels = np.mod(closest_pixels_flattened[valid_distances], skymap['FULL_MAP_LATITUDE'].shape[1])
-        # the skymap size is one larger than the image size, so we need to subtract 1 before we 
-        # use them to index the image.
-        path_x_pixels[
-            path_x_pixels >= skymap['FULL_MAP_LATITUDE'].shape[1]-1
-            ] = skymap['FULL_MAP_LATITUDE'].shape[1]-2
-        path_y_pixels[
-            path_y_pixels >= skymap['FULL_MAP_LATITUDE'].shape[2]-1
-            ] = skymap['FULL_MAP_LATITUDE'].shape[2]-2
         keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, path_x_pixels, path_y_pixels]
         # keogram_latitude array are at the pixel edges. Remap it to the centers
         # dl = keogram_latitude[1:] - keogram_latitude[:-1]
