@@ -134,9 +134,6 @@ def keogram(
         valid_lats = np.where(~np.isnan(keogram_latitude))[0]
         keogram_latitude = keogram_latitude[valid_lats]
         keo = keo[:, valid_lats]
-    # elif (map_alt is not None) and (path is not None):
-    #     # Reshape the keogram's vertical axis.
-    #     keo = keo[:, valid_distances]
     return pd.DataFrame(data=keo, index=keo_times, columns=keogram_latitude)
 
 
