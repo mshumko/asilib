@@ -12,7 +12,7 @@ from asilib.io.load import (
 
 def keogram(
     asi_array_code: str, location_code: str, time_range: utils._time_range_type, 
-    map_alt: int = None, path: np.array = None
+    map_alt: int = None, path: np.array = None, aacgm=False
 ):
     """
     Makes a keogram pd.DataFrame along the central meridian.
@@ -32,7 +32,7 @@ def keogram(
         Make a keogram along a custom path. Path shape must be (n, 2) and contain the 
         lat/lon coordinates that are mapped to map_alt. If the map_alt kwarg is 
         unspecified, this function will raise a ValueError.
-    to_aacgm: bool (NOT IMPLEMENTED)
+    aacgm: bool (NOT IMPLEMENTED)
         TODO: Add a flag to convert the vertical axis to AACGM coordinates.
         https://github.com/aburrell/aacgmv2
 
@@ -51,6 +51,9 @@ def keogram(
     ValueError
         If a custom path is provided but not map_alt.
     """
+    if aacgm:
+        raise NotImplementedError
+    
     if (map_alt is None) and (path is not None):
         raise ValueError(f'If you need a keogram along a path, you need to provide the map altitude.')
     image_generator = load_image_generator(asi_array_code, location_code, time_range)

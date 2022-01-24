@@ -51,8 +51,8 @@ def plot_keogram(
         pcolormesh_kwargs = {'cmap':'tu'}
     path: array
         Make a keogram along a custom path. Path shape must be (n, 2) and contain the 
-        lat/lon coordinates that are mapped to map_alt. If map_alt is unspecified, will
-        raise a ValueError.
+        lat/lon coordinates that are mapped to map_alt. If the map_alt kwarg is 
+        unspecified, this function will raise a ValueError.
 
     Returns
     -------
