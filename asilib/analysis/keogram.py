@@ -47,7 +47,7 @@ def keogram(
     AssertionError
         If map_alt does not equal the mapped altitudes in the skymap mapped values.
     ValueError
-        If no imager data is found in ``time_range``.
+        If no images are in ``time_range``.
     ValueError
         If a custom path is provided but not map_alt.
     """
@@ -66,12 +66,9 @@ def keogram(
 
     # Determine what pixels to use.
     if path is not None:
-        path_x_pixels, path_y_pixels = _path_to_pixels(path, map_alt, skymap)
+        path_x_pixels, path_y_pixels, valid_path = _path_to_pixels(path, map_alt, skymap)
         keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, path_x_pixels, path_y_pixels]
-        # keogram_latitude array are at the pixel edges. Remap it to the centers
-        # dl = keogram_latitude[1:] - keogram_latitude[:-1]
-        # keogram_latitude = keogram_latitude[0:-1] + dl / 2
-        keo = keo[:, valid_distances]
+        keo = keo[:, valid_path]
 
     # Load and slice the image data.
     start_time_index = 0
@@ -104,11 +101,11 @@ def keogram(
     if map_alt is None:
         keogram_latitude = np.arange(keo.shape[1])  # Dummy index values for latitudes.
     elif (map_alt is not None) and (path is None):
-        keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, :, keo.shape[1] // 2]
+        keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, :-1, keo.shape[1] // 2]
 
         # keogram_latitude array are at the pixel edges. Remap it to the centers
-        dl = keogram_latitude[1:] - keogram_latitude[:-1]
-        keogram_latitude = keogram_latitude[0:-1] + dl / 2
+        # dl = keogram_latitude[1:] - keogram_latitude[:-1]
+        # keogram_latitude = keogram_latitude[0:-1] + dl / 2
 
         # Since keogram_latitude values are NaNs near the image edges, we want to filter
         # out those indices from keogram_latitude and keo.

@@ -88,9 +88,9 @@ class Test_keogram(unittest.TestCase):
                         skymap['FULL_MAP_LATITUDE'][alt_index, :, image_resolution[0]//2],
                         skymap['FULL_MAP_LONGITUDE'][alt_index, :, image_resolution[0]//2]
                         ))
-        latlon = latlon[np.where(~np.isnan(latlon[:,0]))[0], :]
-        dl = latlon[0, 1:] - latlon[0, :-1]
-        latlon[:, 0] += dl
+        # latlon = latlon[np.where(~np.isnan(latlon[:,0]))[0], :]
+        # dl = latlon[0, 1:] - latlon[0, :-1]
+        # latlon[:, 0] += dl
         maridian_keogram = keogram(self.asi_array_code, self.location_code, time_range, map_alt)
         custom_keogram = keogram(self.asi_array_code, self.location_code, time_range, map_alt, 
                                         path=latlon)                                       
