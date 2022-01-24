@@ -51,7 +51,7 @@ cartopy
 To project ASI images onto a map you need to install the cartopy dependencies, followed by cartopy itself. As installing cartopy dependencies tend to be complex, see their `install`_ page for more details.
 
 .. note::
-   As of 24 January 2022, `cartopy` versions >= 0.20.0 only work with `PROJ` 8.0.0 or later. Linux `apt` does not have this version available yet so you'll have to build it from source.**
+   As of 24 January 2022, `cartopy` versions >= 0.20.0 only work with `PROJ` 8.0.0 or later. Linux `apt` does not have this version available yet so you'll have to build it from source.
 
 .. _install: https://scitools.org.uk/cartopy/docs/latest/installing.html#installing
 
