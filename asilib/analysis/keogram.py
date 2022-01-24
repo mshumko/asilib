@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import scipy.spatial
+import warnings
 
 from asilib.io import utils
 from asilib.io.load import (
@@ -66,8 +66,8 @@ def keogram(
 
     # Determine what pixels to use.
     if path is not None:
-        path_x_pixels, path_y_pixels, valid_path = _path_to_pixels(path, map_alt, skymap)
-        keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, path_x_pixels, path_y_pixels]
+        nearest_pixels, valid_path = _path_to_pixels(path, map_alt, skymap)
+        keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, nearest_pixels[:, 0], nearest_pixels[: ,1]]
         keo = keo[:, valid_path]
 
     # Load and slice the image data.
@@ -80,7 +80,7 @@ def keogram(
             ]  
         else:
             keo[start_time_index:end_time_index, :] = file_images[
-                :, path_x_pixels, path_y_pixels
+                :, nearest_pixels[:, 0], nearest_pixels[: ,1]
             ]  
         keo_times[start_time_index:end_time_index] = file_image_times
         start_time_index += file_images.shape[0]
@@ -102,10 +102,6 @@ def keogram(
         keogram_latitude = np.arange(keo.shape[1])  # Dummy index values for latitudes.
     elif (map_alt is not None) and (path is None):
         keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, :-1, keo.shape[1] // 2]
-
-        # keogram_latitude array are at the pixel edges. Remap it to the centers
-        # dl = keogram_latitude[1:] - keogram_latitude[:-1]
-        # keogram_latitude = keogram_latitude[0:-1] + dl / 2
 
         # Since keogram_latitude values are NaNs near the image edges, we want to filter
         # out those indices from keogram_latitude and keo.
@@ -231,16 +227,24 @@ def _path_to_pixels(path, map_alt, skymap, threshold=1):
     
     alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
 
-    # Find the nearest ASI pixel to each path point using KDTree.
-    tree = scipy.spatial.KDTree(
-        np.column_stack((
-            skymap['FULL_MAP_LATITUDE'][alt_index, :, :].ravel(),
-            skymap['FULL_MAP_LONGITUDE'][alt_index, :, :].ravel()
-            ))
-        )
-    distances, closest_pixels_flattened = tree.query(path, k=1, 
-        distance_upper_bound=threshold)  
-    valid_path = np.where(np.isfinite(distances))[0]
-    path_x_pixels = closest_pixels_flattened[valid_path]//skymap['FULL_MAP_LATITUDE'].shape[1]
-    path_y_pixels = np.mod(closest_pixels_flattened[valid_path], skymap['FULL_MAP_LATITUDE'].shape[1])
-    return path_x_pixels, path_y_pixels, valid_path
+    nearest_pixels = np.nan*np.zeros_like(path) 
+
+    for i, (lat, lon) in enumerate(path):
+        distances = np.sqrt(
+            (skymap['FULL_MAP_LATITUDE'][alt_index, :, :] - lat)**2 +
+            (skymap['FULL_MAP_LONGITUDE'][alt_index, :, :] - lon)**2
+            )
+        idx = np.where(distances == np.nanmin(distances))
+
+        # Keep NaNs if distanace is larger than threshold.
+        if distances[idx][0] > threshold:
+            warnings.warn(
+                f'Some of the keogram path coordinates are outside of the '
+                f'maximum {threshold} degrees distance from the nearest '
+                f'skymap map coordinate.'
+                )
+            continue
+        nearest_pixels[i, :] = [idx[0], idx[1]]
+
+    valid_pixels = np.where(np.isfinite(nearest_pixels[:, 0]))[0]
+    return nearest_pixels.astype(int), valid_pixels
