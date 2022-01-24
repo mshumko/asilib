@@ -66,26 +66,7 @@ def keogram(
 
     # Determine what pixels to use.
     if path is not None:
-        if np.any(np.isnan(path)):
-            raise ValueError("The lat/lon path can't contain NaNs.")
-        if np.any(np.max(path) > 180) or np.any(np.min(path) < -180): 
-            raise ValueError("The lat/lon values must be in the range -180 to 180.")
-
-        # Path is specified so we'll find the nearest ASI pixel to 
-        # each path point using KDTree nearest neighbors algorithm.
-        tree = scipy.spatial.KDTree(
-            np.column_stack((
-                skymap['FULL_MAP_LATITUDE'][alt_index, :, :].ravel(),
-                skymap['FULL_MAP_LONGITUDE'][alt_index, :, :].ravel()
-                ))
-            )
-        # A smaller distance_upper_bound (like 1 degree) will result in more inf distances
-        # near the horizon.
-        distances, closest_pixels_flattened = tree.query(path, k=1, 
-            distance_upper_bound=np.inf)  
-        valid_distances = np.where(np.isfinite(distances))[0]
-        path_x_pixels = closest_pixels_flattened[valid_distances]//skymap['FULL_MAP_LATITUDE'].shape[1]
-        path_y_pixels = np.mod(closest_pixels_flattened[valid_distances], skymap['FULL_MAP_LATITUDE'].shape[1])
+        path_x_pixels, path_y_pixels = _path_to_pixels(path, map_alt, skymap)
         keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, path_x_pixels, path_y_pixels]
         # keogram_latitude array are at the pixel edges. Remap it to the centers
         # dl = keogram_latitude[1:] - keogram_latitude[:-1]
@@ -214,3 +195,55 @@ def ewogram(
         ewo_longitude = ewo_longitude[valid_lons]
         keo = ewo[:, valid_lons]
     return pd.DataFrame(data=keo, index=ewo_times, columns=ewo_longitude)
+
+def _path_to_pixels(path, map_alt, skymap, threshold=1):
+    """
+    Convert the lat/lon path that is mapped to map_alt in kilometers to 
+    the x- and y-pixels in the skymap lat/lon mapped file.
+
+    Parameters
+    ----------
+    path: np.array
+        The lat/lon array of shape (n, 2).
+    map_alt: int
+        The map altitude of the path, also used to reference the appropriate 
+        skymap map array.
+    skymap: dict
+        The ASI skymap file.
+    threshold: float
+        The maximum distance threshold, in degrees, between the path (lat, lon) 
+        and the skymap (lat, lon)
+
+    Returns
+    -------
+    np.array
+        The valid x pixels corresponding to the path.
+    np.array
+        The valid y pixels corresponding to the path.
+    np.array
+        Path indices corresponding to rows with a pixel within threshold 
+        degrees distance.
+    """
+    if np.any(np.isnan(path)):
+        raise ValueError("The lat/lon path can't contain NaNs.")
+    if np.any(np.max(path) > 180) or np.any(np.min(path) < -180): 
+        raise ValueError("The lat/lon values must be in the range -180 to 180.")
+    assert (
+            map_alt in skymap['FULL_MAP_ALTITUDE'] / 1000
+        ), f'{map_alt} km is not in skymap altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
+    
+    alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
+
+    # Find the nearest ASI pixel to each path point using KDTree.
+    tree = scipy.spatial.KDTree(
+        np.column_stack((
+            skymap['FULL_MAP_LATITUDE'][alt_index, :, :].ravel(),
+            skymap['FULL_MAP_LONGITUDE'][alt_index, :, :].ravel()
+            ))
+        )
+    distances, closest_pixels_flattened = tree.query(path, k=1, 
+        distance_upper_bound=threshold)  
+    valid_path = np.where(np.isfinite(distances))[0]
+    path_x_pixels = closest_pixels_flattened[valid_path]//skymap['FULL_MAP_LATITUDE'].shape[1]
+    path_y_pixels = np.mod(closest_pixels_flattened[valid_path], skymap['FULL_MAP_LATITUDE'].shape[1])
+    return path_x_pixels, path_y_pixels, valid_path
