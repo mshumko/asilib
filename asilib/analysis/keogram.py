@@ -244,7 +244,7 @@ def _path_to_pixels(path, map_alt, skymap, threshold=1):
                 f'skymap map coordinate.'
                 )
             continue
-        nearest_pixels[i, :] = [idx[0], idx[1]]
+        nearest_pixels[i, :] = [idx[0][0], idx[1][0]]
 
     valid_pixels = np.where(np.isfinite(nearest_pixels[:, 0]))[0]
     return nearest_pixels.astype(int), valid_pixels

@@ -17,6 +17,7 @@ class Test_keogram(unittest.TestCase):
     def setUp(self):
         self.asi_array_code = 'REGO'
         self.location_code = 'LUCK'
+        self.map_alt = 230
         return
 
     def test_steve_keogram(self, create_reference=False):
@@ -27,7 +28,7 @@ class Test_keogram(unittest.TestCase):
             self.asi_array_code,
             self.location_code,
             ['2017-09-27T08', '2017-09-27T08:10'],
-            map_alt=230,
+            map_alt=self.map_alt,
         )
         reference_path = pathlib.Path(
             asilib.config['ASILIB_DIR'], 'tests', 'data', 'test_steve_keogram.csv'
@@ -76,32 +77,27 @@ class Test_keogram(unittest.TestCase):
         Makes a keogram along a custom path (the meridian) and compares against the usual keogram
         that is also along the merdidian.
         """
-        map_alt = 110
-        time_range = (datetime(2017, 9, 15, 2, 37, 0), datetime(2017, 9, 15, 3, 0, 0))
+        time_range = ['2017-09-27T07', '2017-09-27T09']
 
         # Set up the custom path along the meridian.
         skymap = asilib.load_skymap(self.asi_array_code, self.location_code, time_range[0])
-        alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
-
+        alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == self.map_alt)[0][0]
         image_resolution = skymap['FULL_MAP_LATITUDE'].shape[1:]
         latlon = np.column_stack((
                         skymap['FULL_MAP_LATITUDE'][alt_index, :, image_resolution[0]//2],
                         skymap['FULL_MAP_LONGITUDE'][alt_index, :, image_resolution[0]//2]
                         ))
-        # latlon = latlon[np.where(~np.isnan(latlon[:,0]))[0], :]
-        # dl = latlon[0, 1:] - latlon[0, :-1]
-        # latlon[:, 0] += dl
-        maridian_keogram = keogram(self.asi_array_code, self.location_code, time_range, map_alt)
-        custom_keogram = keogram(self.asi_array_code, self.location_code, time_range, map_alt, 
+        latlon = latlon[np.where(~np.isnan(latlon[:,0]))[0], :]
+
+        # Create and compare the two keograms.
+        maridian_keogram = keogram(self.asi_array_code, self.location_code, time_range, self.map_alt)
+        custom_keogram = keogram(self.asi_array_code, self.location_code, time_range, self.map_alt, 
                                         path=latlon)                                       
-        # custom_keogram = custom_keogram.iloc[:, :-1]  # To 
+ 
         intensity_diff = maridian_keogram.to_numpy() - custom_keogram.to_numpy()
         fractional_intensity_diff = intensity_diff / maridian_keogram.to_numpy()
-        # The max intensity difference between the keograms should be less than 8%
-        print(f'Max intensity diff: {100*fractional_intensity_diff.max()}')
-        print(f'Max lat diff: {np.abs(custom_keogram.columns - maridian_keogram.columns).max() < 1}')
-        assert 100*fractional_intensity_diff.max() < 8 
-        assert np.abs(custom_keogram.columns - maridian_keogram.columns).max() < 1  # 1 degree lat.
+        assert fractional_intensity_diff.max() == 0
+        assert np.abs(custom_keogram.columns - maridian_keogram.columns).max() == 0
         return
 
 
