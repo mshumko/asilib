@@ -1,9 +1,7 @@
-import re
 import unittest
 import pathlib
-from datetime import datetime, time
+from datetime import datetime
 import numpy as np
-import cdflib
 
 from asilib.io import load
 from asilib import config

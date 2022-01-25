@@ -2,11 +2,9 @@
 This module contains functions to project the ASI images to a map.
 """
 from typing import List, Union
-from datetime import datetime
 import importlib
 
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
 import numpy as np
 
 try:
@@ -261,11 +259,11 @@ def _pcolormesh_nan(
             bottom = i
 
         # Reassign all lat/lon columns after good[-1] (all nans) to good[-1].
-        x[i, good[-1] :] = x[i, good[-1]]
-        y[i, good[-1] :] = y[i, good[-1]]
+        x[i, good[-1]:] = x[i, good[-1]]
+        y[i, good[-1]:] = y[i, good[-1]]
         # Reassign all lat/lon columns before good[0] (all nans) to good[0].
-        x[i, : good[0]] = x[i, good[0]]
-        y[i, : good[0]] = y[i, good[0]]
+        x[i, :good[0]] = x[i, good[0]]
+        y[i, :good[0]] = y[i, good[0]]
 
     # Reassign all of the fully invalid lat/lon rows above top to the the max lat/lon value.
     x[:top, :] = np.nanmax(x[top, :])

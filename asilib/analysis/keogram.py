@@ -60,7 +60,7 @@ def keogram(
 
     if (map_alt is None) and (path is not None):
         raise ValueError(
-            f'If you need a keogram along a path, you need to provide the map altitude.'
+            'If you need a keogram along a path, you need to provide the map altitude.'
         )
     image_generator = load_image_generator(asi_array_code, location_code, time_range)
     keo_times, keo = _create_empty_data_arrays(asi_array_code, time_range, 'keogram')
@@ -241,8 +241,8 @@ def _path_to_pixels(path, map_alt, skymap, threshold=1):
 
     for i, (lat, lon) in enumerate(path):
         distances = np.sqrt(
-            (skymap['FULL_MAP_LATITUDE'][alt_index, :, :] - lat) ** 2
-            + (skymap['FULL_MAP_LONGITUDE'][alt_index, :, :] - lon) ** 2
+            (skymap['FULL_MAP_LATITUDE'][alt_index, :, :] - lat) ** 2 +
+            (skymap['FULL_MAP_LONGITUDE'][alt_index, :, :] - lon) ** 2
         )
         idx = np.where(distances == np.nanmin(distances))
 

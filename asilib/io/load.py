@@ -1,13 +1,11 @@
-from os import stat
 import pathlib
 from datetime import datetime, timedelta
 import dateutil.parser
-from typing import List, Tuple
+from typing import Tuple
 from copy import copy
 import warnings
 import re
 
-import pandas as pd
 import numpy as np
 import cdflib
 import scipy.io

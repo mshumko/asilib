@@ -351,7 +351,7 @@ def _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrit
 
     movie_save_path = image_save_dir.parents[1] / movie_file_name
     movie_obj = ffmpeg.input(
-        str(image_save_dir) + f'/*.png',
+        f'{image_save_dir}/*.png',
         pattern_type='glob',
         # Use pop so it won't be passed into movie_obj.output().
         framerate=ffmpeg_params.pop('framerate'),

@@ -2,13 +2,7 @@
 Tests for plot_map.py.
 """
 import unittest
-import pathlib
 from datetime import datetime
-
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import cartopy.crs as ccrs
 
 import asilib
 from asilib.plot.plot_map import plot_map

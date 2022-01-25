@@ -68,7 +68,7 @@ class Test_keogram(unittest.TestCase):
         nonexistant data.
         """
         with self.assertRaises(ValueError):
-            keo = keogram(
+            keogram(
                 "THEMIS", "ATHA", (datetime(2017, 9, 15, 2, 0, 0), datetime(2017, 9, 15, 3, 0, 0))
             )
         return
@@ -172,7 +172,7 @@ class Test_plot_keogram(unittest.TestCase):
         )
         return
 
-    def test_steve_plot_keogram_alt(self):
+    def test_steve_plot_keogram_no_alt(self):
         """
         Tests that the STEVE keogram plot is made without an altitude (columns are the image indices).
         """

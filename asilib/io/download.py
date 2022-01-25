@@ -239,7 +239,7 @@ def download_themis_skymap(location_code: str, force_download: bool = False) -> 
         skymap_folder_absolute = url + skymap_folder
 
         # Lastly, research for the skymap .sav file.
-        skymap_name = utils._search_hrefs(skymap_folder_absolute, search_pattern=f'.sav')[0]
+        skymap_name = utils._search_hrefs(skymap_folder_absolute, search_pattern='.sav')[0]
         skymap_save_name = skymap_name.replace('-%2B', '')  # Replace the unicode '+'.
 
         # Download if force_download=True or the file does not exist.
@@ -371,7 +371,7 @@ def download_rego_skymap(location_code: str, force_download: bool = False) -> Li
         skymap_folder_absolute = url + skymap_folder
 
         # Lastly, research for the skymap .sav file.
-        skymap_name = utils._search_hrefs(skymap_folder_absolute, search_pattern=f'.sav')[0]
+        skymap_name = utils._search_hrefs(skymap_folder_absolute, search_pattern='.sav')[0]
         skymap_save_name = skymap_name.replace('-%2B', '')  # Replace the unicode '+'.
 
         # Download if force_download=True or the file does not exist.
