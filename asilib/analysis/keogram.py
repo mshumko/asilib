@@ -69,9 +69,14 @@ def keogram(
 
     # Determine what pixels to use.
     if path is not None:
-        nearest_pixels, valid_path = _path_to_pixels(path, map_alt, skymap)
-        keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, nearest_pixels[:, 0], nearest_pixels[: ,1]]
-        keo = keo[:, valid_path]
+        nearest_pixels, valid_pixels = _path_to_pixels(path, map_alt, skymap)
+        nearest_pixels = nearest_pixels[valid_pixels, :]
+        keogram_latitude = skymap['FULL_MAP_LATITUDE'][
+            alt_index, 
+            nearest_pixels[:, 0], 
+            nearest_pixels[:, 1]
+            ]
+        keo = keo[:, valid_pixels]
 
     # Load and slice the image data.
     start_time_index = 0
@@ -251,4 +256,6 @@ def _path_to_pixels(path, map_alt, skymap, threshold=1):
         nearest_pixels[i, :] = [idx[0][0], idx[1][0]]
 
     valid_pixels = np.where(np.isfinite(nearest_pixels[:, 0]))[0]
+    if valid_pixels.shape[0] == 0:
+        raise ValueError('The keogram path is completely outside of the skymap.')
     return nearest_pixels.astype(int), valid_pixels
