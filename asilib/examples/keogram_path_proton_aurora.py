@@ -5,12 +5,13 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.dates
 import cartopy.crs as ccrs
 
 import asilib
 
 time = datetime(2007, 1, 20, 0, 40)
-time_range = [datetime(2007, 1, 20, 0, 0), datetime(2007, 1, 20, 1, 0)]
+time_range = [datetime(2007, 1, 20, 0, 0), datetime(2007, 1, 20, 2, 0)]
 asi_array_code = 'THEMIS'
 location_code = 'TPAS'
 map_alt = 110
@@ -26,12 +27,12 @@ msp_df['glon'] = np.mod(msp_df['glon'] + 180, 360) - 180
 print(msp_df.head())
 
 # Create the map and keogram subplots
-fig = plt.figure(figsize=(12, 3))
+fig = plt.figure(figsize=(14, 5))
 ax = asilib.create_cartopy_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds,
     fig_ax={'fig':fig, 'ax':131}
     ) 
 bx = fig.add_subplot(132)
-cx = fig.add_subplot(133)
+cx = fig.add_subplot(133, sharey=bx, sharex=bx)
 
 # Plot the mapped image from one time stamp.
 asilib.plot_map(asi_array_code, location_code, time, map_alt, ax=ax)
@@ -52,23 +53,30 @@ ax.plot(keogram_longitude, keogram_latitude, c='c',
 # Plot the keogram along the meridian
 asilib.plot_keogram(asi_array_code, location_code, time_range, map_alt, ax=bx)
 bx.text(0, 1, f'Keogram along zenith (cyan line in left panel).', 
-    transform=bx.transAxes, va='top', c='w')
+    transform=bx.transAxes, va='top', c='k')
 # Plot the keogram along the MSP field of view
 asilib.plot_keogram(asi_array_code, location_code, time_range, map_alt, ax=cx, 
     path=msp_df.loc[:, ['glat', 'glon']].to_numpy())
-cx.set_ylim(msp_df.loc[:, 'glat'].min(), msp_df.loc[:, 'glat'].max())
 
-# n_mlat_labels = 10
-# mlat_indices = np.arange(0, msp_df.shape[0]+1, msp_df.shape[0]//n_mlat_labels).astype(int)
-# mlat_indices[-1] -= 1
+cx.xaxis.set_major_formatter(
+        matplotlib.dates.DateFormatter('%H:%M')
+        )
+bx.xaxis.set_major_formatter(
+        matplotlib.dates.DateFormatter('%H:%M')
+        )
 
-# for mlat_index in mlat_indices:
-#     if ((msp_df.loc[mlat_index, 'glat'] < max(lat_bounds)) and
-#         (msp_df.loc[mlat_index, 'glat'] > min(lat_bounds))):
+n_mlat_labels = 7
+mlat_indices = np.arange(0, msp_df.shape[0]+1, msp_df.shape[0]//n_mlat_labels).astype(int)
+mlat_indices[-1] -= 1
+
+for mlat_index in mlat_indices:
+    if ((msp_df.loc[mlat_index, 'glat'] < max(lat_bounds)) and
+        (msp_df.loc[mlat_index, 'glat'] > min(lat_bounds))):
         
-#         ax.text(msp_df.loc[mlat_index, 'glon'], msp_df.loc[mlat_index, 'glat'], 
-#             f'<- $\lambda$={round(msp_df.loc[mlat_index, "glat"], 1)}', 
-#             transform=ccrs.PlateCarree(), color='red', va='center')
-
+        ax.text(msp_df.loc[mlat_index, 'glon'], msp_df.loc[mlat_index, 'glat'], 
+            f'<- $\lambda$={round(msp_df.loc[mlat_index, "mlat"], 1)}', 
+            transform=ccrs.PlateCarree(), color='red', va='center')
+cx.text(0, 1, f'Keogram along GILL MSP (red line in left panel).', 
+    transform=cx.transAxes, va='top', c='w')
 plt.tight_layout()
 plt.show()
