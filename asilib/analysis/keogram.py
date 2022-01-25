@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import warnings
+import aacgm2
 
 from asilib.io import utils
 from asilib.io.load import (
@@ -73,25 +74,43 @@ def keogram(
         ), f'{map_alt} km is not in skymap altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
         alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
 
-    # Determine what pixels to use.
-    if path is not None:
-        nearest_pixels, valid_pixels = _path_to_pixels(path, map_alt, skymap)
-        nearest_pixels = nearest_pixels[valid_pixels, :]
-        keogram_latitude = skymap['FULL_MAP_LATITUDE'][
-            alt_index, nearest_pixels[:, 0], nearest_pixels[:, 1]
-        ]
+    # Determine what pixels to index and the latitude values.
+    if (path is None) and (map_alt is None):
+        keogram_latitude = np.arange(keo.shape[1])  # Dummy index values for latitudes.
+        pixels = np.column_stack((
+            np.arange(keo.shape[1]), keo.shape[1]*np.ones(keo.shape[1])//2
+        )).astype(int)
+    elif (path is None) and (map_alt is not None):
+        keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, :-1, keo.shape[1] // 2]
+
+        # Since keogram_latitude values are NaNs near the image edges, we want to filter
+        # out those indices from keogram_latitude and keo.
+        pixels = np.where(~np.isnan(keogram_latitude))[0]
+        keogram_latitude = keogram_latitude[pixels]
+        keo = keo[:, pixels]
+        pixels = np.column_stack((
+            np.arange(keo.shape[1]), keo.shape[1]*np.ones(keo.shape[1])//2
+        )).astype(int)
+    elif (path is not None) and (map_alt is not None):
+        pixels, valid_pixels = _path_to_pixels(path, map_alt, skymap)
+        pixels = pixels[valid_pixels, :]
         keo = keo[:, valid_pixels]
+
+        keogram_latitude = skymap['FULL_MAP_LATITUDE'][
+            alt_index, pixels[:, 0], pixels[:, 1]
+        ]
+    elif (path is not None) and (map_alt is None):
+        raise ValueError('path can be specified only if map_alt is also specified.')
+    else:
+        raise ValueError('Not supposed to be here.')
 
     # Load and slice the image data.
     start_time_index = 0
     for file_image_times, file_images in image_generator:
         end_time_index = start_time_index + file_images.shape[0]
-        if path is None:
-            keo[start_time_index:end_time_index, :] = file_images[:, :, keo.shape[1] // 2]
-        else:
-            keo[start_time_index:end_time_index, :] = file_images[
-                :, nearest_pixels[:, 0], nearest_pixels[:, 1]
-            ]
+        keo[start_time_index:end_time_index, :] = file_images[
+            :, pixels[:, 0], pixels[:, 1]
+        ]
         keo_times[start_time_index:end_time_index] = file_image_times
         start_time_index += file_images.shape[0]
 
@@ -107,17 +126,6 @@ def keogram(
             f'during {time_range}. The image data probably does not exist '
             f'in this time interval'
         )
-
-    if map_alt is None:
-        keogram_latitude = np.arange(keo.shape[1])  # Dummy index values for latitudes.
-    elif (map_alt is not None) and (path is None):
-        keogram_latitude = skymap['FULL_MAP_LATITUDE'][alt_index, :-1, keo.shape[1] // 2]
-
-        # Since keogram_latitude values are NaNs near the image edges, we want to filter
-        # out those indices from keogram_latitude and keo.
-        valid_lats = np.where(~np.isnan(keogram_latitude))[0]
-        keogram_latitude = keogram_latitude[valid_lats]
-        keo = keo[:, valid_lats]
     return pd.DataFrame(data=keo, index=keo_times, columns=keogram_latitude)
 
 
