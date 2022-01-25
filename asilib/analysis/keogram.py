@@ -145,6 +145,7 @@ def ewogram(
     ValueError
         If no imager data is found in ``time_range``.
     """
+    # TODO: Add tests for an ewogram.
     image_generator = load_image_generator(asi_array_code, location_code, time_range)
     ewo_times, ewo = _create_empty_data_arrays(asi_array_code, time_range, 'keogram')
 

@@ -55,7 +55,8 @@ bx.text(0, 1, f'Keogram along zenith (cyan line in left panel).',
     transform=bx.transAxes, va='top', c='w')
 # Plot the keogram along the MSP field of view
 asilib.plot_keogram(asi_array_code, location_code, time_range, map_alt, ax=cx, 
-    path=msp_df.loc[:, ['glat', 'glon']])
+    path=msp_df.loc[:, ['glat', 'glon']].to_numpy())
+cx.set_ylim(msp_df.loc[:, 'glat'].min(), msp_df.loc[:, 'glat'].max())
 
 # n_mlat_labels = 10
 # mlat_indices = np.arange(0, msp_df.shape[0]+1, msp_df.shape[0]//n_mlat_labels).astype(int)
