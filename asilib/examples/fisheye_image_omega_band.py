@@ -1,10 +1,10 @@
 """
 This example generates an image of an omega band aurora. This event was studied
-in: 
+in:
 
-Liu, J., Lyons, L. R., Archer, W. E., Gallardo-Lacourt, B., Nishimura, Y., Zou, 
-Y., … Weygand, J. M. (2018). Flow shears at the poleward boundary of omega bands 
-observed during conjunctions of Swarm and THEMIS ASI. Geophysical Research Letters, 
+Liu, J., Lyons, L. R., Archer, W. E., Gallardo-Lacourt, B., Nishimura, Y., Zou,
+Y., … Weygand, J. M. (2018). Flow shears at the poleward boundary of omega bands
+observed during conjunctions of Swarm and THEMIS ASI. Geophysical Research Letters,
 45, 1218– 1227. https://doi.org/10.1002/2017GL076485
 """
 
