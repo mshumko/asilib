@@ -1,3 +1,7 @@
+# Version 0.10.1
+- Added a `path` kwarg to `keogram` and `plot_keogram` to create a keogram along a custom (lat, lon) path.
+- Clarified the documentation.
+
 # Version 0.10.0
 - Added `animate_map` and `animate_map_generator` functions to asilib. I also added examples to the examples and tutorial sections of the docs. 
 - Added a warning in `equal_area` if the lat/lon values are outside of the skymap range.
