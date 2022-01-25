@@ -4,6 +4,7 @@ Tests for keogram.py and plot_keogram.py.
 import unittest
 import pathlib
 from datetime import datetime
+import warnings
 
 import pandas as pd
 import numpy as np
@@ -17,6 +18,7 @@ class Test_keogram(unittest.TestCase):
     def setUp(self):
         self.asi_array_code = 'REGO'
         self.location_code = 'LUCK'
+        self.map_alt = 230
         return
 
     def test_steve_keogram(self, create_reference=False):
@@ -27,7 +29,7 @@ class Test_keogram(unittest.TestCase):
             self.asi_array_code,
             self.location_code,
             ['2017-09-27T08', '2017-09-27T08:10'],
-            map_alt=230,
+            map_alt=self.map_alt,
         )
         reference_path = pathlib.Path(
             asilib.config['ASILIB_DIR'], 'tests', 'data', 'test_steve_keogram.csv'
@@ -69,6 +71,75 @@ class Test_keogram(unittest.TestCase):
             keo = keogram(
                 "THEMIS", "ATHA", (datetime(2017, 9, 15, 2, 0, 0), datetime(2017, 9, 15, 3, 0, 0))
             )
+        return
+
+    def test_keogram_valid_path(self):
+        """
+        Makes a keogram along a custom path (the meridian) and compares against the usual keogram
+        that is also along the merdidian.
+        """
+        time_range = ['2017-09-27T07', '2017-09-27T09']
+
+        # Set up the custom path along the meridian.
+        skymap = asilib.load_skymap(self.asi_array_code, self.location_code, time_range[0])
+        alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == self.map_alt)[0][0]
+        image_resolution = skymap['FULL_MAP_LATITUDE'].shape[1:]
+        latlon = np.column_stack((
+                        skymap['FULL_MAP_LATITUDE'][alt_index, :, image_resolution[0]//2],
+                        skymap['FULL_MAP_LONGITUDE'][alt_index, :, image_resolution[0]//2]
+                        ))
+        latlon = latlon[np.where(~np.isnan(latlon[:,0]))[0], :]
+
+        # Create and compare the two keograms.
+        maridian_keogram = keogram(self.asi_array_code, self.location_code, time_range, self.map_alt)
+        custom_keogram = keogram(self.asi_array_code, self.location_code, time_range, self.map_alt, 
+                                        path=latlon)                                       
+ 
+        intensity_diff = maridian_keogram.to_numpy() - custom_keogram.to_numpy()
+        fractional_intensity_diff = intensity_diff / maridian_keogram.to_numpy()
+        assert fractional_intensity_diff.max() == 0
+        assert np.abs(custom_keogram.columns - maridian_keogram.columns).max() == 0
+        return
+
+    def test_keogram_valid_invalid_path(self):
+        """
+        Makes a keogram along a far-away custom path and checks that the 
+        nearest_pixels array are all NaNs.
+        """
+        time_range = ['2017-09-27T07', '2017-09-27T09']
+
+        # Set up the custom path along the meridian.
+        skymap = asilib.load_skymap(self.asi_array_code, self.location_code, time_range[0])
+        alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == self.map_alt)[0][0]
+        image_resolution = skymap['FULL_MAP_LATITUDE'].shape[1:]
+        latlon = np.column_stack((
+                        skymap['FULL_MAP_LATITUDE'][alt_index, :, image_resolution[0]//2],
+                        skymap['FULL_MAP_LONGITUDE'][alt_index, :, image_resolution[0]//2]+90
+                        ))
+        latlon = latlon[np.where(~np.isnan(latlon[:,0]))[0], :]
+        with self.assertRaises(ValueError):
+            with self.assertWarns(UserWarning):
+                keogram(self.asi_array_code, self.location_code, time_range, self.map_alt, path=latlon)
+        return
+
+    def test_keogram_valid_semivalid_path(self):
+        """
+        Makes a keogram along a nearby custom path and checks that some of the 
+        nearest_pixels are NaNs.
+        """
+        time_range = ['2017-09-27T07', '2017-09-27T09']
+
+        # Set up the custom path along the meridian.
+        skymap = asilib.load_skymap(self.asi_array_code, self.location_code, time_range[0])
+        alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == self.map_alt)[0][0]
+        image_resolution = skymap['FULL_MAP_LATITUDE'].shape[1:]
+        latlon = np.column_stack((
+                        skymap['FULL_MAP_LATITUDE'][alt_index, :, image_resolution[0]//2]+10,
+                        skymap['FULL_MAP_LONGITUDE'][alt_index, :, image_resolution[0]//2]
+                        ))
+        latlon = latlon[np.where(~np.isnan(latlon[:,0]))[0], :]
+        with self.assertWarns(UserWarning):
+            keogram(self.asi_array_code, self.location_code, time_range, self.map_alt, path=latlon)
         return
 
 
