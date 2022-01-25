@@ -158,8 +158,10 @@ def plot_map(
 
 
 def create_cartopy_map(
-    map_style: str = 'green', lon_bounds: tuple = (-160, -50), lat_bounds: tuple = (40, 82),
-    fig_ax: dict = None
+    map_style: str = 'green',
+    lon_bounds: tuple = (-160, -50),
+    lat_bounds: tuple = (40, 82),
+    fig_ax: dict = None,
 ) -> plt.Axes:
     """
     A helper function to create two map styles: a simple black and white map, and
@@ -175,7 +177,7 @@ def create_cartopy_map(
         A tuple of length 2 specifying the map's latitude bounds.
     fig_ax: dict
         Make a map on an existing figure. The dictionary key:values must be
-        'fig': figure object, and 'ax': the subplot position in the 
+        'fig': figure object, and 'ax': the subplot position in the
         (nrows, ncols, index) format, or a GridSpec object.
 
     Returns

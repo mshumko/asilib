@@ -275,7 +275,7 @@ def animate_map_generator(
 
     for image_time, image in zip(image_times, images):
         if 'p' in locals():
-            p.remove() # noqa
+            p.remove()  # noqa
 
         # if-else statement is to recalculate color_bounds for every image
         # and set it to _color_bounds. If _color_bounds did not exist,
