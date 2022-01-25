@@ -118,7 +118,8 @@ class Test_keogram(unittest.TestCase):
                         ))
         latlon = latlon[np.where(~np.isnan(latlon[:,0]))[0], :]
         with self.assertRaises(ValueError):
-            keogram(self.asi_array_code, self.location_code, time_range, self.map_alt, path=latlon)
+            with self.assertWarns(UserWarning):
+                keogram(self.asi_array_code, self.location_code, time_range, self.map_alt, path=latlon)
         return
 
     def test_keogram_valid_semivalid_path(self):

@@ -272,7 +272,6 @@ def _pcolormesh_nan(
     x[bottom:, :] = np.nanmax(x[bottom, :])
     y[bottom:, :] = np.nanmax(y[bottom, :])
 
-    # TODO: skymap rotation.
     # old masked c code: np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1]
     p = ax.pcolormesh(
         x,
