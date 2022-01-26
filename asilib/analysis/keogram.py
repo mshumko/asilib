@@ -271,26 +271,26 @@ class Keogram:
         ValueError
             If a custom path is provided but not map_alt.
         """
-        # Check for a valid map_alt.
         self.map_alt = map_alt
+        self.aacgm = aacgm
+        self.path = path
         self.skymap = load_skymap(self.asi_array_code, self.location_code, self.time_range[0])
 
         # Determine what pixels to slice
-        self._keogram_pixels(path)
-
+        self._keogram_pixels()
         # Not all of the pixels are valid (e.g. below the horizon)
         self._keo = self._keo[:, :self._pixels.shape[0]]
+
+        self._keogram_latitude()
         
-        # Prepare the images and the keogram array
+        # Load and slice images. 
         image_generator = load_image_generator(self.asi_array_code, self.location_code, self.time_range)
         keo_times, self._keo = self._empty_keogram(self.time_range)
-
-        # Load and slice images. 
         start_time_index = 0
         for file_image_times, file_images in image_generator:
             end_time_index = start_time_index + file_images.shape[0]
             self._keo[start_time_index:end_time_index, :] = file_images[
-                :, pixels[:, 0], pixels[:, 1]
+                :, self._pixels[:, 0], self._pixels[:, 1]
             ]
             keo_times[start_time_index:end_time_index] = file_image_times
             start_time_index += file_images.shape[0]
@@ -306,7 +306,7 @@ class Keogram:
                 f'during {self.time_range}. The image data probably does not exist '
                 f'in this time interval'
             )
-        self.keo = pd.DataFrame(data=keo, index=keo_times, columns=keogram_latitude)
+        self.keo = pd.DataFrame(data=keo, index=keo_times, columns=self.keogram_latitude)
         return
 
 
@@ -323,12 +323,12 @@ class Keogram:
         data = np.nan * np.zeros(data_shape)
         return times, data
 
-    def _keogram_pixels(self, path, minimum_elevation=0):
+    def _keogram_pixels(self, minimum_elevation=0):
         """
         Find what pixels to index and reshape the keogram.
         """
         # CASE 1: No path provided. Output self._pixels that slice the meridian.
-        if path is None:
+        if self.path is None:
             self._pixels = np.column_stack((
                 np.arange(self._keo.shape[1]), 
                 self._keo.shape[1]*np.ones(self._keo.shape[1])//2
@@ -342,7 +342,7 @@ class Keogram:
                     f'{self.map_alt} km is not in skymap altitudes: {self.skymap["FULL_MAP_ALTITUDE"]/1000} km'
                     )
             alt_index = np.where(self.skymap['FULL_MAP_ALTITUDE'] / 1000 == self.map_alt)[0][0]
-            self._pixels = self._path_to_pixels(path, alt_index)
+            self._pixels = self._path_to_pixels(self.path, alt_index)
         
         above_elevation = np.where(self.skymap['FULL_ELEVATION'][self._pixels] >= minimum_elevation)
         self._pixels = self._pixels[above_elevation]
@@ -402,3 +402,17 @@ class Keogram:
             raise ValueError('The keogram path is completely outside of the skymap.')
         return nearest_pixels[valid_pixels, :].astype(int)
 
+    def _keogram_latitude(self):
+        """
+        Keogram's vertical axis: geographic latitude, magnetic latitude, or pixel index.
+        """
+        if self.map_alt is None:
+            self.keogram_latitude = np.arange(self._keo.shape[1])
+        else:
+            alt_index = np.where(self.skymap['FULL_MAP_ALTITUDE'] / 1000 == self.map_alt)[0][0]
+            self.keogram_latitude = self.skymap['FULL_MAP_LATITUDE'][
+                alt_index, self._pixels[:,0], self._pixels[:,1]
+                ]
+        if self.aacgm:
+            raise NotImplementedError
+        return
