@@ -93,6 +93,7 @@ def keogram(
         )).astype(int)
     elif (path is not None) and (map_alt is not None):
         pixels, valid_pixels = _path_to_pixels(path, map_alt, skymap)
+        # TODO: Add an elevation filter.
         pixels = pixels[valid_pixels, :]
         keo = keo[:, valid_pixels]
 
