@@ -204,69 +204,6 @@ def ewogram(
     return pd.DataFrame(data=keo, index=ewo_times, columns=ewo_longitude)
 
 
-def _path_to_pixels(path, map_alt, skymap, threshold=1):
-    """
-    Convert the lat/lon path that is mapped to map_alt in kilometers to
-    the x- and y-pixels in the skymap lat/lon mapped file.
-
-    Parameters
-    ----------
-    path: np.array
-        The lat/lon array of shape (n, 2).
-    map_alt: int
-        The map altitude of the path, also used to reference the appropriate
-        skymap map array.
-    skymap: dict
-        The ASI skymap file.
-    threshold: float
-        The maximum distance threshold, in degrees, between the path (lat, lon)
-        and the skymap (lat, lon)
-
-    Returns
-    -------
-    np.array
-        The valid x pixels corresponding to the path.
-    np.array
-        The valid y pixels corresponding to the path.
-    np.array
-        Path indices corresponding to rows with a pixel within threshold
-        degrees distance.
-    """
-    if np.any(np.isnan(path)):
-        raise ValueError("The lat/lon path can't contain NaNs.")
-    if np.any(np.max(path) > 180) or np.any(np.min(path) < -180):
-        raise ValueError("The lat/lon values must be in the range -180 to 180.")
-    assert (
-        map_alt in skymap['FULL_MAP_ALTITUDE'] / 1000
-    ), f'{map_alt} km is not in skymap altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
-
-    alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
-
-    nearest_pixels = np.nan * np.zeros_like(path)
-
-    for i, (lat, lon) in enumerate(path):
-        distances = np.sqrt(
-            (skymap['FULL_MAP_LATITUDE'][alt_index, :, :] - lat) ** 2 +
-            (skymap['FULL_MAP_LONGITUDE'][alt_index, :, :] - lon) ** 2
-        )
-        idx = np.where(distances == np.nanmin(distances))
-
-        # Keep NaNs if distanace is larger than threshold.
-        if distances[idx][0] > threshold:
-            warnings.warn(
-                f'Some of the keogram path coordinates are outside of the '
-                f'maximum {threshold} degrees distance from the nearest '
-                f'skymap map coordinate.'
-            )
-            continue
-        nearest_pixels[i, :] = [idx[0][0], idx[1][0]]
-
-    valid_pixels = np.where(np.isfinite(nearest_pixels[:, 0]))[0]
-    if valid_pixels.shape[0] == 0:
-        raise ValueError('The keogram path is completely outside of the skymap.')
-    return nearest_pixels.astype(int), valid_pixels
-
-
 class Keogram:
     #TODO: Change the asi args to asi_info dictionary that is created by asilib.themis() or asilib.rego() functions.
     def __init__(self, asi_array_code: str, location_code: str, 
@@ -339,7 +276,10 @@ class Keogram:
         self.skymap = load_skymap(self.asi_array_code, self.location_code, self.time_range[0])
 
         # Determine what pixels to slice
-        self._keogram_pixels(self.map_alt, path)
+        self._keogram_pixels(path)
+
+        # Not all of the pixels are valid (e.g. below the horizon)
+        self._keo = self._keo[:, :self._pixels.shape[0]]
         
         # Prepare the images and the keogram array
         image_generator = load_image_generator(self.asi_array_code, self.location_code, self.time_range)
@@ -369,46 +309,6 @@ class Keogram:
         self.keo = pd.DataFrame(data=keo, index=keo_times, columns=keogram_latitude)
         return
 
-    def _keogram_pixels(self, map_alt, path):
-        """
-        Find what pixels to index and reshape the keogram.
-        """
-        if self.map_alt is not None:
-            assert (
-                self.map_alt in self.skymap['FULL_MAP_ALTITUDE'] / 1000
-            ), f'{self.map_alt} km is not in skymap altitudes: {self.skymap["FULL_MAP_ALTITUDE"]/1000} km'
-            alt_index = np.where(self.skymap['FULL_MAP_ALTITUDE'] / 1000 == self.map_alt)[0][0]
-
-        # CASE 1: No path or mapping altitude provided. Output self._pixels that slice the meridian.
-        if (path is None) and (map_alt is None):
-            pixels = np.column_stack((
-                np.arange(self._keo.shape[1]), self._keo.shape[1]*np.ones(self._keo.shape[1])//2
-            )).astype(int)
-
-        # Case 2:
-        elif (path is None) and (map_alt is not None):
-            # Since keogram_latitude values are NaNs near the image edges, we want to filter
-            # out those indices from keogram_latitude and keo.
-            keo = self._keo[:, pixels]
-            pixels = np.column_stack((
-                np.arange(keo.shape[1]), keo.shape[1]*np.ones(keo.shape[1])//2
-            )).astype(int)
-        # CASE 3:
-        elif (path is not None) and (map_alt is not None):
-            pixels, valid_pixels = self._path_to_pixels(path, map_alt, self.skymap)
-            # TODO: Add an elevation filter.
-            pixels = pixels[valid_pixels, :]
-            keo = self._keo[:, valid_pixels]
-
-            keogram_latitude = self.skymap['FULL_MAP_LATITUDE'][
-                alt_index, pixels[:, 0], pixels[:, 1]
-            ]
-        elif (path is not None) and (map_alt is None):
-            raise ValueError('path can be specified only if map_alt is also specified.')
-        else:
-            raise ValueError('Not supposed to be here.')
-        return
-
 
     def _empty_keogram(self, time_range):
         """
@@ -422,3 +322,83 @@ class Keogram:
         times = np.nan * np.zeros(max_n_timestamps, dtype=object)
         data = np.nan * np.zeros(data_shape)
         return times, data
+
+    def _keogram_pixels(self, path, minimum_elevation=0):
+        """
+        Find what pixels to index and reshape the keogram.
+        """
+        # CASE 1: No path provided. Output self._pixels that slice the meridian.
+        if path is None:
+            self._pixels = np.column_stack((
+                np.arange(self._keo.shape[1]), 
+                self._keo.shape[1]*np.ones(self._keo.shape[1])//2
+            )).astype(int)
+
+        # CASE 2: A path is provided so now we need to calculate the custom path 
+        # on the lat/lon skymap.
+        else:
+            if (self.map_alt is None) or (self.map_alt not in self.skymap['FULL_MAP_ALTITUDE'] / 1000):
+                raise ValueError(
+                    f'{self.map_alt} km is not in skymap altitudes: {self.skymap["FULL_MAP_ALTITUDE"]/1000} km'
+                    )
+            alt_index = np.where(self.skymap['FULL_MAP_ALTITUDE'] / 1000 == self.map_alt)[0][0]
+            self._pixels = self._path_to_pixels(path, alt_index)
+        
+        above_elevation = np.where(self.skymap['FULL_ELEVATION'][self._pixels] >= minimum_elevation)
+        self._pixels = self._pixels[above_elevation]
+        return
+
+    def _path_to_pixels(self, path, alt_index, threshold=1):
+        """
+        Convert the lat/lon path that is mapped to map_alt in kilometers to
+        the x- and y-pixels in the skymap lat/lon mapped file.
+
+        Parameters
+        ----------
+        path: np.array
+            The lat/lon array of shape (n, 2).
+        alt_index: int
+            Determines what altitude index to use.
+        threshold: float
+            The maximum distance threshold, in degrees, between the path (lat, lon)
+            and the skymap (lat, lon)
+
+        Returns
+        -------
+        np.array
+            The valid x pixels corresponding to the path.
+        np.array
+            The valid y pixels corresponding to the path.
+        np.array
+            Path indices corresponding to rows with a pixel within threshold
+            degrees distance.
+        """
+        if np.any(np.isnan(path)):
+            raise ValueError("The lat/lon path can't contain NaNs.")
+        if np.any(np.max(path) > 180) or np.any(np.min(path) < -180):
+            raise ValueError("The lat/lon values must be in the range -180 to 180.")
+
+        nearest_pixels = np.nan * np.zeros_like(path)
+
+        for i, (lat, lon) in enumerate(path):
+            distances = np.sqrt(
+                (self.skymap['FULL_MAP_LATITUDE'][alt_index, :, :] - lat) ** 2 +
+                (self.skymap['FULL_MAP_LONGITUDE'][alt_index, :, :] - lon) ** 2
+            )
+            idx = np.where(distances == np.nanmin(distances))
+
+            # Keep NaNs if distanace is larger than threshold.
+            if distances[idx][0] > threshold:
+                warnings.warn(
+                    f'Some of the keogram path coordinates are outside of the '
+                    f'maximum {threshold} degrees distance from the nearest '
+                    f'skymap map coordinate.'
+                )
+                continue
+            nearest_pixels[i, :] = [idx[0][0], idx[1][0]]
+
+        valid_pixels = np.where(np.isfinite(nearest_pixels[:, 0]))[0]
+        if valid_pixels.shape[0] == 0:
+            raise ValueError('The keogram path is completely outside of the skymap.')
+        return nearest_pixels[valid_pixels, :].astype(int)
+
