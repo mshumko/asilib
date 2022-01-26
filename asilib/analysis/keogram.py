@@ -207,6 +207,7 @@ class Keogram:
         self.map_alt = map_alt
         self.aacgm = aacgm
         self.path = path
+        keo_times, self._keo = self._empty_keogram(self.time_range)
         self.skymap = load_skymap(self.asi_array_code, self.location_code, self.time_range[0])
 
         # Determine what pixels to slice
@@ -218,7 +219,6 @@ class Keogram:
         
         # Load and slice images. 
         image_generator = load_image_generator(self.asi_array_code, self.location_code, self.time_range)
-        keo_times, self._keo = self._empty_keogram(self.time_range)
         start_time_index = 0
         for file_image_times, file_images in image_generator:
             end_time_index = start_time_index + file_images.shape[0]
@@ -240,7 +240,7 @@ class Keogram:
                 f'in this time interval'
             )
         self.keo = pd.DataFrame(data=keo, index=keo_times, columns=self.keogram_latitude)
-        return
+        return self.keo
 
 
     def _empty_keogram(self, time_range):
@@ -277,7 +277,9 @@ class Keogram:
             alt_index = np.where(self.skymap['FULL_MAP_ALTITUDE'] / 1000 == self.map_alt)[0][0]
             self._pixels = self._path_to_pixels(self.path, alt_index)
         
-        above_elevation = np.where(self.skymap['FULL_ELEVATION'][self._pixels] >= minimum_elevation)
+        above_elevation = np.where(
+            self.skymap['FULL_ELEVATION'][self._pixels[:,0], self._pixels[:,1]] >= minimum_elevation
+            )[0]
         self._pixels = self._pixels[above_elevation]
         return
 
