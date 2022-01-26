@@ -59,10 +59,6 @@ def keogram(
     if aacgm:
         raise NotImplementedError
 
-    if (map_alt is None) and (path is not None):
-        raise ValueError(
-            'If you need a keogram along a path, you need to provide the map altitude.'
-        )
     image_generator = load_image_generator(asi_array_code, location_code, time_range)
     keo_times, keo = _create_empty_data_arrays(asi_array_code, time_range, 'keogram')
     skymap = load_skymap(asi_array_code, location_code, time_range[0])
@@ -269,3 +265,160 @@ def _path_to_pixels(path, map_alt, skymap, threshold=1):
     if valid_pixels.shape[0] == 0:
         raise ValueError('The keogram path is completely outside of the skymap.')
     return nearest_pixels.astype(int), valid_pixels
+
+
+class Keogram:
+    #TODO: Change the asi args to asi_info dictionary that is created by asilib.themis() or asilib.rego() functions.
+    def __init__(self, asi_array_code: str, location_code: str, 
+                time_range: utils._time_range_type
+
+        ) -> None:
+        """
+        Keogram class that makes keograms and ewograms along the meridian or a custom path.
+
+        Parameters
+        ----------
+        asi_array_code: str
+            The imager array name, i.e. ``THEMIS`` or ``REGO``.
+        location_code: str
+            The ASI station code, i.e. ``ATHA``
+        time_range: list of datetime.datetimes or stings
+            Defined the duration of data to download. Must be of length 2.
+        """
+        # __init__ saves the variables needed to get the images.
+        self.asi_array_code = asi_array_code
+        self.location_code = location_code
+        self.time_range = time_range
+
+        # In the full implementation we won't need these if-else statements.
+        if self.asi_array_code.lower() == 'themis':
+            self.img_size = 256
+            self.asi_cadence_s = 3
+        elif self.asi_array_code.lower() == 'rego':
+            self.img_size = 512
+            self.asi_cadence_s = 3
+        else:
+            raise NotImplementedError
+        return
+        
+    def keogram(self,  map_alt: int = None, path: np.array = None, aacgm=False
+        ):
+        """
+        Creates a keogram along the meridian or a custom path.
+
+        Parameters
+        ----------
+        map_alt: int
+            The mapping altitude, in kilometers, used to index the mapped latitude in the
+            skymap data. If None, will plot pixel index for the y-axis.
+        path: array
+            Make a keogram along a custom path. Path shape must be (n, 2) and contain the
+            lat/lon coordinates that are mapped to map_alt. If the map_alt kwarg is
+            unspecified, this function will raise a ValueError.
+        aacgm: bool
+            Convert the latitude coordinates to magnetic latitude. See 
+            https://github.com/aburrell/aacgmv2.
+
+        Returns
+        -------
+        keo: pd.DataFrame
+            The 2d keogram with the time index. The columns are the (geographic or magnetic) 
+            latitudes if map_alt is specified, otherwise it is the image pixel indices.
+
+        Raises
+        ------
+        AssertionError
+            If map_alt does not equal the mapped altitudes in the skymap mapped values.
+        ValueError
+            If no images are in ``time_range``.
+        ValueError
+            If a custom path is provided but not map_alt.
+        """
+        # Check for a valid map_alt.
+        self.map_alt = map_alt
+        self.skymap = load_skymap(self.asi_array_code, self.location_code, self.time_range[0])
+
+        # Determine what pixels to slice
+        self._keogram_pixels(self.map_alt, path)
+        
+        # Prepare the images and the keogram array
+        image_generator = load_image_generator(self.asi_array_code, self.location_code, self.time_range)
+        keo_times, self._keo = self._empty_keogram(self.time_range)
+
+        # Load and slice images. 
+        start_time_index = 0
+        for file_image_times, file_images in image_generator:
+            end_time_index = start_time_index + file_images.shape[0]
+            self._keo[start_time_index:end_time_index, :] = file_images[
+                :, pixels[:, 0], pixels[:, 1]
+            ]
+            keo_times[start_time_index:end_time_index] = file_image_times
+            start_time_index += file_images.shape[0]
+
+        # Remove NaN times.
+        i_valid = np.where(~np.isnan(self._keo[:, 0]))[0]
+        keo = self._keo[i_valid, :]
+        keo_times = keo_times[i_valid]
+
+        if not keo.shape[0]:
+            raise ValueError(
+                f'The keogram is empty for {self.asi_array_code}/{self.location_code} '
+                f'during {self.time_range}. The image data probably does not exist '
+                f'in this time interval'
+            )
+        self.keo = pd.DataFrame(data=keo, index=keo_times, columns=keogram_latitude)
+        return
+
+    def _keogram_pixels(self, map_alt, path):
+        """
+        Find what pixels to index and reshape the keogram.
+        """
+        if self.map_alt is not None:
+            assert (
+                self.map_alt in self.skymap['FULL_MAP_ALTITUDE'] / 1000
+            ), f'{self.map_alt} km is not in skymap altitudes: {self.skymap["FULL_MAP_ALTITUDE"]/1000} km'
+            alt_index = np.where(self.skymap['FULL_MAP_ALTITUDE'] / 1000 == self.map_alt)[0][0]
+
+        # CASE 1: No path or mapping altitude provided. Output self._pixels that slice the meridian.
+        if (path is None) and (map_alt is None):
+            pixels = np.column_stack((
+                np.arange(self._keo.shape[1]), self._keo.shape[1]*np.ones(self._keo.shape[1])//2
+            )).astype(int)
+
+        # Case 2:
+        elif (path is None) and (map_alt is not None):
+            # Since keogram_latitude values are NaNs near the image edges, we want to filter
+            # out those indices from keogram_latitude and keo.
+            keo = self._keo[:, pixels]
+            pixels = np.column_stack((
+                np.arange(keo.shape[1]), keo.shape[1]*np.ones(keo.shape[1])//2
+            )).astype(int)
+        # CASE 3:
+        elif (path is not None) and (map_alt is not None):
+            pixels, valid_pixels = self._path_to_pixels(path, map_alt, self.skymap)
+            # TODO: Add an elevation filter.
+            pixels = pixels[valid_pixels, :]
+            keo = self._keo[:, valid_pixels]
+
+            keogram_latitude = self.skymap['FULL_MAP_LATITUDE'][
+                alt_index, pixels[:, 0], pixels[:, 1]
+            ]
+        elif (path is not None) and (map_alt is None):
+            raise ValueError('path can be specified only if map_alt is also specified.')
+        else:
+            raise ValueError('Not supposed to be here.')
+        return
+
+
+    def _empty_keogram(self, time_range):
+        """
+        Creates an empty 2D keogram and time arrays. 
+        """
+        time_range = utils._validate_time_range(time_range)
+        max_n_timestamps = int((time_range[1] - time_range[0]).total_seconds() / self.asi_cadence_s)
+        data_shape = (max_n_timestamps, self.img_size)
+
+        # object is the only dtype that can contain datetime objects
+        times = np.nan * np.zeros(max_n_timestamps, dtype=object)
+        data = np.nan * np.zeros(data_shape)
+        return times, data
