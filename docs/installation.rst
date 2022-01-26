@@ -7,6 +7,15 @@ Installing aurora-asi-lib is as simple as:
 
    python3 -m pip install aurora-asi-lib 
 
+
+Anaconda
+^^^^^^^^
+
+`aurora-asi-lib` can also be installed with Anaconda, however the steps are more contrived; See their  `official documentation`_ for more details. In short, you need to make an environment to install `aurora-asi-lib` and then use Anaconda to install `pandas`, and `cartopy`. Then run the above pip command to install `aurora-asi-lib` and its remaining dependencies.
+
+.. _official documentation: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#using-pip-in-an-environment
+
+
 .. note::
    - By default, aurora-asi-lib saves the ASI data, movie images, and movies in the `~/asilib-data/` directory. To override the default directory, run aurora-asi-lib as a module, `python3 -m asilib config`. See the Configuration section below for more details.
 
