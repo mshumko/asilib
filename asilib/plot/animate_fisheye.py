@@ -356,7 +356,11 @@ def _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrit
         # Use pop so it won't be passed into movie_obj.output().
         framerate=ffmpeg_params.pop('framerate'),
     )
-    movie_obj.output(str(movie_save_path), **ffmpeg_params).run(overwrite_output=overwrite)
+    try:
+        movie_obj.output(str(movie_save_path), **ffmpeg_params).run(overwrite_output=overwrite)
+    except FileNotFoundError as err:
+        if '[WinError 2] The system cannot find the file specified' in str(err):
+            raise FileNotFoundError("Windows doesn't have ffmpeg installed.") from err
     return
 
 
