@@ -350,13 +350,7 @@ def _write_movie(image_paths, movie_save_path, ffmpeg_output_params, overwrite):
     }
     # Add or change the ffmpeg_params's key:values with ffmpeg_output_params
     ffmpeg_params.update(ffmpeg_output_params)
-
-    # Create a Concat demuxer (glob doesn't work on Windows)
-    temp_name = pathlib.Path(image_paths[0].parents[1], 'temp_movie_files.txt')
-    with open(temp_name, 'w') as f:
-        for image_path in image_paths:
-            f.write(f"file '{str(image_path)}'\n")
-
+    
     try:
         movie_obj = ffmpeg.input(
             str(image_paths[0].parent / "%05d.png"),
@@ -368,9 +362,6 @@ def _write_movie(image_paths, movie_save_path, ffmpeg_output_params, overwrite):
     except FileNotFoundError as err:
         if '[WinError 2] The system cannot find the file specified' in str(err):
             raise FileNotFoundError("Windows doesn't have ffmpeg installed.") from err
-    finally:
-        temp_name.unlink() # Clean up the temporary file.
-    
     return
 
 
