@@ -265,7 +265,7 @@ def animate_fisheye_generator(
         yield Images(image_times, images)
 
     image_paths = []
-    for image_time, image in zip(image_times, images):
+    for i, (image_time, image) in enumerate(zip(image_times, images)):
         # If the image is all 0s we have a bad image and we need to skip it.
         if np.all(image == 0):
             continue
@@ -308,8 +308,7 @@ def animate_fisheye_generator(
 
         # Save the plot before the next iteration.
         save_name = (
-            f'{image_time.strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_'
-            f'{location_code.lower()}.png'
+            f'{str(i).zfill(5)}.png'
         )
         plt.savefig(image_save_dir / save_name)
         image_paths.append(image_save_dir / save_name)
@@ -360,11 +359,10 @@ def _write_movie(image_paths, movie_save_path, ffmpeg_output_params, overwrite):
 
     try:
         movie_obj = ffmpeg.input(
-            str(temp_name),
-            format='concat',
+            str(image_paths[0].parent / "%05d.png"),
+            pattern_type='sequence',
             # Pop so it won't be passed into movie_obj.output().
-            # framerate=ffmpeg_params.pop('framerate'),
-            safe=0
+            framerate=ffmpeg_params.pop('framerate'),
         )
         movie_obj.output(str(movie_save_path), **ffmpeg_params).run(overwrite_output=overwrite)
     except FileNotFoundError as err:

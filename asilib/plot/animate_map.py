@@ -285,7 +285,7 @@ def animate_map_generator(
         )
 
     image_paths = []
-    for image_time, image in zip(image_times, images):
+    for i, (image_time, image) in enumerate(zip(image_times, images)):
         if 'p' in locals():
             p.remove()  # noqa
 
@@ -319,8 +319,7 @@ def animate_map_generator(
 
         # Save the plot before the next iteration.
         save_name = (
-            f'{image_time.strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_'
-            f'{location_code.lower()}.png'
+            f'{str(i).zfill(5)}.png'
         )
         plt.savefig(image_save_dir / save_name)
         image_paths.append(image_save_dir / save_name)
