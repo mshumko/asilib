@@ -273,6 +273,18 @@ def animate_map_generator(
     if isinstance(user_input, str) and 'data' in user_input.lower():
         yield Images(image_times, images)
 
+    if label:
+        ax.text(
+            skymap['SITE_MAP_LONGITUDE'],
+            skymap['SITE_MAP_LATITUDE'],
+            location_code.upper(),
+            color='r',
+            transform=ccrs.PlateCarree(),
+            va='center',
+            ha='center',
+        )
+
+    image_paths = []
     for image_time, image in zip(image_times, images):
         if 'p' in locals():
             p.remove()  # noqa
@@ -311,24 +323,16 @@ def animate_map_generator(
             f'{location_code.lower()}.png'
         )
         plt.savefig(image_save_dir / save_name)
+        image_paths.append(image_save_dir / save_name)
 
-    if label:
-        ax.text(
-            skymap['SITE_MAP_LONGITUDE'],
-            skymap['SITE_MAP_LATITUDE'],
-            location_code.upper(),
-            color='r',
-            transform=ccrs.PlateCarree(),
-            va='center',
-            ha='center',
-        )
     # Make the movie
-    movie_file_name = (
+    movie_save_name = (
         f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_'
         f'{image_times[-1].strftime("%H%M%S")}_'
         f'{asi_array_code.lower()}_{location_code.lower()}_map.{movie_container}'
     )
-    _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrite)
+    movie_save_path = image_save_dir.parents[1] / movie_save_name
+    _write_movie(image_paths, movie_save_path, ffmpeg_output_params, overwrite)
     return
 
 

@@ -264,6 +264,7 @@ def animate_fisheye_generator(
     if isinstance(user_input, str) and 'data' in user_input.lower():
         yield Images(image_times, images)
 
+    image_paths = []
     for image_time, image in zip(image_times, images):
         # If the image is all 0s we have a bad image and we need to skip it.
         if np.all(image == 0):
@@ -311,18 +312,20 @@ def animate_fisheye_generator(
             f'{location_code.lower()}.png'
         )
         plt.savefig(image_save_dir / save_name)
+        image_paths.append(image_save_dir / save_name)
 
     # Make the movie
-    movie_file_name = (
+    movie_save_name = (
         f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_'
         f'{image_times[-1].strftime("%H%M%S")}_'
         f'{asi_array_code.lower()}_{location_code.lower()}_fisheye.{movie_container}'
     )
-    _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrite)
+    movie_save_path = image_save_dir.parents[1] / movie_save_name
+    _write_movie(image_paths, movie_save_path, ffmpeg_output_params, overwrite)
     return
 
 
-def _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrite):
+def _write_movie(image_paths, movie_save_path, ffmpeg_output_params, overwrite):
     """
     Helper function to write a movie using ffmpeg.
 
@@ -349,18 +352,27 @@ def _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrit
     # Add or change the ffmpeg_params's key:values with ffmpeg_output_params
     ffmpeg_params.update(ffmpeg_output_params)
 
-    movie_save_path = image_save_dir.parents[1] / movie_file_name
-    movie_obj = ffmpeg.input(
-        f'{image_save_dir}/*.png',
-        pattern_type='glob',
-        # Use pop so it won't be passed into movie_obj.output().
-        framerate=ffmpeg_params.pop('framerate'),
-    )
+    # Create a Concat demuxer (glob doesn't work on Windows)
+    temp_name = pathlib.Path(image_paths[0].parents[1], 'temp_movie_files.txt')
+    with open(temp_name, 'w') as f:
+        for image_path in image_paths:
+            f.write(f"file '{str(image_path)}'\n")
+
     try:
+        movie_obj = ffmpeg.input(
+            str(temp_name),
+            format='concat',
+            # Pop so it won't be passed into movie_obj.output().
+            # framerate=ffmpeg_params.pop('framerate'),
+            safe=0
+        )
         movie_obj.output(str(movie_save_path), **ffmpeg_params).run(overwrite_output=overwrite)
     except FileNotFoundError as err:
         if '[WinError 2] The system cannot find the file specified' in str(err):
             raise FileNotFoundError("Windows doesn't have ffmpeg installed.") from err
+    finally:
+        temp_name.unlink() # Clean up the temporary file.
+    
     return
 
 
