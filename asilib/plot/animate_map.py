@@ -1,4 +1,4 @@
-# TODO: Add tests for these functions.
+import shutil
 import importlib
 import pathlib
 from datetime import datetime
@@ -21,7 +21,6 @@ from asilib.plot.plot_map import create_cartopy_map
 from asilib.plot.plot_map import _pcolormesh_nan
 from asilib.analysis.start_generator import start_generator
 from asilib.plot.animate_fisheye import _write_movie
-from asilib.plot.animate_fisheye import _add_azel_contours
 from asilib.plot.animate_fisheye import Images
 
 
@@ -100,7 +99,6 @@ def animate_map_generator(
     color_map: str = 'auto',
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
-    azel_contours: bool = False,
     ax: plt.Axes = None,
     map_style: str = 'green',
     label: bool = True,
@@ -164,8 +162,6 @@ def animate_map_generator(
         framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
-    azel_contours: bool
-        Switch azimuth and elevation contours on or off.
     overwrite: bool
         If true, the output will be overwritten automatically. If false it will
         prompt the user to answer y/n.
@@ -245,9 +241,12 @@ def animate_map_generator(
         f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_'
         f'{location_code.lower()}_map',
     )
-    if not image_save_dir.is_dir():
-        image_save_dir.mkdir(parents=True)
-        print(f'Created a {image_save_dir} directory')
+    # If the image directory exists we need to first remove all of the images to avoid
+    # animating images from different calls.
+    if image_save_dir.is_dir():
+        shutil.rmtree(image_save_dir)
+    image_save_dir.mkdir(parents=True)
+    print(f'Created a {image_save_dir} directory')
 
     # Check that the map_alt is in the skymap calibration data.
     assert (
@@ -274,9 +273,21 @@ def animate_map_generator(
     if isinstance(user_input, str) and 'data' in user_input.lower():
         yield Images(image_times, images)
 
-    for image_time, image in zip(image_times, images):
+    if label:
+        ax.text(
+            skymap['SITE_MAP_LONGITUDE'],
+            skymap['SITE_MAP_LATITUDE'],
+            location_code.upper(),
+            color='r',
+            transform=ccrs.PlateCarree(),
+            va='center',
+            ha='center',
+        )
+
+    image_paths = []
+    for i, (image_time, image) in enumerate(zip(image_times, images)):
         if 'p' in locals():
-            p.remove() # noqa
+            p.remove()  # noqa
 
         # if-else statement is to recalculate color_bounds for every image
         # and set it to _color_bounds. If _color_bounds did not exist,
@@ -299,37 +310,25 @@ def animate_map_generator(
             pcolormesh_kwargs=pcolormesh_kwargs,
         )
 
-        if azel_contours:
-            _add_azel_contours(asi_array_code, location_code, image_time, ax, force_download)
-
         # Give the user the control of the subplot, image object, and return the image time
         # so that the user can manipulate the image to add, for example, the satellite track.
         yield image_time, image, ax, p
 
         # Save the plot before the next iteration.
         save_name = (
-            f'{image_time.strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_'
-            f'{location_code.lower()}.png'
+            f'{str(i).zfill(5)}.png'
         )
         plt.savefig(image_save_dir / save_name)
+        image_paths.append(image_save_dir / save_name)
 
-    if label:
-        ax.text(
-            skymap['SITE_MAP_LONGITUDE'],
-            skymap['SITE_MAP_LATITUDE'],
-            location_code.upper(),
-            color='r',
-            transform=ccrs.PlateCarree(),
-            va='center',
-            ha='center',
-        )
     # Make the movie
-    movie_file_name = (
+    movie_save_name = (
         f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_'
         f'{image_times[-1].strftime("%H%M%S")}_'
         f'{asi_array_code.lower()}_{location_code.lower()}_map.{movie_container}'
     )
-    _write_movie(image_save_dir, ffmpeg_output_params, movie_file_name, overwrite)
+    movie_save_path = image_save_dir.parents[1] / movie_save_name
+    _write_movie(image_paths, movie_save_path, ffmpeg_output_params, overwrite)
     return
 
 

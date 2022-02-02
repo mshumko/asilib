@@ -2,8 +2,7 @@
 Tests asilib/analysis.equal_area.py
 """
 
-from datetime import date, datetime
-from os import path
+from datetime import datetime
 import unittest
 import pathlib
 
@@ -12,7 +11,7 @@ import numpy as np
 
 import asilib
 from asilib.io.load import load_skymap
-from asilib.analysis.equal_area import equal_area, _dlon, _dlat
+from asilib.analysis.equal_area import _dlon, _dlat
 
 # Number of km in a degree of latitude. Also a degree of longitude at the equator
 deg_distance_km = 111.321
@@ -64,7 +63,6 @@ class Test_equal_area(unittest.TestCase):
         asi_array_code = 'THEMIS'
         location_code = 'RANK'
         time = datetime(2020, 1, 1)
-        box_km = (10, 10)  # in (Lat, Lon) directions.
         skymap_dict = load_skymap(asi_array_code, location_code, time)
 
         # Set up a north-south satellite track oriented to the east of the THEMIS/RANK
@@ -93,7 +91,6 @@ class Test_equal_area(unittest.TestCase):
         asi_array_code = 'THEMIS'
         location_code = 'RANK'
         time = datetime(2020, 1, 1)
-        box_km = (10, 10)  # in (Lat, Lon) directions.
         skymap_dict = load_skymap(asi_array_code, location_code, time)
 
         # Set up a north-south satellite track oriented to the east of the THEMIS/RANK

@@ -1,7 +1,6 @@
 from typing import Tuple
 import importlib
 
-import pandas as pd
 import numpy as np
 import pymap3d
 import scipy.spatial

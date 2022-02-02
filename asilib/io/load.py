@@ -1,13 +1,11 @@
-from os import stat
 import pathlib
 from datetime import datetime, timedelta
 import dateutil.parser
-from typing import List, Tuple
+from typing import Tuple
 from copy import copy
 import warnings
 import re
 
-import pandas as pd
 import numpy as np
 import cdflib
 import scipy.io
@@ -603,10 +601,9 @@ def _create_empty_data_arrays(asi_array_code, time_range, type):
 
 def _flip_skymap(skymap):
     """
-    IDL saves arrays with indices starting at the lower-right corner? So we need to
-    flip all of the 2D arrays that map to pixels, as well as some of the 3D arrays.
-
-    This function checks that the flipped dimensions have identical sizes.
+    IDL is a column-major language while Python is row-major. This function
+    tranposes the 2- and 3-D arrays to make them compatable with the images
+    that are saved in row-major.
     """
     for key in skymap:
         if hasattr(skymap[key], 'shape'):

@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 
-from asilib import config
 from asilib.io import load
 from asilib.io import utils
 

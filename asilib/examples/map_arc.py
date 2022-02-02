@@ -1,7 +1,7 @@
-""" 
+"""
 Recreate the auroral arc that is shown in Fig. 2b in:
-Donovan, E., Liu, W., Liang, J., Spanswick, E., Voronkov, I., Connors, M., ... & Rae, 
-I. J. (2008). Simultaneous THEMIS in situ and auroral observations of a small substorm. 
+Donovan, E., Liu, W., Liang, J., Spanswick, E., Voronkov, I., Connors, M., ... & Rae,
+I. J. (2008). Simultaneous THEMIS in situ and auroral observations of a small substorm.
 Geophysical Research Letters, 35(17).
 """
 

@@ -2,11 +2,9 @@
 This module contains functions to project the ASI images to a map.
 """
 from typing import List, Union
-from datetime import datetime
 import importlib
 
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
 import numpy as np
 
 try:
@@ -158,7 +156,10 @@ def plot_map(
 
 
 def create_cartopy_map(
-    map_style: str = 'green', lon_bounds: tuple = (-160, -50), lat_bounds: tuple = (40, 82)
+    map_style: str = 'green',
+    lon_bounds: tuple = (-160, -50),
+    lat_bounds: tuple = (40, 82),
+    fig_ax: dict = None,
 ) -> plt.Axes:
     """
     A helper function to create two map styles: a simple black and white map, and
@@ -172,6 +173,10 @@ def create_cartopy_map(
         A tuple of length 2 specifying the map's longitude bounds.
     lat_bounds: tuple or list
         A tuple of length 2 specifying the map's latitude bounds.
+    fig_ax: dict
+        Make a map on an existing figure. The dictionary key:values must be
+        'fig': figure object, and 'ax': the subplot position in the
+        (nrows, ncols, index) format, or a GridSpec object.
 
     Returns
     -------
@@ -183,12 +188,22 @@ def create_cartopy_map(
     ValueError:
         When a map_style other than 'green' or 'white' is chosen.
     """
-    fig = plt.figure(figsize=(8, 5))
     plot_extent = [*lon_bounds, *lat_bounds]
     central_lon = np.mean(lon_bounds)
     central_lat = np.mean(lat_bounds)
     projection = ccrs.Orthographic(central_lon, central_lat)
-    ax = fig.add_subplot(1, 1, 1, projection=projection)
+
+    if fig_ax is None:
+        fig = plt.figure(figsize=(8, 5))
+        ax = fig.add_subplot(1, 1, 1, projection=projection)
+    else:
+        if hasattr(fig_ax['ax'], '__len__') and len(fig_ax['ax']) == 3:
+            # If fig_ax['ax'] is in the format (X,Y,Z)
+            ax = fig_ax['fig'].add_subplot(*fig_ax['ax'], projection=projection)
+        else:
+            # If fig_ax['ax'] is in the format XYZ or a gridspec object.
+            ax = fig_ax['fig'].add_subplot(fig_ax['ax'], projection=projection)
+
     ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
 
     if map_style == 'green':
@@ -244,11 +259,11 @@ def _pcolormesh_nan(
             bottom = i
 
         # Reassign all lat/lon columns after good[-1] (all nans) to good[-1].
-        x[i, good[-1] :] = x[i, good[-1]]
-        y[i, good[-1] :] = y[i, good[-1]]
+        x[i, good[-1]:] = x[i, good[-1]]
+        y[i, good[-1]:] = y[i, good[-1]]
         # Reassign all lat/lon columns before good[0] (all nans) to good[0].
-        x[i, : good[0]] = x[i, good[0]]
-        y[i, : good[0]] = y[i, good[0]]
+        x[i, :good[0]] = x[i, good[0]]
+        y[i, :good[0]] = y[i, good[0]]
 
     # Reassign all of the fully invalid lat/lon rows above top to the the max lat/lon value.
     x[:top, :] = np.nanmax(x[top, :])
@@ -257,7 +272,6 @@ def _pcolormesh_nan(
     x[bottom:, :] = np.nanmax(x[bottom, :])
     y[bottom:, :] = np.nanmax(y[bottom, :])
 
-    # TODO: skymap rotation.
     # old masked c code: np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1]
     p = ax.pcolormesh(
         x,
