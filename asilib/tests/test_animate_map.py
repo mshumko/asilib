@@ -9,7 +9,7 @@ class TestAnimateMap(unittest.TestCase):
         """Checks that the example in animate_map_generator() works."""
         time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
         movie_generator = asilib.animate_map_generator(
-            'THEMIS', 'FSMI', time_range, 110, azel_contours=True, overwrite=True
+            'THEMIS', 'FSMI', time_range, 110, overwrite=True
         )
 
         for image_time, image, im, ax in movie_generator:
@@ -20,14 +20,14 @@ class TestAnimateMap(unittest.TestCase):
     def test_animate_map(self):
         """Checks that animate_map() works."""
         time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-        asilib.animate_map('THEMIS', 'FSMI', time_range, 110, azel_contours=True, overwrite=True)
+        asilib.animate_map('THEMIS', 'FSMI', time_range, 110, overwrite=True)
         return
 
     def test_animate_map_generator_send(self):
         """Check that the generator function and the .send() method works"""
         time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
         gen = asilib.animate_map_generator(
-            'THEMIS', 'FSMI', time_range, 110, azel_contours=True, overwrite=True
+            'THEMIS', 'FSMI', time_range, 110, overwrite=True
         )
         tup = gen.send("get_image_data")
         self.assertEqual(tup.time.shape, (100,))

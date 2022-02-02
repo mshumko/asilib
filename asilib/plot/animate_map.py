@@ -20,7 +20,6 @@ from asilib.plot.plot_map import create_cartopy_map
 from asilib.plot.plot_map import _pcolormesh_nan
 from asilib.analysis.start_generator import start_generator
 from asilib.plot.animate_fisheye import _write_movie
-from asilib.plot.animate_fisheye import _add_azel_contours
 from asilib.plot.animate_fisheye import Images
 
 
@@ -99,7 +98,6 @@ def animate_map_generator(
     color_map: str = 'auto',
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
-    azel_contours: bool = False,
     ax: plt.Axes = None,
     map_style: str = 'green',
     label: bool = True,
@@ -163,8 +161,6 @@ def animate_map_generator(
         framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
-    azel_contours: bool
-        Switch azimuth and elevation contours on or off.
     overwrite: bool
         If true, the output will be overwritten automatically. If false it will
         prompt the user to answer y/n.
@@ -309,9 +305,6 @@ def animate_map_generator(
             norm=norm,
             pcolormesh_kwargs=pcolormesh_kwargs,
         )
-
-        if azel_contours:
-            _add_azel_contours(asi_array_code, location_code, image_time, ax, force_download)
 
         # Give the user the control of the subplot, image object, and return the image time
         # so that the user can manipulate the image to add, for example, the satellite track.
