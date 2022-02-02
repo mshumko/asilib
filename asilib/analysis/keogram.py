@@ -344,9 +344,13 @@ class Keogram:
         if self.map_alt is None:
             self.keogram_latitude = np.arange(self._keo.shape[1])
         else:
-            alt_index = np.where(self.skymap['FULL_MAP_ALTITUDE'] / 1000 == self.map_alt)[0][0]
+            alt_indices = np.where(self.skymap['FULL_MAP_ALTITUDE'] / 1000 == self.map_alt)[0]
+            assert len(alt_indices) == 1, (
+                f"{self.map_alt} is not in the skymap altitudes: "
+                f"{self.skymap['FULL_MAP_ALTITUDE'] / 1000}"
+                )
             self.keogram_latitude = self.skymap['FULL_MAP_LATITUDE'][
-                alt_index, self._pixels[:,0], self._pixels[:,1]
+                alt_indices[0], self._pixels[:,0], self._pixels[:,1]
                 ]
         if self.aacgm:
             raise NotImplementedError
