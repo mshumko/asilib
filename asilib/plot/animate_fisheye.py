@@ -1,4 +1,5 @@
 import pathlib
+import shutil
 from typing import List, Union, Generator, Tuple
 from datetime import datetime
 import collections
@@ -246,9 +247,12 @@ def animate_fisheye_generator(
         f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_'
         f'{location_code.lower()}_fisheye',
     )
-    if not image_save_dir.is_dir():
-        image_save_dir.mkdir(parents=True)
-        print(f'Created a {image_save_dir} directory')
+    # If the image directory exists we need to first remove all of the images to avoid
+    # animating images from different calls.
+    if image_save_dir.is_dir():
+        shutil.rmtree(image_save_dir)
+    image_save_dir.mkdir(parents=True)
+    print(f'Created a {image_save_dir} directory')
 
     if (color_map == 'auto') and (asi_array_code.lower() == 'themis'):
         color_map = 'Greys_r'

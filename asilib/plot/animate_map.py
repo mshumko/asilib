@@ -1,3 +1,4 @@
+import shutil
 import importlib
 import pathlib
 from datetime import datetime
@@ -240,9 +241,12 @@ def animate_map_generator(
         f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_'
         f'{location_code.lower()}_map',
     )
-    if not image_save_dir.is_dir():
-        image_save_dir.mkdir(parents=True)
-        print(f'Created a {image_save_dir} directory')
+    # If the image directory exists we need to first remove all of the images to avoid
+    # animating images from different calls.
+    if image_save_dir.is_dir():
+        shutil.rmtree(image_save_dir)
+    image_save_dir.mkdir(parents=True)
+    print(f'Created a {image_save_dir} directory')
 
     # Check that the map_alt is in the skymap calibration data.
     assert (
