@@ -61,23 +61,19 @@ The rapidly increasing volume of imager data, together with unique data formats,
 We introduce the AuroraX project that aims to overcome the above issues by providing three robust tools that most auroral researchers need. The first tool is the AuroraX website (https://aurorax.space/) that can quickly plot keograms, show what imagers operated at a given time, and calculate conjunctions between numerous ground- and space based instruments. The second tool is the aurorax-api, a Python library that interfaces with the AuroraX website to download the data to a personal computer and automate those tasks. The third tool is aurorax-asilib, a Python all-sky imager library. aurorax-asilib provides functions to the download, load, analyze, and visualize THEMIS and REGO ASI data. 
 
 \section{AuroraX}\label{aurorax}
-\textcolor{blue}{
-      OUTLINE
-      \begin{itemize}
-            \item What is it?
-            \item A highly optimized conjunction search
-            \item On-demand keograms
-            \item Virtual Observatory
-            \item pyaurorax (aurorax-api) to directly access AuroraX services.
-            \item Figure 1: a) a screenshot of the nightly keograms, b) screenshot of the conjunction search tool. 
-      \end{itemize}
-}
+\textcolor{red}{Much of the text in this section is copied from \url{https://docs.aurorax.space/} and \url{https://docs.aurorax.space/python_libraries/pyaurorax/basic_usage/basics_intro/}}
 
 \subsection{Website}
-The AuroraX website, located at (\url{https://aurorax.space/}).
+The AuroraX website, located at (\url{https://aurorax.space/}) is designed to be the first place to start your auroral analysis. The primary objective of AuroraX is to enable mining and exploitation of existing and future auroral data, enabling key science and enhancing the benefits of the world's investment in auroral instrumentation. This is being accomplished with the development of key systems/standards for uniform metadata generation and search, image content analysis, interfaces to leading international tools, and a community involvement that includes more than 80\% of the world's data providers.
+
+\textcolor{red}{Note to Eric: What is the difference between Swarm-Aurora and AuroraX? Is Swarm-Aurora the legacy website? It is confusing to me as is.} The AuroraX website contains three browser applications: the Swarm-Aurora keogram browser, a conjunction search engine, and the virtual observatory. 
+
+The AuroraX Conjunction Search engine is a tool for finding conjunctions between ground-based ASIs and space-based instruments. It helps researchers streamline the process of ``event discovery", quickly narrowing down the possible times that may contain interesting data. There are a few ways to specify and search for conjunctions and the dropdown menus is the most intuitive. The menus include the start and end time, maximum distance between instruments, conjunction type (such as geographic or magnetic footprints in either hemispheres using SSCWeb for space-based instruments, and using AACGM for ground-based instruments), ``criteria blocks" to specify what instruments to calculate the conjunctions of, and metadata filters to filter the results by weather and auroral conditions. An example 
 
 \subsection{aurorax-api}
-The AuroraX servers can also send data to a user's personal computer without an internet browser using a Python Application Program Interface (API) called aurorax-api. The aurorax-api handles the payload (transmitted messages) format so you don't have to. The \verb|pyaurorax.ephemeris| module contains software to download and upload the satellite ephemeris.
+The AuroraX servers can also send data to a user's personal computer without an internet browser using a Python Application Program Interface (API) called aurorax-api. The \verb|pyaurorax.sources| contains the DataSource class as well as functions for searching, retrieving, creating, and updating data sources in the AuroraX database. The \verb|pyaurorax.ephemeris| module contains the Ephemeris class as well as functions for searching, creating, and updating ephemeris records in the AuroraX database. The \verb|pyaurorax.data_products| module contains the DataProduct class as well as functions for searching, creating, and updating data product records in the AuroraX database. And lastly, \verb|pyaurorax.conjunctions| contains the Conjunction class as well as functions for searching for conjunctions between ephemeris records in the AuroraX database. 
+
+\textcolor{red}{Add a paragraph or two that describe how to accomplish a few common tasks using aurorax-api.}
 
 \begin{figure}
       \includegraphics[width=\textwidth]{figures/fig1.png}
