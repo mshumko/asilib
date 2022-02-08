@@ -76,30 +76,11 @@ The AuroraX servers can also send data to a user's personal computer without an 
 \end{figure}
 
 \section{aurorax-asilib}\label{aurorax-asilib}
-\textcolor{blue}{
-      OUTLINE
-      \begin{itemize}
-            \item What is it? A Python library that helps researchers analyze THEMIS and REGO ASI images.The main functions are summarized in Table 1. It is designed to be simple and runnable on personal machines (relatively low memory usage). We strived to strike a balance between complicated and user-friendly tools.
-            \item A table of function names and one sentence to describe their functions.
-            \item The large file sizes lead to relatively long processing time. This is a fact that can be partly mitigated by an SSD. 
-            \item Plug-in based architecture that allows new ASI arrays to be added and called by the core aurorax-asilib software.
-      \end{itemize}
-}
+The final component of AuroraX is aurorax-asilib, henceforth referred to (and imported) as asilib. It enables researchers to apply common data analysis tasks to the THEMIS and REGO ASI image data on a personal computer. Here we overview the main functions, while the online documentation has more examples, a tutorial, and a thorough API reference \url{https://aurora-asi-lib.readthedocs.io/}. \textcolor{red}{Merge these docs with \url{https://docs.aurorax.space/}?}
 
-aurorax-asilib allows researchers to analyze ASI data on a PC. It provides a set of functions for common data analysis tasks using ASI data. Here we overview the functions and the online documentation has more examples, a tutorial, and a thorough API reference \url{https://aurora-asi-lib.readthedocs.io/}
-
-As we tour the asilib functions, keep in mind that asilib is designed to help you with the lower-level tasks. For example, if you want to load the image data via \verb|asilib.load_image()|, asilib will attempt to download it if it is not already saved on the PC. Likewise, if you call \verb|asilib.plot_keogram()|, it will automatically load (and optionally download) the ASI data for you. Lastly, Figs. 2-4 were made using the code in a Jupyter Notebook that is provided with this article (in both the ipynb and pdf formats).
+As we tour the asilib functions, keep in mind that asilib manages the lower-level tasks. For example, if you want to load the image data via \verb|asilib.load_image()|, asilib will attempt to download it if it is not already saved on your computer. Likewise, if you call \verb|asilib.plot_keogram()|, it will automatically load (and download if necessary) the ASI data before plotting it. And for reference, Figs. 2-4 were made using the code in a Jupyter Notebook that is provided as supplemental material in both the ipynb and pdf formats.
 
 \subsection{Download and load ASI image and skymap data}
-\textcolor{blue}{
-      OUTLINE
-      \begin{itemize}
-            \item Handles the downloading and loading of ASI images. Main design principle: Ultimately, ASI image files consists of time stamps and images, so the asilib functions really only need to return that data
-            \item Similarly with skymap calibration files
-            \item If a file is already downloaded, you do not need an internet connection to work with the data
-      \end{itemize}
-}
-
 Let us start with the four functions that download and load ASI image and skymap data: 
 
 \begin{itemize}
@@ -109,13 +90,13 @@ Let us start with the four functions that download and load ASI image and skymap
       \item \verb|asilib.load_skymap()|
 \end{itemize} that are described below.
 
-The \verb|asilib.download_image()| function downloads the level 1 hourly Common Data Format (CDF) files from \url{http://themis.ssl.berkeley.edu/data/themis/thg/l1/asi/} for THEMIS, and \url{http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/} for REGO. The files are saved in the \verb|asilib.config['ASI_DATA_DIR']| directory that at \verb|~/asilib-data/| be default, and is customizable.
+The \verb|asilib.download_image()| function downloads the level 1 hourly Common Data Format (CDF) files from \url{http://themis.ssl.berkeley.edu/data/themis/thg/l1/asi/} for THEMIS, and \url{http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/} for REGO. The files are saved in the \verb|asilib.config['ASI_DATA_DIR']| directory that at \verb|~/asilib-data/| be default, and is customizable. \textcolor{red}{TODO: Switch to PGM.}
 
-The \verb|asilib.download_skymap()| function downloads all of the skymap files from \url{https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/skymaps/} and \url{https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/} for a given set of \verb|asi_array_code| and \verb|location_code|. The skymap files are in the Interactive Data Language (IDL) \verb|.sav| file format. Noteworthy is that \verb|asilib| downloads all of the skymap files for a given imager because the skymaps are only valid for a set time period (typically a year; see the logic for \verb|asilib.load_skymap()| that is described below).
+The \verb|asilib.download_skymap()| function downloads all of the skymap files from \url{https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/skymaps/} and \url{https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/} for a given set of \verb|asi_array_code| and \verb|location_code|. The skymap files are in the Interactive Data Language (IDL) \verb|.sav| file format. Noteworthy is that \verb|asilib| downloads all of the skymap files for a given imager because the skymaps are only valid for a set time period (typically a year; see the logic for \verb|asilib.load_skymap()| that is described below). Lastly, asilib converts the longitude values from $[0^\circ, 360^\circ]$ to $[-180^\circ, 180^\circ]$.
 
 As the name implies, \verb|asilib.load_image()| loads into memory and returns the ASI time stamps and images for a specified imager. This function loads both single and multiple images: a single time stamp and image if \verb|time| is provided, and an array of time stamps and images if \verb|time_range| is provided. As previously mentioned,\verb|asilib.load_image()| will try to download an hourly CDF file if it does not exist locally.
 
-\verb|asilib.load_skymap()| is the last noteworthy input function; it loads the relevant skymap file into memory and returns the data in a dictionary. A relevant skymap file is the latest one before the specified \verb|time|. As with \verb|asilib.load_image()|, \verb|asilib.load_skymap()| will attempt to download the skymap functions if they are not already downloaded.
+\verb|asilib.load_skymap()| is the last noteworthy input function; it loads the relevant skymap file into memory and returns the data in a dictionary. A relevant skymap file is the latest one before the specified \verb|time|. As with \verb|asilib.load_image()|, \verb|asilib.load_skymap()| will attempt to download the skymap files if they are not already downloaded.
 
 Before we discuss the plotting functions, we emphasize that the \verb|asilib.download_image()| and \verb|asilib.download_skymap()| functions are often unnecessary to call since they are called by \verb|asilib.load_image()| and \verb|asilib.load_skymap()|. However, the download functions are very useful if you need to download ASI image and calibration data in bulk---useful to analyze data offline, for example.
 
@@ -128,24 +109,26 @@ The \verb|asilib| provides two ways to plot a single ASI image:
       \item \verb|asilib.plot_map()|.
 \end{itemize}
 
-One common way to visualize all-sky images is with \verb|asilib.plot_fisheye()|. It plots the raw ASI images oriented with North at the top and East to the right of each image. The term fisheye comes from the fisheye lens that expands the imager's field of view to nearly $180^\circ$. For reference, the \verb|azel_contours| keyword argument superposes contours of elevation and azimuth in the fisheye image. Figure \ref{fig2}a,c show an example of an auroral arc observed concurrently by the THEMIS and REGO ASIs stationed at Rankin Inlet (RANK). If you don't override the parameters, the color map is automatically chosen: black-to-white for THEMIS and black-to-red for REGO. Also the color scale is dynamically calculated using percentile logic described in the documentation.
+One common way to visualize all-sky images is with \verb|asilib.plot_fisheye()|. It plots the raw ASI images oriented with North at the top and East to the right of each image. The term fisheye comes from the fisheye lens that expands the imager's field of view to nearly $180^\circ$. Figure \ref{fig2}a,c show an example of an auroral arc observed concurrently by the THEMIS and REGO ASIs stationed at Rankin Inlet (RANK). If you don't override the parameters, the color map is automatically chosen: black-to-white for THEMIS and black-to-red for REGO. Also the color scale is dynamically calculated using percentile logic described in the documentation.
 
-Another common way to visualize images is by projecting the fisheye image onto a geographic map using \verb|asilib.plot_map()|. asilib uses the skymap files to map each pixel's vertices to a (latitude, longitude) point at an assumed aurora emission altitude (typically 110 km for THEMIS and 230 km for REGO). Figure \ref{fig2}b,d show the fisheye images mapped to 110 km altitude. By default, pixels that look at $< 10^\circ$ elevations are not mapped due to the stretching of pixels closest to the horizon. And lastly, \verb|asilib.plot_map()| provides default map styles that can be overwritten by your custom \verb|cartopy| map passed in via the \verb|ax| keyword argument.
+Another common way to visualize images is by projecting the fisheye image onto a geographic map using \verb|asilib.plot_map()|. asilib uses the skymap files to map each pixel's vertices to a (latitude, longitude) point at an aurora emission altitude (typically assumed 110 km for THEMIS and 230 km for REGO). Figure \ref{fig2}b,d show the fisheye images mapped to 110 km altitude. By default, pixels that look at $< 10^\circ$ elevations are not mapped due to nearby obstructions and the stretching of pixels closest to the horizon. And lastly, \verb|asilib.plot_map()| provides default map styles that can be overwritten with a custom \verb|cartopy| \textcolor{red}{cite} map passed in via the \verb|ax| keyword argument.
 
 \begin{figure}
       \includegraphics[width=\textwidth]{figures/fig2.png}
-      \caption{ASI image of an auroral arc taken simultaneously by the REGO and THEMIS imagers at Rankin Inlet, Canada. Panels and a and c show the raw fisheye lens view, while panels b and d show the same images projected to the 110 km assumed aurora emission altitude. Only the pixels with $>10^\circ$ elevation are plotted.}
+      \caption{ASI image of an auroral arc taken simultaneously by the REGO and THEMIS imagers at Rankin Inlet, Canada. Panels and a and c show the raw fisheye lens view, while panels b and d show the same images projected to the 110 km assumed aurora emission altitude. Only the pixels with $>10^\circ$ elevation are plotted. \textcolor{green}{The THEMIS skymap appears to be incorrect.}}
       \label{fig2}
 \end{figure}
 
 \subsection{Keograms}
 A ubiquitous way to visualize ASI images and identify different types of aurora is with keograms. A keogram is a compression of many sequential ASI images into a single image showing pixel intensity as a function of latitude and time. Typically, they are assembled by looping over every image and slicing pixels that are oriented North-South through zenith (or through a custom path such a path of a stellite). Keograms are an essential tool that compress the information contained in hours of images into one plot. Objects in the sky such as auroral arcs, pulsating aurora, substorms, clouds, the moon, etc. all have unique keogram signatures that allow you to quickly classify what the imager observed. 
 
-You can make a keogram using the \verb|asilib.plot_keogram()| function (that in turn calls \verb|asilib.keogram()|). Similar to \verb|asilib.plot_map()|, \verb|asilib.plot_keogram()| takes an optional \verb|map_alt| keyword argument. If it is not provided, the keogram's vertical axis is pixel index, but if a valid map altitude is provided, the vertical axis is geographic latitude. To minimize the PC's memory usage, \verb|asilib.keogram()| loads image data using \verb|asilib.load_image_generator()| that loads one image file at a time. The keogram shown in Fig. \ref{fig3} shows the dynamic nature of the aurora. Furthermore, the latitude  mapping transformation between panels a and b is substantial---low elevation pixels map to much wider sections of latitude as compared to the pixels near zenith.
+You can make a keogram using the \verb|asilib.plot_keogram()| function (that in turn calls \verb|asilib.keogram()|). Similar to \verb|asilib.plot_map()|, \verb|asilib.plot_keogram()| takes an optional \verb|map_alt| keyword argument. If it is not provided, the keogram's vertical axis is pixel index, but if a valid map altitude is provided, the vertical axis is geographic latitude. Also, the \verb|path| keyword argument allows you to make a keogram along a custom geographic path. 
+
+To minimize memory usage, \verb|asilib.keogram()| loads image data using \verb|asilib.load_image_generator()| that loads one image file at a time. The keogram shown in Fig. \ref{fig3} shows the dynamic nature of the aurora. Furthermore, the latitude  mapping transformation between panels a and b is substantial---low elevation pixels map to much wider sections of latitude as compared to the pixels near zenith.
 
 \begin{figure}
       \includegraphics[width=\textwidth]{figures/fig3.png}
-      \caption{A full-night keogram showing the dynamic aurora observed at Gillam, Canada. Panel a shows the unmapped keogram with the pixel index vertical axis, while panel b shows the latitude of the pixels mapped to 110 km altitude.}
+      \caption{A full-night keogram showing the dynamic aurora observed at Gillam, Canada. Panel a shows the unmapped keogram with the pixel index vertical axis, while panel b shows the latitude of the pixels mapped to 110 km altitude. \textcolor{red}{Add an AACGM keogram as well?}}
       \label{fig3}
 \end{figure}
 
@@ -153,24 +136,22 @@ You can make a keogram using the \verb|asilib.plot_keogram()| function (that in 
 \subsection{Animating Images}
 You can easily animate ASI fisheye images using \verb|asilib.animate_fisheye()|. It first saves png images in a unique subfolder in the \verb|~/asilib-data/movies/images/| folder, and then animates them using the \verb|ffmpeg| library. Movie S1 in the supporting information (SI) document shows an example of \textcolor{red}{X type of aurora}.
 
-Animating just the fisheye images is somewhat limiting. Thus, \verb|asilib| also includes \verb|asilib.animate_fisheye_generator()| (which is technically a coroutine) to iterate over and pause after each ASI image to allow you to modify it. Then, after the iteration is complete, \verb|asilib.animate_fisheye_generator()| combines the modified images into a movie. What sort of modifications can you make? For example, you can use it to superpose a satellite path and estimate the auroral intensity at its footprint during a conjunction. This is further described in the next two sections.
+Animating just the fisheye images is somewhat limiting. Thus, \verb|asilib| also includes \verb|asilib.animate_fisheye_generator()| (which is technically a coroutine) to iterate over and pause after plotting each image, to allow you to modify the movie frame. Then, after the iteration is complete, \verb|asilib.animate_fisheye_generator()| combines the modified images into a movie. What sort of modifications can you make? For example, you can use it to superpose a satellite path and estimate the auroral intensity at its footprint during a conjunction. This is further described in the next two sections.
 
 As the names imply, \verb|asilib.animate_map()| and \verb|asilib.animate_map_generator()| animate the projected images on a map. You can use them as easily as the \verb|animate_fisheye| functions. 
 
-We mentioned earlier that the \verb|asilib.animate_fisheye_generator()| is technically a coroutine. So what does that mean? In this context, it means that before looping over each ASI image, you can request the images and time stamps from \verb|asilib.animate_fisheye_generator()| using the \verb|.send("data")| method. This approach appears rather contrived, however, a major advantage of this design is that the user sees exactly what ASI data the generator function will loop over. This is useful, for example, if you need the ASI time stamps to appropriately sample the images, plot the satellite location, and calculate the mean intensity of the aurora along the satellite trajectory. We will discuss this application later.
+We mentioned earlier that the \verb|asilib.animate_fisheye_generator()| is technically a coroutine. So what does that mean? In this context, it means that before looping over each ASI image, you can request the images and time stamps from \verb|asilib.animate_fisheye_generator()| using the \verb|.send("data")| method. This approach appears rather contrived, however, a major advantage of this design is that the user sees exactly what ASI data the generator function will loop over. This is useful, for example, if you need the ASI time stamps to appropriately sample the images, plot the satellite location, and calculate the mean intensity of the aurora along the satellite trajectory and superpose it on the movie frames. We will discuss this application in detail later.
 
 \subsection{ASI analysis tools}
-Currently, \verb|asilib| provides three analysis functions that are useful for conjunction analysis: \verb|asilib.lla2footprint()|, \verb|asilib.lla2azel()|, and \verb|asilib.area2pixels()|.
+Currently, \verb|asilib| provides three functions that are useful for analyzing conjunctions: \verb|asilib.lla2footprint()|, \verb|asilib.lla2azel()|, and \verb|asilib.area2pixels()|.
 
 \verb|asilib.lla2footprint()| uses IRBEM-Lib (CITE; requires a separate installation and compilation of the Fortran source code) to trace a satellite's position, in (latitude, longitude, altitude) (LLA) coordinates, along a magnetic field line. This field line is defined using one of the magnetic field models that are supported by IRBEM. The primary use of this function is to map a low Earth orbiting satellite's location at, say, 500 km altitude, to its magnetic footprint at the assumed auroral emission altitude, e.g. 110 km for THEMIS or 230 km for REGO as previously mentioned.
 
-The next function is \verb|asilib.lla2azel()|. It maps the satellite's footprint location, in LLA coordinates, to the ASI's (azimuth, elevation) coordinates (AzEl) using the \verb|FULL_AZIMUTH| and \verb|FULL_ELEVATION| skymap arrays. This function returns both the AzEl coordinates as well as the corresponding pixels in the image.
+The next function is \verb|asilib.lla2azel()|. It maps the satellite's footprint location, in LLA coordinates, to the ASI's (azimuth, elevation) coordinates (AzEl) using the skymaps. This function returns both the AzEl coordinates as well as the corresponding pixels in the image.
 
-And the last analysis function that we describe here is \verb|asilib.area2pixels()| that calculates a pixel mask of pixels inside an area. This function is useful to calculate the mean ASI intensity (or another statistical method) using pixels that map to a physical area in the sky. The mask has 1s inside of the area and \verb|numpy.nan| outside of it. You multiply the image with the mask: the pixel intensities outside of the area are then \verb|numpy.nan| and unchanged in the area. We chose to use \verb|numpy.nan| to ensure that the mean of the intensity is correctly applied---it will fail if you call \verb|numpy.mean(image*mask)|, but \verb|numpy.nanmean(image*mask)| will ignore NaNs and correctly calculate the mean intensity inside the area)
+Lastly, \verb|asilib.area2pixels()| calculates a pixel mask of pixels inside an auroral emission area. This function is useful to calculate the mean ASI intensity (or another statistical method) using pixels that map to a physical area in the sky. The mask contains 1s inside of the area and \verb|numpy.nan| outside of it. You then multiply the image with the mask: the pixel intensities outside of the area are then \verb|numpy.nan| and unchanged inside the area. We chose to use \verb|numpy.nan| to ensure that the mean of the intensity is correctly applied---it will fail if you call \verb|numpy.mean(image*mask)|, but \verb|numpy.nanmean(image*mask)| will ignore NaNs and correctly calculate the mean intensity inside the area)
 
-If you give it one LLA coordinate, the mask will have the same shape as the ASI image. On the other hand, if you pass multiple LLA coordinates, the mask's will have a new first dimension corresponding to the number of coordinates.
-
-By default, the area is 5x5 km. If the area is so small that not even one pixel is contained inside it (but it is above the horizon), \verb|asilib.area2pixels()| will slowly increase the area tolerance until at least one pixel is found. Lastly, if the area is completely outside of the skymap, \verb|asilib| will raise a warning and the corresponding mask will be all NaNs. 
+By default, the area is 5x5 km. If the area is so small that not even one pixel is contained inside it (but it is above the horizon), \verb|asilib.area2pixels()| will slowly increase the area tolerance until at least one pixel is found. Lastly, if the area is completely outside of the skymap, \verb|asilib| will raise a warning and the corresponding mask will be all \verb|numpy.nan|. 
 
 \subsection{An example: a satellite-ASI conjunction}\label{satellite_conjunction}
 In this example we combine the aforementioned analysis functions into an example of a conjunction between a THEMIS ASI and a fictional satellite in 500-km altitude low Earth orbit. We will calculate and show the mean ASI intensity in a 20x20 km area, at 110 km altitude, around the satellite footprint and animate it.
