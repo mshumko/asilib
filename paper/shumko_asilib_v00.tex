@@ -52,26 +52,13 @@ Here we introduce the AuroraX project which consists of open-source software des
       \end{itemize}
 }
 
-Since the 1960s the space physics community has utilized optical ground-based instrumentation that has led to discoveries and from which great advancements in the field have been derided.  Some of these discoveries include the early description of a substorm introduced by Akasofu (1964), and several descriptions of new phenomena that highlight the tight connections between the magnetosphere and ionosphere (e.g., ). 
+Since the 1960s the space physics community has utilized optical ground-based instrumentation that has led to discoveries and from which great advancements in the field have been derided. Some of these discoveries include the early description of a substorm introduced by Akasofu (1964), and several descriptions of new phenomena that highlight the tight connections between the magnetosphere and ionosphere (e.g., ). 
 
-Meridian Scanning photometers (MSP), such as the Canadian Auroral Network for the OPEN (Origins of Plasmas in Earth’s Neighborhood) Program Unified Study (CANOPUS) array, were first utilized for remote sensing the high-latitude ionosphere (e.g., Rostoker et al. 1985). These MSPs were later followed by two dimensional All-sky Imagers (ASIs) that took the space physics field into a deeper understanding of the ionosphere-magnetosphere coupled system. In the present day, the space physics community has carried a long legacy of ground-based optical instruments, with perhaps the THEMIS-ASI observatories being one of the most successful ones. Currently, many different optical arrays are in operation or under development (e.g., THEMIS-ASI, REGO, MANGO, TREx, among others). These modern ASIs work continuously in high temporal and spatial resolution, where each camera produces ~7.2k images per night for which robust analysis tools are required.
+Meridian Scanning photometers (MSP), such as the Canadian Auroral Network for the OPEN (Origins of Plasmas in Earth's Neighborhood) Program Unified Study (CANOPUS) array, were first utilized for remote sensing the high-latitude ionosphere (e.g., Rostoker et al. 1985). These MSPs were later followed by two dimensional All-sky Imagers (ASIs) that took the space physics field into a deeper understanding of the ionosphere-magnetosphere coupled system. In the present day, the space physics community has carried a long legacy of ground-based optical instruments, with perhaps the THEMIS-ASI observatories being one of the most successful ones. Currently, many different optical arrays are in operation or are in development (e.g., THEMIS-ASI, REGO, MANGO, TREx, PWING, among others). These modern ASIs work continuously in high temporal and spatial resolution, where each camera produces thousands of images per night.
 
-The rapidly increasing amount of imager data, together with unique data formats, significantly burdens space physicists with mondale and duplicated software engineering tasks---download data, load and parse the data correctly, etc. This unnecessary burden can also lead to mistakes in analysis software that may require unnecessary troubleshooting time from the ASI team. The goal of AuroraX is to overcome these drawbacks by providing a set of robust tools that most researchers need to analyze all-sky images. 
+The rapidly increasing volume of imager data, together with unique data formats, significantly burdens space physicists with mundane and duplicated software engineering tasks---download data, load and correctly parse the data, etc. This unnecessary burden can also lead to mistakes in analysis software that may require unnecessary troubleshooting time from the ASI team, or more worrisome---publish inaccurate findings that mislead researchers and the public. Thus, robust auroral analysis tools are required.
 
-We describe our progress towards that goal in this article. First, we showcase the main features of the online AuroraX interface (https://aurorax.space/) such as the conjunction finder and the keogram finder. Second, we describe the aurorax-api, a Python library containing the interface to the AuroraX server to automatically download keograms and identify conjunctions. Third, we describe aurorax-asilib, the Python all-sky imager library. aurorax-asilib provides functions to the download, load, process data, and visualize THEMIS and REGO ASI data. 
-
-
-\section{Design Philosophy (Principals?)}
-\textcolor{red}{I don't think that this section is necessary.}
-\textcolor{blue}{
-      OUTLINE
-      \begin{itemize}
-            \item The primary design philosophy is to offer a robust set of functions that are useful for most researchers studying the aurora. We strived to strike a balance between complicated and user-friendly tools. 
-            \item Online keogram and conjunction interface accessible anywhere with internet connection.
-            \item Comprehensive ASI data analysis functionality on a PC.
-            \item Abstract away data management steps: downloading data, loading data, applying routine data processing steps, and common visualizations.
-      \end{itemize}
-}
+We introduce the AuroraX project that aims to overcome the above issues by providing three robust tools that most auroral researchers need. The first tool is the AuroraX website (https://aurorax.space/) that can quickly plot keograms, show what imagers operated at a given time, and calculate conjunctions between numerous ground- and space based instruments. The second tool is the aurorax-api, a Python library that interfaces with the AuroraX website to download the data to a personal computer and automate those tasks. The third tool is aurorax-asilib, a Python all-sky imager library. aurorax-asilib provides functions to the download, load, process data, and visualize THEMIS and REGO ASI data. 
 
 \section{AuroraX}\label{aurorax}
 \textcolor{blue}{
