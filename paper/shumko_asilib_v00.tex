@@ -58,7 +58,7 @@ Meridian Scanning photometers (MSP), such as the Canadian Auroral Network for th
 
 The rapidly increasing volume of imager data, together with unique data formats, significantly burdens space physicists with mundane and duplicated software engineering tasks---download data, load and correctly parse the data, etc. This unnecessary burden can also lead to mistakes in analysis software that may require unnecessary troubleshooting time from the ASI team, or more worrisome---publish inaccurate findings that mislead researchers and the public. Thus, robust auroral analysis tools are required.
 
-We introduce the AuroraX project that aims to overcome the above issues by providing three robust tools that most auroral researchers need. The first tool is the AuroraX website (https://aurorax.space/) that can quickly plot keograms, show what imagers operated at a given time, and calculate conjunctions between numerous ground- and space based instruments. The second tool is the aurorax-api, a Python library that interfaces with the AuroraX website to download the data to a personal computer and automate those tasks. The third tool is aurorax-asilib, a Python all-sky imager library. aurorax-asilib provides functions to the download, load, process data, and visualize THEMIS and REGO ASI data. 
+We introduce the AuroraX project that aims to overcome the above issues by providing three robust tools that most auroral researchers need. The first tool is the AuroraX website (https://aurorax.space/) that can quickly plot keograms, show what imagers operated at a given time, and calculate conjunctions between numerous ground- and space based instruments. The second tool is the aurorax-api, a Python library that interfaces with the AuroraX website to download the data to a personal computer and automate those tasks. The third tool is aurorax-asilib, a Python all-sky imager library. aurorax-asilib provides functions to the download, load, analyze, and visualize THEMIS and REGO ASI data. 
 
 \section{AuroraX}\label{aurorax}
 \textcolor{blue}{
@@ -72,6 +72,12 @@ We introduce the AuroraX project that aims to overcome the above issues by provi
             \item Figure 1: a) a screenshot of the nightly keograms, b) screenshot of the conjunction search tool. 
       \end{itemize}
 }
+
+\subsection{Website}
+The AuroraX website, located at (\url{https://aurorax.space/}).
+
+\subsection{aurorax-api}
+The AuroraX servers can also send data to a user's personal computer without an internet browser using a Python Application Program Interface (API) called aurorax-api. The aurorax-api handles the payload (transmitted messages) format so you don't have to. The \verb|pyaurorax.ephemeris| module contains software to download and upload the satellite ephemeris.
 
 \begin{figure}
       \includegraphics[width=\textwidth]{figures/fig1.png}
@@ -233,6 +239,8 @@ Hopefully we made a convincing case that AuroraX and aurorax-asilib are a useful
 AuroraX can be used anywhere with an internet connection. It is simple to use and it allows us to quickly identify times of interest (quickly as in during a lunch with collaborators in the middle of a conference).
 
 aurorax-asilib, on the other hand, is designed to minimally use the internet. It only needs it to download the data. Once saved locally, aurorax-asilib allows you to easily make common aurora plots, and provides you with functions to get you the raw data if you need to implement something more sophisticated. We hope that the conjunction example demonstrates how useful aurorax-asilib functions are to transform your data and compare to the images.
+
+For more information, see the AuroraX documentation at \url{https://docs.aurorax.space/} 
 
 \acknowledgments
 We are thankful for the engineers and scientists who made AuroraX, THEMIS ASI, and REGO ASI projects possible. M. Shumko and B. Gallardo-Lacourt acknowledge the support provided by the NASA Postdoctoral Program at the NASA’s Goddard Space Flight Center, administered by Universities Space Research Association under contract with NASA. The THEMIS and REGO ASI data is available from \url{https://data.phys.ucalgary.ca/}.
