@@ -27,6 +27,10 @@
 \item Together, these tools enable effortless end-to-end discovery and analysis of the aurora
 \end{keypoints}
 
+COLOR GUIDE: \newline
+\textcolor{red}{Red}: General notes, issues, and TODOs \newline
+\textcolor{blue}{Blue}: Questions that I believe Eric is best equipped to answer \newline
+\textcolor{green}{Green}: Questions that I believe Darren is best equipped to answer
 
 \begin{abstract}
 Here we introduce the AuroraX project which consists of open-source software designed to effortlessly discover and analyze auroral imager data. At this time AuroraX consists of three main tools: the AuroraX website (\url{https://aurorax.space/}); aurorax-api, a application program interface to the AuroraX website written in Python; and aurorax-asilib, an auroral all-sky imager library also written in Python. Together, these three tools enable a rapid and painless end-to-end analysis of the aurora. One such example is a conjunction study: AuroraX---or the aurorax-api---can be used to quickly identify conjunctions between numerous ground- and space-based instruments and quickly look at keograms from the available imagers to determine what the imagers observed. A list of conjunctions, together with aurorax-asilib, can be then used to download, load, and analyze all-sky imager data directly on a personal computer.
@@ -38,21 +42,7 @@ Here we introduce the AuroraX project which consists of open-source software des
 
 
 \section{Introduction}\label{intro}
-\textcolor{blue}{
-      OUTLINE
-      \begin{itemize}
-            \item Brief history of ASIs and ASI arrays. Talk about why THEMIS ASI exists. Discuss CANOPUS? Linage.
-            \item Breadth of possible science questions that can be answered with aurora image data.
-            \item Problem: modern ASI arrays produce an immense volume of data.
-            \item Why this software? Aurora ASI data formats very greatly, each with their own caveats. This centralized software package is maintained by the AuroraX team. 
-            \item Benefits: Maintained by the AuroraX team so it's usability is of paramount importance
-            \item Reduce the barrier to entry into auroral physics. Reduce the technical requirements and  enable rapid discovery of new science.
-            \item Instead of case study results, larger statistical behavior will likely appear.
-            \item remove the need for scientists needing to write duplicate code to use these popular missions. AS a result, this will enable scientists to dive right into the science and not need to know the details of data management (downloading and loading data, as well as applying routine data processing steps
-      \end{itemize}
-}
-
-Since the 1960s the space physics community has utilized optical ground-based instrumentation that has led to discoveries and from which great advancements in the field have been derided. Some of these discoveries include the early description of a substorm introduced by Akasofu (1964), and several descriptions of new phenomena that highlight the tight connections between the magnetosphere and ionosphere (e.g., ). 
+Since the 1960s the space physics community has utilized optical ground-based instrumentation that has led to discoveries and from which great advancements in the field have been derided. Some of these discoveries include the early description of a substorm introduced by Akasofu (1964), and several descriptions of new phenomena that highlight the tight connections between the magnetosphere and ionosphere (e.g., ). \textcolor{red}{Add citations and other discoveries/breakthroughs.} These discoveries were possible with a multitude of instruments. 
 
 Meridian Scanning photometers (MSP), such as the Canadian Auroral Network for the OPEN (Origins of Plasmas in Earth's Neighborhood) Program Unified Study (CANOPUS) array, were first utilized for remote sensing the high-latitude ionosphere (e.g., Rostoker et al. 1985). These MSPs were later followed by two dimensional All-sky Imagers (ASIs) that took the space physics field into a deeper understanding of the ionosphere-magnetosphere coupled system. In the present day, the space physics community has carried a long legacy of ground-based optical instruments, with perhaps the THEMIS-ASI observatories being one of the most successful ones. Currently, many different optical arrays are in operation or are in development (e.g., THEMIS-ASI, REGO, MANGO, TREx, PWING, among others). These modern ASIs work continuously in high temporal and spatial resolution, where each camera produces thousands of images per night.
 
@@ -66,18 +56,18 @@ We introduce the AuroraX project that aims to overcome the above issues by provi
 \subsection{Website}
 The AuroraX website, located at (\url{https://aurorax.space/}) is designed to be the first place to start your auroral analysis. The primary objective of AuroraX is to enable mining and exploitation of existing and future auroral data, enabling key science and enhancing the benefits of the world's investment in auroral instrumentation. This is being accomplished with the development of key systems/standards for uniform metadata generation and search, image content analysis, interfaces to leading international tools, and a community involvement that includes more than 80\% of the world's data providers.
 
-\textcolor{red}{Note to Eric: What is the difference between Swarm-Aurora and AuroraX? Is Swarm-Aurora the legacy website? It is confusing to me as is.} The AuroraX website contains three browser applications: the Swarm-Aurora Keogram Browser, a Conjunction Search Engine, and the virtual observatory. 
+\textcolor{blue}{What is the difference between Swarm-Aurora and AuroraX? Is Swarm-Aurora the legacy website? It is confusing to me as is.} The AuroraX website contains three browser applications: the Swarm-Aurora Keogram Browser, a Conjunction Search Engine, and the virtual observatory. 
 
 The primary goal of the Keogram Browser is to provide an easy and scientifically productive tool for viewing summary data from ground-based auroral imaging data. \textcolor{red}{The keogram explanation is duplicate. Remove either this one or the one in the asilib section.} Keograms are an essential tool that compress the information contained in hours of images into one plot. Objects in the sky such as auroral arcs, pulsating aurora, substorms, clouds, the moon, etc. all have unique keogram signatures that allow you to quickly classify what the imager observed. To browse the keograms you'll need to select the date and one or more ASI arrays. 
 
 The Conjunction Search Engine is a tool for finding conjunctions between ground-based ASIs and space-based instruments. It helps researchers streamline the process of ``event discovery", quickly narrowing down the possible times that may contain interesting data. There are a few ways to specify and search for conjunctions and the dropdown menus is the most intuitive. The menus include the start and end time, maximum distance between instruments, conjunction type (such as geographic or magnetic footprints in either hemispheres using SSCWeb for space-based instruments, and using AACGM for ground-based instruments), ``criteria blocks" to specify what instruments to calculate the conjunctions of, and metadata filters to filter the results by weather and auroral conditions. Figure \ref{fig1}c shows an example of the conjunctions identified between the TREx ASIs and all space-based instruments. Clicking on one of the conjunctions leads to a detailed view that we show in Fig. \ref{fig1}b. This view shows a map with the ASI fields of view and the satellite orbits superposed. Also, the keograms from the available ASIs are shown on the right. In one quick search can you identify, filter, and quantify the conjunction quantity and quality.
 
-The Virtual Observatory aims at providing interactive visualizations and data browsing tools to quickly navigate the vast amount of data available. These web-based applications are geared towards identifying auroral events of interest using summary data of different types. The Virtual Observatory currently has two web interfaces available: Keogramist, and the Event Explorer. The Keogramist web tool is designed to allow for rapid "event discovery" using ASI keograms and movies. \textcolor{red}{Darrin: I noticed a bug in the movie player where the Play/Pause button is rapidly toggles without my input. Pressing it doesn't do anything.} Lastly, the Event Explorer is a 3D visualization of the conjunctions. \textcolor{red}{Add more info once complete.}
+The Virtual Observatory aims at providing interactive visualizations and data browsing tools to quickly navigate the vast amount of data available. These web-based applications are geared towards identifying auroral events of interest using summary data of different types. The Virtual Observatory currently has two web interfaces available: Keogramist, and the Event Explorer. The Keogramist web tool is designed to allow for rapid "event discovery" using ASI keograms and movies. \textcolor{green}{I found a bug in the movie player where the Play/Pause button is rapidly toggles without my input. Pressing it doesn't do anything.} Lastly, the Event Explorer is a 3D visualization of the conjunctions. \textcolor{green}{Add more info once complete.}
 
 \subsection{aurorax-api}
 The AuroraX servers can also send data to a user's personal computer without an internet browser using a Python Application Program Interface (API) called aurorax-api. The \verb|pyaurorax.sources| contains the DataSource class as well as functions for searching, retrieving, creating, and updating data sources in the AuroraX database. The \verb|pyaurorax.ephemeris| module contains the Ephemeris class as well as functions for searching, creating, and updating ephemeris records in the AuroraX database. The \verb|pyaurorax.data_products| module contains the DataProduct class as well as functions for searching, creating, and updating data product records in the AuroraX database. And lastly, \verb|pyaurorax.conjunctions| contains the Conjunction class as well as functions for searching for conjunctions between ephemeris records in the AuroraX database. 
 
-\textcolor{red}{Add a paragraph or two that describe how to accomplish a few common tasks using aurorax-api.}
+\textcolor{green}{Can you add a paragraph or two that describe how to accomplish a few common tasks using aurorax-api?}
 
 \begin{figure}
       \includegraphics[width=\textwidth]{figures/fig1.png}
