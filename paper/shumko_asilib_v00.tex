@@ -10,7 +10,7 @@
 
 \begin{document}
 
-\title{AuroraX, aurorax-api (or pyaurorax?), and aurorax-asilib: a user-friendly auroral all-sky imager analysis framework}
+\title{AuroraX, aurorax-api \textcolor{red}{(or pyaurorax?)}, and aurorax-asilib: a user-friendly auroral all-sky imager analysis framework}
 
 \authors{M. Shumko\affil{1, 2}, B. Gallardo-Lacourt\affil{1,2}, A.J. Halford\affil{1}, E. Donovan\affil{3}, E.L. Spanswick\affil{3}, D. Chaddock\affil{3}, I. Thompson, and K.R. Murphy}
 
@@ -169,29 +169,13 @@ Animation \textcolor{red}{Or call them movies? Need to be consistent.} S2 shows 
 \end{figure}
 
 \section{Quality Assurance}
-We developed AuroraX with useability and maintainability at the forefront. The source code for the the tools described here is open source and hosted on GitHub. It is archived on Zenodo.
+We developed AuroraX with useability, reliability, and maintainability at the forefront. The source code for the the tools described here is open source and hosted on GitHub. It is also archived on Zenodo and the Python Packaging Index (PyPI). On GitHub you can submit an Issue for bugs or feature requests, and can contribute to AuroraX with a Pull Request.  
 
-We developed \verb|asilib| with useability and maintainability at the forefront. The Python source code is available on \verb|aurora-asi-lib| GitHub repository \url{https://github.com/mshumko/aurora-asi-lib}. It is also archived on Zenodo and the Python Packaging Index (PyPI). On GitHub you can submit an Issue for bugs or feature requests, and you can contribute to \verb|asilib| using a Pull Request. 
+Documentation is critically important to the survival and usability of software and the AuroraX documentation is hosted at \url{https://docs.aurorax.space/}. There you will find installation instructions, examples, comprehensive tutorials, and a detailed API. The documentation source code is bundled with the software source code on GitHub, useful in case you need to recreate the documentation on a computer using the Sphinx Python document generator.
 
-Since documentation is critically important to the survival and usability of software, \url{readthedocs.org} hosts the \verb|aurora-asi-lib| documentation at \url{https://aurora-asi-lib.readthedocs.io/}. It contains installation instructions, examples, a comprehensive tutorial, and a detailed Application Programming Interface (API). The documentation source code is in the \verb|aurora-asi-lib/docs/| folder, useful in case a user needs to recreate the documentation on their computer with the Sphinx Python document generator.
+To ensure code stability, the aurorax-asilib \textcolor{red}{and others?} source code comes with tests that you can run locally and are automatically run on GitHub Actions every time a change is pushed to the repository. These comprehensive tests check and warn us of any issues that may arise during software development.
 
-To ensure code stability, the \verb|asilib| source code includes a few dozen unit and integration tests that you can run locally, and are automatically run on GitHub Actions every time a change is pushed to the repository. These tests test the main library functions and will quickly warn us if a proposed change broke anything.
-
-Furthermore, we use semantic versioning and a \verb|CAHNGELOG.md| to communicate all major, minor, and patch changes with the community. We made many backward-incompatible changes before version 1.0.0, but henceforth we will indicate future backward-incompatible changes with major releases (i.e. version X.0.0). 
-
-Lastly, the data format is integral to \verb|asilib|. The REGO and THEMIS data formats are fixed and are guaranteed to not change in the future.
-
-% \section{Future Development}
-% \textcolor{blue}{
-%       OUTLINE
-%       \begin{itemize}
-%             \item Switch from CDF to pgm files.
-%             \item Support more ASI arrays such as TREx
-%             \item Community challenge. This package is made for the space physics community, so we will seek feedback (in the form of issues and bugs) that are discovered during a community challenge time period. 
-%             \item Combine into a class architecture to share data. This is proving to be difficult to balance usability and maintainability.
-%       \end{itemize}
-% }
-% While aurorax-asilib is feature complete, we plan to keep developing it.
+Lastly, we use semantic versioning and a \verb|CAHNGELOG.md| to communicate all major, minor, and patch changes with the community. We made many backward-incompatible changes before version 1.0.0, but henceforth we will indicate future backward-incompatible changes with major releases (i.e. version X.0.0). 
 
 \section{Conclusion}
 
