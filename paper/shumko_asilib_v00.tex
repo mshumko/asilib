@@ -15,7 +15,7 @@
 \authors{M. Shumko\affil{1, 2}, B. Gallardo-Lacourt\affil{1,2}, A.J. Halford\affil{1}, E. Donovan\affil{3}, E.L. Spanswick\affil{3}, D. Chaddock\affil{3}, I. Thompson, and K.R. Murphy}
 
 \affiliation{1}{NASA's Goddard Space Flight Center, Greenbelt, Maryland, USA}
-\affiliation{2}{Universities Space Research Association, Columbia, Maryland, USA}
+\affiliation{2}{Oak Ridge Associated Universities, Oak Ridge, Tennessee, USA}
 \affiliation{3}{University of Calgary, Calgary, Alberta, Canada}
 
 \correspondingauthor{M. Shumko}{msshumko@gmail.com}
@@ -154,21 +154,23 @@ Lastly, \verb|asilib.area2pixels()| calculates a pixel mask of pixels inside an 
 By default, the area is 5x5 km. If the area is so small that not even one pixel is contained inside it (but it is above the horizon), \verb|asilib.area2pixels()| will slowly increase the area tolerance until at least one pixel is found. Lastly, if the area is completely outside of the skymap, \verb|asilib| will raise a warning and the corresponding mask will be all \verb|numpy.nan|. 
 
 \subsection{An example: a satellite-ASI conjunction}\label{satellite_conjunction}
-In this example we combine the aforementioned analysis functions into an example of a conjunction between a THEMIS ASI and a fictional satellite in 500-km altitude low Earth orbit. We will calculate and show the mean ASI intensity in a 20x20 km area, at 110 km altitude, around the satellite footprint and animate it.
+In this example we combine the aforementioned analysis functions to calculate the mean auroral intensity at the an imaginary satellite's footprint during a conjunction with a THEMIS ASI. The satellite orbits at a 500-km altitude low Earth orbit. We will calculate and the mean ASI intensity in a 20x20 km area at a 110 km altitude. Lastly, we will animate the conjunction.
 
-First, to make this plot we use the satellite's location in LLA coordinates and time stamps. Here we use an imaginary satellite trajectory. In reality, the satellite and ASI time stamps are unlikely to line up, so you'll need to interpolate the satellite locations to the ASI time stamps.
+For this example we use the satellite's location in LLA coordinates with time stamps that line up with the ASI times. In reality, the satellite and ASI time stamps are unlikely to line up, so you'll need to interpolate the satellite locations to the ASI time stamps.
 
-We proceed with the analysis with three main steps. In step 1 we map the satellites position to 110 km using \verb|asilib.lla2footprint()|. In step 2, we calculate where in the sky (azimuth and elevation) the satellite's 110 km footprint was as a function of time using \verb|asilib.lla2azel()|. Lastly, in step 3 we calculate the pixels contained in a 20x20 km area at 110 km and calculate the mean ASI intensity in it using \verb|asilib.area2pixels()| and \verb|numpy.nanmean()|. Don't worry if this is hard to follow. These steps are implemented in the "Figure 4" section of the \verb|asilib_figures.ipynb| notebook.
+Our analysis consists of three main steps. Step 1: we use \verb|asilib.lla2footprint()| to trace the satellite's position along the magnetic field line to 110 km. Step 2: we use \verb|asilib.lla2azel()| to find where in the imagers field of view (azimuth and elevation) the satellite's footprint was. Lastly, Step 3: we use \verb|asilib.area2pixels()| and \verb|numpy.nanmean()| to identify the image pixels in the 20x20 km area around the footprint. We then use these pixels to calculate the mean ASI intensity as a function of time (and satellite position). Don't worry if this is hard to follow---these steps are implemented in the ``Figure 4" section of the \verb|asilib_figures.ipynb| notebook.
 
-Movie S2 shows the result of this conjunction analysis. Also, for a paper-friendly way to visualize the conjunction, Fig. \ref{fig4} shows a five-frame montage. Fig. \ref{fig4}a-d show the fisheye lens image at the annotated time stamp with the full satellite footprint path represented by the red line and the instantaneous footprint by the red dot. The yellow area shows what pixels are contained in a 20x20 km area surrounding the footprint. Lastly, Fig. \ref{fig4}e shows the mean ASI intensity time series for the conjunction---it clearly shows the signature of the auroral arc between 2:33:30 and 2:34:15.
+Animation \textcolor{red}{Or call them movies? Need to be consistent.} S2 shows the result of this conjunction analysis and Fig. \ref{fig4} shows a five-frame montage summarizing the animation. Fig. \ref{fig4}a-d show the fisheye lens images at the annotated time stamps. The complete satellite footprint path is represented by the red line and the instantaneous footprint by the red dot. The yellow areas around the footprints bound the 20x20 km area. Lastly, Fig. \ref{fig4}e shows the mean ASI intensity time series for the conjunction---it clearly shows the signature of the auroral arc between 2:33:30 and 2:34:15.
 
 \begin{figure}
       \includegraphics[width=\textwidth]{figures/fig4.png}
-      \caption{A conjunction montage of Movie S2. Panels a-d shows the auroral arc evolution. The red line is the satellite track and the red dot is its instantaneous position. The yellow quadrilateral shows the pixels contained in a 20x20 km area at a 110 km altitude. Lastly, panel e shows the mean ASI intensity, as a function of time, inside the yellow quadrilaterals. When the satellite passed through the arc between 2:33:30 and 2:34:15, the ASI counts were enhanced.}
+      \caption{A conjunction montage of Movie S2. Panels a-d shows the auroral arc evolution. The red line is the satellite track and the red dot is its instantaneous position. The yellow quadrilateral bounds the pixels inside the a 20x20 km area surrounding the satellite's 110 km altitude footprint. Lastly, panel e shows the mean ASI intensity, as a function of time, inside the yellow quadrilaterals. When the satellite passed through the arc between 2:33:30 and 2:34:15, the mean ASI show two corresponding intensity enhancements.}
       \label{fig4}
 \end{figure}
 
 \section{Quality Assurance}
+We developed AuroraX with useability and maintainability at the forefront. The source code for the the tools described here is open source and hosted on GitHub. It is archived on Zenodo.
+
 We developed \verb|asilib| with useability and maintainability at the forefront. The Python source code is available on \verb|aurora-asi-lib| GitHub repository \url{https://github.com/mshumko/aurora-asi-lib}. It is also archived on Zenodo and the Python Packaging Index (PyPI). On GitHub you can submit an Issue for bugs or feature requests, and you can contribute to \verb|asilib| using a Pull Request. 
 
 Since documentation is critically important to the survival and usability of software, \url{readthedocs.org} hosts the \verb|aurora-asi-lib| documentation at \url{https://aurora-asi-lib.readthedocs.io/}. It contains installation instructions, examples, a comprehensive tutorial, and a detailed Application Programming Interface (API). The documentation source code is in the \verb|aurora-asi-lib/docs/| folder, useful in case a user needs to recreate the documentation on their computer with the Sphinx Python document generator.
@@ -211,10 +213,12 @@ AuroraX can be used anywhere with an internet connection. It is simple to use an
 
 aurorax-asilib, on the other hand, is designed to minimally use the internet. It only needs it to download the data. Once saved locally, aurorax-asilib allows you to easily make common aurora plots, and provides you with functions to get you the raw data if you need to implement something more sophisticated. We hope that the conjunction example demonstrates how useful aurorax-asilib functions are to transform your data and compare to the images.
 
-For more information, see the AuroraX documentation at \url{https://docs.aurorax.space/} 
-
 \acknowledgments
-We are thankful for the engineers and scientists who made AuroraX, THEMIS ASI, and REGO ASI projects possible. M. Shumko and B. Gallardo-Lacourt acknowledge the support provided by the NASA Postdoctoral Program at the NASA’s Goddard Space Flight Center, administered by Universities Space Research Association under contract with NASA. The THEMIS and REGO ASI data is available from \url{https://data.phys.ucalgary.ca/}.
+We are thankful for the engineers and scientists who made the AuroraX, THEMIS ASI, and REGO ASI projects possible. M. Shumko and B. Gallardo-Lacourt acknowledge the support provided by the NASA Postdoctoral Program at the NASA’s Goddard Space Flight Center, administered by Oak Ridge Associated Universities under contract with NASA. \textcolor{red}{Other funding sources/acknowledgments.}
+
+\section*{Open Research}
+\noindent Code repositories: AuroraX website is located at: \textcolor{green}{AuroraX URL}, the aurorax-api is at \url{https://github.com/aurorax-space/pyaurorax} and aurorax-asilib is at \url{https://github.com/mshumko/aurora-asi-lib} \textcolor{red}{Migrate asilib to aurorax-space GitHub org.} The in-depth documentation and examples are at \url{https://docs.aurorax.space/}.
+
 
 % \bibliography{refs.bib}
 
