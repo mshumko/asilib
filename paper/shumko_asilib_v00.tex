@@ -178,24 +178,10 @@ To ensure code stability, the aurorax-asilib \textcolor{red}{and others?} source
 Lastly, we use semantic versioning and a \verb|CAHNGELOG.md| to communicate all major, minor, and patch changes with the community. We made many backward-incompatible changes before version 1.0.0, but henceforth we will indicate future backward-incompatible changes with major releases (i.e. version X.0.0). 
 
 \section{Conclusion}
+The AuroraX website, aurorax-api, and aurorax-asilib tools provide the auroral science community with a simple and a robust set of analysis tools to enable more robust system-level science. As we showed, AuroraX toolkit provides enables an end-to-end analysis solution. For example, identify all conjunctions between an ASI and a satellite using the AuroraX website or aurorax-api. Then, using the same tools, filter the conjunction lists by good data. And lastly, use aurorax-asilib to apply a range of simple to sophisticated analyses to the filtered conjunctions. This example is just one way that AuroraX can help you quickly sift through an immense volume of ASI data to uncover new physics.
 
-\textcolor{blue}{
-      OUTLINE
-      \begin{itemize}
-            \item AuroraX, aurorax-api, and aurorax-asilib tools provide the science community with a simple and a robust set of analysis tools
-            \item Enable system-level science to be easily done
-            \item Quickly sift through an immense volume of data to uncover new physics
-            \item This is an end-to-end solution
-            \item Plan to add support for other ASI arrays and satellites
-            \item Help promote a uniform ASI data format for future cameras
-            \item Add a paragraph to discuss the future work for this library includes...
-      \end{itemize}
-}
-Hopefully we made a convincing case that AuroraX and aurorax-asilib are a useful set of tools to analyze the aurora. Our aim is to keep the implementation as simple as possible: enough for beginners who are starting to use this data, while also enabling sophisticated analysis.
+In the near future we will add more ASI arrays and satellite to AuroraX. TREx will be added to aurorax-asilib\dots Standardized ASI data format is crucial to this endeavor...  
 
-AuroraX can be used anywhere with an internet connection. It is simple to use and it allows us to quickly identify times of interest (quickly as in during a lunch with collaborators in the middle of a conference).
-
-aurorax-asilib, on the other hand, is designed to minimally use the internet. It only needs it to download the data. Once saved locally, aurorax-asilib allows you to easily make common aurora plots, and provides you with functions to get you the raw data if you need to implement something more sophisticated. We hope that the conjunction example demonstrates how useful aurorax-asilib functions are to transform your data and compare to the images.
 
 \acknowledgments
 We are thankful for the engineers and scientists who made the AuroraX, THEMIS ASI, and REGO ASI projects possible. M. Shumko and B. Gallardo-Lacourt acknowledge the support provided by the NASA Postdoctoral Program at the NASA’s Goddard Space Flight Center, administered by Oak Ridge Associated Universities under contract with NASA. \textcolor{red}{Other funding sources/acknowledgments.}
