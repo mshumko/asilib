@@ -7,7 +7,7 @@ requests==2.25.1
 scipy==1.6.0
 ffmpeg-python==0.2.0
 pymap3d==2.5.0
-cartopy==0.18.0
+cartopy==0.20.2
 aacgmv2==2.6.2
 -e .
 
