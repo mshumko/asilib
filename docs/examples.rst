@@ -46,6 +46,8 @@ STEVE projected onto a map
 
 .. code:: python
 
+    from datetime import datetime
+
     import matplotlib.pyplot as plt
 
     import asilib
