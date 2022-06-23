@@ -17,7 +17,7 @@ import asilib
 import asilib.plot.utils
 from asilib.io.load import load_image
 from asilib.io.load import load_skymap
-from asilib.plot.plot_map import create_cartopy_map
+from asilib.plot.plot_map import make_map
 from asilib.plot.plot_map import _pcolormesh_nan
 from asilib.analysis.start_generator import start_generator
 from asilib.plot.animate_fisheye import _write_movie
@@ -262,7 +262,8 @@ def animate_map_generator(
     )
 
     if ax is None:
-        ax = create_cartopy_map(map_style=map_style, lon_bounds=lon_bounds, lat_bounds=lat_bounds)
+        # TODO: shapefile
+        ax = make_map(map_style=map_style, lon_bounds=lon_bounds, lat_bounds=lat_bounds)
 
     color_map = asilib.plot.utils.get_color_map(asi_array_code, color_map)
 

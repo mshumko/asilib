@@ -3,15 +3,13 @@ This module contains functions to project the ASI images to a map.
 """
 from typing import List, Union
 import importlib
+import pathlib
+import zipfile
 
 import matplotlib.pyplot as plt
 import numpy as np
-
-try:
-    import cartopy.crs as ccrs
-    import cartopy.feature as cfeature
-except ImportError:
-    pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.plot_map().
+import numpy.ma as ma
+import shapefile  # A pure python-library. Yay!
 
 import asilib
 from asilib.io import load
@@ -24,7 +22,6 @@ def plot_map(
     map_alt: float,
     time_thresh_s: float = 3,
     ax: plt.Axes = None,
-    map_style: str = 'green',
     color_map: str = 'auto',
     min_elevation: float = 10,
     norm: bool = True,
@@ -54,10 +51,6 @@ def plot_map(
     ax: plt.Axes
         The subplot to plot the image on. If None, this function will
         create one.
-    map_style: str
-        If ax is None, this kwarg toggles between two predefined map styles:
-        'green' map has blue oceans and green land, while the `white` map
-        has white oceans and land with black coastlines.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
@@ -92,15 +85,22 @@ def plot_map(
         The subplot object to modify the axis, labels, etc.
     p: plt.AxesImage
         The plt.pcolormesh image object. Common use for p is to add a colorbar.
-    """
-    # Halt here if cartopy is not installed.
-    if importlib.util.find_spec("cartopy") is None:
-        raise ImportError(
-            "cartopy can't be imported. This is a required dependency for asilib.plot_map()"
-            " that must be installed separately. See https://scitools.org.uk/cartopy/docs/latest/installing.html"
-            " and https://aurora-asi-lib.readthedocs.io/en/latest/installation.html."
-        )
 
+    Example
+    -------
+    | from datetime import datetime
+    |
+    | import matplotlib.pyplot as plt
+    |
+    | import asilib
+    |
+    | asi_array_code = 'THEMIS'
+    | location_code = 'ATHA'
+    | time = datetime(2008, 3, 9, 9, 18, 0) 
+    | map_alt_km = 110
+    | asilib.plot_map(asi_array_code, location_code, time, map_alt_km);
+    | plt.show()
+    """
     image_time, image = load.load_image(
         asi_array_code, location_code, time=time, time_thresh_s=time_thresh_s
     )
@@ -125,7 +125,7 @@ def plot_map(
 
     # Set up the plot parameters
     if ax is None:
-        ax = create_cartopy_map(map_style=map_style)
+        ax = make_map(land_color=None)
 
     if color_bounds is None:
         color_bounds = asilib.plot.utils.get_color_bounds(image)
@@ -148,75 +148,97 @@ def plot_map(
             skymap['SITE_MAP_LATITUDE'],
             location_code.upper(),
             color='r',
-            transform=ccrs.PlateCarree(),
             va='center',
             ha='center',
         )
     return image_time, image, skymap, ax, p
 
-
-def create_cartopy_map(
-    map_style: str = 'green',
+def make_map(
+    file: Union[str, pathlib.Path]='ne_10m_land', 
+    coast_color: str='k', 
+    land_color: str='g', 
+    ocean_color: str='w', 
+    ax: plt.Axes=None,
     lon_bounds: tuple = (-160, -50),
     lat_bounds: tuple = (40, 82),
-    fig_ax: dict = None,
-) -> plt.Axes:
+    ) -> plt.Axes:
     """
-    A helper function to create two map styles: a simple black and white map, and
-    a more sophisticated map with green land.
+    Makes a map using the mercator projection with a shapefile read in by the pyshp package. A good place
+    to download shapefiles is https://www.naturalearthdata.com/downloads/10m-physical-vectors/.
 
     Parameters
     ----------
-    map_style: str
-        The map color style, can be either 'green' or 'white'.
-    lon_bounds: tuple or list
-        A tuple of length 2 specifying the map's longitude bounds.
-    lat_bounds: tuple or list
-        A tuple of length 2 specifying the map's latitude bounds.
-    fig_ax: dict
-        Make a map on an existing figure. The dictionary key:values must be
-        'fig': figure object, and 'ax': the subplot position in the
-        (nrows, ncols, index) format, or a GridSpec object.
+    file: str or pathlib.Path
+        The path to the shapefile zip archive. If str, it will try to load the
+        shapefile in asilib/data/{file}.
+    coast_color: str
+        The coast color. If None will not draw it.
+    land_color: str
+        The land color. If None will not draw it.
+    ocean_color: str
+        The ocean color. If None will not draw it.
+    ax: plt.Axes
+        The subplot to put the map on.
+    lon_bounds: tuple
+        The map's longitude bounds.
+    lat_bounds: tuple
+        The map's latitude bounds.
 
     Returns
     -------
-    ax: plt.Axes
-        The subplot object with a cartopy map.
+    plt.Axes
+        The subplot object containing the map.
 
-    Raises
-    ------
-    ValueError:
-        When a map_style other than 'green' or 'white' is chosen.
+    Example
+    -------
     """
-    plot_extent = [*lon_bounds, *lat_bounds]
-    central_lon = np.mean(lon_bounds)
-    central_lat = np.mean(lat_bounds)
-    projection = ccrs.Orthographic(central_lon, central_lat)
+    shp_path = asilib.config['ASILIB_DIR'] / 'data' / f'{file}'
 
-    if fig_ax is None:
-        fig = plt.figure(figsize=(8, 5))
-        ax = fig.add_subplot(1, 1, 1, projection=projection)
-    else:
-        if hasattr(fig_ax['ax'], '__len__') and len(fig_ax['ax']) == 3:
-            # If fig_ax['ax'] is in the format (X,Y,Z)
-            ax = fig_ax['fig'].add_subplot(*fig_ax['ax'], projection=projection)
-        else:
-            # If fig_ax['ax'] is in the format XYZ or a gridspec object.
-            ax = fig_ax['fig'].add_subplot(fig_ax['ax'], projection=projection)
+    with zipfile.ZipFile(shp_path.with_suffix('.zip'), 'r') as archive:
+        shp = archive.open(f'{file}.shp', "r")
+        dbf = archive.open(f'{file}.dbf', "r")
+        sf = shapefile.Reader(shp=shp, dbf=dbf)
+        i=0  # I'm unsure what the other shapes are, but i=0 works.
+        lats = np.array([point[0] for point in sf.shapes()[i].points])
+        lons = np.array([point[1] for point in sf.shapes()[i].points])
 
-    ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
+    # Since the landmass shapes are represented continuously in (lats, lons), 
+    # matplotlib draws straight (annoying) lines between them. This code uses 
+    # the jumps bool array and masked_arrays to remove those lines.
+    jumps = (
+        (np.abs(lats[1:]-lats[:-1]) > 3) | 
+        (np.abs(lons[1:]-lons[:-1]) > 3)
+        )
+    mlats = ma.masked_array(lats[:-1], mask=jumps)
+    mlons = ma.masked_array(lons[:-1], mask=jumps)
 
-    if map_style == 'green':
-        ax.add_feature(cfeature.LAND, color='green')
-        ax.add_feature(cfeature.OCEAN)
-        ax.add_feature(cfeature.COASTLINE)
-        ax.gridlines(linestyle=':')
-    elif map_style == 'white':
-        ax.coastlines()
-        ax.gridlines(linestyle=':')
-    else:
-        raise ValueError("Only the 'white' and 'green' map_style are implemented.")
+    split_lats = _consecutive(lats, jumps)
+    split_lons = _consecutive(lons, jumps)
+
+    if ax is None:
+        _, ax = plt.subplots()
+    if ocean_color is not None:
+        ax.set_facecolor(ocean_color)
+    if coast_color is not None:
+        ax.plot(mlats, mlons, coast_color)
+    if land_color is not None:
+        for split_lon, split_lat in zip(split_lons, split_lats):
+            ax.fill(split_lat, split_lon, land_color)
+
+    ax.set_aspect('equal', adjustable='box')
+
+    ax.set_xlim(lon_bounds)
+    ax.set_ylim(lat_bounds)
     return ax
+
+def _consecutive(data, jump_bool):
+    """
+    Calculate where the array jumps.
+
+    Taken from: https://stackoverflow.com/questions/7352684/
+    how-to-find-the-groups-of-consecutive-elements-in-a-numpy-array
+    """
+    return np.split(data, np.where(jump_bool)[0]+1)
 
 
 def _pcolormesh_nan(
@@ -279,7 +301,6 @@ def _pcolormesh_nan(
         c,
         cmap=cmap,
         shading='flat',
-        transform=ccrs.PlateCarree(),
         norm=norm,
         **pcolormesh_kwargs,
     )
@@ -313,3 +334,18 @@ def _mask_low_horizon(image, lon_map, lat_map, el_map, min_elevation):
     lon_map_copy[idh_boundary_right] = np.nan
     lat_map_copy[idh_boundary_right] = np.nan
     return image_copy, lon_map_copy, lat_map_copy
+
+if __name__ == '__main__':
+    from datetime import datetime
+
+    import matplotlib.pyplot as plt
+
+    import asilib
+
+    asi_array_code = 'THEMIS'
+    location_code = 'ATHA'
+    time = datetime(2008, 3, 9, 9, 18, 0) 
+    map_alt_km = 110
+    asilib.plot_map(asi_array_code, location_code, time, map_alt_km)
+    plt.tight_layout()
+    plt.show()
