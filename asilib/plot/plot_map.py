@@ -125,7 +125,7 @@ def plot_map(
 
     # Set up the plot parameters
     if ax is None:
-        ax = make_map(land_color=None)
+        ax = make_map(land_color='g')
 
     if color_bounds is None:
         color_bounds = asilib.plot.utils.get_color_bounds(image)
@@ -219,11 +219,12 @@ def make_map(
         _, ax = plt.subplots()
     if ocean_color is not None:
         ax.set_facecolor(ocean_color)
+        pass
     if coast_color is not None:
         ax.plot(mlats, mlons, coast_color)
     if land_color is not None:
         for split_lon, split_lat in zip(split_lons, split_lats):
-            ax.fill(split_lat, split_lon, land_color)
+            ax.fill(split_lat, split_lon, land_color, zorder=0)
 
     ax.set_aspect('equal', adjustable='box')
 
