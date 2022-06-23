@@ -29,6 +29,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install ffmpeg
         sudo apt-get install python3-dev
+        # Replace with https://github.com/Unidata/MetPy/blob/main/.github/actions/setup-proj/action.yml
         sudo apt-get install libproj-dev proj-data proj-bin
         sudo apt-get install libgeos-dev
 
