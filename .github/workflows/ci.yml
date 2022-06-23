@@ -36,7 +36,8 @@ jobs:
         # sudo apt-get install libproj-dev proj-data proj-bin
         sudo apt-get install libgeos-dev
 
-        python -m pip install --upgrade pip
+        # python -m pip install --upgrade pip
+        python -m pip install pip==22.0.4
         python -m pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         # Intilaize asilib and simulate an "enter" key
