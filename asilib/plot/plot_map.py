@@ -33,7 +33,7 @@ def plot_map(
     coast_color: str='k', 
     land_color: str='g', 
     ocean_color: str='w',
-    lon_bounds: tuple = (-160, -50),
+    lon_bounds: tuple = (-140, -60),
     lat_bounds: tuple = (40, 82),
 ):
     """
@@ -187,7 +187,7 @@ def make_map(
     land_color: str='g', 
     ocean_color: str='w', 
     ax: plt.Axes=None,
-    lon_bounds: tuple = (-160, -50),
+    lon_bounds: tuple = (-140, -60),
     lat_bounds: tuple = (40, 82),
     ) -> plt.Axes:
     """
