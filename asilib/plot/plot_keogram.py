@@ -13,12 +13,13 @@ def plot_keogram(
     location_code: str,
     time_range: utils._time_range_type,
     map_alt: float = None,
+    path: np.array = None,
+    aacgm: bool=False,
     ax: plt.Axes = None,
     color_bounds: List[float] = None,
     color_norm: str = 'lin',
     title: bool = True,
     pcolormesh_kwargs: dict = {},
-    path: np.array = None,
 ):
     """
     Makes a keogram along the central meridian.
@@ -34,6 +35,15 @@ def plot_keogram(
     map_alt: int
         The mapping altitude, in kilometers, used to index the mapped latitude in the
         skymap calibration data. If None, will plot pixel index for the y-axis.
+    path: array
+        Make a keogram along a custom path. Path shape must be (n, 2) and contain the
+        lat/lon coordinates that are mapped to map_alt. If the map_alt kwarg is
+        unspecified, this function will raise a ValueError.
+    aacgm: bool
+        Map the keogram latitudes to Altitude Adjusted Corrected Geogmagnetic Coordinates
+        (aacgmv2) derived by Shepherd, S. G. (2014), Altitude-adjusted corrected geomagnetic 
+        coordinates: Definition and functional approximations, Journal of Geophysical 
+        Research: Space Physics, 119, 7501-7521, doi:10.1002/2014JA020264.
     ax: plt.Axes
         The subplot to plot the image on. If None, this function will
         create one.
@@ -49,10 +59,6 @@ def plot_keogram(
         A dictionary of keyword arguments (kwargs) to pass directly into
         plt.pcolormesh. One use of this parameter is to change the colormap. For example,
         pcolormesh_kwargs = {'cmap':'tu'}
-    path: array
-        Make a keogram along a custom path. Path shape must be (n, 2) and contain the
-        lat/lon coordinates that are mapped to map_alt. If the map_alt kwarg is
-        unspecified, this function will raise a ValueError.
 
     Returns
     -------
@@ -86,7 +92,7 @@ def plot_keogram(
     | plt.show()
     """
     time_range = utils._validate_time_range(time_range)
-    keo_df = keogram(asi_array_code, location_code, time_range, map_alt, path=path)
+    keo_df = keogram(asi_array_code, location_code, time_range, map_alt, path=path, aacgm=aacgm)
 
     if ax is None:
         _, ax = plt.subplots()

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import warnings
-import aacgm2
+import aacgmv2
 
 from asilib.io import utils
 from asilib.io.load import (
@@ -17,7 +17,7 @@ def keogram(
     time_range: utils._time_range_type,
     map_alt: int = None,
     path: np.array = None,
-    aacgm=False,
+    aacgm: bool=False,
 ):
     """
     Makes a keogram pd.DataFrame along the central meridian.
@@ -37,9 +37,11 @@ def keogram(
         Make a keogram along a custom path. Path shape must be (n, 2) and contain the
         lat/lon coordinates that are mapped to map_alt. If the map_alt kwarg is
         unspecified, this function will raise a ValueError.
-    aacgm: bool (NOT IMPLEMENTED)
-        TODO: Add a flag to convert the vertical axis to AACGM coordinates.
-        https://github.com/aburrell/aacgmv2
+    aacgm: bool
+        Map the keogram latitudes to Altitude Adjusted Corrected Geogmagnetic Coordinates
+        (aacgmv2) derived by Shepherd, S. G. (2014), Altitude-adjusted corrected geomagnetic 
+        coordinates: Definition and functional approximations, Journal of Geophysical 
+        Research: Space Physics, 119, 7501-7521, doi:10.1002/2014JA020264.
 
     Returns
     -------
@@ -186,8 +188,10 @@ class Keogram:
             lat/lon coordinates that are mapped to map_alt. If the map_alt kwarg is
             unspecified, this function will raise a ValueError.
         aacgm: bool
-            Convert the latitude coordinates to magnetic latitude. See 
-            https://github.com/aburrell/aacgmv2.
+            Map the keogram latitudes to Altitude Adjusted Corrected Geogmagnetic Coordinates
+            (aacgmv2) derived by Shepherd, S. G. (2014), Altitude-adjusted corrected geomagnetic 
+            coordinates: Definition and functional approximations, Journal of Geophysical 
+            Research: Space Physics, 119, 7501-7521, doi:10.1002/2014JA020264.
 
         Returns
         -------
@@ -352,6 +356,15 @@ class Keogram:
             self.keogram_latitude = self.skymap['FULL_MAP_LATITUDE'][
                 alt_indices[0], self._pixels[:,0], self._pixels[:,1]
                 ]
-        if self.aacgm:
-            raise NotImplementedError
+            if self.aacgm:
+                longitudes = self.skymap['FULL_MAP_LONGITUDE'][
+                    alt_indices[0], self._pixels[:,0], self._pixels[:,1]
+                    ]
+                self.keogram_latitude = aacgmv2.convert_latlon_arr(
+                    self.keogram_latitude, 
+                    longitudes, 
+                    self.map_alt, 
+                    self.time_range[0], 
+                    method_code="G2A"
+                    )[0]
         return
