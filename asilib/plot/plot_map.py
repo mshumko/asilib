@@ -254,7 +254,7 @@ def make_map(
         for split_lon, split_lat in zip(split_lons, split_lats):
             ax.fill(split_lat, split_lon, land_color, zorder=0)
 
-    ax.set_aspect('equal', adjustable='box')
+    # ax.set_aspect('equal', adjustable='box')
 
     ax.set_xlim(lon_bounds)
     ax.set_ylim(lat_bounds)
