@@ -193,7 +193,7 @@ Map movie
 .. raw:: html
 
     <iframe width="75%" height="400"
-    src="_static/20150326_060700_061157_themis_fsmi_map.mp4"; frameborder="0"
+    src="_static/20150326_060700_062957_themis_fsmi_map.mp4"; frameborder="0"
     allowfullscreen></iframe>
 
 .. code:: python
