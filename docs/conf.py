@@ -40,9 +40,6 @@ extensions = [
     'nbsphinx'
 ]
 
-mock_imports = ['cartopy', 'cartopy.crs']
-for mock_import in mock_imports:
-    sys.modules[mock_import] = mock.Mock()
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

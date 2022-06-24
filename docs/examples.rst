@@ -42,7 +42,7 @@ STEVE projected onto a map
     :alt: STEVE mapped onto a map.
     :width: 75%
 
-    Maps an image of STEVE (the thin band). Reproduced from http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg Note: cartopy takes a few moments to make the necessary coordinate transforms.
+    Maps an image of STEVE (the thin band). Reproduced from http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
 
 .. code:: python
 
@@ -50,7 +50,7 @@ STEVE projected onto a map
 
     import asilib
 
-    ax = asilib.create_cartopy_map(map_style='green', lon_bounds=(-127, -100), lat_bounds=(45, 65))
+    ax = asilib.make_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
 
     image_time, image, skymap, ax, p = asilib.plot_map(
         'THEMIS', 'ATHA', datetime(2010, 4, 5, 6, 7, 0), 110, ax=ax
@@ -82,7 +82,7 @@ Auroral arc projected onto a map
     map_alt = 110
     min_elevation = 2
 
-    ax = asilib.create_cartopy_map(map_style='white', lon_bounds=(-160, -52), lat_bounds=(40, 82))
+    ax = asilib.make_map(lon_bounds=(-160, -52), lat_bounds=(40, 82))
 
     for location_code in location_codes:
         asilib.plot_map(
@@ -182,7 +182,7 @@ Fisheye Movie
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 30))
 
     asilib.animate_fisheye(asi_array_code, location_code, time_range, overwrite=True)
-    print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
+    print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')
 
 
 Map movie
@@ -209,10 +209,10 @@ Map movie
     lat_bounds = (skymap['SITE_MAP_LATITUDE']-7, skymap['SITE_MAP_LATITUDE']+7)
     lon_bounds = (skymap['SITE_MAP_LONGITUDE']-20, skymap['SITE_MAP_LONGITUDE']+20)
 
-    ax = asilib.create_cartopy_map(map_style='green', lon_bounds=lon_bounds, lat_bounds=lat_bounds)
+    ax = asilib.make_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds)
     asilib.animate_map(asi_array_code, location_code, time_range, 110, overwrite=True, ax=ax)
 
-    print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
+    print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')
 
 
 ASI-satellite conjunction movie
@@ -319,4 +319,4 @@ The `asilib` functionality used here:
         )
         ax[1].set(xlabel='Time', ylabel='Mean ASI intensity [counts]')
 
-    print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
+    print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')

@@ -90,7 +90,7 @@ Plot
    :show-inheritance:
 
 .. automodule:: asilib.plot.plot_map
-   :members: plot_map, create_cartopy_map
+   :members: plot_map, make_map
    :undoc-members:
    :show-inheritance:
 
