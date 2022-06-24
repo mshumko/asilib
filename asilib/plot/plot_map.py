@@ -29,6 +29,12 @@ def plot_map(
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
     pcolormesh_kwargs: dict = {},
+    map_shapefile: Union[str, pathlib.Path]='ne_10m_land', 
+    coast_color: str='k', 
+    land_color: str='g', 
+    ocean_color: str='w',
+    lon_bounds: tuple = (-160, -50),
+    lat_bounds: tuple = (40, 82),
 ):
     """
     Projects the ASI images to a map at an altitude defined in the skymap calibration file.
@@ -72,6 +78,21 @@ def plot_map(
         A dictionary of keyword arguments (kwargs) to pass directly into
         plt.pcolormesh. One use of this parameter is to change the colormap. For example,
         pcolormesh_kwargs = {'cmap':'tu}
+    map_shapefile: str or pathlib.Path
+        The path to the shapefile zip archive. If str, it will try to load the
+        shapefile in asilib/data/{file}.
+    coast_color: str
+        The coast color. If None will not draw it.
+    land_color: str
+        The land color. If None will not draw it.
+    ocean_color: str
+        The ocean color. If None will not draw it.
+    ax: plt.Axes
+        The subplot to put the map on.
+    lon_bounds: tuple
+        The map's longitude bounds.
+    lat_bounds: tuple
+        The map's latitude bounds.
 
     Returns
     -------
@@ -125,7 +146,14 @@ def plot_map(
 
     # Set up the plot parameters
     if ax is None:
-        ax = make_map(land_color='g')
+        ax = make_map(
+            file=map_shapefile,
+            coast_color=coast_color, 
+            land_color=land_color, 
+            ocean_color=ocean_color,
+            lon_bounds=lon_bounds,
+            lat_bounds=lat_bounds
+            )
 
     if color_bounds is None:
         color_bounds = asilib.plot.utils.get_color_bounds(image)
@@ -336,17 +364,17 @@ def _mask_low_horizon(image, lon_map, lat_map, el_map, min_elevation):
     lat_map_copy[idh_boundary_right] = np.nan
     return image_copy, lon_map_copy, lat_map_copy
 
-if __name__ == '__main__':
-    from datetime import datetime
+# if __name__ == '__main__':
+#     from datetime import datetime
 
-    import matplotlib.pyplot as plt
+#     import matplotlib.pyplot as plt
 
-    import asilib
+#     import asilib
 
-    asi_array_code = 'THEMIS'
-    location_code = 'ATHA'
-    time = datetime(2008, 3, 9, 9, 18, 0) 
-    map_alt_km = 110
-    asilib.plot_map(asi_array_code, location_code, time, map_alt_km)
-    plt.tight_layout()
-    plt.show()
+#     asi_array_code = 'THEMIS'
+#     location_code = 'ATHA'
+#     time = datetime(2008, 3, 9, 9, 18, 0) 
+#     map_alt_km = 110
+#     asilib.plot_map(asi_array_code, location_code, time, map_alt_km)
+#     plt.tight_layout()
+#     plt.show()

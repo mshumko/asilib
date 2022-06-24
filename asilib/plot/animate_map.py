@@ -8,11 +8,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-try:
-    import cartopy.crs as ccrs
-except ImportError:
-    pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.plot_map()
-
 import asilib
 import asilib.plot.utils
 from asilib.io.load import load_image
@@ -61,8 +56,6 @@ def animate_map(
         auto colormap is undefined for an ASI array.
     ValueError
         If the color_norm kwarg is not "log" or "lin".
-    ImportError
-        If the cartopy library can't be imported.
     AssertionError
         If the ASI data exists for that time period, but without time stamps
         inside time_range.
@@ -188,8 +181,6 @@ def animate_map_generator(
         auto colormap is undefined for an ASI array.
     ValueError
         If the color_norm kwarg is not "log" or "lin".
-    ImportError
-        If the cartopy library can't be imported.
     AssertionError
         If the ASI data exists for that time period, but without time stamps
         inside time_range.
@@ -209,14 +200,6 @@ def animate_map_generator(
     |
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
     """
-    # Halt here if cartopy is not installed.
-    if importlib.util.find_spec("cartopy") is None:
-        raise ImportError(
-            "cartopy can't be imported. This is a required dependency for asilib.plot_map()"
-            " that must be installed separately. See https://scitools.org.uk/cartopy/docs/latest/installing.html"
-            " and https://aurora-asi-lib.readthedocs.io/en/latest/installation.html."
-        )
-
     try:
         image_times, images = load_image(
             asi_array_code, location_code, time_range=time_range, force_download=force_download
