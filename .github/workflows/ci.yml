@@ -20,6 +20,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -29,14 +30,10 @@ jobs:
         sudo apt-get update
         sudo apt-get install ffmpeg
         sudo apt-get install python3-dev
-        sudo apt-get install libproj-dev proj-data proj-bin
-        sudo apt-get install libgeos-dev
 
-        python -m pip install --upgrade pip
+        # python -m pip install --upgrade pip
         python -m pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        # Intilaize asilib and simulate an "enter" key
-        # echo -ne '\n' | python -m asilib init 
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names

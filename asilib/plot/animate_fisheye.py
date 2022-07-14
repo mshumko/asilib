@@ -242,7 +242,7 @@ def animate_fisheye_generator(
     # not exist.
     image_save_dir = pathlib.Path(
         asilib.config['ASI_DATA_DIR'],
-        'movies',
+        'animations',
         'images',
         f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_'
         f'{location_code.lower()}_fisheye',

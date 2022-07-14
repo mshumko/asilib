@@ -1,3 +1,7 @@
+# Version 0.11.0
+- Removed the cartopy dependency. While some users were able to install it, overall it proved to be difficult to reliably build across multiple operating systems. Instead, I use the pyshp pure python library to read in the Esri shapefile files to make the map. Currently, only the mercator projection is supported. However, in the future, I plan to add other projections such as orthographic.
+- Renamed asilib.create_cartopy_map() to asilib.make_map()
+
 # Version 0.10.1
 - Added a `path` kwarg to `keogram` and `plot_keogram` to create a keogram along a custom (lat, lon) path.
 - Clarified the documentation.

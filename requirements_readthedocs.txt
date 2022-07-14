@@ -7,6 +7,7 @@ requests==2.25.1
 scipy==1.6.0
 ffmpeg-python==0.2.0
 pymap3d==2.5.0
+aacgmv2==2.6.2
 -e .
 
 # For development
@@ -21,3 +22,4 @@ pytest-cov==2.12.0
 sphinx-copybutton==0.3.1
 furo==2021.4.11b34
 nbsphinx==0.8.6
+jinja2<3.1.0

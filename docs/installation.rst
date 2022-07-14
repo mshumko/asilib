@@ -11,9 +11,7 @@ Installing aurora-asi-lib is as simple as:
 Anaconda
 ^^^^^^^^
 
-`aurora-asi-lib` can also be installed with Anaconda, however the steps are more contrived; See their  `official documentation`_ for more details. In short, you need to make an environment to install `aurora-asi-lib` and then use Anaconda to install `pandas`, and `cartopy`. Then run the above pip command to install `aurora-asi-lib` and its remaining dependencies.
-
-.. _official documentation: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#using-pip-in-an-environment
+`aurora-asi-lib` can also be installed with pip inside Anaconda. In a new environment install scipy first and then install asilib using the above instructions. 
 
 
 .. note::
@@ -32,8 +30,6 @@ There are three optional dependencies that you may want to install if you want t
 |                | | asilib.make_movie_generator()|
 +----------------+--------------------------------+
 | IRBEM          | asilib.lla2footprint()         |
-+----------------+--------------------------------+
-| cartopy        | asilib.plot_map()              |
 +----------------+--------------------------------+
 
 ffmpeg
@@ -54,31 +50,6 @@ Necessary to map along magnetic field lines. You'll need to download (or clone) 
 - `cd` into the python directory and execute `python3 -m pip install .`
 
 .. _source code: https://github.com/PRBEM/IRBEM
-
-cartopy
-=======
-To project ASI images onto a map you need to install the cartopy dependencies, followed by cartopy itself. As installing cartopy dependencies tend to be complex, see their `install`_ page for more details.
-
-.. note::
-   As of 24 January 2022, `cartopy` versions >= 0.20.0 only work with `PROJ` 8.0.0 or later. Linux `apt` does not have this version available yet so you'll have to build it from source.
-
-.. _install: https://scitools.org.uk/cartopy/docs/latest/installing.html#installing
-
-**Linux**
-
-.. code-block:: shell
-
-   sudo apt-get install python3-dev
-   sudo apt-get install libproj-dev proj-data proj-bin  
-   sudo apt-get install libgeos-dev  
-
-**Mac**
-
-.. code-block:: shell
-
-   brew install proj geos
-   pip3 install --upgrade pyshp
-   pip3 install shapely --no-binary shapely
 
 Configuration
 ^^^^^^^^^^^^^

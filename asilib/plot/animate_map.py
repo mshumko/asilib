@@ -8,16 +8,11 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-try:
-    import cartopy.crs as ccrs
-except ImportError:
-    pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.plot_map()
-
 import asilib
 import asilib.plot.utils
 from asilib.io.load import load_image
 from asilib.io.load import load_skymap
-from asilib.plot.plot_map import create_cartopy_map
+from asilib.plot.plot_map import make_map
 from asilib.plot.plot_map import _pcolormesh_nan
 from asilib.analysis.start_generator import start_generator
 from asilib.plot.animate_fisheye import _write_movie
@@ -39,7 +34,7 @@ def animate_map(
     arguments and keyword arguments are identical, so see ``animate_map_generator()`` docs for
     the full argument list.
 
-    Note: To make movies, you'll need to install ``ffmpeg`` in your operating system.
+    Note: To make animations, you'll need to install ``ffmpeg`` in your operating system.
 
     Parameters
     ----------
@@ -61,8 +56,6 @@ def animate_map(
         auto colormap is undefined for an ASI array.
     ValueError
         If the color_norm kwarg is not "log" or "lin".
-    ImportError
-        If the cartopy library can't be imported.
     AssertionError
         If the ASI data exists for that time period, but without time stamps
         inside time_range.
@@ -73,9 +66,10 @@ def animate_map(
     |
     | import asilib
     |
+    | map_alt=110  # km
     | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    | asilib.animate_map('THEMIS', 'FSMI', time_range)
-    | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
+    | asilib.animate_map('THEMIS', 'FSMI', time_range, map_alt=map_alt)
+    | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')
     """
     map_generator = animate_map_generator(
         asi_array_code, location_code, time_range, map_alt, **kwargs
@@ -93,14 +87,17 @@ def animate_map_generator(
     time_range: asilib.io.utils._time_range_type,
     map_alt: float,
     min_elevation: float = 10,
-    lon_bounds: tuple = (-160, -50),
-    lat_bounds: tuple = (40, 82),
     force_download: bool = False,
     color_map: str = 'auto',
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
     ax: plt.Axes = None,
-    map_style: str = 'green',
+    map_shapefile: Union[str, pathlib.Path]='ne_10m_land', 
+    coast_color: str='k', 
+    land_color: str='g', 
+    ocean_color: str='w',
+    lon_bounds: tuple = (-140, -60),
+    lat_bounds: tuple = (40, 82),
     label: bool = True,
     movie_container: str = 'mp4',
     ffmpeg_output_params={},
@@ -129,10 +126,6 @@ def animate_map_generator(
         in the skymap calibration.
     min_elevation: float
         Masks the pixels below min_elevation degrees.
-    lon_bounds: tuple
-        The map's longitude bounds. If unspecified, the default parameters make a map of Canada.
-    lat_bounds: tuple
-        The map's latitude bounds. If unspecified, the default parameters make a map of Canada.
     force_download: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
@@ -147,10 +140,19 @@ def animate_map_generator(
         high=min(3rd_quartile, 10*1st_quartile)
     ax: plt.Axes
         The optional subplot that will be drawn on.
-    map_style: str
-        If ax is None, this kwarg toggles between two predefined map styles:
-        'green' map has blue oceans and green land, while the `white` map
-        has white oceans and land with black coastlines.
+    map_shapefile: str or pathlib.Path
+        The path to the shapefile zip archive. If str, it will try to load the
+        shapefile in asilib/data/{file}.
+    coast_color: str
+        The coast color. If None will not draw it.
+    land_color: str
+        The land color. If None will not draw it.
+    ocean_color: str
+        The ocean color. If None will not draw it.
+    lon_bounds: tuple
+        The map's longitude bounds.
+    lat_bounds: tuple
+        The map's latitude bounds.
     label: bool
         Annotates the map with the ASI code in the center of the image.
     movie_container: str
@@ -188,8 +190,6 @@ def animate_map_generator(
         auto colormap is undefined for an ASI array.
     ValueError
         If the color_norm kwarg is not "log" or "lin".
-    ImportError
-        If the cartopy library can't be imported.
     AssertionError
         If the ASI data exists for that time period, but without time stamps
         inside time_range.
@@ -197,26 +197,20 @@ def animate_map_generator(
     Example
     -------
     | from datetime import datetime
-    |
+    | 
     | import asilib
-    |
+    | 
+    | map_alt=110
     | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    | map_generator = asilib.animate_map_generator('THEMIS', 'FSMI', time_range)
-    |
+    | map_generator = asilib.animate_map_generator('THEMIS', 'FSMI', time_range, map_alt=map_alt, 
+    |     lon_bounds=(-125, -100), lat_bounds=(55, 70))
+    | 
     | for (image_time1, image, ax, p) in map_generator:
     |       # The code that modifies each image here.
     |       pass
-    |
-    | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
+    | 
+    | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')
     """
-    # Halt here if cartopy is not installed.
-    if importlib.util.find_spec("cartopy") is None:
-        raise ImportError(
-            "cartopy can't be imported. This is a required dependency for asilib.plot_map()"
-            " that must be installed separately. See https://scitools.org.uk/cartopy/docs/latest/installing.html"
-            " and https://aurora-asi-lib.readthedocs.io/en/latest/installation.html."
-        )
-
     try:
         image_times, images = load_image(
             asi_array_code, location_code, time_range=time_range, force_download=force_download
@@ -236,7 +230,7 @@ def animate_map_generator(
     # not exist.
     image_save_dir = pathlib.Path(
         asilib.config['ASI_DATA_DIR'],
-        'movies',
+        'animations',
         'images',
         f'{image_times[0].strftime("%Y%m%d_%H%M%S")}_{asi_array_code.lower()}_'
         f'{location_code.lower()}_map',
@@ -262,7 +256,14 @@ def animate_map_generator(
     )
 
     if ax is None:
-        ax = create_cartopy_map(map_style=map_style, lon_bounds=lon_bounds, lat_bounds=lat_bounds)
+        ax = make_map(
+            file=map_shapefile,
+            coast_color=coast_color, 
+            land_color=land_color, 
+            ocean_color=ocean_color,
+            lon_bounds=lon_bounds,
+            lat_bounds=lat_bounds
+            )
 
     color_map = asilib.plot.utils.get_color_map(asi_array_code, color_map)
 
@@ -279,7 +280,6 @@ def animate_map_generator(
             skymap['SITE_MAP_LATITUDE'],
             location_code.upper(),
             color='r',
-            transform=ccrs.PlateCarree(),
             va='center',
             ha='center',
         )
@@ -359,3 +359,19 @@ def _mask_low_horizon(images, lon_map, lat_map, el_map, min_elevation):
     lon_map_copy[idh_boundary_right] = np.nan
     lat_map_copy[idh_boundary_right] = np.nan
     return images_copy, lon_map_copy, lat_map_copy
+
+# if __name__ == '__main__':
+#     from datetime import datetime
+
+#     import asilib
+
+#     map_alt=110
+#     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+#     map_generator = asilib.animate_map_generator('THEMIS', 'FSMI', time_range, map_alt=map_alt, 
+#         lon_bounds=(-125, -100), lat_bounds=(55, 70))
+
+#     for (image_time1, image, ax, p) in map_generator:
+#           # The code that modifies each image here.
+#           pass
+
+#     print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')

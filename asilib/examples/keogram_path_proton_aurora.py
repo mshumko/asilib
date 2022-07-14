@@ -6,7 +6,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates
-import cartopy.crs as ccrs
 
 import asilib
 
@@ -16,7 +15,7 @@ asi_array_code = 'THEMIS'
 location_code = 'TPAS'
 map_alt = 110
 lon_bounds = (-110, -90)
-lat_bounds = (60, 49)
+lat_bounds = (62, 47)
 
 msp_url = (
     'https://github.com/mshumko/aurora-asi-lib/raw/'
@@ -29,9 +28,9 @@ msp_df['glon'] = np.mod(msp_df['glon'] + 180, 360) - 180
 print(msp_df.head())
 
 # Create the map and keogram subplots
-fig = plt.figure(figsize=(14, 5))
-ax = asilib.create_cartopy_map(
-    lon_bounds=lon_bounds, lat_bounds=lat_bounds, fig_ax={'fig': fig, 'ax': 131}
+fig = plt.figure(figsize=(14, 4))
+ax = asilib.make_map(
+    lon_bounds=lon_bounds, lat_bounds=lat_bounds, ax=fig.add_subplot(131)
 )
 bx = fig.add_subplot(132)
 cx = fig.add_subplot(133, sharey=bx, sharex=bx)
@@ -41,7 +40,7 @@ asilib.plot_map(asi_array_code, location_code, time, map_alt, ax=ax)
 ax.set_title(f'{asi_array_code}-{location_code} {time}')
 
 # Plot the MSP field of view.
-s = ax.plot(msp_df.loc[:, 'glon'], msp_df.loc[:, 'glat'], c='r', transform=ccrs.PlateCarree())
+s = ax.plot(msp_df.loc[:, 'glon'], msp_df.loc[:, 'glat'], c='r')
 
 # Plot the THEMIS-TPAS meridian
 skymap = asilib.load_skymap(asi_array_code, location_code, time)
@@ -52,7 +51,7 @@ keogram_latitude = skymap['FULL_MAP_LATITUDE'][
 keogram_longitude = skymap['FULL_MAP_LONGITUDE'][
     alt_index, :, skymap['FULL_MAP_LATITUDE'].shape[1] // 2
 ]
-ax.plot(keogram_longitude, keogram_latitude, c='c', transform=ccrs.PlateCarree())
+ax.plot(keogram_longitude, keogram_latitude, c='c')
 
 # Plot the keogram along the meridian
 asilib.plot_keogram(asi_array_code, location_code, time_range, map_alt, ax=bx)
@@ -90,7 +89,6 @@ for mlat_index in mlat_indices:
             msp_df.loc[mlat_index, 'glon'],
             msp_df.loc[mlat_index, 'glat'],
             f'<- $\lambda$={round(msp_df.loc[mlat_index, "mlat"], 1)}',
-            transform=ccrs.PlateCarree(),
             color='red',
             va='center',
         )

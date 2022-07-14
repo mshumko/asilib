@@ -11,7 +11,7 @@ skymap = asilib.load_skymap(asi_array_code, location_code, time_range[0])
 lat_bounds = (skymap['SITE_MAP_LATITUDE'] - 7, skymap['SITE_MAP_LATITUDE'] + 7)
 lon_bounds = (skymap['SITE_MAP_LONGITUDE'] - 20, skymap['SITE_MAP_LONGITUDE'] + 20)
 
-ax = asilib.create_cartopy_map(map_style='green', lon_bounds=lon_bounds, lat_bounds=lat_bounds)
+ax = asilib.make_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds)
 asilib.animate_map(asi_array_code, location_code, time_range, 110, overwrite=True, ax=ax)
 
-print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
+print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')
