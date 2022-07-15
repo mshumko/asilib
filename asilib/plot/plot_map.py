@@ -234,8 +234,8 @@ def make_map(
     # matplotlib draws straight (annoying) lines between them. This code uses 
     # the jumps bool array and masked_arrays to remove those lines.
     jumps = (
-        (np.abs(lats[1:]-lats[:-1]) > 3) | 
-        (np.abs(lons[1:]-lons[:-1]) > 3)
+        (np.abs(lats[1:]-lats[:-1]) > 5) | 
+        (np.abs(lons[1:]-lons[:-1]) > 5)
         )
     mlats = ma.masked_array(lats[:-1], mask=jumps)
     mlons = ma.masked_array(lons[:-1], mask=jumps)
@@ -249,15 +249,15 @@ def make_map(
         ax.set_facecolor(ocean_color)
         pass
     if coast_color is not None:
-        ax.plot(mlats, mlons, coast_color)
+        ax.plot(np.radians(mlats), np.radians(mlons), coast_color)
     if land_color is not None:
         for split_lon, split_lat in zip(split_lons, split_lats):
-            ax.fill(split_lat, split_lon, land_color, zorder=0)
+            ax.fill(np.radians(split_lat), np.radians(split_lon), land_color, zorder=0)
 
     # ax.set_aspect('equal', adjustable='box')
 
-    ax.set_xlim(lon_bounds)
-    ax.set_ylim(lat_bounds)
+    # ax.set_xlim(lon_bounds)
+    # ax.set_ylim(lat_bounds)
     return ax
 
 def _consecutive(data, jump_bool):
