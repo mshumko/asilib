@@ -720,6 +720,8 @@ class Imager:
         np.array
             image.
         """
+        self._loader_is_gen = inspect.isgeneratorfunction(self._data['loader'])
+        
         if 'time_range' not in self._data.keys():
             raise KeyError('Imager was not instantiated with a time_range.')
 
@@ -729,7 +731,7 @@ class Imager:
             # won't overwhelm the PC's memory. If loader is a generator,
             # on the other hand, we need to loop over every chunk of data
             # yielded by the generator and over the timestamps in each chunk.
-            if not inspect.isgeneratorfunction(self._data['loader']):
+            if not self._loader_is_gen:
                 times, images = self._data['loader'](path)
 
                 for time, image in zip(times, images):
