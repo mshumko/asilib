@@ -29,7 +29,8 @@ Supported ASI arrays (camera systems)
    installation
    examples
    tutorial
-   api
+   function_api
+   imager_api
 
 .. toctree::
    :maxdepth: 2

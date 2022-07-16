@@ -191,8 +191,10 @@ def make_map(
     lat_bounds: tuple = (40, 82),
     ) -> plt.Axes:
     """
-    Makes a map using the mercator projection with a shapefile read in by the pyshp package. A good place
-    to download shapefiles is https://www.naturalearthdata.com/downloads/10m-physical-vectors/.
+    Makes a map using the mercator projection with a shapefile read in by the pyshp package. 
+    
+    A good place to download shapefiles is 
+    https://www.naturalearthdata.com/downloads/10m-physical-vectors/.
 
     Parameters
     ----------
@@ -219,6 +221,9 @@ def make_map(
 
     Example
     -------
+    | import asilib
+    | 
+    | ax = asilib.make_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
     """
     shp_path = asilib.config['ASILIB_DIR'] / 'data' / f'{file}'
 

@@ -25,31 +25,31 @@ import asilib
 import asilib.utils as utils
 
 class Imager:
-    def __init__(self, data: dict, meta:dict , skymap: dict, plot_settings: dict={}) -> None:
-        """
-        Manage and analyze the ASI images and time stamps, as well as the associated metadata 
-        and skymaps.
+    """
+    Manage and analyze the ASI images and time stamps, as well as the associated metadata 
+    and skymaps.
 
-        Parameters
-        ----------
-        data: dict
-            Dictionary containing image data in two main formats (sets of keys): the first is with
-            two keys ``time`` and ``image`` for a single image; or ``start_time``, ``end_time``, 
-            ``path``, and ``loader`` keys.
-        meta: dict
-            The ASI metadata that must have the following keys ``array``, ``location``, ``lat``, 
-            ``lon``, ``alt``, and ``cadence``. The ``cadence`` units are seconds and ``alt`` is 
-            kilometers.
-        skymap: dict
-            The data to map each pixel to azimuth and elevation (``az``, ``el``) and latitude, 
-            longitude, altitude (``lat``, ``lon``, ``alt``) coordinates.
-        plot_settings: dict
-            An optional dictionary containing  ```color_bounds```, ```color_map```,  
-            and ```color_norm``` keys. The ```color_bounds``` can be either a function takes in 
-            an image and returns the lower and upper bound numbers, or a len 2 tuple or list.
-            The ```color_map``` key must be a valid matplotlib colormap. And lastly, ```color_norm```
-            must be either ```lin``` for linear or ```log``` for logarithmic color scale. 
-        """
+    Parameters
+    ----------
+    data: dict
+        Dictionary containing image data in two main formats (sets of keys): the first is with
+        two keys ``time`` and ``image`` for a single image; or ``start_time``, ``end_time``, 
+        ``path``, and ``loader`` keys.
+    meta: dict
+        The ASI metadata that must have the following keys ``array``, ``location``, ``lat``, 
+        ``lon``, ``alt``, and ``cadence``. The ``cadence`` units are seconds and ``alt`` is 
+        kilometers.
+    skymap: dict
+        The data to map each pixel to azimuth and elevation (``az``, ``el``) and latitude, 
+        longitude, altitude (``lat``, ``lon``, ``alt``) coordinates.
+    plot_settings: dict
+        An optional dictionary containing  ```color_bounds```, ```color_map```,  
+        and ```color_norm``` keys. The ```color_bounds``` can be either a function takes in 
+        an image and returns the lower and upper bound numbers, or a len 2 tuple or list.
+        The ```color_map``` key must be a valid matplotlib colormap. And lastly, ```color_norm```
+        must be either ```lin``` for linear or ```log``` for logarithmic color scale. 
+    """
+    def __init__(self, data: dict, meta:dict , skymap: dict, plot_settings: dict={}) -> None:
         self._data = {k.lower():v for k, v in data.items()}
         self.meta = {k.lower():v for k, v in meta.items()}
         self.skymap = {k.lower():v for k, v in skymap.items()}
@@ -187,12 +187,15 @@ class Imager:
 
         Returns
         -------
+        Add
 
         Raises
         ------
+        Add
 
         Example
         -------
+        Add
         """
 
         # ax = kwargs.get('ax', None)

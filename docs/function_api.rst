@@ -1,6 +1,6 @@
-=============
-API Reference
-=============
+======================
+Function API Reference
+======================
 
 `asilib` saves all of the ASI image files, skymap calibration files, and movies to 
 
