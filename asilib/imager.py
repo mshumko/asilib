@@ -14,12 +14,6 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib
 import ffmpeg
-try:
-    import cartopy.crs as ccrs
-    import cartopy.feature as cfeature
-except ImportError:
-    pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.plot_map().
-
 
 import asilib
 import asilib.utils as utils
@@ -492,70 +486,6 @@ class Imager:
     #     #         ha='center',
     #     #     )
     #     return ax, p
-
-    def create_cartopy_map(
-        self,
-        map_style: str = 'green',
-        lon_bounds: tuple = (-160, -50),
-        lat_bounds: tuple = (40, 82),
-        fig_ax: dict = None,
-        ) -> plt.Axes:
-        """
-        A helper function to create two map styles: a simple black and white map, and
-        a more sophisticated map with green land.
-
-        Parameters
-        ----------
-        map_style: str
-            The map color style, can be either 'green' or 'white'.
-        lon_bounds: tuple or list
-            A tuple of length 2 specifying the map's longitude bounds.
-        lat_bounds: tuple or list
-            A tuple of length 2 specifying the map's latitude bounds.
-        fig_ax: dict
-            Make a map on an existing figure. The dictionary key:values must be
-            'fig': figure object, and 'ax': the subplot position in the
-            (nrows, ncols, index) format, or a GridSpec object.
-
-        Returns
-        -------
-        ax: plt.Axes
-            The subplot object with a cartopy map.
-
-        Raises
-        ------
-        ValueError:
-            When a map_style other than 'green' or 'white' is chosen.
-        """
-        plot_extent = [*lon_bounds, *lat_bounds]
-        central_lon = np.mean(lon_bounds)
-        central_lat = np.mean(lat_bounds)
-        projection = ccrs.Orthographic(central_lon, central_lat)
-
-        if fig_ax is None:
-            fig = plt.figure(figsize=(8, 5))
-            ax = fig.add_subplot(1, 1, 1, projection=projection)
-        else:
-            if hasattr(fig_ax['ax'], '__len__') and len(fig_ax['ax']) == 3:
-                # If fig_ax['ax'] is in the format (X,Y,Z)
-                ax = fig_ax['fig'].add_subplot(*fig_ax['ax'], projection=projection)
-            else:
-                # If fig_ax['ax'] is in the format XYZ or a gridspec object.
-                ax = fig_ax['fig'].add_subplot(fig_ax['ax'], projection=projection)
-
-        ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
-
-        if map_style == 'green':
-            ax.add_feature(cfeature.LAND, color='green')
-            ax.add_feature(cfeature.OCEAN)
-            ax.add_feature(cfeature.COASTLINE)
-            ax.gridlines(linestyle=':')
-        elif map_style == 'white':
-            ax.coastlines()
-            ax.gridlines(linestyle=':')
-        else:
-            raise ValueError("Only the 'white' and 'green' map_style are implemented.")
-        return ax
 
     def _validate_inputs(self):
         """
