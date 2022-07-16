@@ -54,7 +54,7 @@ class Imager:
         self.meta = {k.lower():v for k, v in meta.items()}
         self.skymap = {k.lower():v for k, v in skymap.items()}
         self.plot_settings = {k.lower():v for k, v in plot_settings.items()}
-        # self._validate_inputs()
+        # self._validate_inputs()  # TODO-Validation: Add a small-scale validations to each method.
         return
 
     def plot_fisheye(
