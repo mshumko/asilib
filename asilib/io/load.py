@@ -276,25 +276,6 @@ def _extract_skymap_dates(skymap_paths):
     return skymap_dates
 
 
-def get_frame(
-    time: utils._time_type,
-    asi_array_code: str,
-    location_code: str,
-    force_download: bool = False,
-    time_thresh_s: float = 3,
-) -> Tuple[datetime, np.ndarray]:
-
-    warnings.warn('asilib.get_frame is deprecated for asilib.load_image')
-
-    return _load_image(
-        asi_array_code,
-        location_code,
-        time,
-        force_download=force_download,
-        time_thresh_s=time_thresh_s,
-    )
-
-
 def _load_image(
     asi_array_code: str,
     location_code: str,
@@ -369,18 +350,6 @@ def _load_image(
         f'time stamp further away.'
     )
     return epoch[idx[0]], cdf_obj.varget(image_key)[idx[0], :, :]
-
-
-def get_frames(
-    time_range: utils._time_range_type,
-    asi_array_code: str,
-    location_code: str,
-    force_download: bool = False,
-) -> Tuple[datetime, np.ndarray]:
-
-    warnings.warn('asilib.get_frames is deprecated for asilib.load_image.')
-
-    return _load_images(asi_array_code, location_code, time_range, force_download=force_download)
 
 
 def _load_images(

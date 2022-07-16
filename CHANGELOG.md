@@ -1,3 +1,7 @@
+# Version 0.12.0
+- First merge of the Imager class. The `asilib.Imager` and `asilib.Conjunction` classes are still under development, but you can try it out! Call the `asilib.themis()` function to play around with an Imager instance.
+- Removed the deprecated functions. Once Imager is fully implemented, most of the original functions will be deprecated. 
+
 # Version 0.11.0
 - Removed the cartopy dependency. While some users were able to install it, overall it proved to be difficult to reliably build across multiple operating systems. Instead, I use the pyshp pure python library to read in the Esri shapefile files to make the map. Currently, only the mercator projection is supported. However, in the future, I plan to add other projections such as orthographic.
 - Renamed asilib.create_cartopy_map() to asilib.make_map()
