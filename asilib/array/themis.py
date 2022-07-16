@@ -43,7 +43,8 @@ THEMIS_DT = THEMIS_DT.newbyteorder('>')  # force big endian byte ordering
 
 def themis(location_code: str, time: utils._time_type=None, 
         time_range: utils._time_range_type=None, alt: int=110, 
-        overwrite: bool=False, missing_ok: bool=True, load_images: bool=True)->asilib.Imager:
+        overwrite: bool=False, missing_ok: bool=True, load_images: bool=True,
+        imager=asilib.Imager)->asilib.Imager:
     """
     Create an Imager instance using the THEMIS ASI images and skymaps.
 
@@ -69,6 +70,9 @@ def themis(location_code: str, time: utils._time_type=None,
     load_images: bool
         Create an Imager object without images. This is useful if you need to
         calculate conjunctions and don't need to download or load unnecessary data.
+    imager: asilib.Imager
+        Controls what Imager instance to return, asilib.Imager by default. This
+        parameter is useful if you need to subclass asilib.Imager.
     """
 
     if time is not None:
@@ -133,7 +137,7 @@ def themis(location_code: str, time: utils._time_type=None,
         'cadence':3,
         'resolution':(256, 256)
         }
-    return asilib.Imager(data, meta, skymap)
+    return imager(data, meta, skymap)
 
 def themis_info() -> pd.DataFrame:
     """
