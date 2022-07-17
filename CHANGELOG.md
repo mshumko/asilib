@@ -1,3 +1,6 @@
+# Current
+- Added an Active Development warning in the `asilib` docs.
+
 # Version 0.12.0
 - First merge of the Imager class. The `asilib.Imager` and `asilib.Conjunction` classes are still under development, but you can try it out! Call the `asilib.themis()` function to play around with an Imager instance.
 - Removed the deprecated functions. Once Imager is fully implemented, most of the original functions will be deprecated. 

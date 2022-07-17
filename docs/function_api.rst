@@ -33,7 +33,7 @@ The former option is possible because these functions are all imported by defaul
     `asilib` is hierarchically structured so that the `plot` functions call the `load` functions that then call the `download` functions if a file does not exist locally, or if `force_download=True`. Therefore, **you don't normally need to call the download functions unless you need to download data in bulk.**
 
 .. note::
-    The longitude units are converted from 0->360 to -180->180 degrees in the skymap calibration files.
+    The longitude units are converted from [0, 360] to [-180, 180] degrees in the skymap calibration files.
 
 Function Summary
 ================
