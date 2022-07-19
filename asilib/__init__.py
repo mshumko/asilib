@@ -1,7 +1,7 @@
 import pathlib
 import configparser
 
-__version__ = '0.11.0'
+__version__ = '0.12.1'
 
 # Load the configuration settings.
 HERE = pathlib.Path(__file__).parent.resolve()
@@ -24,18 +24,12 @@ from asilib.io.download import download_skymap
 from asilib.io.load import load_skymap
 from asilib.io.load import load_image
 from asilib.io.load import load_image_generator
-from asilib.io.load import get_frame  # Deprecated
-from asilib.io.load import get_frames  # Deprecated
 
 # Import the plotting and animating functions.
 from asilib.plot.plot_fisheye import plot_fisheye
-from asilib.plot.plot_fisheye import plot_frame  # Deprecated
-from asilib.plot.plot_fisheye import plot_image  # Deprecated
 from asilib.plot.plot_map import plot_map
 from asilib.plot.plot_map import make_map
 from asilib.plot.plot_keogram import plot_keogram
-from asilib.plot.animate_fisheye import plot_movie  # Deprecated
-from asilib.plot.animate_fisheye import plot_movie_generator  # Deprecated
 from asilib.plot.animate_fisheye import animate_fisheye
 from asilib.plot.animate_fisheye import animate_fisheye_generator
 from asilib.plot.animate_map import animate_map
@@ -46,3 +40,8 @@ from asilib.analysis.map import lla2azel
 from asilib.analysis.map import lla2footprint
 from asilib.analysis.keogram import keogram
 from asilib.analysis.equal_area import equal_area
+
+# Imager implementation functions and classes.
+from asilib.imager import Imager
+from asilib.conjunction import Conjunction
+from asilib.array.themis import themis, themis_info

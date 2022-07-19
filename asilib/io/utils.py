@@ -1,3 +1,4 @@
+#TODO: Remove when cleaning up Imager
 """
 A set of utility functions for asilib.
 """
