@@ -1,2 +1,2 @@
-include asilib/data/asi_stations.csv
+include asilib/data/asi_locations.csv
 include asilib/data/ne_10m_land.zip
