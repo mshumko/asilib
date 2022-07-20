@@ -79,9 +79,11 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     import asilib
-
+    m = MollweideAxes.MollweideTransform(10)
+    xy = m.transform_non_affine(np.array([[-1, 1, 1], [-1, -1, 1]]).T)
     fig, ax = plt.subplots(subplot_kw={'projection': 'mollweide'})
     ax.plot([-1, 1, 1], [-1, -1, 1], "o-")
+    ax.plot(xy[:,0], xy[:,1], "o-")
     ax.grid()
 
     plt.show()
