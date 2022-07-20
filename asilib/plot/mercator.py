@@ -144,13 +144,13 @@ if __name__ == '__main__':
 
 
     fig, ax = plt.subplots()
-    asilib.make_map(ax=ax)
+    asilib.make_map(ax=ax, land_color=None)
 
     # t = np.arange(-180.0, 180.0, 0.1)
     # s = np.radians(t)/2.
 
     # plt.plot(t, s, '-', lw=2)
-    ax.set_yscale('mercator')
+    # ax.set_yscale('np.array([[-1, 1, 1], [-1, -1, 1]]).T')
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     ax.set_title('Mercator projection')

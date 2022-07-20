@@ -193,7 +193,6 @@ def make_map(
     ax: plt.Axes=None,
     lon_bounds: tuple = (-140, -60),
     lat_bounds: tuple = (40, 82),
-    yscale='linear',
     ) -> plt.Axes:
     """
     Makes a map using the Mercator projection with a shapefile read in by the pyshp package. 
@@ -268,7 +267,7 @@ def make_map(
 
     # ax.set_xlim(lon_bounds)
     # ax.set_ylim(lat_bounds)
-    ax.set_yscale(yscale)
+    ax.set_yscale('mercator')
     return ax
 
 def _consecutive(data, jump_bool):
