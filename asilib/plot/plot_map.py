@@ -243,8 +243,8 @@ def make_map(
     # matplotlib draws straight (annoying) lines between them. This code uses 
     # the jumps bool array and masked_arrays to remove those lines.
     jumps = (
-        (np.abs(lats[1:]-lats[:-1]) > 5) | 
-        (np.abs(lons[1:]-lons[:-1]) > 5)
+        (np.abs(lats[1:]-lats[:-1]) > 1) | 
+        (np.abs(lons[1:]-lons[:-1]) > 1)
         )
     mlats = ma.masked_array(lats[:-1], mask=jumps)
     mlons = ma.masked_array(lons[:-1], mask=jumps)
@@ -258,16 +258,19 @@ def make_map(
         ax.set_facecolor(ocean_color)
         pass
     if coast_color is not None:
-        ax.plot(np.radians(mlats), np.radians(mlons), coast_color)
+        ax.plot(mlats, np.radians(mlons), coast_color)
+        # ax.plot(mlats, mlons, coast_color)
     if land_color is not None:
         for split_lon, split_lat in zip(split_lons, split_lats):
-            ax.fill(np.radians(split_lat), np.radians(split_lon), land_color, zorder=0)
+            ax.fill(split_lat, np.radians(split_lon), land_color, zorder=0)
+            # ax.fill(split_lat, split_lon, land_color, zorder=0)
 
     # ax.set_aspect('equal', adjustable='box')
-
-    # ax.set_xlim(lon_bounds)
-    # ax.set_ylim(lat_bounds)
-    ax.set_yscale('mercator')
+    if lon_bounds is not None:
+        ax.set_xlim(lon_bounds)
+    if lat_bounds is not None:
+        ax.set_ylim(lat_bounds)
+    # ax.set_yscale('mercator')
     return ax
 
 def _consecutive(data, jump_bool):
@@ -474,7 +477,7 @@ class MercatorLatitudeScale(mscale.ScaleBase):
             these values need to remain synchronized with values in the other
             dimension.
             """
-            masked = ma.masked_where((a < -self.thresh) | (a > self.thresh), a)
+            masked = ma.masked_where((np.isfinite(a) & ((a < -self.thresh) | (a > self.thresh))), a)
             if masked.mask.any():
                 return np.log(np.abs(np.tan(masked) + 1 / np.cos(masked)))
             else:
@@ -513,15 +516,12 @@ if __name__ == '__main__':
 
     import asilib
 
-    _, ax = plt.subplots(1, 2)
-    make_map(lon_bounds=(-127, -100), lat_bounds=(45, 65), yscale='linear', ax=ax[0])
-    make_map(lon_bounds=(-127, -100), lat_bounds=(45, 65), yscale='mercator', ax=ax[1])
+    _, ax = plt.subplots()
+    make_map(lon_bounds=None, lat_bounds=None, ax=ax)
 
-    asilib.plot_map(
-        'THEMIS', 'ATHA', datetime(2010, 4, 5, 6, 7, 0), 110, ax=ax[0]
-    )
-    asilib.plot_map(
-        'THEMIS', 'ATHA', datetime(2010, 4, 5, 6, 7, 0), 110, ax=ax[1]
-    )
+    # asilib.plot_map(
+    #     'THEMIS', 'ATHA', datetime(2010, 4, 5, 6, 7, 0), 110, ax=ax
+    # )
+    # ax.set_yscale('mercator')
     plt.tight_layout()
     plt.show()

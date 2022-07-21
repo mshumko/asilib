@@ -150,7 +150,7 @@ if __name__ == '__main__':
     # s = np.radians(t)/2.
 
     # plt.plot(t, s, '-', lw=2)
-    # ax.set_yscale('np.array([[-1, 1, 1], [-1, -1, 1]]).T')
+    # ax.set_yscale('mercator')
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     ax.set_title('Mercator projection')
