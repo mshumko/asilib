@@ -22,6 +22,8 @@ Supported ASI arrays (camera systems)
 .. note::
    While this package is named `aurora-asi-lib`, import it using the name `asilib`.
 
+The two ways to interact with `asilib` is via the mature function Application Program Interface (API) or the experimental Imager API. If you're new to `asilib` use the function API for now.
+
 .. toctree::
    :maxdepth: 2
    :caption: asilib:
@@ -29,7 +31,8 @@ Supported ASI arrays (camera systems)
    installation
    examples
    tutorial
-   api
+   function_api
+   imager_api
 
 .. toctree::
    :maxdepth: 2

@@ -1,128 +1,143 @@
-import unittest
-import requests
-from datetime import datetime
+from datetime import datetime, timedelta
+import dateutil.parser
 
-import asilib.io.utils as utils
-import asilib
+import pytest
 
-"""
-Unit tests to check that the functions in download_rego.py are working correctly.
-Run with "python3 test_download_rego.py -v" for the verbose output.
-"""
+import asilib.utils as utils
+
+str_time = '2010-01-01T10:29:32.000000'
+obj_time = datetime(2010, 1, 1, 10, 29, 32, 0)
+valid_times = [
+    (str_time, obj_time),
+    (obj_time, obj_time)
+]
+@pytest.mark.parametrize("test_input,expected", valid_times)
+def test_validate_time(test_input, expected):
+    assert utils.validate_time(test_input) == expected
 
 
-class TestUtils(unittest.TestCase):
-    def setUp(self):
-        """Set up a few variables."""
-        # http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/luck/2020/08/clg_l1_rgf_luck_2020080104_v01.cdf
-        self.day = datetime(2020, 8, 1, 4)
-        self.location_code = 'LuCk'
-        self.url = (
-            'http://themis.ssl.berkeley.edu/data/themis/thg/l1/reg/'
-            + f'{self.location_code.lower()}/{self.day.year}/{str(self.day.month).zfill(2)}/'
+invalid_times = [
+    1,
+    1.0
+]
+@pytest.mark.parametrize("test_input", invalid_times)
+def test_invalid_validate_time(test_input):
+    with pytest.raises(ValueError):
+        utils.validate_time(test_input)
+
+
+def test_invalid_validate_time_year():
+    with pytest.raises(ValueError):
+        utils.validate_time(datetime(1900, 1, 1, 10, 29, 32, 0))
+    with pytest.raises(ValueError):
+        future_year = datetime.now().year+1
+        utils.validate_time(
+            datetime.now().replace(year=future_year)
+            )
+
+
+valid_time_ranges = [
+    ([str_time, str_time], [obj_time, obj_time]),
+    ([str_time, obj_time], [obj_time, obj_time]),
+    ([obj_time, obj_time], [obj_time, obj_time]),
+]
+@pytest.mark.parametrize("test_input,expected", valid_time_ranges)
+def test_validate_time_range(test_input, expected):
+    assert utils.validate_time_range(test_input) == expected
+
+
+invalid_time_ranges = [
+    [],
+    [obj_time],
+    [obj_time, obj_time, obj_time]
+]
+@pytest.mark.parametrize("test_input", invalid_time_ranges)
+def test_validate_time_range_invalid(test_input):
+    with pytest.raises(AssertionError):
+        utils.validate_time_range(test_input)
+
+
+def test_get_filename_times_partial_day():
+    time_range = (
+        datetime(2010, 1, 1),
+        datetime(2010, 1, 5, 12)
         )
-        return
-
-    def test_server_response(self):
-        """Check that the server responds without an error, 400-599 status_codes."""
-        r = requests.get(self.url)
-        assert r.status_code // 100 != 4
-        assert r.status_code // 100 != 5
-        return
-
-    def test_href_is_found(self):
-        """Test that the href function can find the first file on August 2020."""
-        search_pattern = f'{self.location_code}_{self.day.strftime("%Y%m%d%H")}'
-        matched_hrefs = utils._search_hrefs(self.url, search_pattern=search_pattern)
-        assert 'clg_l1_rgf_luck_2020080104_v01.cdf' in matched_hrefs
-        return
-
-    def test_validate_time(self):
-        """
-        Tests utils._validate_time.
-        """
-        valid_time_inputs = ['2016-01-01T10:05', '2016-01-01 10:05', datetime(2016, 1, 1, 10, 5)]
-
-        invalid_time_inputs = [
-            'Two thousand and sixteen',
-            5,
-            10000.0,
-        ]
-
-        for t in valid_time_inputs:
-            assert datetime(2016, 1, 1, 10, 5) == utils._validate_time(t)
-
-        for t in invalid_time_inputs:
-            with self.assertRaises(ValueError):
-                utils._validate_time(t)
-        return
-
-    def test_validate_time_range(self):
-        """
-        Tests utils._validate_time_range.
-        """
-        valid_time_inputs = [
-            ['2016-01-01T10:05', '2016-01-01T10:10'],
-            ['2016-01-01 10:05', '2016-01-01 10:10'],
-            [datetime(2016, 1, 1, 10, 5), datetime(2016, 1, 1, 10, 10)],
-        ]
-
-        invalid_time_input_length = [
-            ['2016-01-01T10:05', '2016-01-01T10:10', '2016-01-01T10:10'],
-            [datetime(2016, 1, 1, 10, 5)],
-            [],
-            5,
-            5.5,
-        ]
-
-        invalid_time_format = [['test', '2016-01-01T10:05'], [5, 5]]
-
-        for time_range in valid_time_inputs:
-            assert [
-                datetime(2016, 1, 1, 10, 5),
-                datetime(2016, 1, 1, 10, 10),
-            ] == utils._validate_time_range(time_range)
-
-        for time_range in invalid_time_input_length:
-            with self.assertRaises(AssertionError):
-                utils._validate_time_range(time_range)
-
-        for time_range in invalid_time_format:
-            with self.assertRaises(ValueError):
-                utils._validate_time_range(time_range)
-        return
-
-    def test_get_hours(self):
-        """
-        Tests the hour time series from _get_hours. The four test cases comprise of two
-        tests with either the start or end time are top of the hour, and two tests
-        where either the start or end time are not at the top of the hour.
-        """
-        time_range = [datetime(2016, 1, 1, 10), datetime(2016, 1, 1, 12)]
-        hours = utils._get_hours(time_range)
-        assert hours == [datetime(2016, 1, 1, 10), datetime(2016, 1, 1, 11)]
-
-        time_range = [datetime(2016, 1, 1, 10, 5, 1, 50000), datetime(2016, 1, 1, 12)]
-        hours = utils._get_hours(time_range)
-        assert hours == [datetime(2016, 1, 1, 10), datetime(2016, 1, 1, 11)]
-
-        time_range = [datetime(2016, 1, 1, 10), datetime(2016, 1, 1, 12, 1)]
-        hours = utils._get_hours(time_range)
-        assert hours == [
-            datetime(2016, 1, 1, 10),
-            datetime(2016, 1, 1, 11),
-            datetime(2016, 1, 1, 12),
-        ]
-
-        time_range = [datetime(2016, 1, 1, 10, 5), datetime(2016, 1, 1, 12, 1)]
-        hours = utils._get_hours(time_range)
-        assert hours == [
-            datetime(2016, 1, 1, 10),
-            datetime(2016, 1, 1, 11),
-            datetime(2016, 1, 1, 12),
-        ]
-        return
+    file_times = [
+        datetime(2010, 1, 1),
+        datetime(2010, 1, 2),
+        datetime(2010, 1, 3),
+        datetime(2010, 1, 4),
+        datetime(2010, 1, 5)
+    ]
+    dt = 'days'
+    assert utils.get_filename_times(time_range, dt=dt) == file_times
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_get_filename_times_end_day():
+    time_range = (
+        datetime(2010, 1, 1),
+        datetime(2010, 1, 5)
+        )
+    file_times = [
+        datetime(2010, 1, 1),
+        datetime(2010, 1, 2),
+        datetime(2010, 1, 3),
+        datetime(2010, 1, 4),
+    ]
+    dt = 'days'
+    assert utils.get_filename_times(time_range, dt=dt) == file_times
+
+
+
+def test_get_filename_times_partial_hour():
+    time_range = (
+        datetime(2010, 1, 1, 10, 29, 32, 0),
+        datetime(2010, 1, 1, 12, 29, 32, 0)
+        )
+    file_times = [
+        datetime(2010, 1, 1, 10, 0, 0, 0),
+        datetime(2010, 1, 1, 11, 0, 0, 0),
+        datetime(2010, 1, 1, 12, 0, 0, 0)
+    ]
+    dt = 'hours'
+    assert utils.get_filename_times(time_range, dt=dt) == file_times
+
+
+def test_get_filename_times_end_hour():
+    time_range = (
+        datetime(2010, 1, 1, 10, 0, 0, 0),
+        datetime(2010, 1, 1, 12, 0, 0, 0)
+        )
+    file_times = [
+        datetime(2010, 1, 1, 10, 0, 0, 0),
+        datetime(2010, 1, 1, 11, 0, 0, 0)
+    ]
+    dt = 'hours'
+    assert utils.get_filename_times(time_range, dt=dt) == file_times
+
+
+def test_get_filename_times_partial_minute():
+    time_range = (
+        datetime(2010, 1, 1, 10, 29, 32, 0),
+        datetime(2010, 1, 1, 10, 31, 32, 0)
+        )
+    file_times = [
+        datetime(2010, 1, 1, 10, 29, 0, 0),
+        datetime(2010, 1, 1, 10, 30, 0, 0),
+        datetime(2010, 1, 1, 10, 31, 0, 0),
+    ]
+    dt = 'minutes'
+    assert utils.get_filename_times(time_range, dt=dt) == file_times
+
+
+def test_get_filename_times_end_minute():
+    time_range = (
+        datetime(2010, 1, 1, 10, 29, 32, 0),
+        datetime(2010, 1, 1, 10, 31, 0, 0)
+        )
+    file_times = [
+        datetime(2010, 1, 1, 10, 29, 0, 0),
+        datetime(2010, 1, 1, 10, 30, 0, 0),
+    ]
+    dt = 'minutes'
+    assert utils.get_filename_times(time_range, dt=dt) == file_times

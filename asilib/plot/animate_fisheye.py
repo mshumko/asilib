@@ -17,13 +17,6 @@ from asilib.io.load import load_image, load_skymap
 from asilib.analysis.start_generator import start_generator
 
 
-def plot_movie(
-    asi_array_code: str, location_code: str, time_range: utils._time_range_type, **kwargs
-) -> None:
-    warnings.warn('asilib.plot_movie is deprecated for asilib.animate_fisheye')
-    return animate_fisheye(asi_array_code, location_code, time_range, **kwargs)
-
-
 def animate_fisheye(
     asi_array_code: str, location_code: str, time_range: utils._time_range_type, **kwargs
 ) -> None:
@@ -83,41 +76,6 @@ def animate_fisheye(
 
 
 Images = collections.namedtuple('Images', ['time', 'images'])
-
-
-def plot_movie_generator(
-    asi_array_code: str,
-    location_code: str,
-    time_range: utils._time_range_type,
-    force_download: bool = False,
-    label: bool = True,
-    color_map: str = 'auto',
-    color_bounds: Union[List[float], None] = None,
-    color_norm: str = 'log',
-    azel_contours: bool = False,
-    ax: plt.Axes = None,
-    movie_container: str = 'mp4',
-    ffmpeg_output_params={},
-    overwrite: bool = False,
-) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
-
-    warnings.warn('asilib.plot_movie_generator is deprecated for asilib.animate_fisheye_generator')
-
-    return animate_fisheye_generator(
-        asi_array_code,
-        location_code,
-        time_range,
-        force_download=force_download,
-        label=label,
-        color_map=color_map,
-        color_bounds=color_bounds,
-        color_norm=color_norm,
-        azel_contours=azel_contours,
-        ax=ax,
-        movie_container=movie_container,
-        ffmpeg_output_params=ffmpeg_output_params,
-        overwrite=overwrite,
-    )
 
 
 @start_generator

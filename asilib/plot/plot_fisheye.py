@@ -11,66 +11,6 @@ from asilib.io import load
 from asilib.io import utils
 
 
-def plot_frame(
-    time: utils._time_type,
-    asi_array_code: str,
-    location_code: str,
-    force_download: bool = False,
-    time_thresh_s: float = 3,
-    ax: plt.subplot = None,
-    label: bool = True,
-    color_map: str = 'auto',
-    color_bounds: Union[List[float], None] = None,
-    color_norm: str = 'log',
-    azel_contours: bool = False,
-) -> Tuple[datetime, plt.Axes, matplotlib.image.AxesImage]:
-
-    warnings.warn('asilib.plot_frame is deprecated for asilib.plot_image.')
-    return plot_image(
-        asi_array_code,
-        location_code,
-        time,
-        force_download=force_download,
-        time_thresh_s=time_thresh_s,
-        ax=ax,
-        label=label,
-        color_map=color_map,
-        color_bounds=color_bounds,
-        color_norm=color_norm,
-        azel_contours=azel_contours,
-    )
-
-
-def plot_image(
-    asi_array_code: str,
-    location_code: str,
-    time: utils._time_type,
-    force_download: bool = False,
-    time_thresh_s: float = 3,
-    ax: plt.Axes = None,
-    label: bool = True,
-    color_map: str = 'auto',
-    color_bounds: List[float] = None,
-    color_norm: str = 'log',
-    azel_contours: bool = False,
-) -> Tuple[datetime, plt.Axes, matplotlib.image.AxesImage]:
-    warnings.warn('asilib.plot_image is renamed to asilib.plot_fisheye and is now deprecated.')
-
-    return plot_fisheye(
-        asi_array_code,
-        location_code,
-        time,
-        force_download=force_download,
-        time_thresh_s=time_thresh_s,
-        ax=ax,
-        label=label,
-        color_map=color_map,
-        color_bounds=color_bounds,
-        color_norm=color_norm,
-        azel_contours=azel_contours,
-    )
-
-
 def plot_fisheye(
     asi_array_code: str,
     location_code: str,
