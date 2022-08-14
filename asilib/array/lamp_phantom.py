@@ -9,7 +9,6 @@ import h5py
 import asilib
 import asilib.utils as utils
 import asilib.io.download as download
-import asilib.io.manager as manager
 
 
 image_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/lamp/geoff/'
@@ -104,15 +103,18 @@ def _get_files(location_code, time, time_range, overwrite, missing_ok):
         raise ValueError('both time and time_range can not be simultaneously specified.')
 
     local_dir = local_base_dir / 'images' / location_code.lower()
-    _manager = manager.File_Manager(local_dir, base_url=image_base_url)
-
-    # Find one image file.
+    
     if time is not None:
         time = utils.validate_time(time)
-        # # file_paths will only contain one path.
         filename = f'narrow_{time.strftime("%H%M")}.mat'
-        file_paths = [_manager.find_file(filename, overwrite=overwrite)]
-        
+        file_paths = list(pathlib.Path(local_dir).rglob(filename))
+
+        if (len(file_paths) == 0) or overwrite:
+            d = download.Downloader(image_base_url + f'{filename}')
+            file_paths = d.download(local_dir, overwrite=overwrite, stream=True)
+        else:
+            return file_paths
+
     # Find multiple image files.
     if time_range is not None:
         time_range = utils.validate_time_range(time_range)
@@ -121,18 +123,19 @@ def _get_files(location_code, time, time_range, overwrite, missing_ok):
 
         for file_time in file_times:
             filename = f'narrow_{file_time.strftime("%H%M")}.mat'
-            try:
-                file_paths.append(
-                    _manager.find_file(filename, overwrite=overwrite)
-                )
-            except (FileNotFoundError, AssertionError) as err:
-                if (missing_ok and 
-                    (
-                        ('does not contain any hyper references containing' in str(err)) or
-                        ('Only one href is allowed' in str(err))
-                    )):
-                    continue
-                else:
+            _local_file_path = list(pathlib.Path(local_dir).rglob(filename))
+
+            if (len(_local_file_path) == 0) or overwrite:
+                d = download.Downloader(image_base_url + f'{filename}')
+                try:
+                    file_paths.append(d.download(local_dir, overwrite=overwrite, stream=True))
+                except (FileNotFoundError, AssertionError) as err:
+                    if (missing_ok and 
+                        (
+                            ('does not contain any hyper references containing' in str(err)) or
+                            ('Only one href is allowed' in str(err))
+                        )):
+                        continue
                     raise
     return file_paths
 

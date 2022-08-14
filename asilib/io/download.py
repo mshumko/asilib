@@ -414,7 +414,7 @@ class Downloader:
     Parameters
     ----------
     url: str
-        The dataset URL with a trailing "/".
+        The dataset URL. If it points to a folder it must end with a "/".
     download_dir: str or pathlib.Path
         The download directory. Must either specify here, or when you call 
         Downloader.download().
