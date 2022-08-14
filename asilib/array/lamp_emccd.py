@@ -10,12 +10,11 @@ import scipy.io
 import asilib
 import asilib.utils as utils
 import asilib.io.download as download
-import asilib.io.manager as manager
 
 
 image_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/lamp/sav_img/'
 skymap_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/lamp/sav_fov/'
-local_base_dir = asilib.config['ASI_DATA_DIR'] / 'lamp'
+local_base_dir = asilib.config['ASI_DATA_DIR'] / 'lamp_emccd'
 
 
 def lamp(location_code, time=None, time_range=None, overwrite=False, missing_ok=True, alt=90):
@@ -114,14 +113,19 @@ def _get_files(location_code, time, time_range, overwrite, missing_ok):
         raise ValueError('both time and time_range can not be simultaneously specified.')
 
     local_dir = local_base_dir / 'images' / location_code.lower()
-    _manager = manager.File_Manager(local_dir, base_url=image_base_url)
 
     # Find one image file.
     if time is not None:
         time = utils.validate_time(time)
-        # # file_paths will only contain one path.
         filename = f'{location_code.lower()}_{time.strftime("%Y%m%d_%H%M")}.sav'
-        file_paths = [_manager.find_file(filename, overwrite=overwrite)]
+        file_paths = list(pathlib.Path(local_dir).rglob(filename))
+
+        if (len(file_paths) == 0) or overwrite:
+            d = download.Downloader(image_base_url + f'/{filename}')
+            file_paths = d.download(local_dir, overwrite=overwrite, stream=True)
+        else:
+            return file_paths
+
         
     # Find multiple image files.
     if time_range is not None:
@@ -131,19 +135,30 @@ def _get_files(location_code, time, time_range, overwrite, missing_ok):
 
         for file_time in file_times:
             filename = f'{location_code.lower()}_{file_time.strftime("%Y%m%d_%H%M")}.sav'
-            try:
-                file_paths.append(
-                    _manager.find_file(filename, overwrite=overwrite)
-                )
-            except (FileNotFoundError, AssertionError) as err:
-                if (missing_ok and 
-                    (
-                        ('does not contain any hyper references containing' in str(err)) or
-                        ('Only one href is allowed' in str(err))
-                    )):
-                    continue
+            _matched_file_paths = list(pathlib.Path(local_dir).rglob(filename))
+            
+            if overwrite:
+                d = download.Downloader(image_base_url + f'/{filename}')
+                file_paths.append(d.download(local_dir, overwrite=overwrite, stream=True))
+            else:
+                if len(_matched_file_paths) == 1:
+                    file_paths.append(_matched_file_paths[0])
+
+                elif len(_matched_file_paths) == 0:
+                    d = download.Downloader(image_base_url + f'/{filename}')
+                    try:
+                        file_paths.append(d.download(local_dir, overwrite=overwrite, stream=True))
+                    except (FileNotFoundError, AssertionError) as err:
+                        if (missing_ok and 
+                            (
+                            ('does not contain any hyper references containing' in str(err)) or
+                            ('Only one href is allowed' in str(err))
+                            )):
+                            continue
+                        raise
                 else:
-                    raise
+                    raise ValueError(f'{len(_matched_file_paths)} files found.'
+                    )
     return file_paths
 
 
@@ -173,9 +188,11 @@ def find_skymap(location_code, alt, overwrite=True):
 
     if (len(local_skymap_paths) == 0) or overwrite:
         # Download the skymaps.
-        parent_folders = download.Downloader(skymap_base_url)
-        parent_folders.find_url(filename=f'{location_code.lower()}_*.sav')
-        local_skymap_paths = parent_folders.download(local_dir) 
+        d = download.Downloader(skymap_base_url)
+        ds = d.ls(f'{location_code.lower()}_*.sav')
+        local_skymap_paths = []
+        for d in ds:
+            local_skymap_paths.append(d.download(local_dir))
     
     for local_skymap_path in local_skymap_paths:
         if local_skymap_path.name == f'{location_code.lower()}_{alt:03}.sav':
@@ -250,16 +267,19 @@ def _transform_azimuth_to_180(skymap):
     return skymap
 
 if __name__ == '__main__':
-    img = lamp('vee', 
-        time_range=[datetime(2022, 3, 5, 11, 0), datetime(2022, 3, 5, 12, 0)]
-        )
-    # img[datetime(2022, 3, 5, 11, 30):datetime(2022, 3, 5, 11, 31, 1)]
-    # img[datetime(2022, 3, 5, 11, 30):]
-    # img[:datetime(2022, 3, 5, 11, 30)]
-    # img[datetime(2022, 3, 5, 11, 30)]
-    img[:]
-    # for time, image in img[datetime(2022, 3, 5, 11, 30):datetime(2022, 3, 5, 11, 31, 1)]:
-    #     print(time)
+    import cProfile, pstats, io
+    from pstats import SortKey
 
-    for time, image in img[datetime(2022, 3, 5, 11, 30):datetime(2022, 3, 5, 11, 31, 1)]:
-        pass
+    with cProfile.Profile() as pr:
+        img = lamp('vee', 
+            time_range=[datetime(2022, 3, 5, 11, 0), datetime(2022, 3, 5, 11, 3)],
+            # time=datetime(2022, 3, 5, 11, 0),
+            overwrite=False
+            )
+    ps = pstats.Stats(pr).sort_stats('cumulative')
+    ps.strip_dirs()
+    print('Cumulative time\n', ps.print_stats(10))
+
+    ps = pstats.Stats(pr).sort_stats('time')
+    ps.strip_dirs()
+    print('Total time\n', ps.print_stats(10))

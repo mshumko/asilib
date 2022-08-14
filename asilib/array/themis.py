@@ -17,6 +17,7 @@ import pathlib
 import copy
 import gzip
 import bz2
+import os
 import signal
 import dateutil.parser
 from typing import Tuple
@@ -28,7 +29,6 @@ import scipy.io
 import asilib
 import asilib.utils as utils
 import asilib.io.download as download
-import asilib.io.manager as manager
 
 
 pgm_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/stream0/'
@@ -157,52 +157,74 @@ def _get_pgm_files(location_code, time, time_range, overwrite, missing_ok):
         raise ValueError('both time and time_range can not be simultaneously specified.')
 
     local_dir = local_base_dir / 'images' / location_code.lower()
-    _manager = manager.File_Manager(local_dir, base_url=pgm_base_url)
+    
+    if overwrite:
+        # Option 1/4: Download one minute of data regardless if it is already saved
+        if time is not None:
+            return [_download_one_pgm_file(location_code, time, local_dir, overwrite)]
 
-    # Find one image file.
-    if time is not None:
-        time = utils.validate_time(time)
-        url_subdirectories = [
-            str(time.year), 
-            str(time.month).zfill(2), 
-            str(time.day).zfill(2), 
-            f'{location_code.lower()}*', 
-            f'ut{str(time.hour).zfill(2)}', 
-            ]
-        filename = time.strftime(f'%Y%m%d_%H%M_{location_code.lower()}*.pgm.gz')
-        # file_paths will only contain one path.
-        file_paths = [_manager.find_file(filename, subdirectories=url_subdirectories, overwrite=overwrite)]
-        
-    # Find multiple image files.
-    if time_range is not None:
-        time_range = utils.validate_time_range(time_range)
-        file_times = utils.get_filename_times(time_range, dt='minutes')
-        file_paths = []
-
-        for file_time in file_times:
-            url_subdirectories = [
-                str(file_time.year), 
-                str(file_time.month).zfill(2), 
-                str(file_time.day).zfill(2), 
-                f'{location_code.lower()}*', 
-                f'ut{str(file_time.hour).zfill(2)}', 
-                ]
-            filename = file_time.strftime(f'%Y%m%d_%H%M_{location_code.lower()}*.pgm.gz')
-            try:
-                file_paths.append(
-                    _manager.find_file(filename, subdirectories=url_subdirectories, overwrite=overwrite)
-                )
-            except (FileNotFoundError, AssertionError) as err:
-                if (missing_ok and 
-                    (
-                        ('does not contain any hyper references containing' in str(err)) or
-                        ('Only one href is allowed' in str(err))
-                    )):
-                    continue
-                else:
+        # Option 2/4: Download the data in time range regardless if it is already saved.
+        elif time_range is not None:
+            time_range = utils.validate_time_range(time_range)
+            file_times = utils.get_filename_times(time_range, dt='minutes')
+            file_paths = []
+            for file_time in file_times:
+                try:
+                    file_paths.append(_download_one_pgm_file(location_code, file_time, local_dir, overwrite))
+                except (FileNotFoundError, AssertionError) as err:
+                    if (missing_ok and 
+                        (
+                            ('does not contain any hyper references containing' in str(err)) or
+                            ('Only one href is allowed' in str(err))
+                        )):
+                        continue
                     raise
-    return file_paths
+            return file_paths
+    else:
+        # Option 3/4: Download one minute of data if it is not already saved.
+        if time is not None:
+            file_search_str = f'{time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}*.pgm.gz'
+            local_file_paths = list(pathlib.Path(local_dir).rglob(file_search_str))
+            if len(local_file_paths) == 1:
+                return local_file_paths
+            else:
+                return [_download_one_pgm_file(location_code, time, local_dir, overwrite)]
 
+        # Option 4/4: Download the data in time range if they don't exist locally.
+        elif time_range is not None:
+            time_range = utils.validate_time_range(time_range)
+            file_times = utils.get_filename_times(time_range, dt='minutes')
+            file_paths = []
+            for file_time in file_times:
+                file_search_str = f'{file_time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}*.pgm.gz'
+                local_file_paths = list(pathlib.Path(local_dir).rglob(file_search_str))
+                if len(local_file_paths) == 1:
+                    file_paths.append(local_file_paths[0])
+                else:
+                    try:
+                        file_paths.append(_download_one_pgm_file(location_code, file_time, local_dir, overwrite))
+                    except (FileNotFoundError, AssertionError) as err:
+                        if (missing_ok and 
+                            (
+                                ('does not contain any hyper references containing' in str(err)) or
+                                ('Only one href is allowed' in str(err))
+                            )):
+                            continue
+                        raise
+            return file_paths 
+
+def _download_one_pgm_file(location_code, time, save_dir, overwrite):
+    start_url = pgm_base_url + f'{time.year}/{time.month:02}/{time.day:02}/'
+    d = download.Downloader(start_url)
+    # Find the unique directory
+    matched_downloaders = d.ls(f'{location_code.lower()}_themis*')
+    assert len(matched_downloaders) == 1
+    # Search that directory for the file and donload it.
+    d2 = download.Downloader(matched_downloaders[0].url + f'ut{time.hour:02}/')
+    file_search_str = f'{time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}*.pgm.gz'
+    matched_downloaders2 = d2.ls(file_search_str)
+    assert len(matched_downloaders2) == 1
+    return matched_downloaders2[0].download(save_dir, overwrite=overwrite)
 
 def load_skymap(location_code, time, overwrite):
     """
@@ -219,23 +241,26 @@ def load_skymap(location_code, time, overwrite):
     """
     time = utils.validate_time(time)
     local_dir = local_base_dir / 'skymaps' / location_code.lower()
-    skymap_top_url = skymap_base_url + location_code.lower()
+    local_dir.mkdir(parents=True, exist_ok=True)
+    skymap_top_url = skymap_base_url + location_code.lower() + '/'
 
-    # Check if the skymaps are already downloaded.
-    local_skymaps = list(pathlib.Path(local_dir).rglob(f'*skymap_{location_code.lower()}*.sav'))
-    #TODO: Add a check to periodically redownload the skymap data, maybe once a month?
-    if (len(local_skymaps) == 0) or overwrite:
-        # Download the skymaps.
-        local_skymaps = []
-        parent_folders = download.Downloader(skymap_top_url)
-        skymap_dirs = parent_folders.find_url(filename=f'{location_code.lower()}_*')
-        for skymap_dir in skymap_dirs:
-            d = download.Downloader(skymap_dir)
-            d.find_url(filename=f'*skymap_{location_code.lower()}*.sav')
-            d.download(local_dir)
-            local_skymaps.append(d.save_path[0])
+    if overwrite:
+        # Delete any existing skymap files.
+        local_skymap_paths = pathlib.Path(local_dir).rglob(f'*skymap_{location_code.lower()}*.sav')
+        for local_skymap_path in local_skymap_paths:
+            os.unlink(local_skymap_path)
+        local_skymap_paths = _download_all_skymaps(location_code, skymap_top_url, 
+            local_dir, overwrite=overwrite)
 
-    skymap_filenames = [skymap_url.name for skymap_url in local_skymaps]
+    else:
+        local_skymap_paths = sorted(pathlib.Path(local_dir).rglob(
+            f'*skymap_{location_code.lower()}*.sav'))
+        #TODO: Add a check to periodically redownload the skymap data, maybe once a month?
+        if len(local_skymap_paths) == 0:
+            local_skymap_paths = _download_all_skymaps(location_code, skymap_top_url, 
+                local_dir, overwrite=overwrite)
+
+    skymap_filenames = [local_skymap_path.name for local_skymap_path in local_skymap_paths]
     skymap_file_dates = []
     for skymap_filename in skymap_filenames:
         date_match = re.search(r'\d{8}', skymap_filename)
@@ -254,9 +279,21 @@ def load_skymap(location_code, time, overwrite):
         )
     else:
         closest_index = np.nanargmin(dt)
-    skymap_path = local_skymaps[closest_index]
+    skymap_path = local_skymap_paths[closest_index]
     skymap = _load_skymap(skymap_path)
     return skymap
+
+def _download_all_skymaps(location_code, url, save_dir, overwrite):
+    d = download.Downloader(url)
+    # Find the dated subdirectories
+    ds = d.ls(f'{location_code.lower()}')
+
+    save_paths = []
+    for d_i in ds:
+        ds = d_i.ls(f'*skymap_{location_code.lower()}*.sav')
+        for ds_j in ds:
+            save_paths.append(ds_j.download(save_dir, overwrite=overwrite))
+    return save_paths
 
 def _load_skymap(skymap_path):
     """
@@ -285,7 +322,6 @@ def _flip_skymap(skymap):
             elif (len(shape) == 3) and (shape[1] == shape[2]):
                 skymap[key] = skymap[key][:, ::-1, :]  # For lat/lon maps
     return skymap
-
 
 def _tranform_longitude_to_180(skymap):
     """
