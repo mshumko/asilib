@@ -129,11 +129,12 @@ def _get_files(location_code, time, time_range, overwrite, missing_ok):
                 d = download.Downloader(image_base_url + f'{filename}')
                 try:
                     file_paths.append(d.download(local_dir, overwrite=overwrite, stream=True))
-                except (FileNotFoundError, AssertionError) as err:
+                except (FileNotFoundError, AssertionError, ConnectionError) as err:
                     if (missing_ok and 
                         (
                             ('does not contain any hyper references containing' in str(err)) or
-                            ('Only one href is allowed' in str(err))
+                            ('Only one href is allowed' in str(err)) or
+                            ('error response' in str(err))
                         )):
                         continue
                     raise
