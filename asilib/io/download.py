@@ -455,13 +455,7 @@ class Downloader:
         list
             A list of full URLs.
         """
-        # Check that the server status code is not
-        # between 400-599 (error).
-        r = requests.get(self.url)
-        status_code = r.status_code
-        if status_code // 100 in [4, 5]:
-            raise ConnectionError(f'{self.url} returned a {status_code} error response.')
-        
+        self._check_url_status()
         matched_hrefs = self._search_hrefs(self.url, match=match)
         cls = type(self)
         downloaders = [None]*len(matched_hrefs)
@@ -490,6 +484,7 @@ class Downloader:
         pathlib.Path
             The full path to the file. 
         """
+        self._check_url_status()
         if download_dir is None and self.download_dir is None:
             raise ValueError(f'download_dir kwarg needs to be set either '
                              f'in Downloader() or Downloader.download.')
@@ -577,6 +572,17 @@ class Downloader:
                 f'references containing the match kwarg="{match}".'
             )
         return matched_hrefs
+
+    def _check_url_status(self):
+        """
+        Check that the server status code is not
+        between 400-599 (error).
+        """
+        r = requests.get(self.url)
+        status_code = r.status_code
+        if status_code // 100 in [4, 5]:
+            raise ConnectionError(f'{self.url} returned a {status_code} error response.')
+        return
 
     def __repr__(self) -> str:
         params = f'{self.url}, download_dir={self.download_dir},'
