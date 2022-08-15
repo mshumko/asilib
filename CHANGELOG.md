@@ -1,5 +1,7 @@
-# Current
+# Version 0.13.0
 - Added an Active Development warning in the `asilib` docs.
+- Simplified the `Downloader` class.
+- Fixed a download bug. It arose because the `overwrite` kwarg played two overlapping roles: to redownload data and overwrite animations (the ffmpeg argument). I fixed the bug with the `redownload` kwarg reserved only for downloading data, and `overwrite` kwarg reserved for overwriting animations.
 
 # Version 0.12.0
 - First merge of the Imager class. The `asilib.Imager` and `asilib.Conjunction` classes are still under development, but you can try it out! Call the `asilib.themis()` function to play around with an Imager instance.

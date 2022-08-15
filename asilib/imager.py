@@ -117,7 +117,7 @@ class Imager:
         | # auroral arc powered by accelerated electrons from very high altitudes"
         | time = datetime(2017, 9, 15, 2, 34, 0)
         | ax, im = asilib.plot_fisheye('THEMIS', 'RANK', time,
-        |     color_norm='log', force_download=False)
+        |     color_norm='log')
         |
         | plt.colorbar(im)
         | ax.axis('off')
@@ -254,9 +254,9 @@ class Imager:
             The additional/overwitten ffmpeg output parameters. The default parameters are:
             framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
         overwrite: bool
-            If true, the output will be overwritten automatically. If false it will
-            prompt the user to answer y/n.
-
+            If true, the data will be downloaded again and the output animation overwritten. 
+            If false it will prompt the user to answer y/n.
+            
         Yields
         ------
         image_time: datetime.datetime

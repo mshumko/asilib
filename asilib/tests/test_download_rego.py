@@ -27,7 +27,7 @@ class TestDownloadRego(unittest.TestCase):
         image_path = image_dir / 'clg_l1_rgf_luck_2020080104_v01.cdf'
 
         save_path = asilib.download_image(
-            self.asi_array_code, self.location_code, time=self.day, force_download=True
+            self.asi_array_code, self.location_code, time=self.day, redownload=True
         )
 
         assert image_path == save_path[0]

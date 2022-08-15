@@ -63,7 +63,7 @@ class Test_equal_area(unittest.TestCase):
         asi_array_code = 'THEMIS'
         location_code = 'RANK'
         time = datetime(2020, 1, 1)
-        skymap_dict = load_skymap(asi_array_code, location_code, time)
+        skymap_dict = load_skymap(asi_array_code, location_code, time, redownload=True)
 
         # Set up a north-south satellite track oriented to the east of the THEMIS/RANK
         # imager.

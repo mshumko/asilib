@@ -87,7 +87,7 @@ def animate_map_generator(
     time_range: asilib.io.utils._time_range_type,
     map_alt: float,
     min_elevation: float = 10,
-    force_download: bool = False,
+    overwrite: bool = False,
     color_map: str = 'auto',
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
@@ -101,7 +101,6 @@ def animate_map_generator(
     label: bool = True,
     movie_container: str = 'mp4',
     ffmpeg_output_params={},
-    overwrite: bool = False,
     pcolormesh_kwargs: dict = {},
 ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
     """
@@ -126,9 +125,9 @@ def animate_map_generator(
         in the skymap calibration.
     min_elevation: float
         Masks the pixels below min_elevation degrees.
-    force_download: bool
-        If True, download the file even if it already exists. Useful if a prior
-        data download was incomplete.
+    overwrite: bool
+        If True, the animation will be overwritten. Otherwise it will prompt
+        the user to answer y/n.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
@@ -164,9 +163,6 @@ def animate_map_generator(
         framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
-    overwrite: bool
-        If true, the output will be overwritten automatically. If false it will
-        prompt the user to answer y/n.
     pcolormesh_kwargs: dict
         A dictionary of keyword arguments (kwargs) to pass directly into
         plt.pcolormesh. One use of this parameter is to change the colormap. For example,
@@ -213,7 +209,7 @@ def animate_map_generator(
     """
     try:
         image_times, images = load_image(
-            asi_array_code, location_code, time_range=time_range, force_download=force_download
+            asi_array_code, location_code, time_range=time_range
         )
     except AssertionError as err:
         if '0 number of time stamps were found in time_range' in str(err):
@@ -359,19 +355,3 @@ def _mask_low_horizon(images, lon_map, lat_map, el_map, min_elevation):
     lon_map_copy[idh_boundary_right] = np.nan
     lat_map_copy[idh_boundary_right] = np.nan
     return images_copy, lon_map_copy, lat_map_copy
-
-# if __name__ == '__main__':
-#     from datetime import datetime
-
-#     import asilib
-
-#     map_alt=110
-#     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-#     map_generator = asilib.animate_map_generator('THEMIS', 'FSMI', time_range, map_alt=map_alt, 
-#         lon_bounds=(-125, -100), lat_bounds=(55, 70))
-
-#     for (image_time1, image, ax, p) in map_generator:
-#           # The code that modifies each image here.
-#           pass
-
-#     print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')

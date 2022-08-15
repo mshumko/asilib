@@ -1,73 +1,72 @@
 """
 Tests the asilib's Downloader class.
 """
+import pathlib
+import os
+import tempfile
+from datetime import datetime
+
 import pytest
 
 import asilib
-import asilib.io.download as download
+from asilib.io.download import Downloader
+
 
 def test_bad_url():
     """ 
     Checks that Downloader() raises an error for a non-existant URL.
     """
+    d = Downloader('https://data.phys.ucalgary.ca/DOES_NOT_EXIST_9876')
     with pytest.raises(ConnectionError):
-        download.Downloader('https://data.phys.ucalgary.ca/sort_by_project/FAKE/')
+        d.ls()
     return
 
+def test_ls_and_download():
+    """
+    Tests the list files (ls) method, .url and .name attributes,
+    and the download method when navigating down the rather complex 
+    https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/stream0/
+    folder structure.
+    """
+    date = datetime(2014, 5, 5, 5, 10)
+    location = 'gill'
 
-def test_find_file():
-    """
-    Looks for a file named 20140505_0505_gill_themis19_full.pgm.gz on the U Calgary server.
-    """
-    d = download.Downloader('https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/stream0/')
-    d.find_url(subdirectories=['2014', '05', '05', 'gill*', 'ut05'], filename='20140505_0505_gill*.pgm.gz')
-    assert d.url[0].split('/')[-1] == '20140505_0505_gill_themis19_full.pgm.gz'
+    base_url = (f'https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/stream0/'
+                f'{date.year}/{date.month:02}/{date.day:02}/')
+    d = Downloader(base_url)
+
+    # Check that Downloader.ls finds the unique online subdirectory
+    matched_downloaders = d.ls(f'{location.lower()}_themis*')
+    assert len(matched_downloaders) == 1
+    assert matched_downloaders[0].url == ('https://data.phys.ucalgary.ca/'
+        'sort_by_project/THEMIS/asi/stream0/2014/05/05/gill_themis19/')
+
+    # Navigate further down the subdirectory structure and find the file.
+    d2 = Downloader(matched_downloaders[0].url + f'ut{date.hour:02}/')
+    file_search_str = f'{date.strftime("%Y%m%d_%H%M")}_{location.lower()}*.pgm.gz'
+    matched_downloaders2 = d2.ls(file_search_str)
+
+    assert len(matched_downloaders2) == 1
+    assert matched_downloaders2[0].url == ('https://data.phys.ucalgary.ca/'
+        'sort_by_project/THEMIS/asi/stream0/2014/05/05/gill_themis19/ut05/'
+        '20140505_0510_gill_themis19_full.pgm.gz')
+    assert matched_downloaders2[0].name == '20140505_0510_gill_themis19_full.pgm.gz'
+
+    with tempfile.TemporaryDirectory() as tmp:
+        download_path = matched_downloaders2[0].download(tmp, redownload=True)
+        assert download_path.name == '20140505_0510_gill_themis19_full.pgm.gz'
+        assert os.path.getsize(download_path) == 1957270
     return
-
-
-def test_download_file():
-    """
-    Looks for and downloads a file named 20140505_0505_gill_themis19_full.pgm.gz on 
-    the U Calgary server.
-    """
-    d = download.Downloader('https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/stream0/')
-    d.find_url(subdirectories=['2014', '05', '05', 'gill*', 'ut05'], filename='20140505_0505_gill*.pgm.gz')
-    save_dir = asilib.config['ASI_DATA_DIR'] / 'themis' / 'images' / 'gill'
-    save_path = save_dir / '20140505_0505_gill_themis19_full.pgm.gz'
-    d.download(save_path, overwrite=True)
-    assert save_path.exists()
-    return
-
 
 def test_download_file_no_subdirectories():
     """
     Test Download.download() for the case where no subdirectories were provided (the filename)
     is in the base_url.
     """
-    d = download.Downloader('https://data.phys.ucalgary.ca/sort_by_project//THEMIS/asi/stream0/2011/07/07/pina_themis18/ut05/')
-    d.find_url(filename='20110707_0500_pina_*.pgm.gz')
-    save_dir = asilib.config['ASI_DATA_DIR'] / 'themis' / 'images' / 'pina'
-    save_path = save_dir / '20110707_0500_pina_themis18_full.pgm.gz'
-    d.download(save_path, overwrite=True)
-    assert save_path.exists()
-    return
-
-
-def test_find_multiple_directories():
-    """
-    Test Download.download() for the case where no subdirectories were provided (the filename)
-    is in the base_url.
-    """
-    d = download.Downloader('https://data.phys.ucalgary.ca/sort_by_project//THEMIS/asi/stream0')
-    d.find_url(
-        subdirectories=['2011', '07', '07', 'pina_*', 'ut05'],
-        filename='20110707_050*_pina_*.pgm.gz'
-        )
-    assert d.url[0].split('/')[-1] == '20110707_0500_pina_themis18_full.pgm.gz'
-    assert d.url[-1].split('/')[-1] == '20110707_0509_pina_themis18_full.pgm.gz'
-    save_dir = asilib.config['ASI_DATA_DIR'] / 'themis' / 'images' / 'pina'
-    save_path = save_dir / '20110707_0500_pina_themis18_full.pgm.gz'
-    d.download(save_path, overwrite=True)
-    assert d.save_path[0].name == '20110707_0500_pina_themis18_full.pgm.gz'
-    assert d.save_path[-1].name == '20110707_0509_pina_themis18_full.pgm.gz'
+    d = Downloader('https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/stream0/'
+        '2014/05/05/gill_themis19/ut08/20140505_0807_gill_themis19_full.pgm.gz')
+    with tempfile.TemporaryDirectory() as tmp:
+        download_path = d.download(tmp, redownload=True)
+        assert download_path.name == '20140505_0807_gill_themis19_full.pgm.gz'
+        assert os.path.getsize(download_path) == 1980541
     return
