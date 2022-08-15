@@ -1,0 +1,27 @@
+import pyaurorax
+import datetime
+
+# define search parameters
+start = datetime.datetime(2019, 1, 1, 0, 0, 0)
+end = datetime.datetime(2019, 1, 3, 23, 59, 59)
+ground_params = [
+    {
+        "programs": ["themis-asi"],
+        "platforms": ["fort smith", "gillam"],
+    }
+]
+space_params = [
+    {
+        "programs": ["swarm"],
+        "hemisphere": ["northern"],
+    }
+]
+distance = 500
+
+# perform conjunction search
+s = pyaurorax.conjunctions.search(start=start,
+                                  end=end,
+                                  distance=distance,
+                                  ground=ground_params,
+                                  space=space_params,
+                                  verbose=True)

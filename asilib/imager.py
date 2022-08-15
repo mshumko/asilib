@@ -94,8 +94,7 @@ class Imager:
         im: plt.AxesImage
             The plt.imshow image object. Common use for im is to add a colorbar.
             The image is oriented in the map orientation (north is up, south is down,
-            east is right, and west is left), contrary to the camera orientation where
-            the east/west directions are flipped. Set azel_contours=True to confirm.
+            west is right, and east is left). Set azel_contours=True to confirm.
 
         Raises
         ------
@@ -268,8 +267,7 @@ class Imager:
         im: plt.AxesImage
             The plt.imshow image object. Common use for im is to add a colorbar.
             The image is oriented in the map orientation (north is up, south is down,
-            east is right, and west is left), contrary to the camera orientation where
-            the east/west directions are flipped. Set azel_contours=True to confirm.
+            west is right, and east is left). Set azel_contours=True to confirm.
 
         Raises
         ------
