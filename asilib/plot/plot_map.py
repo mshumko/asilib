@@ -29,10 +29,10 @@ def plot_map(
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
     pcolormesh_kwargs: dict = {},
-    map_shapefile: Union[str, pathlib.Path]='ne_10m_land', 
-    coast_color: str='k', 
-    land_color: str='g', 
-    ocean_color: str='w',
+    map_shapefile: Union[str, pathlib.Path] = 'ne_10m_land',
+    coast_color: str = 'k',
+    land_color: str = 'g',
+    ocean_color: str = 'w',
     lon_bounds: tuple = (-140, -60),
     lat_bounds: tuple = (40, 82),
 ):
@@ -117,7 +117,7 @@ def plot_map(
     |
     | asi_array_code = 'THEMIS'
     | location_code = 'ATHA'
-    | time = datetime(2008, 3, 9, 9, 18, 0) 
+    | time = datetime(2008, 3, 9, 9, 18, 0)
     | map_alt_km = 110
     | asilib.plot_map(asi_array_code, location_code, time, map_alt_km);
     | plt.show()
@@ -148,12 +148,12 @@ def plot_map(
     if ax is None:
         ax = make_map(
             file=map_shapefile,
-            coast_color=coast_color, 
-            land_color=land_color, 
+            coast_color=coast_color,
+            land_color=land_color,
             ocean_color=ocean_color,
             lon_bounds=lon_bounds,
-            lat_bounds=lat_bounds
-            )
+            lat_bounds=lat_bounds,
+        )
 
     if color_bounds is None:
         color_bounds = asilib.plot.utils.get_color_bounds(image)
@@ -181,19 +181,20 @@ def plot_map(
         )
     return image_time, image, skymap, ax, p
 
+
 def make_map(
-    file: Union[str, pathlib.Path]='ne_10m_land', 
-    coast_color: str='k', 
-    land_color: str='g', 
-    ocean_color: str='w', 
-    ax: plt.Axes=None,
+    file: Union[str, pathlib.Path] = 'ne_10m_land',
+    coast_color: str = 'k',
+    land_color: str = 'g',
+    ocean_color: str = 'w',
+    ax: plt.Axes = None,
     lon_bounds: tuple = (-140, -60),
     lat_bounds: tuple = (40, 82),
-    ) -> plt.Axes:
+) -> plt.Axes:
     """
-    Makes a map using the mercator projection with a shapefile read in by the pyshp package. 
-    
-    A good place to download shapefiles is 
+    Makes a map using the mercator projection with a shapefile read in by the pyshp package.
+
+    A good place to download shapefiles is
     https://www.naturalearthdata.com/downloads/10m-physical-vectors/.
 
     Parameters
@@ -222,7 +223,7 @@ def make_map(
     Example
     -------
     | import asilib
-    | 
+    |
     | ax = asilib.make_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
     """
     shp_path = asilib.config['ASILIB_DIR'] / 'data' / f'{file}'
@@ -231,17 +232,14 @@ def make_map(
         shp = archive.open(f'{file}.shp', "r")
         dbf = archive.open(f'{file}.dbf', "r")
         sf = shapefile.Reader(shp=shp, dbf=dbf)
-        i=0  # I'm unsure what the other shapes are, but i=0 works.
+        i = 0  # I'm unsure what the other shapes are, but i=0 works.
         lats = np.array([point[0] for point in sf.shapes()[i].points])
         lons = np.array([point[1] for point in sf.shapes()[i].points])
 
-    # Since the landmass shapes are represented continuously in (lats, lons), 
-    # matplotlib draws straight (annoying) lines between them. This code uses 
+    # Since the landmass shapes are represented continuously in (lats, lons),
+    # matplotlib draws straight (annoying) lines between them. This code uses
     # the jumps bool array and masked_arrays to remove those lines.
-    jumps = (
-        (np.abs(lats[1:]-lats[:-1]) > 3) | 
-        (np.abs(lons[1:]-lons[:-1]) > 3)
-        )
+    jumps = (np.abs(lats[1:] - lats[:-1]) > 3) | (np.abs(lons[1:] - lons[:-1]) > 3)
     mlats = ma.masked_array(lats[:-1], mask=jumps)
     mlons = ma.masked_array(lons[:-1], mask=jumps)
 
@@ -265,6 +263,7 @@ def make_map(
     ax.set_ylim(lat_bounds)
     return ax
 
+
 def _consecutive(data, jump_bool):
     """
     Calculate where the array jumps.
@@ -272,7 +271,7 @@ def _consecutive(data, jump_bool):
     Taken from: https://stackoverflow.com/questions/7352684/
     how-to-find-the-groups-of-consecutive-elements-in-a-numpy-array
     """
-    return np.split(data, np.where(jump_bool)[0]+1)
+    return np.split(data, np.where(jump_bool)[0] + 1)
 
 
 def _pcolormesh_nan(
@@ -315,11 +314,11 @@ def _pcolormesh_nan(
             bottom = i
 
         # Reassign all lat/lon columns after good[-1] (all nans) to good[-1].
-        x[i, good[-1]:] = x[i, good[-1]]
-        y[i, good[-1]:] = y[i, good[-1]]
+        x[i, good[-1] :] = x[i, good[-1]]
+        y[i, good[-1] :] = y[i, good[-1]]
         # Reassign all lat/lon columns before good[0] (all nans) to good[0].
-        x[i, :good[0]] = x[i, good[0]]
-        y[i, :good[0]] = y[i, good[0]]
+        x[i, : good[0]] = x[i, good[0]]
+        y[i, : good[0]] = y[i, good[0]]
 
     # Reassign all of the fully invalid lat/lon rows above top to the the max lat/lon value.
     x[:top, :] = np.nanmax(x[top, :])
@@ -369,6 +368,7 @@ def _mask_low_horizon(image, lon_map, lat_map, el_map, min_elevation):
     lat_map_copy[idh_boundary_right] = np.nan
     return image_copy, lon_map_copy, lat_map_copy
 
+
 # if __name__ == '__main__':
 #     from datetime import datetime
 
@@ -378,7 +378,7 @@ def _mask_low_horizon(image, lon_map, lat_map, el_map, min_elevation):
 
 #     asi_array_code = 'THEMIS'
 #     location_code = 'ATHA'
-#     time = datetime(2008, 3, 9, 9, 18, 0) 
+#     time = datetime(2008, 3, 9, 9, 18, 0)
 #     map_alt_km = 110
 #     asilib.plot_map(asi_array_code, location_code, time, map_alt_km)
 #     plt.tight_layout()

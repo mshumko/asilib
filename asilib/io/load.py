@@ -1,4 +1,4 @@
-#TODO: Remove when cleaning up Imager
+# TODO: Remove when cleaning up Imager
 import pathlib
 from datetime import datetime, timedelta
 import dateutil.parser
@@ -160,9 +160,7 @@ def load_image_generator(
 
     for hour in hours:
         try:
-            cdf_path = _find_img_path(
-                asi_array_code, location_code, hour, redownload=redownload
-            )
+            cdf_path = _find_img_path(asi_array_code, location_code, hour, redownload=redownload)
             cdf_obj = cdflib.CDF(cdf_path)
         except FileNotFoundError:
             if ignore_missing_data:
@@ -214,9 +212,7 @@ def load_skymap(
         time = dateutil.parser.parse(time)
 
     if redownload:
-        skymap_paths = download_skymap(
-            asi_array_code.lower(), location_code, redownload=redownload
-        )
+        skymap_paths = download_skymap(asi_array_code.lower(), location_code, redownload=redownload)
 
     else:
         # If the user does not want to force download skymap files,

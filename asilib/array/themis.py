@@ -41,10 +41,16 @@ THEMIS_DT = np.dtype("uint16")
 THEMIS_DT = THEMIS_DT.newbyteorder('>')  # force big endian byte ordering
 
 
-def themis(location_code: str, time: utils._time_type=None, 
-        time_range: utils._time_range_type=None, alt: int=110, 
-        redownload: bool=False, missing_ok: bool=True, load_images: bool=True,
-        imager=asilib.Imager)->asilib.Imager:
+def themis(
+    location_code: str,
+    time: utils._time_type = None,
+    time_range: utils._time_range_type = None,
+    alt: int = 110,
+    redownload: bool = False,
+    missing_ok: bool = True,
+    load_images: bool = True,
+    imager=asilib.Imager,
+) -> asilib.Imager:
     """
     Create an Imager instance using the THEMIS ASI images and skymaps.
 
@@ -76,7 +82,7 @@ def themis(location_code: str, time: utils._time_type=None,
     """
 
     if time is not None:
-         time = utils.validate_time(time)
+        time = utils.validate_time(time)
     else:
         time_range = utils.validate_time_range(time_range)
 
@@ -87,57 +93,62 @@ def themis(location_code: str, time: utils._time_type=None,
         if time is not None:
             # Find and load the nearest time stamp
             _times, _images = _load_pgm(file_paths[0])
-            image_index = np.argmin(np.abs(
-                    [(time - t_i).total_seconds() for t_i in _times]
-                    ))
-            if np.abs((time-_times[image_index]).total_seconds()) > 3:
-                raise IndexError(f'Cannot find a time stamp within 3 seconds of '
-                                    f'{time}. Closest time stamp is {_times[image_index]}.')
-            data = {'time':_times[image_index], 'image':_images[image_index]}
+            image_index = np.argmin(np.abs([(time - t_i).total_seconds() for t_i in _times]))
+            if np.abs((time - _times[image_index]).total_seconds()) > 3:
+                raise IndexError(
+                    f'Cannot find a time stamp within 3 seconds of '
+                    f'{time}. Closest time stamp is {_times[image_index]}.'
+                )
+            data = {'time': _times[image_index], 'image': _images[image_index]}
 
         elif time_range is not None:
-            start_times = len(file_paths)*[None]
-            end_times = len(file_paths)*[None]
+            start_times = len(file_paths) * [None]
+            end_times = len(file_paths) * [None]
             for i, file_path in enumerate(file_paths):
                 date_match = re.search(r'\d{8}_\d{4}', file_path.name)
                 start_times[i] = datetime.strptime(date_match.group(), '%Y%m%d_%H%M')
-                end_times[i] = start_times[i] + timedelta(minutes=1) 
+                end_times[i] = start_times[i] + timedelta(minutes=1)
             data = {
-                'path':file_paths, 'start_time':start_times, 'time_range':time_range,
-                'end_time':end_times, 'loader':_load_pgm
-                }
+                'path': file_paths,
+                'start_time': start_times,
+                'time_range': time_range,
+                'end_time': end_times,
+                'loader': _load_pgm,
+            }
     else:
-        data = {'time':time, 'image':None}
+        data = {'time': time, 'image': None}
 
     # Download and find the appropriate skymap
     if time is not None:
-        _time = time 
+        _time = time
     else:
         _time = time_range[0]
     _skymap = load_skymap(location_code, _time, redownload)
     alt_index = np.where(_skymap['FULL_MAP_ALTITUDE'] / 1000 == alt)[0]
-    assert len(alt_index) == 1, (
-        f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1000} km.'
-    )
+    assert (
+        len(alt_index) == 1
+    ), f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1000} km.'
     alt_index = alt_index[0]
     skymap = {
-        'lat':_skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
-        'lon':_skymap['FULL_MAP_LONGITUDE'][alt_index, :, :],
-        'alt':_skymap['FULL_MAP_ALTITUDE'][alt_index],
-        'el':_skymap['FULL_ELEVATION'],
-        'az':_skymap['FULL_AZIMUTH'],
-        'path':_skymap['PATH']
-        }
-    
+        'lat': _skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
+        'lon': _skymap['FULL_MAP_LONGITUDE'][alt_index, :, :],
+        'alt': _skymap['FULL_MAP_ALTITUDE'][alt_index],
+        'el': _skymap['FULL_ELEVATION'],
+        'az': _skymap['FULL_AZIMUTH'],
+        'path': _skymap['PATH'],
+    }
+
     meta = {
-        'array':'THEMIS', 'location':location_code.upper(),
-        'lat':float(_skymap['SITE_MAP_LATITUDE']),
-        'lon':float(_skymap['SITE_MAP_LONGITUDE']),
-        'alt':float(_skymap['SITE_MAP_ALTITUDE']),
-        'cadence':3,
-        'resolution':(256, 256)
-        }
+        'array': 'THEMIS',
+        'location': location_code.upper(),
+        'lat': float(_skymap['SITE_MAP_LATITUDE']),
+        'lon': float(_skymap['SITE_MAP_LONGITUDE']),
+        'alt': float(_skymap['SITE_MAP_ALTITUDE']),
+        'cadence': 3,
+        'resolution': (256, 256),
+    }
     return imager(data, meta, skymap)
+
 
 def themis_info() -> pd.DataFrame:
     """
@@ -145,19 +156,19 @@ def themis_info() -> pd.DataFrame:
     """
     path = pathlib.Path(asilib.__file__).parent / 'data' / 'asi_locations.csv'
     df = pd.read_csv(path)
-    df = df[df['array'] == 'THEMIS'] 
+    df = df[df['array'] == 'THEMIS']
     return df.reset_index(drop=True)
 
+
 def _get_pgm_files(location_code, time, time_range, redownload, missing_ok):
-    """
-    """
+    """ """
     if (time is None) and (time_range is None):
         raise ValueError('time or time_range must be specified.')
     elif (time is not None) and (time_range is not None):
         raise ValueError('both time and time_range can not be simultaneously specified.')
 
     local_dir = local_base_dir / 'images' / location_code.lower()
-    
+
     if redownload:
         # Option 1/4: Download one minute of data regardless if it is already saved
         if time is not None:
@@ -170,13 +181,14 @@ def _get_pgm_files(location_code, time, time_range, redownload, missing_ok):
             file_paths = []
             for file_time in file_times:
                 try:
-                    file_paths.append(_download_one_pgm_file(location_code, file_time, local_dir, redownload))
+                    file_paths.append(
+                        _download_one_pgm_file(location_code, file_time, local_dir, redownload)
+                    )
                 except (FileNotFoundError, AssertionError) as err:
-                    if (missing_ok and 
-                        (
-                            ('does not contain any hyper references containing' in str(err)) or
-                            ('Only one href is allowed' in str(err))
-                        )):
+                    if missing_ok and (
+                        ('does not contain any hyper references containing' in str(err))
+                        or ('Only one href is allowed' in str(err))
+                    ):
                         continue
                     raise
             return file_paths
@@ -196,22 +208,26 @@ def _get_pgm_files(location_code, time, time_range, redownload, missing_ok):
             file_times = utils.get_filename_times(time_range, dt='minutes')
             file_paths = []
             for file_time in file_times:
-                file_search_str = f'{file_time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}*.pgm.gz'
+                file_search_str = (
+                    f'{file_time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}*.pgm.gz'
+                )
                 local_file_paths = list(pathlib.Path(local_dir).rglob(file_search_str))
                 if len(local_file_paths) == 1:
                     file_paths.append(local_file_paths[0])
                 else:
                     try:
-                        file_paths.append(_download_one_pgm_file(location_code, file_time, local_dir, redownload))
+                        file_paths.append(
+                            _download_one_pgm_file(location_code, file_time, local_dir, redownload)
+                        )
                     except (FileNotFoundError, AssertionError) as err:
-                        if (missing_ok and 
-                            (
-                                ('does not contain any hyper references containing' in str(err)) or
-                                ('Only one href is allowed' in str(err))
-                            )):
+                        if missing_ok and (
+                            ('does not contain any hyper references containing' in str(err))
+                            or ('Only one href is allowed' in str(err))
+                        ):
                             continue
                         raise
-            return file_paths 
+            return file_paths
+
 
 def _download_one_pgm_file(location_code, time, save_dir, redownload):
     start_url = pgm_base_url + f'{time.year}/{time.month:02}/{time.day:02}/'
@@ -226,6 +242,7 @@ def _download_one_pgm_file(location_code, time, save_dir, redownload):
     assert len(matched_downloaders2) == 1
     return matched_downloaders2[0].download(save_dir, redownload=redownload)
 
+
 def load_skymap(location_code, time, redownload):
     """
     Load a THEMIS ASI skymap file.
@@ -235,7 +252,7 @@ def load_skymap(location_code, time, redownload):
     location_code: str
         The four character location name.
     time: str or datetime.datetime
-        A ISO-fomatted time string or datetime object. Must be in UT time. 
+        A ISO-fomatted time string or datetime object. Must be in UT time.
     redownload: bool
         Redownload the file.
     """
@@ -249,16 +266,19 @@ def load_skymap(location_code, time, redownload):
         local_skymap_paths = pathlib.Path(local_dir).rglob(f'*skymap_{location_code.lower()}*.sav')
         for local_skymap_path in local_skymap_paths:
             os.unlink(local_skymap_path)
-        local_skymap_paths = _download_all_skymaps(location_code, skymap_top_url, 
-            local_dir, redownload=redownload)
+        local_skymap_paths = _download_all_skymaps(
+            location_code, skymap_top_url, local_dir, redownload=redownload
+        )
 
     else:
-        local_skymap_paths = sorted(pathlib.Path(local_dir).rglob(
-            f'*skymap_{location_code.lower()}*.sav'))
-        #TODO: Add a check to periodically redownload the skymap data, maybe once a month?
+        local_skymap_paths = sorted(
+            pathlib.Path(local_dir).rglob(f'*skymap_{location_code.lower()}*.sav')
+        )
+        # TODO: Add a check to periodically redownload the skymap data, maybe once a month?
         if len(local_skymap_paths) == 0:
-            local_skymap_paths = _download_all_skymaps(location_code, skymap_top_url, 
-                local_dir, redownload=redownload)
+            local_skymap_paths = _download_all_skymaps(
+                location_code, skymap_top_url, local_dir, redownload=redownload
+            )
 
     skymap_filenames = [local_skymap_path.name for local_skymap_path in local_skymap_paths]
     skymap_file_dates = []
@@ -283,6 +303,7 @@ def load_skymap(location_code, time, redownload):
     skymap = _load_skymap(skymap_path)
     return skymap
 
+
 def _download_all_skymaps(location_code, url, save_dir, redownload):
     d = download.Downloader(url)
     # Find the dated subdirectories
@@ -294,6 +315,7 @@ def _download_all_skymaps(location_code, url, save_dir, redownload):
         for ds_j in ds:
             save_paths.append(ds_j.download(save_dir, redownload=redownload))
     return save_paths
+
 
 def _load_skymap(skymap_path):
     """
@@ -307,6 +329,7 @@ def _load_skymap(skymap_path):
     skymap_dict = _flip_skymap(skymap_dict)
     skymap_dict['PATH'] = skymap_path
     return skymap_dict
+
 
 def _flip_skymap(skymap):
     """
@@ -323,6 +346,7 @@ def _flip_skymap(skymap):
                 skymap[key] = skymap[key][:, ::-1, :]  # For lat/lon maps
     return skymap
 
+
 def _tranform_longitude_to_180(skymap):
     """
     Transform the SITE_MAP_LONGITUDE and FULL_MAP_LONGITUDE arrays from
@@ -336,6 +360,7 @@ def _tranform_longitude_to_180(skymap):
         np.mod(skymap['FULL_MAP_LONGITUDE'][valid_val_idx] + 180, 360) - 180
     )
     return skymap
+
 
 def _load_pgm(file_list, workers=1) -> Tuple[np.array, np.array]:
     """
@@ -355,7 +380,7 @@ def _load_pgm(file_list, workers=1) -> Tuple[np.array, np.array]:
         A 1d numpy array of time stamps.
     images
         A 3d numpy array of images with the first dimension corresponding to
-        time. Images are oriented such that pixel located at (0, 0) is in the 
+        time. Images are oriented such that pixel located at (0, 0) is in the
         southeast corner.
     """
     # set up process pool (ignore SIGINT before spawning pool so child processes inherit SIGINT handler)
@@ -383,7 +408,7 @@ def _load_pgm(file_list, workers=1) -> Tuple[np.array, np.array]:
     # derive number of frames to prepare for
     total_num_frames = 0
     for i in range(0, len(data)):
-        if (data[i][2] is True):
+        if data[i][2] is True:
             continue
         total_num_frames += data[i][0].shape[2]
 
@@ -396,15 +421,17 @@ def _load_pgm(file_list, workers=1) -> Tuple[np.array, np.array]:
     list_position = 0
     for i in range(0, len(data)):
         # check if file was problematic
-        if (data[i][2] is True):
-            problematic_file_list.append({
-                "filename": data[i][3],
-                "error_message": data[i][4],
-            })
+        if data[i][2] is True:
+            problematic_file_list.append(
+                {
+                    "filename": data[i][3],
+                    "error_message": data[i][4],
+                }
+            )
             continue
 
         # check if any data was read in
-        if (len(data[i][1]) == 0):
+        if len(data[i][1]) == 0:
             continue
 
         # find actual number of frames, this may differ from predicted due to dropped frames, end
@@ -412,8 +439,10 @@ def _load_pgm(file_list, workers=1) -> Tuple[np.array, np.array]:
         real_num_frames = data[i][0].shape[2]
 
         # metadata dictionary list at data[][1]
-        metadata_dict_list[list_position:list_position + real_num_frames] = data[i][1]
-        images[:, :, list_position:list_position + real_num_frames] = data[i][0]  # image arrays at data[][0]
+        metadata_dict_list[list_position : list_position + real_num_frames] = data[i][1]
+        images[:, :, list_position : list_position + real_num_frames] = data[i][
+            0
+        ]  # image arrays at data[][0]
         list_position = list_position + real_num_frames  # advance list position
 
     # trim unused elements from predicted array sizes
@@ -425,8 +454,10 @@ def _load_pgm(file_list, workers=1) -> Tuple[np.array, np.array]:
     images = np.moveaxis(images, 2, 0)
     images = images[:, ::-1, :]  # Flip north-south.
     times = np.array(
-        [dateutil.parser.parse(dict_i['Image request start']).replace(tzinfo=None)
-        for dict_i in metadata_dict_list]
+        [
+            dateutil.parser.parse(dict_i['Image request start']).replace(tzinfo=None)
+            for dict_i in metadata_dict_list
+        ]
     )
     return times, images
 
@@ -477,27 +508,33 @@ def __themis_readfile_worker(file):
             return images, metadata_dict_list, problematic, file, error_message
 
         # break loop at end of file
-        if (line == b''):
+        if line == b'':
             break
 
         # magic number; this is not a metadata or image line, exclude
-        if (line.startswith(b'P5\n')):
+        if line.startswith(b'P5\n'):
             continue
 
         # process line
-        if (line.startswith(b'#"')):
+        if line.startswith(b'#"'):
             # metadata lines start with #"<key>"
             try:
                 line_decoded = line.decode("ascii")
             except Exception as e:
                 # skip metadata line if it can't be decoded, likely corrupt file but don't mark it as one yet
-                print("Warning: issue decoding metadata line: %s (line='%s', file='%s')" % (str(e), line, file))
+                print(
+                    "Warning: issue decoding metadata line: %s (line='%s', file='%s')"
+                    % (str(e), line, file)
+                )
                 continue
 
             # split the key and value out of the metadata line
             line_decoded_split = line_decoded.split('"')
-            if (len(line_decoded_split) != 3):
-                print("Warning: issue splitting metadata line (line='%s', file='%s')" % (line_decoded, file))
+            if len(line_decoded_split) != 3:
+                print(
+                    "Warning: issue splitting metadata line (line='%s', file='%s')"
+                    % (line_decoded, file)
+                )
                 continue
             key = line_decoded_split[1]
             value = line_decoded_split[2].strip()
@@ -506,18 +543,20 @@ def __themis_readfile_worker(file):
             metadata_dict[key] = value
 
             # set the site/device uids, or inject the site and device UIDs if they are missing
-            if ("Site unique ID" not in metadata_dict):
+            if "Site unique ID" not in metadata_dict:
                 metadata_dict["Site unique ID"] = site_uid
             else:
                 site_uid = metadata_dict["Site unique ID"]
-            if ("Imager unique ID" not in metadata_dict):
+            if "Imager unique ID" not in metadata_dict:
                 metadata_dict["Imager unique ID"] = device_uid
             else:
                 device_uid = metadata_dict["Imager unique ID"]
 
             # split dictionaries up per frame, exposure plus initial readout is
             # always the end of metadata for frame
-            if (key.startswith("Exposure plus initial readout") or key.startswith("Exposure duration plus readout")):
+            if key.startswith("Exposure plus initial readout") or key.startswith(
+                "Exposure duration plus readout"
+            ):
                 metadata_dict_list.append(metadata_dict)
                 metadata_dict = {}
         elif line == b'65535\n':
@@ -553,7 +592,7 @@ def __themis_readfile_worker(file):
     unzipped.close()
 
     # check to see if the image is empty
-    if (images.size == 0):
+    if images.size == 0:
         print("Error reading image file: found no image data")
         problematic = True
         error_message = "no image data"

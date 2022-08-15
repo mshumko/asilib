@@ -24,7 +24,7 @@ ax, im = asilib.plot_keogram(
     ax=ax,
     map_alt=map_alt_km,
     color_bounds=(300, 800),
-    aacgm=True
+    aacgm=True,
 )
 plt.colorbar(im, label='Intensity')
 ax.set_xlabel('UTC')

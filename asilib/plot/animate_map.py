@@ -92,10 +92,10 @@ def animate_map_generator(
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
     ax: plt.Axes = None,
-    map_shapefile: Union[str, pathlib.Path]='ne_10m_land', 
-    coast_color: str='k', 
-    land_color: str='g', 
-    ocean_color: str='w',
+    map_shapefile: Union[str, pathlib.Path] = 'ne_10m_land',
+    coast_color: str = 'k',
+    land_color: str = 'g',
+    ocean_color: str = 'w',
     lon_bounds: tuple = (-140, -60),
     lat_bounds: tuple = (40, 82),
     label: bool = True,
@@ -193,24 +193,22 @@ def animate_map_generator(
     Example
     -------
     | from datetime import datetime
-    | 
+    |
     | import asilib
-    | 
+    |
     | map_alt=110
     | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    | map_generator = asilib.animate_map_generator('THEMIS', 'FSMI', time_range, map_alt=map_alt, 
+    | map_generator = asilib.animate_map_generator('THEMIS', 'FSMI', time_range, map_alt=map_alt,
     |     lon_bounds=(-125, -100), lat_bounds=(55, 70))
-    | 
+    |
     | for (image_time1, image, ax, p) in map_generator:
     |       # The code that modifies each image here.
     |       pass
-    | 
+    |
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')
     """
     try:
-        image_times, images = load_image(
-            asi_array_code, location_code, time_range=time_range
-        )
+        image_times, images = load_image(asi_array_code, location_code, time_range=time_range)
     except AssertionError as err:
         if '0 number of time stamps were found in time_range' in str(err):
             print(
@@ -254,12 +252,12 @@ def animate_map_generator(
     if ax is None:
         ax = make_map(
             file=map_shapefile,
-            coast_color=coast_color, 
-            land_color=land_color, 
+            coast_color=coast_color,
+            land_color=land_color,
             ocean_color=ocean_color,
             lon_bounds=lon_bounds,
-            lat_bounds=lat_bounds
-            )
+            lat_bounds=lat_bounds,
+        )
 
     color_map = asilib.plot.utils.get_color_map(asi_array_code, color_map)
 
@@ -311,9 +309,7 @@ def animate_map_generator(
         yield image_time, image, ax, p
 
         # Save the plot before the next iteration.
-        save_name = (
-            f'{str(i).zfill(5)}.png'
-        )
+        save_name = f'{str(i).zfill(5)}.png'
         plt.savefig(image_save_dir / save_name)
         image_paths.append(image_save_dir / save_name)
 

@@ -26,9 +26,7 @@ class TestAnimateMap(unittest.TestCase):
     def test_animate_map_generator_send(self):
         """Check that the generator function and the .send() method works"""
         time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-        gen = asilib.animate_map_generator(
-            'THEMIS', 'FSMI', time_range, 110, overwrite=True
-        )
+        gen = asilib.animate_map_generator('THEMIS', 'FSMI', time_range, 110, overwrite=True)
         tup = gen.send("get_image_data")
         self.assertEqual(tup.time.shape, (100,))
         self.assertEqual(tup.images.shape, (100, 256, 256))

@@ -18,49 +18,51 @@ import ffmpeg
 import asilib
 import asilib.utils as utils
 
+
 class Imager:
     """
-    Manage and analyze the ASI images and time stamps, as well as the associated metadata 
+    Manage and analyze the ASI images and time stamps, as well as the associated metadata
     and skymaps.
 
     Parameters
     ----------
     data: dict
         Dictionary containing image data in two main formats (sets of keys): the first is with
-        two keys ``time`` and ``image`` for a single image; or ``start_time``, ``end_time``, 
+        two keys ``time`` and ``image`` for a single image; or ``start_time``, ``end_time``,
         ``path``, and ``loader`` keys.
     meta: dict
-        The ASI metadata that must have the following keys ``array``, ``location``, ``lat``, 
-        ``lon``, ``alt``, and ``cadence``. The ``cadence`` units are seconds and ``alt`` is 
+        The ASI metadata that must have the following keys ``array``, ``location``, ``lat``,
+        ``lon``, ``alt``, and ``cadence``. The ``cadence`` units are seconds and ``alt`` is
         kilometers.
     skymap: dict
-        The data to map each pixel to azimuth and elevation (``az``, ``el``) and latitude, 
+        The data to map each pixel to azimuth and elevation (``az``, ``el``) and latitude,
         longitude, altitude (``lat``, ``lon``, ``alt``) coordinates.
     plot_settings: dict
-        An optional dictionary containing  ```color_bounds```, ```color_map```,  
-        and ```color_norm``` keys. The ```color_bounds``` can be either a function takes in 
+        An optional dictionary containing  ```color_bounds```, ```color_map```,
+        and ```color_norm``` keys. The ```color_bounds``` can be either a function takes in
         an image and returns the lower and upper bound numbers, or a len 2 tuple or list.
         The ```color_map``` key must be a valid matplotlib colormap. And lastly, ```color_norm```
-        must be either ```lin``` for linear or ```log``` for logarithmic color scale. 
+        must be either ```lin``` for linear or ```log``` for logarithmic color scale.
     """
-    def __init__(self, data: dict, meta:dict , skymap: dict, plot_settings: dict={}) -> None:
-        self._data = {k.lower():v for k, v in data.items()}
-        self.meta = {k.lower():v for k, v in meta.items()}
-        self.skymap = {k.lower():v for k, v in skymap.items()}
-        self.plot_settings = {k.lower():v for k, v in plot_settings.items()}
+
+    def __init__(self, data: dict, meta: dict, skymap: dict, plot_settings: dict = {}) -> None:
+        self._data = {k.lower(): v for k, v in data.items()}
+        self.meta = {k.lower(): v for k, v in meta.items()}
+        self.skymap = {k.lower(): v for k, v in skymap.items()}
+        self.plot_settings = {k.lower(): v for k, v in plot_settings.items()}
         # self._validate_inputs()  # TODO-Validation: Add a small-scale validations to each method.
         return
 
     def plot_fisheye(
         self,
-        time: utils._time_type=None,
+        time: utils._time_type = None,
         ax: plt.Axes = None,
         label: bool = True,
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
         azel_contours: bool = False,
-        azel_contour_color: str = 'yellow'
+        azel_contour_color: str = 'yellow',
     ) -> Tuple[plt.Axes, matplotlib.image.AxesImage]:
         """
         Plots one fisheye image, oriented with North on the top, and East on the right of the image.
@@ -135,8 +137,8 @@ class Imager:
 
         color_bounds, color_map, color_norm = self._plot_params(
             image, color_bounds, color_map, color_norm
-            )
-        
+        )
+
         im = ax.imshow(image[:, :], cmap=color_map, norm=color_norm, origin="lower")
         if label:
             self._add_label(time, ax)
@@ -146,7 +148,7 @@ class Imager:
 
     def animate_fisheye(self, **kwargs) -> None:
         """
-        A wrapper for the ```animate_fisheye_gen()``` method that animates a series of 
+        A wrapper for the ```animate_fisheye_gen()``` method that animates a series of
         fisheye images. Any kwargs are passed directly into ```animate_fisheye_gen()```.
 
         Parameters
@@ -203,7 +205,6 @@ class Imager:
             pass
         return
 
-
     def animate_fisheye_gen(
         self,
         ax: plt.Axes = None,
@@ -216,16 +217,18 @@ class Imager:
         movie_container: str = 'mp4',
         ffmpeg_params={},
         overwrite: bool = False,
-        ) -> Generator[Tuple[datetime.datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
+    ) -> Generator[
+        Tuple[datetime.datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None
+    ]:
         """
         A generator method that animates a series of fisheye images.
 
         A generator behaves like an iterator in that it plots one fisheye image
-        at a time and yields (similar to returns) the image. You can modify, or add 
+        at a time and yields (similar to returns) the image. You can modify, or add
         content to the image (such as a spacecraft position). Then, once the iteration
         is complete, this method stitches the images into an animation. See the examples
-        below and in the examples page for use cases. The ```animate_fisheye()``` method 
-        takes care of the iteration.  
+        below and in the examples page for use cases. The ```animate_fisheye()``` method
+        takes care of the iteration.
 
         Parameters
         ----------
@@ -253,9 +256,9 @@ class Imager:
             The additional/overwitten ffmpeg output parameters. The default parameters are:
             framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
         overwrite: bool
-            If true, the data will be downloaded again and the output animation overwritten. 
+            If true, the data will be downloaded again and the output animation overwritten.
             If false it will prompt the user to answer y/n.
-            
+
         Yields
         ------
         image_time: datetime.datetime
@@ -318,17 +321,19 @@ class Imager:
         image_save_dir.mkdir(parents=True)
 
         image_paths = []
-        
-        for i, (image_time, image) in utils.progressbar(enumerate(self.__iter__()), self._estimate_n_times(), movie_save_name):
+
+        for i, (image_time, image) in utils.progressbar(
+            enumerate(self.__iter__()), self._estimate_n_times(), movie_save_name
+        ):
             # # If the image is all 0s we have a bad image and we need to skip it.
             # if np.all(image == 0):
             #     continue
             ax.clear()
             ax.axis('off')
-            # Use an underscore so the original method parameters are not overwritten. 
+            # Use an underscore so the original method parameters are not overwritten.
             _, _color_map, _color_norm = self._plot_params(
                 image, color_bounds, color_map, color_norm
-                )
+            )
 
             im = ax.imshow(image, cmap=_color_map, norm=_color_norm, origin='lower')
             if label:
@@ -342,9 +347,7 @@ class Imager:
             yield image_time, image, ax, im
 
             # Save the plot before the next iteration.
-            save_name = (
-                f'{str(i).zfill(6)}.png'
-            )
+            save_name = f'{str(i).zfill(6)}.png'
             plt.savefig(image_save_dir / save_name)
             image_paths.append(image_save_dir / save_name)
 
@@ -497,20 +500,25 @@ class Imager:
             self._data['time'] = utils.validate_time(self._data['time'])
 
             # image is None means that were in a conjunction finding mode when Conjunction
-            # only needs the data in the skymap and the meta dictionaries. 
+            # only needs the data in the skymap and the meta dictionaries.
             if self._data['image'] is not None:
                 self._data['image'] = np.array(self._data['image'])
 
                 if len(self._data['image'].shape) != 2:
-                    raise ValueError(f'The image shape must be 2. Got {len(self._data["image"].shape)}')
+                    raise ValueError(
+                        f'The image shape must be 2. Got {len(self._data["image"].shape)}'
+                    )
 
         elif all([key in self._data.keys() for key in multiple_images_keys]):
-            self._data['start_time'] = np.array([utils.validate_time(t_i) for t_i in 
-                                                self._data['start_time']])
-            self._data['end_time'] = np.array([utils.validate_time(t_i) for t_i in 
-                                                self._data['end_time']])
-            self._data['time_range'] = np.array([utils.validate_time(t_i) for t_i in 
-                                                self._data['time_range']])
+            self._data['start_time'] = np.array(
+                [utils.validate_time(t_i) for t_i in self._data['start_time']]
+            )
+            self._data['end_time'] = np.array(
+                [utils.validate_time(t_i) for t_i in self._data['end_time']]
+            )
+            self._data['time_range'] = np.array(
+                [utils.validate_time(t_i) for t_i in self._data['time_range']]
+            )
         elif len(self._data.keys()) == 0:
             pass  # The case when the Image instance is only used for conjunctions.
         else:
@@ -518,7 +526,7 @@ class Imager:
                 'The Imager "data" dictionary did not contain either of the two sets of '
                 f'acceptable keys: {single_image_keys} or {multiple_images_keys}. Got '
                 f'{self._data.keys()}.'
-                )
+            )
 
         # TODO: Add the meta and skymap checks
         # Check that the skyamp lons are -180 - 180.
@@ -532,7 +540,7 @@ class Imager:
         ----------
         time_range: list of datetime or string-formatted times.
             The bounding time range.
-        
+
         Yields
         ------
         asilib.Imager:
@@ -547,18 +555,22 @@ class Imager:
             elif _slice.start is None:
                 start_time = self._data['time_range'][0]
             else:
-                raise ValueError(f'The start index can only be a time object, string, or None. '
-                                 f'{_slice.start} is unsupported')
-            
+                raise ValueError(
+                    f'The start index can only be a time object, string, or None. '
+                    f'{_slice.start} is unsupported'
+                )
+
             if isinstance(_slice.stop, str):
                 end_time = dateutil.parser.parse(_slice.stop)
             elif isinstance(_slice.stop, (datetime.datetime, pd.Timestamp)):
                 end_time = _slice.stop
             elif _slice.stop is None:
-                end_time =self._data['time_range'][1]
+                end_time = self._data['time_range'][1]
             else:
-                raise ValueError(f'The start index can only be a time object, string, or None. '
-                                 f'{_slice.stop} is unsupported')
+                raise ValueError(
+                    f'The start index can only be a time object, string, or None. '
+                    f'{_slice.stop} is unsupported'
+                )
 
             if _slice.step is not None:
                 raise NotImplementedError
@@ -567,15 +579,14 @@ class Imager:
             # start_file_i = np.where(start_time >= np.array(self._data['start_time']))[0][-1]
             # end_file_i = np.where(end_time <= np.array(self._data['end_time']))[0][0]
 
-            
             new_data = copy.copy(self._data)
             new_data['time_range'] = [start_time, end_time]
             # new_data['start_time'] = new_data['start_time'][start_file_i:end_file_i]
             # new_data['end_time'] = new_data['end_time'][start_file_i:end_file_i]
             # new_data['path'] = new_data['path'][start_file_i:end_file_i]
             files = np.where(
-                (start_time <= np.array(self._data['end_time'])) &
-                (end_time >= np.array(self._data['start_time']))
+                (start_time <= np.array(self._data['end_time']))
+                & (end_time >= np.array(self._data['start_time']))
             )[0]
             new_data['start_time'] = np.array(new_data['start_time'])[files]
             new_data['end_time'] = np.array(new_data['end_time'])[files]
@@ -596,32 +607,39 @@ class Imager:
 
             if 'start_time' in self._data.keys():  # First find the correct file
                 file_index = np.where(
-                    (slice_time >= np.array(self._data['start_time'])) &
-                    (slice_time < np.array(self._data['end_time']))
-                    )[0]
+                    (slice_time >= np.array(self._data['start_time']))
+                    & (slice_time < np.array(self._data['end_time']))
+                )[0]
                 assert len(file_index) == 1
                 file_index = file_index[0]
                 file_path = self._data['path'][file_index]
                 file_times, file_images = self._data['loader'](file_path)
-                
+
                 # Then find the correct time stamp
-                image_index = np.argmin(np.abs(
-                    [(slice_time - t_i).total_seconds() for t_i in file_times]
-                    ))
-                if np.abs((slice_time-file_times[image_index]).total_seconds()) > self.meta['cadence']:
-                    raise IndexError(f'Cannot find a time stamp within of {self.meta["cadence"]} s of '
-                                    f'{slice_time}. Closest time stamp is {file_times[image_index]}.')
+                image_index = np.argmin(
+                    np.abs([(slice_time - t_i).total_seconds() for t_i in file_times])
+                )
+                if (
+                    np.abs((slice_time - file_times[image_index]).total_seconds())
+                    > self.meta['cadence']
+                ):
+                    raise IndexError(
+                        f'Cannot find a time stamp within of {self.meta["cadence"]} s of '
+                        f'{slice_time}. Closest time stamp is {file_times[image_index]}.'
+                    )
                 new_data = {
-                    'time':file_times[image_index],
-                    'image':file_images[image_index, ...]  # Ellipsis to return all other dimensions.
+                    'time': file_times[image_index],
+                    'image': file_images[
+                        image_index, ...
+                    ],  # Ellipsis to return all other dimensions.
                 }
             # Edge case when [time] is within the imager cadence of self._image['time']
             elif 'time' in self._data.keys():
-                if  np.abs((slice_time-self._data['time']).total_seconds()) > self.meta['cadence']:
-                    raise ValueError (
+                if np.abs((slice_time - self._data['time']).total_seconds()) > self.meta['cadence']:
+                    raise ValueError(
                         f'Imager contains only one image at time={self._data["time"]} '
                         f'but was sliced with time={slice_time}.'
-                        )
+                    )
                 new_data = copy.copy(self._data)
 
             new_meta = copy.copy(self.meta)
@@ -630,20 +648,21 @@ class Imager:
 
             cls = type(self)
             return cls(new_data, new_meta, new_skymap, plot_settings=new_plot_settings)
-            
+
         elif isinstance(_slice, tuple):
-            raise NotImplementedError('At this time Imager does not support '
-                                    'multi-dimensional indexing.')
+            raise NotImplementedError(
+                'At this time Imager does not support ' 'multi-dimensional indexing.'
+            )
         return
 
     def __iter__(self):
         """
-        Iterate over individual timestamps and images. 
+        Iterate over individual timestamps and images.
 
         Parameters
         ----------
         None
-        
+
         Yields
         ------
         datetime.datetime
@@ -652,7 +671,7 @@ class Imager:
             image.
         """
         self._loader_is_gen = inspect.isgeneratorfunction(self._data['loader'])
-        
+
         if 'time_range' not in self._data.keys():
             raise KeyError('Imager was not instantiated with a time_range.')
 
@@ -674,7 +693,9 @@ class Imager:
 
                 for time_chunk, image_chunk in gen:
                     for time, image in zip(time_chunk, image_chunk):
-                        if (time < self._data['time_range'][0]) or (time > self._data['time_range'][1]):
+                        if (time < self._data['time_range'][0]) or (
+                            time > self._data['time_range'][1]
+                        ):
                             continue
                         yield time, image
 
@@ -682,16 +703,16 @@ class Imager:
         """
         Estimate the maximum number of time stamps for the Imager's time range..
         """
-        n_sec = (self._data['time_range'][1] - self._data['time_range'][0]).total_seconds() 
+        n_sec = (self._data['time_range'][1] - self._data['time_range'][0]).total_seconds()
         # +2 is for when time_range is a bit bigger than an integer number of samples
-        return int(n_sec/self.meta['cadence'])+2
+        return int(n_sec / self.meta['cadence']) + 2
 
     def data(self, which='time'):
         """
-        Returns the full data in the specified time_range. 
+        Returns the full data in the specified time_range.
 
         Warning: this does not respect how much memory you have avaliable; a long enough
-        time_range can completely use up your memory and then your computer will become 
+        time_range can completely use up your memory and then your computer will become
         unresponsive or sluggish (if you have swap memory).
 
         Parameters
@@ -702,24 +723,24 @@ class Imager:
             This kwarg is only used in multi-image Imager objects.
         """
         if 'time' in which.lower():
-            times_flag=True
+            times_flag = True
             images_flag = False
         elif 'image' in which.lower():
-            times_flag=False
+            times_flag = False
             images_flag = True
         elif 'both' in which.lower():
-            times_flag=True
+            times_flag = True
             images_flag = True
         else:
             raise ValueError("'which' kwarg must be 'time', 'image', or 'both'.")
 
         if ('time_range' in self._data.keys()) and (self._data['time_range'] is not None):
             if times_flag:
-                _times = np.nan*np.zeros(self._estimate_n_times(), dtype=object)
+                _times = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
             else:
                 _times = None
             if images_flag:
-                _images = np.nan*np.zeros((self._estimate_n_times(), *self.meta['resolution']))
+                _images = np.nan * np.zeros((self._estimate_n_times(), *self.meta['resolution']))
             else:
                 _images = None
 
@@ -728,7 +749,7 @@ class Imager:
                     _times[i] = time
                 if images_flag:
                     _images[i, ...] = image
-            
+
             # Filter out missing data
             if times_flag:
                 # np.nan does not work with an array of datetime objects.
@@ -747,12 +768,12 @@ class Imager:
             s = (
                 f'A {self.meta["array"]}-{self.meta["location"]} Imager. '
                 f'time={self._data["time"]}'
-                )
+            )
         elif ('time_range' in self._data.keys()) and (self._data['time_range'] is not None):
             s = (
                 f'A {self.meta["array"]}-{self.meta["location"]} Imager. '
                 f'time_range={self._data["time_range"]}'
-                )
+            )
         return s
 
     def _plot_params(self, image, color_bounds, color_map, color_norm):
@@ -761,7 +782,7 @@ class Imager:
         these kwargs are checked first, and then self.plot_settings. If these values are
         unset in either place, defaults are returned.
         """
-        # Check the plot_settings dict and fall back to a default if user did not specify 
+        # Check the plot_settings dict and fall back to a default if user did not specify
         # color_bounds in the method call.
         if color_bounds is None:
             if 'color_bounds' in self.plot_settings.keys():
@@ -784,7 +805,7 @@ class Imager:
                 color_map = self.plot_settings['color_map']
             else:
                 color_map = 'Greys_r'
-        else: 
+        else:
             color_map = color_map
 
         if color_norm is None:
@@ -792,9 +813,9 @@ class Imager:
                 color_norm = self.plot_settings['color_norm']
             else:
                 color_norm = 'log'
-        else: 
+        else:
             color_norm = color_norm
-       
+
         if color_norm == 'log':
             color_norm = colors.LogNorm(vmin=color_bounds[0], vmax=color_bounds[1])
         elif color_norm == 'lin':
@@ -816,11 +837,11 @@ class Imager:
             The contour color.
         """
         az_contours = ax.contour(
-                self.skymap['az'],
-                colors=color,
-                linestyles='dotted',
-                levels=np.arange(0, 361, 90),
-                alpha=1,
+            self.skymap['az'],
+            colors=color,
+            linestyles='dotted',
+            levels=np.arange(0, 361, 90),
+            alpha=1,
         )
         el_contours = ax.contour(
             self.skymap['el'],
@@ -842,19 +863,18 @@ class Imager:
         else:
             time_label = image_time.strftime('%Y-%m-%d %T:%f')
         ax.text(
-                0,
-                0,
-                (f"{self.meta['array'].upper()}/{self.meta['location'].upper()}\n"
-                f"{time_label}"),
-                va='bottom',
-                transform=ax.transAxes,
-                color='white',
-            )
+            0,
+            0,
+            (f"{self.meta['array'].upper()}/{self.meta['location'].upper()}\n" f"{time_label}"),
+            va='bottom',
+            transform=ax.transAxes,
+            color='white',
+        )
         return
 
     def _mask_low_horizon(self, lon_map, lat_map, el_map, min_elevation, image=None):
         """
-        Mask the image, skymap['lon'], skymap['lat'] arrays with np.nans 
+        Mask the image, skymap['lon'], skymap['lat'] arrays with np.nans
         where the skymap['el'] < min_elevation or is nan.
         """
         idh = np.where(np.isnan(el_map) | (el_map < min_elevation))
@@ -866,17 +886,20 @@ class Imager:
 
         if image is not None:
             image_copy = image.copy()
-            image_copy = image_copy.astype(float) # Can't mask image unless it is a float array.
+            image_copy = image_copy.astype(float)  # Can't mask image unless it is a float array.
             image_copy[idh] = np.nan
-        else: 
+        else:
             image_copy = None
-        
+
         if (lon_map.shape[0] == el_map.shape[0] + 1) and (lon_map.shape[1] == el_map.shape[1] + 1):
-            #TODO: This is REGO/THEMIS specific. Remove here and add this to the themis() function? 
+            # TODO: This is REGO/THEMIS specific. Remove here and add this to the themis() function?
             # For some reason the THEMIS & REGO lat/lon_map arrays are one size larger than el_map, so
             # here we mask the boundary indices in el_map by adding 1 to both the rows
             # and columns.
-            idh_boundary_bottom = (idh[0] + 1, idh[1])  # idh is a tuple so we have to create a new one.
+            idh_boundary_bottom = (
+                idh[0] + 1,
+                idh[1],
+            )  # idh is a tuple so we have to create a new one.
             idh_boundary_right = (idh[0], idh[1] + 1)
             lon_map_copy[idh_boundary_bottom] = np.nan
             lat_map_copy[idh_boundary_bottom] = np.nan
@@ -885,12 +908,12 @@ class Imager:
         return lon_map_copy, lat_map_copy, image_copy
 
     def _create_animation(
-        self, 
-        image_paths: List[pathlib.Path], 
-        movie_save_path: pathlib.Path, 
-        ffmpeg_params: dict, 
-        overwrite: bool
-        ):
+        self,
+        image_paths: List[pathlib.Path],
+        movie_save_path: pathlib.Path,
+        ffmpeg_params: dict,
+        overwrite: bool,
+    ):
         """
         Helper function to stich together images into an animation using ffmpeg.
 
@@ -915,7 +938,7 @@ class Imager:
         }
         # Add or change the ffmpeg_params's key:values with ffmpeg_params
         _ffmpeg_params.update(ffmpeg_params)
-        
+
         try:
             movie_obj = ffmpeg.input(
                 str(image_paths[0].parent / "%06d.png"),
@@ -935,9 +958,15 @@ class Imager:
     #               f'{self.time}, {self.image}, skymap={self.skymap}')
     #     return f'{self.__class__.__qualname__}(' + params + ')'
 
-
-    def _pcolormesh_nan(self,
-        x: np.ndarray, y: np.ndarray, c: np.ndarray, ax, cmap=None, norm=None, pcolormesh_kwargs={}
+    def _pcolormesh_nan(
+        self,
+        x: np.ndarray,
+        y: np.ndarray,
+        c: np.ndarray,
+        ax,
+        cmap=None,
+        norm=None,
+        pcolormesh_kwargs={},
     ):
         """
         # TODO: Remove when done (move into Imager)
@@ -977,11 +1006,11 @@ class Imager:
                 bottom = i
 
             # Reassign all lat/lon columns after good[-1] (all nans) to good[-1].
-            x[i, good[-1]:] = x[i, good[-1]]
-            y[i, good[-1]:] = y[i, good[-1]]
+            x[i, good[-1] :] = x[i, good[-1]]
+            y[i, good[-1] :] = y[i, good[-1]]
             # Reassign all lat/lon columns before good[0] (all nans) to good[0].
-            x[i, :good[0]] = x[i, good[0]]
-            y[i, :good[0]] = y[i, good[0]]
+            x[i, : good[0]] = x[i, good[0]]
+            y[i, : good[0]] = y[i, good[0]]
 
         # Reassign all of the fully invalid lat/lon rows above top to the the max lat/lon value.
         x[:top, :] = np.nanmax(x[top, :])

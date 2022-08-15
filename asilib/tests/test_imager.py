@@ -43,5 +43,5 @@ from asilib.imager import Imager
 
 #     for data in invalid_data_dicts:
 #         with pytest.raises(AttributeError):
-#             Imager(data, {}, {}) 
+#             Imager(data, {}, {})
 #     return

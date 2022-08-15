@@ -15,6 +15,7 @@ image_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/lamp/geoff
 skymap_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/lamp/geoff/'
 local_base_dir = asilib.config['ASI_DATA_DIR'] / 'lamp_phantom'
 
+
 def lamp(location_code, time=None, time_range=None, redownload=False, missing_ok=True, alt=100):
     """
     Create an Imager instance using the LAMP's ground-based Phantom ASI.
@@ -41,54 +42,58 @@ def lamp(location_code, time=None, time_range=None, redownload=False, missing_ok
     """
     if location_code.lower() == 'vee':
         meta = {
-            'array':'lamp_phantom', 'location':'VEE',
-            'lat':67.0135,
-            'lon':-146.406,
-            'alt':0.2,
-            'cadence':0.01,
-            'resolution':(640, 640)
-            }
+            'array': 'lamp_phantom',
+            'location': 'VEE',
+            'lat': 67.0135,
+            'lon': -146.406,
+            'alt': 0.2,
+            'cadence': 0.01,
+            'resolution': (640, 640),
+        }
     else:
         raise NotImplementedError
 
     _skymap = load_skymap(location_code, alt, redownload)
     skymap = {
-        'lat':_skymap['Lat'],
-        'lon':_skymap['Lon'],
-        'alt':alt,
-        'el':_skymap['El'],
-        'az':_skymap['Az'],
-        'path':_skymap['path']
-        }
+        'lat': _skymap['Lat'],
+        'lon': _skymap['Lon'],
+        'alt': alt,
+        'el': _skymap['El'],
+        'az': _skymap['Az'],
+        'path': _skymap['path'],
+    }
 
     file_paths = _get_files(location_code, time, time_range, redownload, missing_ok)
 
     if time_range is not None:  # Prepare the loader for multiple files
-        start_times = len(file_paths)*[None]
-        end_times = len(file_paths)*[None]
+        start_times = len(file_paths) * [None]
+        end_times = len(file_paths) * [None]
         for i, file_path in enumerate(file_paths):
             date_match = re.search(r'\d{4}', file_path.name)
             start_times[i] = datetime.strptime(f'20220305_{date_match.group()}', '%Y%m%d_%H%M')
             end_times[i] = start_times[i] + timedelta(minutes=1)
 
         data = {
-            'path':file_paths, 'start_time':start_times, 
-            'end_time':end_times, 'loader':lamp_reader, 
-            'time_range':time_range
-            }
+            'path': file_paths,
+            'start_time': start_times,
+            'end_time': end_times,
+            'loader': lamp_reader,
+            'time_range': time_range,
+        }
 
     elif time is not None:  # Load the LAMP file and find the nearest time and image.
         _times, _images = lamp_reader(file_paths[0])
-        image_index = np.argmin(np.abs(
-                [(time - t_i).total_seconds() for t_i in _times]
-                ))
-        if np.abs((time-_times[image_index]).total_seconds()) > meta['cadence']:
-            raise IndexError(f'Cannot find a time stamp within of {meta["cadence"]} s of '
-                                f'{time}. Closest time stamp is {_times[image_index]}.')
-        data = {'time':_times[image_index], 'image':_images[image_index]}
+        image_index = np.argmin(np.abs([(time - t_i).total_seconds() for t_i in _times]))
+        if np.abs((time - _times[image_index]).total_seconds()) > meta['cadence']:
+            raise IndexError(
+                f'Cannot find a time stamp within of {meta["cadence"]} s of '
+                f'{time}. Closest time stamp is {_times[image_index]}.'
+            )
+        data = {'time': _times[image_index], 'image': _images[image_index]}
     else:
-        raise ValueError("Not sure we got here. Whoops! You need to provide either a "
-            "time or time_range.")
+        raise ValueError(
+            "Not sure we got here. Whoops! You need to provide either a " "time or time_range."
+        )
 
     return asilib.Imager(data, meta, skymap)
 
@@ -103,7 +108,7 @@ def _get_files(location_code, time, time_range, redownload, missing_ok):
         raise ValueError('both time and time_range can not be simultaneously specified.')
 
     local_dir = local_base_dir / 'images' / location_code.lower()
-    
+
     if time is not None:
         time = utils.validate_time(time)
         filename = f'narrow_{time.strftime("%H%M")}.mat'
@@ -130,21 +135,21 @@ def _get_files(location_code, time, time_range, redownload, missing_ok):
                 try:
                     file_paths.append(d.download(local_dir, redownload=redownload, stream=True))
                 except (FileNotFoundError, AssertionError, ConnectionError) as err:
-                    if (missing_ok and 
-                        (
-                            ('does not contain any hyper references containing' in str(err)) or
-                            ('Only one href is allowed' in str(err)) or
-                            ('error response' in str(err))
-                        )):
+                    if missing_ok and (
+                        ('does not contain any hyper references containing' in str(err))
+                        or ('Only one href is allowed' in str(err))
+                        or ('error response' in str(err))
+                    ):
                         continue
                     raise
     return file_paths
+
 
 def lamp_reader(path):
     """
     Loads in the Phantom images chunk_size at a time to avoid a memory
     overflow. The .mat format is version 7.3 which are technically
-    in the hdf5 format. 
+    in the hdf5 format.
     """
     chunk_size = 600
     # The filename only contains the start hour and minute, so we calculate
@@ -156,14 +161,15 @@ def lamp_reader(path):
         image_keys = [key for key in f.keys() if 'images' in key]
         assert len(image_keys) == 1, f'{len(image_keys)} image keys found in the file {path}.'
         image_key = image_keys[0]
-        dt = 60/f[image_key].shape[0]
+        dt = 60 / f[image_key].shape[0]
 
         for pos in range(0, f[image_key].shape[0], chunk_size):
-            times = np.array([t0 + timedelta(seconds=dt*i) for i in range(pos, pos+chunk_size)])
-            # ::-1 switches column to row major 
-            images = np.transpose(f[image_key][pos:pos+chunk_size], axes=(0, 2, 1))
+            times = np.array([t0 + timedelta(seconds=dt * i) for i in range(pos, pos + chunk_size)])
+            # ::-1 switches column to row major
+            images = np.transpose(f[image_key][pos : pos + chunk_size], axes=(0, 2, 1))
             # images = f[image_key][pos:pos+chunk_size]
             yield times, images
+
 
 def find_skymap(location_code, alt, redownload=True):
     """
@@ -172,34 +178,36 @@ def find_skymap(location_code, alt, redownload=True):
     local_dir = local_base_dir / 'skymaps' / location_code.lower()
 
     # Check if the AzEl skymap is already downloaded.
-    local_azel_paths = list(pathlib.Path(local_dir).rglob('Average_fps_im_-17700_to_-17600_AzEl.txt'))
+    local_azel_paths = list(
+        pathlib.Path(local_dir).rglob('Average_fps_im_-17700_to_-17600_AzEl.txt')
+    )
 
     if (len(local_azel_paths) == 0) or redownload:
         # Download the skymaps.
         parent_folders = download.Downloader(skymap_base_url)
         parent_folders.find_url(filename='Average_fps_im_-17700_to_-17600_AzEl.txt')
-        local_azel_paths = parent_folders.download(local_dir) 
+        local_azel_paths = parent_folders.download(local_dir)
 
     if len(local_azel_paths) != 1:
         raise FileNotFoundError(
             f'Unable to find the "Average_fps_im_-17700_to_-17600_AzEl.txt" LAMP skymap.'
-            )
+        )
 
     # Check if the Lat/Lon skymap is already downloaded.
-    local_latlon_paths = list(pathlib.Path(local_dir).rglob(
-        f'Average_fps_im_-17700_to_-17600_LatLong{alt:03}km.txt'
-        ))
+    local_latlon_paths = list(
+        pathlib.Path(local_dir).rglob(f'Average_fps_im_-17700_to_-17600_LatLong{alt:03}km.txt')
+    )
 
     if (len(local_latlon_paths) == 0) or redownload:
         # Download the skymaps.
         parent_folders = download.Downloader(skymap_base_url)
         parent_folders.find_url(filename=f'Average_fps_im_-17700_to_-17600_LatLong{alt:03}km.txt')
-        local_latlon_paths = parent_folders.download(local_dir, redownload=redownload) 
+        local_latlon_paths = parent_folders.download(local_dir, redownload=redownload)
 
     if len(local_latlon_paths) != 1:
         raise FileNotFoundError(
             f'Unable to find the "Average_fps_im_-17700_to_-17600_AzEl.txt" LAMP skymap.'
-            )
+        )
     return local_azel_paths[0], local_latlon_paths[0]
 
 
@@ -214,6 +222,7 @@ def load_skymap(location_code, alt, redownload):
     # skymap = _flip_skymap(skymap)
     return skymap
 
+
 def _load_skymap(azel_path, latlon_path):
     """
     A helper function to load a THEMIS skymap and transform it.
@@ -222,13 +231,14 @@ def _load_skymap(azel_path, latlon_path):
     azel_txt_data = pd.read_csv(azel_path, skipinitialspace=True, skiprows=29, delimiter=' ')
     latlon_txt_data = pd.read_csv(latlon_path, skipinitialspace=True, skiprows=29, delimiter=' ')
     skymap_dict = {
-        'Az':azel_txt_data['Az'].to_numpy().reshape(640, 640),
-        'El':azel_txt_data['El'].to_numpy().reshape(640, 640),
-        'Lat':latlon_txt_data['Lat'].to_numpy().reshape(640, 640),
-        'Lon':latlon_txt_data['Long'].to_numpy().reshape(640, 640),
-        'path':[azel_path, latlon_path]
-        }
+        'Az': azel_txt_data['Az'].to_numpy().reshape(640, 640),
+        'El': azel_txt_data['El'].to_numpy().reshape(640, 640),
+        'Lat': latlon_txt_data['Lat'].to_numpy().reshape(640, 640),
+        'Lon': latlon_txt_data['Long'].to_numpy().reshape(640, 640),
+        'path': [azel_path, latlon_path],
+    }
     return skymap_dict
+
 
 def _flip_skymap(skymap):
     """
@@ -250,10 +260,9 @@ def _tranform_longitude_to_180(skymap):
     """
     # Don't take the modulus of NaNs
     valid_val_idx = np.where(~np.isnan(skymap['glo']))
-    skymap['glo'][valid_val_idx] = (
-        np.mod(skymap['glo'][valid_val_idx] + 180, 360) - 180
-    )
+    skymap['glo'][valid_val_idx] = np.mod(skymap['glo'][valid_val_idx] + 180, 360) - 180
     return skymap
+
 
 def _transform_azimuth_to_180(skymap):
     """

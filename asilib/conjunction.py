@@ -8,12 +8,14 @@ from matplotlib.dates import date2num
 import matplotlib.pyplot as plt  # TODO: Remove when done testing.
 import pymap3d
 import scipy
+
 try:
     import IRBEM
 except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.lla2footprint()
 
 earth_radius_km = 6371
+
 
 class Conjunction:
     def __init__(self, imager, sat_time, sat_loc) -> None:
@@ -27,7 +29,7 @@ class Conjunction:
         sat_time: list or np.array
             An array of satellite time stamps.
         sat_loc: list or np.array
-            A (nTime, 3) time series of satellite locations. Columns must map to 
+            A (nTime, 3) time series of satellite locations. Columns must map to
             (latitude, longitude, altitude) (LLA) coordinates.
         """
         assert sat_loc.shape[1] == 3, 'sat_loc must have 3 columns.'
@@ -35,9 +37,8 @@ class Conjunction:
 
         self.imager = imager
         self.sat = pd.DataFrame(
-            index=sat_time, 
-            data={'lat':sat_loc[:, 0], 'lon':sat_loc[:, 1], 'alt':sat_loc[:, 2]}
-            )
+            index=sat_time, data={'lat': sat_loc[:, 0], 'lon': sat_loc[:, 1], 'alt': sat_loc[:, 2]}
+        )
         return
 
     def find(self, min_el=20, time_gap_s=60):
@@ -50,36 +51,33 @@ class Conjunction:
             The minimum elevation of the conjunction.
         """
         assert 0 < min_el < 90, "The minimum elevation must be between 0 and 90 degrees."
-        
+
         # # Filter the elevation map to values > min_el
         lon_map, lat_map, _ = self.imager._mask_low_horizon(
-            self.imager.skymap['lon'], 
-            self.imager.skymap['lat'], 
-            self.imager.skymap['el'], 
-            min_elevation=min_el
-            )
+            self.imager.skymap['lon'],
+            self.imager.skymap['lat'],
+            self.imager.skymap['el'],
+            min_elevation=min_el,
+        )
 
         # Search LLA for times when it was inside the map box
         conjunction_idx = np.where(
-            (self.sat['lat'] > np.nanmin(lat_map)) &
-            (self.sat['lat'] < np.nanmax(lat_map)) &
-            (self.sat['lon'] > np.nanmin(lon_map)) &
-            (self.sat['lon'] < np.nanmax(lon_map))
+            (self.sat['lat'] > np.nanmin(lat_map))
+            & (self.sat['lat'] < np.nanmax(lat_map))
+            & (self.sat['lon'] > np.nanmin(lon_map))
+            & (self.sat['lon'] < np.nanmax(lon_map))
         )[0]
         if conjunction_idx.shape[0] == 0:
             return pd.DataFrame(columns=['start', 'end'])
-        
-        start, end = self._conjunction_intervals(
-            self.sat.index[conjunction_idx], 
-            min_dt=time_gap_s
-            )
-        
+
+        start, end = self._conjunction_intervals(self.sat.index[conjunction_idx], min_dt=time_gap_s)
+
         df = pd.DataFrame(
             data={
-                'start':self.sat.index[conjunction_idx][start], 
-                'end':self.sat.index[conjunction_idx][end]
-                }
-            )
+                'start': self.sat.index[conjunction_idx][start],
+                'end': self.sat.index[conjunction_idx][end],
+            }
+        )
         # # Test script
         # fig, ax = plt.subplots()
         # self.imager._pcolormesh_nan(lon_map, lat_map, 1+0*lat_map, ax)
@@ -101,12 +99,12 @@ class Conjunction:
         if len(imager_times) == 0:
             raise ValueError('No imager time stamps to interpolate over.')
 
-        assert np.all(np.diff(numeric_imager_times) > 0), (
-            'Imager times are not strictly increasing.'
-            )
-        assert np.all(np.diff(numeric_sat_times) > 0), (
-            'satellite times are not strictly increasing.'
-            )
+        assert np.all(
+            np.diff(numeric_imager_times) > 0
+        ), 'Imager times are not strictly increasing.'
+        assert np.all(
+            np.diff(numeric_sat_times) > 0
+        ), 'satellite times are not strictly increasing.'
 
         resampled_lla = {}
 
@@ -117,11 +115,8 @@ class Conjunction:
                 period = None
 
             resampled_lla[key] = np.interp(
-                numeric_imager_times, 
-                numeric_sat_times, 
-                self.sat.loc[:, key],
-                period=period
-                )
+                numeric_imager_times, numeric_sat_times, self.sat.loc[:, key], period=period
+            )
 
         # TODO: Test script, remove when done.
         # key = 'lon'
@@ -194,7 +189,7 @@ class Conjunction:
         # magnetic_footprint[:, [2, 0, 1]] = magnetic_footprint[:, [0, 1, 2]]
         self.sat.loc[:, ['alt', 'lat', 'lon']] = magnetic_footprint
         return
-            
+
     def map_lla_azel(self, min_el=0) -> Tuple[np.ndarray, np.ndarray]:
         """
         Maps, a satellite's latitude, longitude, and altitude (LLA) coordinates
@@ -206,7 +201,7 @@ class Conjunction:
         Parameters
         ----------
         min_el: float
-            The minimum elevation in degrees for which return valid values for. 
+            The minimum elevation in degrees for which return valid values for.
             The satellite's azel values and pixel indices are NaN below min_el.
 
         Returns
@@ -244,7 +239,7 @@ class Conjunction:
         """
         self.sat_azel = np.nan * np.zeros((self.sat.shape[0], 2))
 
-        #TODO: Fix a bug where the path is wrong. (See SAMPEX-GILL conjunction
+        # TODO: Fix a bug where the path is wrong. (See SAMPEX-GILL conjunction
         # at 10:59:20-11:01:08, SAMPEX-GILL 2009-03-06 07:33:48-07:35:36)
 
         # Loop over every set of LLA coordinates and use pymap3d.geodetic2aer
@@ -260,18 +255,18 @@ class Conjunction:
             az, el, _ = pymap3d.geodetic2aer(
                 lat_i,
                 lon_i,
-                1E3*alt_km_i,  # Meters
+                1e3 * alt_km_i,  # Meters
                 self.imager.meta['lat'],
                 self.imager.meta['lon'],
-                1E3*self.imager.meta['alt'],  # Meters
+                1e3 * self.imager.meta['alt'],  # Meters
             )
             self.sat_azel[i, :] = [az, el]
 
         # Now find the corresponding x- and y-axis pixel indices.
         self.asi_pixels = self._map_azel_to_pixel(self.sat_azel)
 
-        # Mask elevations below min_el as NaN. This is a good idea because 
-        # _map_azel_to_pixel will find the nearest pixel even if the delta 
+        # Mask elevations below min_el as NaN. This is a good idea because
+        # _map_azel_to_pixel will find the nearest pixel even if the delta
         # az and delta el is large.
         invalid_el = np.where(self.sat_azel[:, 1] < min_el)[0]
         self.sat_azel[invalid_el, :] = np.nan
@@ -285,7 +280,7 @@ class Conjunction:
         Parameters
         ----------
         box: tuple
-            Bounds the emission box dimensions in longitude and latitude. 
+            Bounds the emission box dimensions in longitude and latitude.
             Units are kilometers.
 
         Returns
@@ -300,13 +295,10 @@ class Conjunction:
             warnings.warn(
                 f'The {self.sat.shape[0]} footprints is larger than {n_max}. '
                 f'Use the equal_area_gen() method instead.'
-                )
+            )
         assert len(box) == 2, 'The box_km parameter must have a length of 2.'
 
-        pixel_mask = np.nan * np.zeros((
-            self.sat.shape[0], 
-            *self.imager.meta['resolution']
-            ))
+        pixel_mask = np.nan * np.zeros((self.sat.shape[0], *self.imager.meta['resolution']))
 
         gen = self.equal_area_gen(box=box)
 
@@ -317,13 +309,13 @@ class Conjunction:
 
     def equal_area_gen(self, box=(5, 5)):
         """
-        A generator function to calculate a ``box_km`` area mask at the 
+        A generator function to calculate a ``box_km`` area mask at the
         aurora emission altitude for a large number of footprints.
 
         Parameters
         ----------
         box: tuple
-            Bounds the emission box dimensions in longitude and latitude. 
+            Bounds the emission box dimensions in longitude and latitude.
             Units are kilometers.
 
         Returns
@@ -339,14 +331,18 @@ class Conjunction:
         lon_map = self.imager.skymap['lon']
 
         for lat, lon, alt in self.sat.to_numpy():
-            mask = np.nan*np.zeros(self.imager.meta['resolution'])
+            mask = np.nan * np.zeros(self.imager.meta['resolution'])
             dlat = self._dlat(box[1], alt)
             dlon = self._dlon(box[0], alt, lat)
             # Check that the lat/lon values are inside the skymap coordinates.
             if (
-                (lat > np.nanmax(lat_map)) or (lat < np.nanmin(lat_map)) or
-                (lon > np.nanmax(lon_map)) or (lon < np.nanmin(lon_map)) or
-                np.isnan(lat) or np.isnan(lon) or np.isnan(alt)
+                (lat > np.nanmax(lat_map))
+                or (lat < np.nanmin(lat_map))
+                or (lon > np.nanmax(lon_map))
+                or (lon < np.nanmin(lon_map))
+                or np.isnan(lat)
+                or np.isnan(lon)
+                or np.isnan(alt)
             ):
                 warnings.warn(
                     'Some latitude or longitude values are outside of the skymap '
@@ -364,10 +360,10 @@ class Conjunction:
 
             while masked_box_len == 0:
                 idx_box = np.where(
-                    (lat_map >= lat - multiplier * dlat / 2) &
-                    (lat_map <= lat + multiplier * dlat / 2) &
-                    (lon_map >= lon - multiplier * dlon / 2) &
-                    (lon_map <= lon + multiplier * dlon / 2)
+                    (lat_map >= lat - multiplier * dlat / 2)
+                    & (lat_map <= lat + multiplier * dlat / 2)
+                    & (lon_map >= lon - multiplier * dlon / 2)
+                    & (lon_map <= lon + multiplier * dlon / 2)
                 )
 
                 masked_box_len = len(idx_box[0])
@@ -376,7 +372,6 @@ class Conjunction:
                 else:
                     multiplier += step
             yield mask
-
 
     def _dlat(self, d, alt):
         """
@@ -398,7 +393,6 @@ class Conjunction:
         if isinstance(alt, list):  # Don't need to cast d since it is in np.divide().
             alt = np.array(alt)
         return np.rad2deg(np.divide(d, (earth_radius_km + alt)))
-
 
     def _dlon(self, d, alt, lat):
         """
@@ -462,16 +456,16 @@ class Conjunction:
             pixel_index[:, 0] = x_pixel
             pixel_index[:, 1] = y_pixel
         else:
-            for i in range(sat_azel.shape[0]//chunk_size):
-                sat_azel_chunk = sat_azel[i*chunk_size:(i+1)*chunk_size, :]
+            for i in range(sat_azel.shape[0] // chunk_size):
+                sat_azel_chunk = sat_azel[i * chunk_size : (i + 1) * chunk_size, :]
                 x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, sat_azel_chunk)
-                pixel_index[i*chunk_size:(i+1)*chunk_size, 0] = x_pixel
-                pixel_index[i*chunk_size:(i+1)*chunk_size, 1] = y_pixel
+                pixel_index[i * chunk_size : (i + 1) * chunk_size, 0] = x_pixel
+                pixel_index[i * chunk_size : (i + 1) * chunk_size, 1] = y_pixel
             # The unchunked remainder
-            sat_azel_chunk = sat_azel[(i+1)*chunk_size:, :]
+            sat_azel_chunk = sat_azel[(i + 1) * chunk_size :, :]
             x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, sat_azel_chunk)
-            pixel_index[(i+1)*chunk_size:, 0] = x_pixel
-            pixel_index[(i+1)*chunk_size:, 1] = y_pixel
+            pixel_index[(i + 1) * chunk_size :, 0] = x_pixel
+            pixel_index[(i + 1) * chunk_size :, 1] = y_pixel
         return pixel_index
 
     def _nearest_pixel(self, asi_azel_cal, sat_azel):
@@ -493,15 +487,15 @@ class Conjunction:
         """
         Given an array of times that contain continuously incrementing spans of
         time with gaps between them, calculate the start and end indices of each
-        time span. 
+        time span.
 
         Parameters
         ----------
-        times: np.array  
+        times: np.array
             The array of continuos times with gaps.
         min_dt: float
             The minimum time gap threshold.
-        
+
         Returns
         -------
         np.array
@@ -510,15 +504,16 @@ class Conjunction:
             An array of end indices for times
         """
         dt = (times[1:] - times[:-1]).total_seconds()
-        dIntervals = dt/min_dt
+        dIntervals = dt / min_dt
         # Calculate the start and end indices excluding the first and last index
         # dIntervals > 1 means tha a time gap exceeded the threshold.
         break_indices = np.where(dIntervals > 1)[0]
-        
-        # Add in the first and last index. 
-        start = np.insert(break_indices+1,0, 0)
+
+        # Add in the first and last index.
+        start = np.insert(break_indices + 1, 0, 0)
         end = np.append(break_indices, len(dIntervals))
         return start, end
+
 
 if __name__ == '__main__':
     import dateutil.parser
@@ -529,11 +524,11 @@ if __name__ == '__main__':
     t0 = dateutil.parser.parse('2014-05-05T04:49:10')
 
     n_times = 100
-    img = asilib.themis('gill',  time='2014-05-05T04:49:10', load_images=False, alt=110)
+    img = asilib.themis('gill', time='2014-05-05T04:49:10', load_images=False, alt=110)
     lats = np.linspace(90, 0, num=n_times)
-    lons = img.meta['lon']*np.ones_like(lats)
-    alts = 110*np.ones_like(lats)
+    lons = img.meta['lon'] * np.ones_like(lats)
+    alts = 110 * np.ones_like(lats)
     lla = np.array([lats, lons, alts]).T
-    times = np.array([t0 + timedelta(seconds=i*0.5) for i in range(n_times)])
+    times = np.array([t0 + timedelta(seconds=i * 0.5) for i in range(n_times)])
     c = asilib.Conjunction(img, times, lla)
     c.find()

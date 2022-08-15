@@ -29,9 +29,7 @@ print(msp_df.head())
 
 # Create the map and keogram subplots
 fig = plt.figure(figsize=(14, 4))
-ax = asilib.make_map(
-    lon_bounds=lon_bounds, lat_bounds=lat_bounds, ax=fig.add_subplot(131)
-)
+ax = asilib.make_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds, ax=fig.add_subplot(131))
 bx = fig.add_subplot(132)
 cx = fig.add_subplot(133, sharey=bx, sharex=bx)
 

@@ -84,12 +84,12 @@ def get_filename_times(time_range: _time_range_type, dt='hours') -> List[datetim
     """
     time_range = validate_time_range(time_range)
     assert dt in ['days', 'hours', 'minutes'], "dt must be 'day', 'hour', or 'minute'."
-    # First we need to appropriately zero time_range[0] so that the file that contains the 
-    # time_range[0] is returned. For example, if dt='hour' and time_range[0] is not at the 
-    # top of the hour, we zero the smaller time components. So 
+    # First we need to appropriately zero time_range[0] so that the file that contains the
+    # time_range[0] is returned. For example, if dt='hour' and time_range[0] is not at the
+    # top of the hour, we zero the smaller time components. So
     # time_range[0] = '2010-01-01T10:29:32.000000' will be converted to '2010-01-01T10:00:00.000000'
-    # to allow the 
-    zero_time_chunks = {'microsecond':0, 'second':0}
+    # to allow the
+    zero_time_chunks = {'microsecond': 0, 'second': 0}
     # We don't need an if-statement if dt == 'minute'
     if dt == 'hours':
         zero_time_chunks['minute'] = 0
@@ -100,14 +100,15 @@ def get_filename_times(time_range: _time_range_type, dt='hours') -> List[datetim
     times = []
 
     # Not <= in while loop because we don't want to download the final time if time_range[1] is,
-    # exactly matches the end file name (you don't want to download the 11th hour if 
+    # exactly matches the end file name (you don't want to download the 11th hour if
     # time_range[1] is 'YYY-MM-DDT11:00:00').
     while current_time < time_range[1]:
         times.append(current_time)
-        current_time += timedelta(**{dt:1})
+        current_time += timedelta(**{dt: 1})
     return times
 
-def progressbar(iterator: Iterable, iter_length: int=None, text: str=None):
+
+def progressbar(iterator: Iterable, iter_length: int = None, text: str = None):
     """
     A terminal progress bar.
 
@@ -119,28 +120,28 @@ def progressbar(iterator: Iterable, iter_length: int=None, text: str=None):
         How many items the iterator loop over. If None, will calculate it
         using len(iterator).
     text: str
-        Insert an optional text string in the beginning of the progressbar. 
+        Insert an optional text string in the beginning of the progressbar.
     """
     if text is None:
         text = ''
     else:
         text = text + ':'
-    
+
     if iter_length is None:
         iter_length = len(iterator)
 
     try:
         for i, item in enumerate(iterator):
-            i+=1  # So we end at 100%. Happy users!
+            i += 1  # So we end at 100%. Happy users!
             terminal_cols = shutil.get_terminal_size(fallback=(80, 20)).columns
-            max_cols = int(terminal_cols-len(text)-10)
+            max_cols = int(terminal_cols - len(text) - 10)
             # Prevent a crash if the terminal window is narrower then len(text).
             if max_cols < 0:
                 max_cols = 0
 
             percent = round(100 * i / iter_length)
-            bar = "#" * int(max_cols*percent/100)
-            print(f'{text} |{bar:<{max_cols}}| {percent}%', end='\r') 
+            bar = "#" * int(max_cols * percent / 100)
+            print(f'{text} |{bar:<{max_cols}}| {percent}%', end='\r')
             yield item
     finally:
-        print()  # end with a newline. 
+        print()  # end with a newline.

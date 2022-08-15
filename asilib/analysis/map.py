@@ -15,10 +15,7 @@ from asilib.io import utils
 
 
 def lla2azel(
-    asi_array_code: str,
-    location_code: str,
-    time: utils._time_type,
-    sat_lla: np.ndarray
+    asi_array_code: str, location_code: str, time: utils._time_type, sat_lla: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Maps, a satellite's latitude, longitude, and altitude (LLA) coordinates
@@ -85,9 +82,7 @@ def lla2azel(
     assert sat_lla.shape[1] == 3, 'sat_lla must have 3 columns.'
 
     # Load the catalog
-    skymap_dict = asilib.io.load.load_skymap(
-        asi_array_code, location_code, time
-    )
+    skymap_dict = asilib.io.load.load_skymap(asi_array_code, location_code, time)
 
     sat_azel = np.nan * np.zeros((sat_lla.shape[0], 2))
 

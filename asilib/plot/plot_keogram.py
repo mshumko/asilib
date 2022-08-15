@@ -14,7 +14,7 @@ def plot_keogram(
     time_range: utils._time_range_type,
     map_alt: float = None,
     path: np.array = None,
-    aacgm: bool=False,
+    aacgm: bool = False,
     ax: plt.Axes = None,
     color_bounds: List[float] = None,
     color_norm: str = 'lin',
@@ -41,8 +41,8 @@ def plot_keogram(
         unspecified, this function will raise a ValueError.
     aacgm: bool
         Map the keogram latitudes to Altitude Adjusted Corrected Geogmagnetic Coordinates
-        (aacgmv2) derived by Shepherd, S. G. (2014), Altitude-adjusted corrected geomagnetic 
-        coordinates: Definition and functional approximations, Journal of Geophysical 
+        (aacgmv2) derived by Shepherd, S. G. (2014), Altitude-adjusted corrected geomagnetic
+        coordinates: Definition and functional approximations, Journal of Geophysical
         Research: Space Physics, 119, 7501-7521, doi:10.1002/2014JA020264.
     ax: plt.Axes
         The subplot to plot the image on. If None, this function will

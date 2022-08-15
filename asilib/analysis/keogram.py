@@ -17,7 +17,7 @@ def keogram(
     time_range: utils._time_range_type,
     map_alt: int = None,
     path: np.array = None,
-    aacgm: bool=False,
+    aacgm: bool = False,
 ):
     """
     Makes a keogram pd.DataFrame along the central meridian.
@@ -39,8 +39,8 @@ def keogram(
         unspecified, this function will raise a ValueError.
     aacgm: bool
         Map the keogram latitudes to Altitude Adjusted Corrected Geogmagnetic Coordinates
-        (aacgmv2) derived by Shepherd, S. G. (2014), Altitude-adjusted corrected geomagnetic 
-        coordinates: Definition and functional approximations, Journal of Geophysical 
+        (aacgmv2) derived by Shepherd, S. G. (2014), Altitude-adjusted corrected geomagnetic
+        coordinates: Definition and functional approximations, Journal of Geophysical
         Research: Space Physics, 119, 7501-7521, doi:10.1002/2014JA020264.
 
     Returns
@@ -60,6 +60,7 @@ def keogram(
     """
     keo = Keogram(asi_array_code, location_code, time_range)
     return keo.keogram(map_alt, path, aacgm)
+
 
 def ewogram(
     asi_array_code: str, location_code: str, time_range: utils._time_range_type, map_alt: int = None
@@ -140,11 +141,10 @@ def ewogram(
 
 
 class Keogram:
-    #TODO: Change the asi args to asi_info dictionary that is created by asilib.themis() or asilib.rego() functions.
-    def __init__(self, asi_array_code: str, location_code: str, 
-                time_range: utils._time_range_type
-
-        ) -> None:
+    # TODO: Change the asi args to asi_info dictionary that is created by asilib.themis() or asilib.rego() functions.
+    def __init__(
+        self, asi_array_code: str, location_code: str, time_range: utils._time_range_type
+    ) -> None:
         """
         Keogram class that makes keograms and ewograms along the meridian or a custom path.
 
@@ -172,9 +172,8 @@ class Keogram:
         else:
             raise NotImplementedError
         return
-        
-    def keogram(self,  map_alt: int = None, path: np.array = None, aacgm=False
-        ):
+
+    def keogram(self, map_alt: int = None, path: np.array = None, aacgm=False):
         """
         Creates a keogram along the meridian or a custom path.
 
@@ -189,14 +188,14 @@ class Keogram:
             unspecified, this function will raise a ValueError.
         aacgm: bool
             Map the keogram latitudes to Altitude Adjusted Corrected Geogmagnetic Coordinates
-            (aacgmv2) derived by Shepherd, S. G. (2014), Altitude-adjusted corrected geomagnetic 
-            coordinates: Definition and functional approximations, Journal of Geophysical 
+            (aacgmv2) derived by Shepherd, S. G. (2014), Altitude-adjusted corrected geomagnetic
+            coordinates: Definition and functional approximations, Journal of Geophysical
             Research: Space Physics, 119, 7501-7521, doi:10.1002/2014JA020264.
 
         Returns
         -------
         keo: pd.DataFrame
-            The 2d keogram with the time index. The columns are the (geographic or magnetic) 
+            The 2d keogram with the time index. The columns are the (geographic or magnetic)
             latitudes if map_alt is specified, otherwise it is the image pixel indices.
 
         Raises
@@ -217,12 +216,14 @@ class Keogram:
         # Determine what pixels to slice
         self._keogram_pixels()
         # Not all of the pixels are valid (e.g. below the horizon)
-        self._keo = self._keo[:, :self._pixels.shape[0]]
+        self._keo = self._keo[:, : self._pixels.shape[0]]
 
         self._keogram_latitude()
-        
-        # Load and slice images. 
-        image_generator = load_image_generator(self.asi_array_code, self.location_code, self.time_range)
+
+        # Load and slice images.
+        image_generator = load_image_generator(
+            self.asi_array_code, self.location_code, self.time_range
+        )
         start_time_index = 0
         for file_image_times, file_images in image_generator:
             end_time_index = start_time_index + file_images.shape[0]
@@ -246,10 +247,9 @@ class Keogram:
         self.keo = pd.DataFrame(data=keo, index=keo_times, columns=self.keogram_latitude)
         return self.keo
 
-
     def _empty_keogram(self, time_range):
         """
-        Creates an empty 2D keogram and time arrays. 
+        Creates an empty 2D keogram and time arrays.
         """
         time_range = utils._validate_time_range(time_range)
         max_n_timestamps = int((time_range[1] - time_range[0]).total_seconds() / self.asi_cadence_s)
@@ -266,24 +266,29 @@ class Keogram:
         """
         # CASE 1: No path provided. Output self._pixels that slice the meridian.
         if self.path is None:
-            self._pixels = np.column_stack((
-                np.arange(self._keo.shape[1]), 
-                self._keo.shape[1]*np.ones(self._keo.shape[1])//2
-            )).astype(int)
+            self._pixels = np.column_stack(
+                (
+                    np.arange(self._keo.shape[1]),
+                    self._keo.shape[1] * np.ones(self._keo.shape[1]) // 2,
+                )
+            ).astype(int)
 
-        # CASE 2: A path is provided so now we need to calculate the custom path 
+        # CASE 2: A path is provided so now we need to calculate the custom path
         # on the lat/lon skymap.
         else:
-            if (self.map_alt is None) or (self.map_alt not in self.skymap['FULL_MAP_ALTITUDE'] / 1000):
+            if (self.map_alt is None) or (
+                self.map_alt not in self.skymap['FULL_MAP_ALTITUDE'] / 1000
+            ):
                 raise ValueError(
                     f'{self.map_alt} km is not in skymap altitudes: {self.skymap["FULL_MAP_ALTITUDE"]/1000} km'
-                    )
+                )
             alt_index = np.where(self.skymap['FULL_MAP_ALTITUDE'] / 1000 == self.map_alt)[0][0]
             self._pixels = self._path_to_pixels(self.path, alt_index)
-        
+
         above_elevation = np.where(
-            self.skymap['FULL_ELEVATION'][self._pixels[:,0], self._pixels[:,1]] >= minimum_elevation
-            )[0]
+            self.skymap['FULL_ELEVATION'][self._pixels[:, 0], self._pixels[:, 1]]
+            >= minimum_elevation
+        )[0]
         self._pixels = self._pixels[above_elevation]
         return
 
@@ -321,8 +326,8 @@ class Keogram:
 
         for i, (lat, lon) in enumerate(path):
             distances = np.sqrt(
-                (self.skymap['FULL_MAP_LATITUDE'][alt_index, :, :] - lat) ** 2 +
-                (self.skymap['FULL_MAP_LONGITUDE'][alt_index, :, :] - lon) ** 2
+                (self.skymap['FULL_MAP_LATITUDE'][alt_index, :, :] - lat) ** 2
+                + (self.skymap['FULL_MAP_LONGITUDE'][alt_index, :, :] - lon) ** 2
             )
             idx = np.where(distances == np.nanmin(distances))
 
@@ -352,19 +357,19 @@ class Keogram:
             assert len(alt_indices) == 1, (
                 f"{self.map_alt} is not in the skymap altitudes: "
                 f"{self.skymap['FULL_MAP_ALTITUDE'] / 1000}"
-                )
+            )
             self.keogram_latitude = self.skymap['FULL_MAP_LATITUDE'][
-                alt_indices[0], self._pixels[:,0], self._pixels[:,1]
-                ]
+                alt_indices[0], self._pixels[:, 0], self._pixels[:, 1]
+            ]
             if self.aacgm:
                 longitudes = self.skymap['FULL_MAP_LONGITUDE'][
-                    alt_indices[0], self._pixels[:,0], self._pixels[:,1]
-                    ]
+                    alt_indices[0], self._pixels[:, 0], self._pixels[:, 1]
+                ]
                 self.keogram_latitude = aacgmv2.convert_latlon_arr(
-                    self.keogram_latitude, 
-                    longitudes, 
-                    self.map_alt, 
-                    self.time_range[0], 
-                    method_code="G2A"
-                    )[0]
+                    self.keogram_latitude,
+                    longitudes,
+                    self.map_alt,
+                    self.time_range[0],
+                    method_code="G2A",
+                )[0]
         return

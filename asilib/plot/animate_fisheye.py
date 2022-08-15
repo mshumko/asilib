@@ -91,7 +91,7 @@ def animate_fisheye_generator(
     azel_contours: bool = False,
     ax: plt.Axes = None,
     movie_container: str = 'mp4',
-    ffmpeg_output_params={}
+    ffmpeg_output_params={},
 ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
     """
     A generator function that loads the ASI data and then yields individual ASI images,
@@ -112,7 +112,7 @@ def animate_fisheye_generator(
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
     overwrite: bool
-        If true, the output animation will be overwritten, otherwise it will 
+        If true, the output animation will be overwritten, otherwise it will
         prompt the user to answer y/n.
     label: bool
         Flag to add the "asi_array_code/location_code/image_time" text to the plot.
@@ -176,9 +176,7 @@ def animate_fisheye_generator(
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
     """
     try:
-        image_times, images = load_image(
-            asi_array_code, location_code, time_range=time_range
-        )
+        image_times, images = load_image(asi_array_code, location_code, time_range=time_range)
     except AssertionError as err:
         if '0 number of time stamps were found in time_range' in str(err):
             print(
@@ -264,9 +262,7 @@ def animate_fisheye_generator(
         yield image_time, image, ax, im
 
         # Save the plot before the next iteration.
-        save_name = (
-            f'{str(i).zfill(5)}.png'
-        )
+        save_name = f'{str(i).zfill(5)}.png'
         plt.savefig(image_save_dir / save_name)
         image_paths.append(image_save_dir / save_name)
 
@@ -306,7 +302,7 @@ def _write_movie(image_paths, movie_save_path, ffmpeg_output_params, overwrite):
     }
     # Add or change the ffmpeg_params's key:values with ffmpeg_output_params
     ffmpeg_params.update(ffmpeg_output_params)
-    
+
     try:
         movie_obj = ffmpeg.input(
             str(image_paths[0].parent / "%05d.png"),

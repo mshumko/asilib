@@ -177,9 +177,7 @@ def download_themis_img(
 
     elif time is not None:
         time = utils._validate_time(time)
-        download_path = _download_one_img_file(
-            'themis', location_code, base_url, time, redownload
-        )
+        download_path = _download_one_img_file('themis', location_code, base_url, time, redownload)
         download_paths = [
             download_path
         ]  # List for constancy with the time_range code chunk output.
@@ -309,9 +307,7 @@ def download_rego_img(
 
     elif time is not None:
         time = utils._validate_time(time)
-        download_path = _download_one_img_file(
-            'rego', location_code, base_url, time, redownload
-        )
+        download_path = _download_one_img_file('rego', location_code, base_url, time, redownload)
         download_paths = [
             download_path
         ]  # List for constancy with the time_range code chunk output.
@@ -406,7 +402,8 @@ def _download_one_img_file(asi_array_code, location_code, base_url, time, redown
         utils._stream_large_file(server_url, download_path)
     return download_path
 
-#TODO: When cleaning up imager, remove all above
+
+# TODO: When cleaning up imager, remove all above
 class Downloader:
     """
     Traverses and lists the directory structure on a server and download files.
@@ -416,7 +413,7 @@ class Downloader:
     url: str
         The dataset URL. If it points to a folder it must end with a "/".
     download_dir: str or pathlib.Path
-        The download directory. Must either specify here, or when you call 
+        The download directory. Must either specify here, or when you call
         Downloader.download().
 
     Example
@@ -431,25 +428,26 @@ class Downloader:
     | )
     | paths = d.ls(match='*.txt*')
     | print(f"The downloaded files are: {paths}")
-    | 
+    |
     | print(f"The first file's name is: {paths[0].name} at url {paths[0].url}")
     | path = paths[0].download(stream=False)
     | print(f'The file was downloaded to {path}')
     """
-    def __init__(self, url:str, download_dir=None) -> None:
+
+    def __init__(self, url: str, download_dir=None) -> None:
         self.url = url
-        self.download_dir=download_dir
+        self.download_dir = download_dir
         return
 
-    def ls(self, match: str='*') -> List[Downloader]:
+    def ls(self, match: str = '*') -> List[Downloader]:
         """
-        List files and folders in self.url. 
+        List files and folders in self.url.
 
         Parameters
         ----------
         match: str
             An optional string pattern to match.
-        
+
         Return
         ------
         list
@@ -458,13 +456,15 @@ class Downloader:
         self._check_url_status()
         matched_hrefs = self._search_hrefs(self.url, match=match)
         cls = type(self)
-        downloaders = [None]*len(matched_hrefs)
+        downloaders = [None] * len(matched_hrefs)
         for i, matched_href in enumerate(matched_hrefs):
             new_url = urllib.parse.urljoin(self.url, matched_href, allow_fragments=True)
             downloaders[i] = cls(new_url, download_dir=self.download_dir)
         return downloaders
 
-    def download(self, download_dir=None, redownload: bool=False, stream: bool=False) -> pathlib.Path:
+    def download(
+        self, download_dir=None, redownload: bool = False, stream: bool = False
+    ) -> pathlib.Path:
         """
         Downloads file from self.url to the download_dir directory.
 
@@ -472,22 +472,24 @@ class Downloader:
         ----------
         download_dir: str or pathlib.Path
             The parent directory where to save the data to. Set it either
-            here or when initializing the class. This 
+            here or when initializing the class. This
         redownload: bool
-            Will redownload an existing file. 
+            Will redownload an existing file.
         stream: bool
-            Download the data in one chunk if False, or break it up and download it 
+            Download the data in one chunk if False, or break it up and download it
             in 5 Mb chunks if True.
 
         Returns
         -------
         pathlib.Path
-            The full path to the file. 
+            The full path to the file.
         """
         self._check_url_status()
         if download_dir is None and self.download_dir is None:
-            raise ValueError(f'download_dir kwarg needs to be set either '
-                             f'in Downloader() or Downloader.download.')
+            raise ValueError(
+                f'download_dir kwarg needs to be set either '
+                f'in Downloader() or Downloader.download.'
+            )
         if download_dir is not None:
             self.download_dir = download_dir
 
@@ -507,13 +509,16 @@ class Downloader:
             megabyte = 1024 * 1024
 
             with open(download_path, 'wb') as f:
-                for data in r.iter_content(chunk_size=5*megabyte):
+                for data in r.iter_content(chunk_size=5 * megabyte):
                     f.write(data)
                     # Update the downloaded % in the terminal.
                     downloaded_bites += len(data)
                     download_percent = round(100 * downloaded_bites / file_size)
                     download_str = "#" * (download_percent // 5)
-                    print(f'Downloading {file_name}: |{download_str:<20}| {download_percent}%', end='\r')
+                    print(
+                        f'Downloading {file_name}: |{download_str:<20}| {download_percent}%',
+                        end='\r',
+                    )
             print()  # Add a newline
         else:
             r = requests.get(self.url)
@@ -535,11 +540,11 @@ class Downloader:
         else:
             return None
 
-    def _search_hrefs(self, url: str, match: str='*') -> List[str]:
+    def _search_hrefs(self, url: str, match: str = '*') -> List[str]:
         """
-        Given a url string, find all hyper references matching the 
+        Given a url string, find all hyper references matching the
         string match. The re module does the matching.
-        
+
         Parameters
         ----------
         url: str
@@ -564,8 +569,9 @@ class Downloader:
         match = match.replace('*', '.*')  # regex wildcard
         href_objs = soup.find_all('a', href=re.compile(match))
         # I found "?" to be in the column names so we should ignore them.
-        matched_hrefs = [href_obj['href'] for href_obj in href_objs 
-                    if href_obj['href'].find('?')==-1]
+        matched_hrefs = [
+            href_obj['href'] for href_obj in href_objs if href_obj['href'].find('?') == -1
+        ]
         if len(matched_hrefs) == 0:
             raise FileNotFoundError(
                 f'The url {url} does not contain any hyper '
@@ -587,7 +593,9 @@ class Downloader:
     def __repr__(self) -> str:
         params = f'{self.url}, download_dir={self.download_dir},'
         return f'{self.__class__.__qualname__}(' + params + ')'
-    
+
     def __str__(self) -> str:
-        return (f'{self.__class__.__qualname__} with url={self.url} and '
-               f'download_dir={self.download_dir}')
+        return (
+            f'{self.__class__.__qualname__} with url={self.url} and '
+            f'download_dir={self.download_dir}'
+        )
