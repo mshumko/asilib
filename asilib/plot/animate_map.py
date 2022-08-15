@@ -101,7 +101,6 @@ def animate_map_generator(
     label: bool = True,
     movie_container: str = 'mp4',
     ffmpeg_output_params={},
-    overwrite: bool = False,
     pcolormesh_kwargs: dict = {},
 ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
     """
@@ -127,8 +126,8 @@ def animate_map_generator(
     min_elevation: float
         Masks the pixels below min_elevation degrees.
     overwrite: bool
-        If True, download the file even if it already exists. Useful if a prior
-        data download was incomplete.
+        If true, the data will be downloaded again and the output animation overwritten. 
+        If false it will prompt the user to answer y/n.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
@@ -164,9 +163,6 @@ def animate_map_generator(
         framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
     color_norm: str
         Sets the 'lin' linear or 'log' logarithmic color normalization.
-    overwrite: bool
-        If true, the output will be overwritten automatically. If false it will
-        prompt the user to answer y/n.
     pcolormesh_kwargs: dict
         A dictionary of keyword arguments (kwargs) to pass directly into
         plt.pcolormesh. One use of this parameter is to change the colormap. For example,

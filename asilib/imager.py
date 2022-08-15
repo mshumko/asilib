@@ -254,9 +254,9 @@ class Imager:
             The additional/overwitten ffmpeg output parameters. The default parameters are:
             framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
         overwrite: bool
-            If true, the output will be overwritten automatically. If false it will
-            prompt the user to answer y/n.
-
+            If true, the data will be downloaded again and the output animation overwritten. 
+            If false it will prompt the user to answer y/n.
+            
         Yields
         ------
         image_time: datetime.datetime

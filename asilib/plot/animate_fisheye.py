@@ -91,8 +91,7 @@ def animate_fisheye_generator(
     azel_contours: bool = False,
     ax: plt.Axes = None,
     movie_container: str = 'mp4',
-    ffmpeg_output_params={},
-    overwrite: bool = False,
+    ffmpeg_output_params={}
 ) -> Generator[Tuple[datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None]:
     """
     A generator function that loads the ASI data and then yields individual ASI images,
@@ -113,8 +112,8 @@ def animate_fisheye_generator(
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
     overwrite: bool
-        If True, download the file even if it already exists. Useful if a prior
-        data download was incomplete.
+        If true, the data will be downloaded again and the output animation overwritten. 
+        If false it will prompt the user to answer y/n.
     label: bool
         Flag to add the "asi_array_code/location_code/image_time" text to the plot.
     color_map: str
@@ -139,9 +138,6 @@ def animate_fisheye_generator(
         Sets the 'lin' linear or 'log' logarithmic color normalization.
     azel_contours: bool
         Switch azimuth and elevation contours on or off.
-    overwrite: bool
-        If true, the output will be overwritten automatically. If false it will
-        prompt the user to answer y/n.
 
     Yields
     ------
