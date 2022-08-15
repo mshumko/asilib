@@ -53,7 +53,7 @@ def test_ls_and_download():
     assert matched_downloaders2[0].name == '20140505_0510_gill_themis19_full.pgm.gz'
 
     with tempfile.TemporaryDirectory() as tmp:
-        download_path = matched_downloaders2[0].download(tmp, overwrite=True)
+        download_path = matched_downloaders2[0].download(tmp, redownload=True)
         assert download_path.name == '20140505_0510_gill_themis19_full.pgm.gz'
         assert os.path.getsize(download_path) == 1957270
     return
@@ -66,7 +66,7 @@ def test_download_file_no_subdirectories():
     d = Downloader('https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/stream0/'
         '2014/05/05/gill_themis19/ut08/20140505_0807_gill_themis19_full.pgm.gz')
     with tempfile.TemporaryDirectory() as tmp:
-        download_path = d.download(tmp, overwrite=True)
+        download_path = d.download(tmp, redownload=True)
         assert download_path.name == '20140505_0807_gill_themis19_full.pgm.gz'
         assert os.path.getsize(download_path) == 1980541
     return

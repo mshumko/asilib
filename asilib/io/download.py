@@ -25,7 +25,7 @@ def download_image(
     location_code: str,
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
-    overwrite: bool = False,
+    redownload: bool = False,
     ignore_missing_data: bool = True,
 ) -> List[pathlib.Path]:
     """
@@ -43,7 +43,7 @@ def download_image(
         ISO 8601 standard.
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
-    overwrite: bool
+    redownload: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
     ignore_missing_data: bool
@@ -74,7 +74,7 @@ def download_image(
             location_code,
             time=time,
             time_range=time_range,
-            overwrite=overwrite,
+            redownload=redownload,
             ignore_missing_data=ignore_missing_data,
         )
     elif asi_array_code.lower() == 'rego':
@@ -82,14 +82,14 @@ def download_image(
             location_code,
             time=time,
             time_range=time_range,
-            overwrite=overwrite,
+            redownload=redownload,
             ignore_missing_data=ignore_missing_data,
         )
     return paths
 
 
 def download_skymap(
-    asi_array_code: str, location_code: str, overwrite: bool = False
+    asi_array_code: str, location_code: str, redownload: bool = False
 ) -> List[pathlib.Path]:
     """
     Download all of the THEMIS or REGO skymap IDL .sav files.
@@ -100,7 +100,7 @@ def download_skymap(
         The imager array name, i.e. ``THEMIS`` or ``REGO``.
     location_code: str
         The ASI station code, i.e. ``ATHA``
-    overwrite: bool
+    redownload: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
 
@@ -119,9 +119,9 @@ def download_skymap(
     | asilib.download_skymap(asi_array_code, location_code)
     """
     if asi_array_code.lower() == 'themis':
-        paths = download_themis_skymap(location_code, overwrite=overwrite)
+        paths = download_themis_skymap(location_code, redownload=redownload)
     elif asi_array_code.lower() == 'rego':
-        paths = download_rego_skymap(location_code, overwrite=overwrite)
+        paths = download_rego_skymap(location_code, redownload=redownload)
     return paths
 
 
@@ -129,7 +129,7 @@ def download_themis_img(
     location_code: str,
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
-    overwrite: bool = False,
+    redownload: bool = False,
     ignore_missing_data: bool = True,
 ) -> List[pathlib.Path]:
     """
@@ -145,7 +145,7 @@ def download_themis_img(
         ISO 8601 standard.
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
-    overwrite: bool
+    redownload: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
     ignore_missing_data: bool
@@ -178,7 +178,7 @@ def download_themis_img(
     elif time is not None:
         time = utils._validate_time(time)
         download_path = _download_one_img_file(
-            'themis', location_code, base_url, time, overwrite
+            'themis', location_code, base_url, time, redownload
         )
         download_paths = [
             download_path
@@ -192,7 +192,7 @@ def download_themis_img(
         for hour in download_hours:
             try:
                 download_path = _download_one_img_file(
-                    'themis', location_code, base_url, hour, overwrite
+                    'themis', location_code, base_url, hour, redownload
                 )
                 download_paths.append(download_path)
             except NotADirectoryError:
@@ -204,7 +204,7 @@ def download_themis_img(
     return download_paths
 
 
-def download_themis_skymap(location_code: str, overwrite: bool = False) -> List[pathlib.Path]:
+def download_themis_skymap(location_code: str, redownload: bool = False) -> List[pathlib.Path]:
     """
     Download all of the THEMIS skymap IDL .sav files.
 
@@ -212,7 +212,7 @@ def download_themis_skymap(location_code: str, overwrite: bool = False) -> List[
     ----------
     location_code: str
         The ASI station code, i.e. ``ATHA``
-    overwrite: bool
+    redownload: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
 
@@ -248,10 +248,10 @@ def download_themis_skymap(location_code: str, overwrite: bool = False) -> List[
         skymap_name = utils._search_hrefs(skymap_folder_absolute, search_pattern='.sav')[0]
         skymap_save_name = skymap_name.replace('-%2B', '')  # Replace the unicode '+'.
 
-        # Download if overwrite=True or the file does not exist.
+        # Download if redownload=True or the file does not exist.
         download_path = pathlib.Path(save_dir, skymap_save_name)
         download_paths.append(download_path)
-        if overwrite or (not download_path.is_file()):
+        if redownload or (not download_path.is_file()):
             utils._stream_large_file(skymap_folder_absolute + skymap_name, download_path)
     return download_paths
 
@@ -260,7 +260,7 @@ def download_rego_img(
     location_code: str,
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
-    overwrite: bool = False,
+    redownload: bool = False,
     ignore_missing_data: bool = True,
 ) -> List[pathlib.Path]:
     """
@@ -276,7 +276,7 @@ def download_rego_img(
         ISO 8601 standard.
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
-    overwrite: bool
+    redownload: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
     ignore_missing_data: bool
@@ -310,7 +310,7 @@ def download_rego_img(
     elif time is not None:
         time = utils._validate_time(time)
         download_path = _download_one_img_file(
-            'rego', location_code, base_url, time, overwrite
+            'rego', location_code, base_url, time, redownload
         )
         download_paths = [
             download_path
@@ -324,7 +324,7 @@ def download_rego_img(
         for hour in download_hours:
             try:
                 download_path = _download_one_img_file(
-                    'rego', location_code, base_url, hour, overwrite
+                    'rego', location_code, base_url, hour, redownload
                 )
                 download_paths.append(download_path)
             except NotADirectoryError:
@@ -336,7 +336,7 @@ def download_rego_img(
     return download_paths
 
 
-def download_rego_skymap(location_code: str, overwrite: bool = False) -> List[pathlib.Path]:
+def download_rego_skymap(location_code: str, redownload: bool = False) -> List[pathlib.Path]:
     """
     Download all of the REGO skymap IDL .sav files.
 
@@ -344,7 +344,7 @@ def download_rego_skymap(location_code: str, overwrite: bool = False) -> List[pa
     ----------
     location_code: str
         The ASI station code, i.e. ``ATHA``
-    overwrite: bool
+    redownload: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
 
@@ -380,15 +380,15 @@ def download_rego_skymap(location_code: str, overwrite: bool = False) -> List[pa
         skymap_name = utils._search_hrefs(skymap_folder_absolute, search_pattern='.sav')[0]
         skymap_save_name = skymap_name.replace('-%2B', '')  # Replace the unicode '+'.
 
-        # Download if overwrite=True or the file does not exist.
+        # Download if redownload=True or the file does not exist.
         download_path = pathlib.Path(save_dir, skymap_save_name)
         download_paths.append(download_path)
-        if overwrite or (not download_path.is_file()):
+        if redownload or (not download_path.is_file()):
             utils._stream_large_file(skymap_folder_absolute + skymap_name, download_path)
     return download_paths
 
 
-def _download_one_img_file(asi_array_code, location_code, base_url, time, overwrite):
+def _download_one_img_file(asi_array_code, location_code, base_url, time, redownload):
     """
     Download one hour-long file.
     """
@@ -402,7 +402,7 @@ def _download_one_img_file(asi_array_code, location_code, base_url, time, overwr
     download_path = pathlib.Path(
         asilib.config['ASI_DATA_DIR'], asi_array_code.lower(), file_names[0]
     )
-    if overwrite or (not download_path.is_file()):
+    if redownload or (not download_path.is_file()):
         utils._stream_large_file(server_url, download_path)
     return download_path
 
@@ -464,7 +464,7 @@ class Downloader:
             downloaders[i] = cls(new_url, download_dir=self.download_dir)
         return downloaders
 
-    def download(self, download_dir=None, overwrite: bool=False, stream: bool=False) -> pathlib.Path:
+    def download(self, download_dir=None, redownload: bool=False, stream: bool=False) -> pathlib.Path:
         """
         Downloads file from self.url to the download_dir directory.
 
@@ -473,8 +473,8 @@ class Downloader:
         download_dir: str or pathlib.Path
             The parent directory where to save the data to. Set it either
             here or when initializing the class. This 
-        overwrite: bool
-            Will overwrite an existing file. 
+        redownload: bool
+            Will redownload an existing file. 
         stream: bool
             Download the data in one chunk if False, or break it up and download it 
             in 5 Mb chunks if True.
@@ -496,7 +496,7 @@ class Downloader:
         file_name = pathlib.Path(self.url).name
         download_path = self.download_dir / file_name
 
-        if (download_path.exists()) and (not overwrite):
+        if (download_path.exists()) and (not redownload):
             return download_path
 
         if stream:

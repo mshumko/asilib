@@ -43,7 +43,7 @@ THEMIS_DT = THEMIS_DT.newbyteorder('>')  # force big endian byte ordering
 
 def themis(location_code: str, time: utils._time_type=None, 
         time_range: utils._time_range_type=None, alt: int=110, 
-        overwrite: bool=False, missing_ok: bool=True, load_images: bool=True,
+        redownload: bool=False, missing_ok: bool=True, load_images: bool=True,
         imager=asilib.Imager)->asilib.Imager:
     """
     Create an Imager instance using the THEMIS ASI images and skymaps.
@@ -60,7 +60,7 @@ def themis(location_code: str, time: utils._time_type=None,
         the ASI data time interval.
     alt: int
         The reference skymap altitude, in kilometers.
-    overwrite: bool
+    redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes
         corrupted).
@@ -82,7 +82,7 @@ def themis(location_code: str, time: utils._time_type=None,
 
     if load_images:
         # Download and find image data
-        file_paths = _get_pgm_files(location_code, time, time_range, overwrite, missing_ok)
+        file_paths = _get_pgm_files(location_code, time, time_range, redownload, missing_ok)
 
         if time is not None:
             # Find and load the nearest time stamp
@@ -114,7 +114,7 @@ def themis(location_code: str, time: utils._time_type=None,
         _time = time 
     else:
         _time = time_range[0]
-    _skymap = load_skymap(location_code, _time, overwrite)
+    _skymap = load_skymap(location_code, _time, redownload)
     alt_index = np.where(_skymap['FULL_MAP_ALTITUDE'] / 1000 == alt)[0]
     assert len(alt_index) == 1, (
         f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1000} km.'
@@ -148,7 +148,7 @@ def themis_info() -> pd.DataFrame:
     df = df[df['array'] == 'THEMIS'] 
     return df.reset_index(drop=True)
 
-def _get_pgm_files(location_code, time, time_range, overwrite, missing_ok):
+def _get_pgm_files(location_code, time, time_range, redownload, missing_ok):
     """
     """
     if (time is None) and (time_range is None):
@@ -158,10 +158,10 @@ def _get_pgm_files(location_code, time, time_range, overwrite, missing_ok):
 
     local_dir = local_base_dir / 'images' / location_code.lower()
     
-    if overwrite:
+    if redownload:
         # Option 1/4: Download one minute of data regardless if it is already saved
         if time is not None:
-            return [_download_one_pgm_file(location_code, time, local_dir, overwrite)]
+            return [_download_one_pgm_file(location_code, time, local_dir, redownload)]
 
         # Option 2/4: Download the data in time range regardless if it is already saved.
         elif time_range is not None:
@@ -170,7 +170,7 @@ def _get_pgm_files(location_code, time, time_range, overwrite, missing_ok):
             file_paths = []
             for file_time in file_times:
                 try:
-                    file_paths.append(_download_one_pgm_file(location_code, file_time, local_dir, overwrite))
+                    file_paths.append(_download_one_pgm_file(location_code, file_time, local_dir, redownload))
                 except (FileNotFoundError, AssertionError) as err:
                     if (missing_ok and 
                         (
@@ -188,7 +188,7 @@ def _get_pgm_files(location_code, time, time_range, overwrite, missing_ok):
             if len(local_file_paths) == 1:
                 return local_file_paths
             else:
-                return [_download_one_pgm_file(location_code, time, local_dir, overwrite)]
+                return [_download_one_pgm_file(location_code, time, local_dir, redownload)]
 
         # Option 4/4: Download the data in time range if they don't exist locally.
         elif time_range is not None:
@@ -202,7 +202,7 @@ def _get_pgm_files(location_code, time, time_range, overwrite, missing_ok):
                     file_paths.append(local_file_paths[0])
                 else:
                     try:
-                        file_paths.append(_download_one_pgm_file(location_code, file_time, local_dir, overwrite))
+                        file_paths.append(_download_one_pgm_file(location_code, file_time, local_dir, redownload))
                     except (FileNotFoundError, AssertionError) as err:
                         if (missing_ok and 
                             (
@@ -213,7 +213,7 @@ def _get_pgm_files(location_code, time, time_range, overwrite, missing_ok):
                         raise
             return file_paths 
 
-def _download_one_pgm_file(location_code, time, save_dir, overwrite):
+def _download_one_pgm_file(location_code, time, save_dir, redownload):
     start_url = pgm_base_url + f'{time.year}/{time.month:02}/{time.day:02}/'
     d = download.Downloader(start_url)
     # Find the unique directory
@@ -224,9 +224,9 @@ def _download_one_pgm_file(location_code, time, save_dir, overwrite):
     file_search_str = f'{time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}*.pgm.gz'
     matched_downloaders2 = d2.ls(file_search_str)
     assert len(matched_downloaders2) == 1
-    return matched_downloaders2[0].download(save_dir, overwrite=overwrite)
+    return matched_downloaders2[0].download(save_dir, redownload=redownload)
 
-def load_skymap(location_code, time, overwrite):
+def load_skymap(location_code, time, redownload):
     """
     Load a THEMIS ASI skymap file.
 
@@ -236,7 +236,7 @@ def load_skymap(location_code, time, overwrite):
         The four character location name.
     time: str or datetime.datetime
         A ISO-fomatted time string or datetime object. Must be in UT time. 
-    overwrite: bool
+    redownload: bool
         Redownload the file.
     """
     time = utils.validate_time(time)
@@ -244,13 +244,13 @@ def load_skymap(location_code, time, overwrite):
     local_dir.mkdir(parents=True, exist_ok=True)
     skymap_top_url = skymap_base_url + location_code.lower() + '/'
 
-    if overwrite:
+    if redownload:
         # Delete any existing skymap files.
         local_skymap_paths = pathlib.Path(local_dir).rglob(f'*skymap_{location_code.lower()}*.sav')
         for local_skymap_path in local_skymap_paths:
             os.unlink(local_skymap_path)
         local_skymap_paths = _download_all_skymaps(location_code, skymap_top_url, 
-            local_dir, overwrite=overwrite)
+            local_dir, redownload=redownload)
 
     else:
         local_skymap_paths = sorted(pathlib.Path(local_dir).rglob(
@@ -258,7 +258,7 @@ def load_skymap(location_code, time, overwrite):
         #TODO: Add a check to periodically redownload the skymap data, maybe once a month?
         if len(local_skymap_paths) == 0:
             local_skymap_paths = _download_all_skymaps(location_code, skymap_top_url, 
-                local_dir, overwrite=overwrite)
+                local_dir, redownload=redownload)
 
     skymap_filenames = [local_skymap_path.name for local_skymap_path in local_skymap_paths]
     skymap_file_dates = []
@@ -283,7 +283,7 @@ def load_skymap(location_code, time, overwrite):
     skymap = _load_skymap(skymap_path)
     return skymap
 
-def _download_all_skymaps(location_code, url, save_dir, overwrite):
+def _download_all_skymaps(location_code, url, save_dir, redownload):
     d = download.Downloader(url)
     # Find the dated subdirectories
     ds = d.ls(f'{location_code.lower()}')
@@ -292,7 +292,7 @@ def _download_all_skymaps(location_code, url, save_dir, overwrite):
     for d_i in ds:
         ds = d_i.ls(f'*skymap_{location_code.lower()}*.sav')
         for ds_j in ds:
-            save_paths.append(ds_j.download(save_dir, overwrite=overwrite))
+            save_paths.append(ds_j.download(save_dir, redownload=redownload))
     return save_paths
 
 def _load_skymap(skymap_path):

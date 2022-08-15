@@ -30,7 +30,7 @@ The below functions can be imported and called using either of the following way
 The former option is possible because these functions are all imported by default. However, this may change in a future release, so absolute import (shown in the latter example) is preferred.
 
 .. note::
-    `asilib` is hierarchically structured so that the `plot` functions call the `load` functions that then call the `download` functions if a file does not exist locally, or if `overwrite=True`. Therefore, **you don't normally need to call the download functions unless you need to download data in bulk.**
+    `asilib` is hierarchically structured so that the `plot` functions call the `load` functions that then call the `download` functions if a file does not exist locally, or if `redownload=True`. Therefore, **you don't normally need to call the download functions unless you need to download data in bulk.**
 
 .. note::
     The longitude units are converted from [0, 360] to [-180, 180] degrees in the skymap calibration files.

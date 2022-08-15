@@ -43,7 +43,7 @@ class TestDownloadThemis(unittest.TestCase):
         temp_image_path = temp_image_dir / 'thg_l1_asf_gill_2016102904_v01.cdf'
 
         save_path = asilib.download_image(
-            self.asi_array_code, self.location_code, time=self.day, overwrite=True
+            self.asi_array_code, self.location_code, time=self.day, redownload=True
         )
 
         assert temp_image_path == save_path[0]

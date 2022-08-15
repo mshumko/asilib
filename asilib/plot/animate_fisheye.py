@@ -112,8 +112,8 @@ def animate_fisheye_generator(
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
     overwrite: bool
-        If true, the data will be downloaded again and the output animation overwritten. 
-        If false it will prompt the user to answer y/n.
+        If true, the output animation will be overwritten, otherwise it will 
+        prompt the user to answer y/n.
     label: bool
         Flag to add the "asi_array_code/location_code/image_time" text to the plot.
     color_map: str
@@ -178,7 +178,7 @@ def animate_fisheye_generator(
     """
     try:
         image_times, images = load_image(
-            asi_array_code, location_code, time_range=time_range, overwrite=overwrite
+            asi_array_code, location_code, time_range=time_range
         )
     except AssertionError as err:
         if '0 number of time stamps were found in time_range' in str(err):
@@ -258,7 +258,7 @@ def animate_fisheye_generator(
             )
 
         if azel_contours:
-            _add_azel_contours(asi_array_code, location_code, image_time, ax, overwrite)
+            _add_azel_contours(asi_array_code, location_code, image_time, ax)
 
         # Give the user the control of the subplot, image object, and return the image time
         # so that the user can manipulate the image to add, for example, the satellite track.
@@ -297,7 +297,6 @@ def _write_movie(image_paths, movie_save_path, ffmpeg_output_params, overwrite):
         The movie file name.
     overwrite: bool
         Overwrite the movie.
-
     """
     ffmpeg_params = {
         'framerate': 10,
@@ -328,7 +327,6 @@ def _add_azel_contours(
     location_code: str,
     time: utils._time_type,
     ax: plt.Axes,
-    overwrite: bool,
     color: str = 'yellow',
 ) -> None:
     """
@@ -344,12 +342,10 @@ def _add_azel_contours(
         Time is used to find the relevant skymap file: file created nearest to, and before, the time.
     ax: plt.Axes
         The subplot that will be drawn on.
-    overwrite: bool
-        If True, download the file even if it already exists.
     color: str (optional)
         The contour color.
     """
-    skymap_dict = load_skymap(asi_array_code, location_code, time, overwrite=overwrite)
+    skymap_dict = load_skymap(asi_array_code, location_code, time)
 
     az_contours = ax.contour(
         skymap_dict['FULL_AZIMUTH'],

@@ -17,7 +17,7 @@ skymap_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/lamp/sav_
 local_base_dir = asilib.config['ASI_DATA_DIR'] / 'lamp_emccd'
 
 
-def lamp(location_code, time=None, time_range=None, overwrite=False, missing_ok=True, alt=90):
+def lamp(location_code, time=None, time_range=None, redownload=False, missing_ok=True, alt=90):
     """
     Create an Imager instance using the LAMP's ground-based EMCCD ASI.
 
@@ -31,7 +31,7 @@ def lamp(location_code, time=None, time_range=None, overwrite=False, missing_ok=
     time_range: list
         A length 2 list of string-formatted times or datetimes to bracket
         the ASI data time interval.
-    overwrite: bool
+    redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes
         corrupted).
@@ -62,7 +62,7 @@ def lamp(location_code, time=None, time_range=None, overwrite=False, missing_ok=
     else:
         raise NotImplementedError
 
-    _skymap = load_skymap(location_code, alt, overwrite)
+    _skymap = load_skymap(location_code, alt, redownload)
     skymap = {
         'lat':_skymap['gla'],
         'lon':_skymap['glo'],
@@ -74,7 +74,7 @@ def lamp(location_code, time=None, time_range=None, overwrite=False, missing_ok=
 
     # Download and find one-minute image file(s). If the user supplies both or 
     # neither time and time_range, the loader will crash here.
-    file_paths = _get_files(location_code, time, time_range, overwrite, missing_ok)
+    file_paths = _get_files(location_code, time, time_range, redownload, missing_ok)
     
     if time_range is not None:  # Prepare the loader for multiple files
         start_times = len(file_paths)*[None]
@@ -104,7 +104,7 @@ def lamp(location_code, time=None, time_range=None, overwrite=False, missing_ok=
             "time or time_range.")
     return asilib.Imager(data, meta, skymap)
 
-def _get_files(location_code, time, time_range, overwrite, missing_ok):
+def _get_files(location_code, time, time_range, redownload, missing_ok):
     """
     """
     if (time is None) and (time_range is None):
@@ -120,9 +120,9 @@ def _get_files(location_code, time, time_range, overwrite, missing_ok):
         filename = f'{location_code.lower()}_{time.strftime("%Y%m%d_%H%M")}.sav'
         file_paths = list(pathlib.Path(local_dir).rglob(filename))
 
-        if (len(file_paths) == 0) or overwrite:
+        if (len(file_paths) == 0) or redownload:
             d = download.Downloader(image_base_url + f'/{filename}')
-            file_paths = d.download(local_dir, overwrite=overwrite, stream=True)
+            file_paths = d.download(local_dir, redownload=redownload, stream=True)
         else:
             return file_paths
 
@@ -137,9 +137,9 @@ def _get_files(location_code, time, time_range, overwrite, missing_ok):
             filename = f'{location_code.lower()}_{file_time.strftime("%Y%m%d_%H%M")}.sav'
             _matched_file_paths = list(pathlib.Path(local_dir).rglob(filename))
             
-            if overwrite:
+            if redownload:
                 d = download.Downloader(image_base_url + f'/{filename}')
-                file_paths.append(d.download(local_dir, overwrite=overwrite, stream=True))
+                file_paths.append(d.download(local_dir, redownload=redownload, stream=True))
             else:
                 if len(_matched_file_paths) == 1:
                     file_paths.append(_matched_file_paths[0])
@@ -147,7 +147,7 @@ def _get_files(location_code, time, time_range, overwrite, missing_ok):
                 elif len(_matched_file_paths) == 0:
                     d = download.Downloader(image_base_url + f'/{filename}')
                     try:
-                        file_paths.append(d.download(local_dir, overwrite=overwrite, stream=True))
+                        file_paths.append(d.download(local_dir, redownload=redownload, stream=True))
                     except (FileNotFoundError, AssertionError, ConnectionError) as err:
                         if (missing_ok and 
                             (
@@ -178,7 +178,7 @@ def lamp_reader(file_path):
         ])
     return times, images
 
-def find_skymap(location_code, alt, overwrite=True):
+def find_skymap(location_code, alt, redownload=True):
     """
     Find the path to the skymap file.
     """
@@ -187,7 +187,7 @@ def find_skymap(location_code, alt, overwrite=True):
     # Check if the skymaps are already downloaded.
     local_skymap_paths = list(pathlib.Path(local_dir).rglob(f'{location_code.lower()}*.sav'))
 
-    if (len(local_skymap_paths) == 0) or overwrite:
+    if (len(local_skymap_paths) == 0) or redownload:
         # Download the skymaps.
         d = download.Downloader(skymap_base_url)
         ds = d.ls(f'{location_code.lower()}_*.sav')
@@ -202,11 +202,11 @@ def find_skymap(location_code, alt, overwrite=True):
     raise FileNotFoundError(f'Unable to find the "{location_code.lower()}_{alt:03}.sav" LAMP skymap.')
 
 
-def load_skymap(location_code, alt, overwrite):
+def load_skymap(location_code, alt, redownload):
     """
     Load the skymap file and apply the transformations.
     """
-    skymap_path = find_skymap(location_code, alt, overwrite)
+    skymap_path = find_skymap(location_code, alt, redownload)
     skymap = _load_skymap(skymap_path)
     skymap = _tranform_longitude_to_180(skymap)
     skymap = _transform_azimuth_to_180(skymap)
@@ -275,7 +275,7 @@ if __name__ == '__main__':
         img = lamp('vee', 
             time_range=[datetime(2022, 3, 5, 11, 0), datetime(2022, 3, 5, 11, 3)],
             # time=datetime(2022, 3, 5, 11, 0),
-            overwrite=False
+            redownload=False
             )
     ps = pstats.Stats(pr).sort_stats('cumulative')
     ps.strip_dirs()

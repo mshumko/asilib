@@ -126,8 +126,8 @@ def animate_map_generator(
     min_elevation: float
         Masks the pixels below min_elevation degrees.
     overwrite: bool
-        If true, the data will be downloaded again and the output animation overwritten. 
-        If false it will prompt the user to answer y/n.
+        If True, the animation will be overwritten. Otherwise it will prompt
+        the user to answer y/n.
     color_map: str
         The matplotlib colormap to use. If 'auto', will default to a
         black-red colormap for REGO and black-white colormap for THEMIS.
@@ -209,7 +209,7 @@ def animate_map_generator(
     """
     try:
         image_times, images = load_image(
-            asi_array_code, location_code, time_range=time_range, overwrite=overwrite
+            asi_array_code, location_code, time_range=time_range
         )
     except AssertionError as err:
         if '0 number of time stamps were found in time_range' in str(err):
@@ -355,19 +355,3 @@ def _mask_low_horizon(images, lon_map, lat_map, el_map, min_elevation):
     lon_map_copy[idh_boundary_right] = np.nan
     lat_map_copy[idh_boundary_right] = np.nan
     return images_copy, lon_map_copy, lat_map_copy
-
-# if __name__ == '__main__':
-#     from datetime import datetime
-
-#     import asilib
-
-#     map_alt=110
-#     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-#     map_generator = asilib.animate_map_generator('THEMIS', 'FSMI', time_range, map_alt=map_alt, 
-#         lon_bounds=(-125, -100), lat_bounds=(55, 70))
-
-#     for (image_time1, image, ax, p) in map_generator:
-#           # The code that modifies each image here.
-#           pass
-
-#     print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')
