@@ -15,7 +15,7 @@ def plot_fisheye(
     asi_array_code: str,
     location_code: str,
     time: utils._time_type,
-    force_download: bool = False,
+    overwrite: bool = False,
     time_thresh_s: float = 3,
     ax: plt.Axes = None,
     label: bool = True,
@@ -38,7 +38,7 @@ def plot_fisheye(
         ISO 8601 standard.
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
-    force_download: bool
+    overwrite: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
     time_thresh_s: float
@@ -96,7 +96,7 @@ def plot_fisheye(
     | # auroral arc powered by accelerated electrons from very high altitudes"
     | time = datetime(2017, 9, 15, 2, 34, 0)
     | image_time, ax, im = asilib.plot_fisheye('THEMIS', 'RANK', time,
-    |     color_norm='log', force_download=False)
+    |     color_norm='log', overwrite=False)
     |
     | plt.colorbar(im)
     | ax.axis('off')
@@ -109,7 +109,7 @@ def plot_fisheye(
         asi_array_code,
         location_code,
         time=time,
-        force_download=force_download,
+        overwrite=overwrite,
         time_thresh_s=time_thresh_s,
     )
 
@@ -144,7 +144,7 @@ def plot_fisheye(
         )
     if azel_contours:
         skymap_dict = load.load_skymap(
-            asi_array_code, location_code, image_time, force_download=force_download
+            asi_array_code, location_code, image_time, overwrite=overwrite
         )
 
         az_contours = ax.contour(

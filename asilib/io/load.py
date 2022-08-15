@@ -22,7 +22,7 @@ def load_image(
     location_code: str,
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
-    force_download: bool = False,
+    overwrite: bool = False,
     time_thresh_s: float = 3,
     ignore_missing_data: bool = True,
 ):
@@ -41,7 +41,7 @@ def load_image(
         ISO 8601 standard.
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
-    force_download: bool
+    overwrite: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
     time_thresh_s: float
@@ -69,13 +69,13 @@ def load_image(
     | asi_array_code = 'THEMIS'
     | location_code = 'ATHA'
     | time = datetime(2008, 3, 9, 9, 18, 0)
-    | image_time, image = asilib.load_image(asi_array_code, location_code, time=time, force_download=False)
+    | image_time, image = asilib.load_image(asi_array_code, location_code, time=time, overwrite=False)
     |
     | # Load multiple images
     | asi_array_code = 'REGO'
     | location_code = 'LUCK'
     | time_range = [datetime(2017, 9, 27, 7, 15), datetime(2017, 9, 27, 8, 15)]
-    | image_times, images = asilib.load_image(asi_array_code, location_code, time_range=time_range, force_download=False)
+    | image_times, images = asilib.load_image(asi_array_code, location_code, time_range=time_range, overwrite=False)
     """
     if (time is None) and (time_range is None):
         raise AttributeError('Neither time or time_range is specified.')
@@ -87,7 +87,7 @@ def load_image(
             asi_array_code,
             location_code,
             time,
-            force_download=force_download,
+            overwrite=overwrite,
             time_thresh_s=time_thresh_s,
         )
 
@@ -96,7 +96,7 @@ def load_image(
             asi_array_code,
             location_code,
             time_range,
-            force_download=force_download,
+            overwrite=overwrite,
             ignore_missing_data=ignore_missing_data,
         )
     else:
@@ -107,7 +107,7 @@ def load_image_generator(
     asi_array_code: str,
     location_code: str,
     time_range: utils._time_range_type,
-    force_download: bool = False,
+    overwrite: bool = False,
     ignore_missing_data: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -127,7 +127,7 @@ def load_image_generator(
         The ASI station code, i.e. ``ATHA``
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
-    force_download: bool
+    overwrite: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
     ignore_missing_data: bool
@@ -161,7 +161,7 @@ def load_image_generator(
     for hour in hours:
         try:
             cdf_path = _find_img_path(
-                asi_array_code, location_code, hour, force_download=force_download
+                asi_array_code, location_code, hour, overwrite=overwrite
             )
             cdf_obj = cdflib.CDF(cdf_path)
         except FileNotFoundError:
@@ -180,7 +180,7 @@ def load_skymap(
     asi_array_code: str,
     location_code: str,
     time: utils._time_type,
-    force_download: bool = False,
+    overwrite: bool = False,
 ) -> dict:
     """
     Loads the appropriate THEMIS or REGO skymap file (closest and before ``time``) into memory.
@@ -194,7 +194,7 @@ def load_skymap(
     time: datetime.datetime or str
         The date and time to download of the data. If str, ``time`` must be in the
         ISO 8601 standard.
-    force_download: bool
+    overwrite: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
 
@@ -213,9 +213,9 @@ def load_skymap(
     if isinstance(time, str):
         time = dateutil.parser.parse(time)
 
-    if force_download:
+    if overwrite:
         skymap_paths = download_skymap(
-            asi_array_code.lower(), location_code, force_download=force_download
+            asi_array_code.lower(), location_code, overwrite=overwrite
         )
 
     else:
@@ -233,7 +233,7 @@ def load_skymap(
         # Download skymap files if they are not downloaded yet.
         if len(skymap_paths) == 0:
             skymap_paths = download_skymap(
-                asi_array_code.lower(), location_code, force_download=force_download
+                asi_array_code.lower(), location_code, overwrite=overwrite
             )
 
     skymap_dates = _extract_skymap_dates(skymap_paths)
@@ -280,7 +280,7 @@ def _load_image(
     asi_array_code: str,
     location_code: str,
     time: utils._time_type,
-    force_download: bool = False,
+    overwrite: bool = False,
     time_thresh_s: float = 3,
 ) -> Tuple[datetime, np.ndarray]:
     """
@@ -299,7 +299,7 @@ def _load_image(
         ISO 8601 standard.
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
-    force_download: bool
+    overwrite: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
     time_thresh_s: float
@@ -328,7 +328,7 @@ def _load_image(
     """
     time = utils._validate_time(time)
 
-    cdf_path = _find_img_path(asi_array_code, location_code, time, force_download=force_download)
+    cdf_path = _find_img_path(asi_array_code, location_code, time, overwrite=overwrite)
     cdf_obj = cdflib.CDF(cdf_path)
 
     if asi_array_code.lower() == 'rego':
@@ -356,7 +356,7 @@ def _load_images(
     asi_array_code: str,
     location_code: str,
     time_range: utils._time_range_type,
-    force_download: bool = False,
+    overwrite: bool = False,
     ignore_missing_data: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -373,7 +373,7 @@ def _load_images(
         The ASI station code, i.e. ``ATHA``
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
-    force_download: bool
+    overwrite: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
     time_thresh_s: float
@@ -418,7 +418,7 @@ def _load_images(
         asi_array_code,
         location_code,
         time_range,
-        force_download=force_download,
+        overwrite=overwrite,
         ignore_missing_data=ignore_missing_data,
     )
 
@@ -444,7 +444,7 @@ def _find_img_path(
     asi_array_code: str,
     location_code: str,
     time: utils._time_type,
-    force_download: bool = False,
+    overwrite: bool = False,
 ) -> pathlib.Path:
     """
     Returns a path to an all sky full-resolution image (THEMIS:ASF, REGO:rgf) file.
@@ -459,7 +459,7 @@ def _find_img_path(
     time: datetime.datetime or str
         The date and time to download of the data. If str, ``time`` must be in the
         ISO 8601 standard.
-    force_download: bool
+    overwrite: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
 
@@ -488,9 +488,9 @@ def _find_img_path(
     """
     time = utils._validate_time(time)
 
-    if force_download:
+    if overwrite:
         file_path = download_image(
-            asi_array_code.lower(), location_code, time=time, force_download=force_download
+            asi_array_code.lower(), location_code, time=time, overwrite=overwrite
         )[0]
     else:
         # If the user does not want to force a download, look for a file on the
@@ -508,7 +508,7 @@ def _find_img_path(
         elif len(matched_paths) == 0:  # No local file found
             try:
                 file_path = download_image(
-                    asi_array_code.lower(), location_code, time=time, force_download=force_download
+                    asi_array_code.lower(), location_code, time=time, overwrite=overwrite
                 )[0]
             except NotADirectoryError:
                 raise FileNotFoundError(
@@ -531,7 +531,7 @@ def _get_epoch(cdf_obj, time_key, hour_date_time, asi_array_code, location_code)
             raise ValueError(
                 str(err) + '\n\n ASI data is probably corrupted for '
                 f'time={hour_date_time}, asi_array_code={asi_array_code}, location_code={location_code}. '
-                'download the data again with force_download=True).'
+                'download the data again with overwrite=True).'
             )
         else:
             raise

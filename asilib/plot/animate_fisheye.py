@@ -83,7 +83,7 @@ def animate_fisheye_generator(
     asi_array_code: str,
     location_code: str,
     time_range: utils._time_range_type,
-    force_download: bool = False,
+    overwrite: bool = False,
     label: bool = True,
     color_map: str = 'auto',
     color_bounds: Union[List[float], None] = None,
@@ -112,7 +112,7 @@ def animate_fisheye_generator(
         The ASI station code, i.e. ``ATHA``
     time_range: list of datetime.datetimes or stings
         Defined the duration of data to download. Must be of length 2.
-    force_download: bool
+    overwrite: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
     label: bool
@@ -182,7 +182,7 @@ def animate_fisheye_generator(
     """
     try:
         image_times, images = load_image(
-            asi_array_code, location_code, time_range=time_range, force_download=force_download
+            asi_array_code, location_code, time_range=time_range, overwrite=overwrite
         )
     except AssertionError as err:
         if '0 number of time stamps were found in time_range' in str(err):
@@ -262,7 +262,7 @@ def animate_fisheye_generator(
             )
 
         if azel_contours:
-            _add_azel_contours(asi_array_code, location_code, image_time, ax, force_download)
+            _add_azel_contours(asi_array_code, location_code, image_time, ax, overwrite)
 
         # Give the user the control of the subplot, image object, and return the image time
         # so that the user can manipulate the image to add, for example, the satellite track.
@@ -332,7 +332,7 @@ def _add_azel_contours(
     location_code: str,
     time: utils._time_type,
     ax: plt.Axes,
-    force_download: bool,
+    overwrite: bool,
     color: str = 'yellow',
 ) -> None:
     """
@@ -348,12 +348,12 @@ def _add_azel_contours(
         Time is used to find the relevant skymap file: file created nearest to, and before, the time.
     ax: plt.Axes
         The subplot that will be drawn on.
-    force_download: bool
+    overwrite: bool
         If True, download the file even if it already exists.
     color: str (optional)
         The contour color.
     """
-    skymap_dict = load_skymap(asi_array_code, location_code, time, force_download=force_download)
+    skymap_dict = load_skymap(asi_array_code, location_code, time, overwrite=overwrite)
 
     az_contours = ax.contour(
         skymap_dict['FULL_AZIMUTH'],

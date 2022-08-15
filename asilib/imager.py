@@ -117,7 +117,7 @@ class Imager:
         | # auroral arc powered by accelerated electrons from very high altitudes"
         | time = datetime(2017, 9, 15, 2, 34, 0)
         | ax, im = asilib.plot_fisheye('THEMIS', 'RANK', time,
-        |     color_norm='log', force_download=False)
+        |     color_norm='log', overwrite=False)
         |
         | plt.colorbar(im)
         | ax.axis('off')

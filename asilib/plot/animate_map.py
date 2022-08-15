@@ -87,7 +87,7 @@ def animate_map_generator(
     time_range: asilib.io.utils._time_range_type,
     map_alt: float,
     min_elevation: float = 10,
-    force_download: bool = False,
+    overwrite: bool = False,
     color_map: str = 'auto',
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
@@ -126,7 +126,7 @@ def animate_map_generator(
         in the skymap calibration.
     min_elevation: float
         Masks the pixels below min_elevation degrees.
-    force_download: bool
+    overwrite: bool
         If True, download the file even if it already exists. Useful if a prior
         data download was incomplete.
     color_map: str
@@ -213,7 +213,7 @@ def animate_map_generator(
     """
     try:
         image_times, images = load_image(
-            asi_array_code, location_code, time_range=time_range, force_download=force_download
+            asi_array_code, location_code, time_range=time_range, overwrite=overwrite
         )
     except AssertionError as err:
         if '0 number of time stamps were found in time_range' in str(err):
