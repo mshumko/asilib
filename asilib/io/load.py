@@ -528,11 +528,13 @@ def _get_epoch(cdf_obj, time_key, hour_date_time, asi_array_code, location_code)
     try:
         epoch = np.array(cdflib.cdfepoch.to_datetime(cdf_obj.varget(time_key)))
     except ValueError as err:
-        if str(err) == 'read length must be non-negative or -1':
+        if ('read length must be non-negative or -1' in str(err)) or ('not found' in str(err)):
             raise ValueError(
                 str(err) + '\n\n ASI data is probably corrupted for '
-                f'time={hour_date_time}, asi_array_code={asi_array_code}, location_code={location_code}. '
-                'download the data again with redownload=True).'
+                f'time={hour_date_time}, asi_array_code={asi_array_code}, '
+                f'location_code={location_code}. This can happen when the '
+                f'download was interrupted. Try to redownload the data using '
+                f'redownload=True).'
             )
         else:
             raise
