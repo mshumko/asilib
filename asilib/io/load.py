@@ -171,6 +171,11 @@ def load_image_generator(
         epoch = _get_epoch(cdf_obj, time_key, hour, asi_array_code, location_code)
 
         idx = np.where((epoch >= time_range[0]) & (epoch < time_range[1]))[0]
+        if len(idx) == 0:
+            # This happens occasionally if, for example, time_range[0].minute = 57 while
+            # epoch[-1].minute = 55. Continue to not try to yield an empty file.
+            warnings.warn(f'{asi_array_code}-{location_code}, {hour} UT has no images in the time range.')
+            continue
         yield epoch[idx], cdf_obj.varget(image_key, startrec=idx[0], endrec=idx[-1])
 
 
