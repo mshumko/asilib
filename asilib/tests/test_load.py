@@ -118,6 +118,36 @@ class TestPlotImage(unittest.TestCase):
         np.testing.assert_equal(reference['times'], times)
         return
 
+    def test_load_images_themis_bug(self, create_reference=False):
+        """load one minute of THEMIS images."""
+        times, images = load.load_image('THEMIS', 'GILL', time_range=self.time_range)
+
+        # np.save can't save an array of datetime objects without allow_pickle=True.
+        # Since this can be a security concern, we'll save a string version of
+        # datetimes.
+        times = np.array([t.isoformat() for t in times])
+
+        reference_path = pathlib.Path(
+            config['ASILIB_DIR'], 'tests', 'data', 'test_load_images_themis.npz'
+        )
+        if create_reference:
+            np.savez_compressed(reference_path, images=images, times=times)
+
+        reference = np.load(reference_path)
+
+        np.testing.assert_equal(reference['images'], images)
+        np.testing.assert_equal(reference['times'], times)
+        return
+
+    def test_themis_broadcast_error_bug(self):
+        asi_times, images = load.load_image('THEMIS', 'gill', 
+            time_range=(
+                '2006-12-08 06:31:27', '2006-12-08 06:33:19'
+                )
+            )
+
+        return
+
 
 if __name__ == '__main__':
     unittest.main()
