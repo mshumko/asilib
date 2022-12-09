@@ -257,7 +257,12 @@ class Keogram:
         Creates an empty 2D keogram and time arrays.
         """
         time_range = utils._validate_time_range(time_range)
-        max_n_timestamps = int((time_range[1] - time_range[0]).total_seconds() / self.asi_cadence_s)
+        # + 1 just in case. The THEMIS and REGO cadence is not
+        # always exactly 3 seconds, so in certain circumstances
+        # there may be one or two extra data points.
+        max_n_timestamps = int(
+            (time_range[1] - time_range[0]).total_seconds() / self.asi_cadence_s
+            )+1
         data_shape = (max_n_timestamps, self.img_size)
 
         # object is the only dtype that can contain datetime objects
