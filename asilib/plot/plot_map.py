@@ -5,12 +5,8 @@ from typing import List, Union
 import importlib
 import pathlib
 import zipfile
-from matplotlib import projections
 
 import matplotlib.pyplot as plt
-from matplotlib import scale as mscale
-from matplotlib import transforms as mtransforms
-from matplotlib.ticker import FixedLocator, FuncFormatter
 import numpy as np
 import numpy.ma as ma
 import shapefile  # A pure python-library. Yay!
@@ -33,10 +29,10 @@ def plot_map(
     color_bounds: Union[List[float], None] = None,
     color_norm: str = 'log',
     pcolormesh_kwargs: dict = {},
-    map_shapefile: Union[str, pathlib.Path]='ne_10m_land', 
-    coast_color: str='k', 
-    land_color: str='g', 
-    ocean_color: str='w',
+    map_shapefile: Union[str, pathlib.Path] = 'ne_10m_land',
+    coast_color: str = 'k',
+    land_color: str = 'g',
+    ocean_color: str = 'w',
     lon_bounds: tuple = (-140, -60),
     lat_bounds: tuple = (40, 82),
 ):
@@ -121,7 +117,7 @@ def plot_map(
     |
     | asi_array_code = 'THEMIS'
     | location_code = 'ATHA'
-    | time = datetime(2008, 3, 9, 9, 18, 0) 
+    | time = datetime(2008, 3, 9, 9, 18, 0)
     | map_alt_km = 110
     | asilib.plot_map(asi_array_code, location_code, time, map_alt_km);
     | plt.show()
@@ -152,12 +148,12 @@ def plot_map(
     if ax is None:
         ax = make_map(
             file=map_shapefile,
-            coast_color=coast_color, 
-            land_color=land_color, 
+            coast_color=coast_color,
+            land_color=land_color,
             ocean_color=ocean_color,
             lon_bounds=lon_bounds,
-            lat_bounds=lat_bounds
-            )
+            lat_bounds=lat_bounds,
+        )
 
     if color_bounds is None:
         color_bounds = asilib.plot.utils.get_color_bounds(image)
@@ -185,19 +181,20 @@ def plot_map(
         )
     return image_time, image, skymap, ax, p
 
+
 def make_map(
-    file: Union[str, pathlib.Path]='ne_10m_land', 
-    coast_color: str='k', 
-    land_color: str='g', 
-    ocean_color: str='w', 
-    ax: plt.Axes=None,
+    file: Union[str, pathlib.Path] = 'ne_10m_land',
+    coast_color: str = 'k',
+    land_color: str = 'g',
+    ocean_color: str = 'w',
+    ax: plt.Axes = None,
     lon_bounds: tuple = (-140, -60),
     lat_bounds: tuple = (40, 82),
-    ) -> plt.Axes:
+) -> plt.Axes:
     """
-    Makes a map using the Mercator projection with a shapefile read in by the pyshp package. 
-    
-    A good place to download shapefiles is 
+    Makes a map using the mercator projection with a shapefile read in by the pyshp package.
+
+    A good place to download shapefiles is
     https://www.naturalearthdata.com/downloads/10m-physical-vectors/.
 
     Parameters
@@ -226,7 +223,7 @@ def make_map(
     Example
     -------
     | import asilib
-    | 
+    |
     | ax = asilib.make_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
     """
     shp_path = asilib.config['ASILIB_DIR'] / 'data' / f'{file}'
@@ -235,17 +232,14 @@ def make_map(
         shp = archive.open(f'{file}.shp', "r")
         dbf = archive.open(f'{file}.dbf', "r")
         sf = shapefile.Reader(shp=shp, dbf=dbf)
-        i=0  # I'm unsure what the other shapes are, but i=0 works.
+        i = 0  # I'm unsure what the other shapes are, but i=0 works.
         lats = np.array([point[0] for point in sf.shapes()[i].points])
         lons = np.array([point[1] for point in sf.shapes()[i].points])
 
-    # Since the landmass shapes are represented continuously in (lats, lons), 
-    # matplotlib draws straight (annoying) lines between them. This code uses 
+    # Since the landmass shapes are represented continuously in (lats, lons),
+    # matplotlib draws straight (annoying) lines between them. This code uses
     # the jumps bool array and masked_arrays to remove those lines.
-    jumps = (
-        (np.abs(lats[1:]-lats[:-1]) > 1) | 
-        (np.abs(lons[1:]-lons[:-1]) > 1)
-        )
+    jumps = (np.abs(lats[1:] - lats[:-1]) > 3) | (np.abs(lons[1:] - lons[:-1]) > 3)
     mlats = ma.masked_array(lats[:-1], mask=jumps)
     mlons = ma.masked_array(lons[:-1], mask=jumps)
 
@@ -253,25 +247,22 @@ def make_map(
     split_lons = _consecutive(lons, jumps)
 
     if ax is None:
-        ax = plt.subplot(111)
+        _, ax = plt.subplots()
     if ocean_color is not None:
         ax.set_facecolor(ocean_color)
         pass
     if coast_color is not None:
-        ax.plot(mlats, np.radians(mlons), coast_color)
-        # ax.plot(mlats, mlons, coast_color)
+        ax.plot(mlats, mlons, coast_color)
     if land_color is not None:
         for split_lon, split_lat in zip(split_lons, split_lats):
-            ax.fill(split_lat, np.radians(split_lon), land_color, zorder=0)
-            # ax.fill(split_lat, split_lon, land_color, zorder=0)
+            ax.fill(split_lat, split_lon, land_color, zorder=0)
 
     # ax.set_aspect('equal', adjustable='box')
-    if lon_bounds is not None:
-        ax.set_xlim(lon_bounds)
-    if lat_bounds is not None:
-        ax.set_ylim(lat_bounds)
-    # ax.set_yscale('mercator')
+
+    ax.set_xlim(lon_bounds)
+    ax.set_ylim(lat_bounds)
     return ax
+
 
 def _consecutive(data, jump_bool):
     """
@@ -280,7 +271,7 @@ def _consecutive(data, jump_bool):
     Taken from: https://stackoverflow.com/questions/7352684/
     how-to-find-the-groups-of-consecutive-elements-in-a-numpy-array
     """
-    return np.split(data, np.where(jump_bool)[0]+1)
+    return np.split(data, np.where(jump_bool)[0] + 1)
 
 
 def _pcolormesh_nan(
@@ -323,11 +314,11 @@ def _pcolormesh_nan(
             bottom = i
 
         # Reassign all lat/lon columns after good[-1] (all nans) to good[-1].
-        x[i, good[-1]:] = x[i, good[-1]]
-        y[i, good[-1]:] = y[i, good[-1]]
+        x[i, good[-1] :] = x[i, good[-1]]
+        y[i, good[-1] :] = y[i, good[-1]]
         # Reassign all lat/lon columns before good[0] (all nans) to good[0].
-        x[i, :good[0]] = x[i, good[0]]
-        y[i, :good[0]] = y[i, good[0]]
+        x[i, : good[0]] = x[i, good[0]]
+        y[i, : good[0]] = y[i, good[0]]
 
     # Reassign all of the fully invalid lat/lon rows above top to the the max lat/lon value.
     x[:top, :] = np.nanmax(x[top, :])
@@ -377,151 +368,18 @@ def _mask_low_horizon(image, lon_map, lat_map, el_map, min_elevation):
     lat_map_copy[idh_boundary_right] = np.nan
     return image_copy, lon_map_copy, lat_map_copy
 
-class MercatorLatitudeScale(mscale.ScaleBase):
-    """
-    Scales data in range -pi/2 to pi/2 (-90 to 90 degrees) using
-    the system used to scale latitudes in a Mercator__ projection.
 
-    The scale function:
-      ln(tan(y) + sec(y))
+# if __name__ == '__main__':
+#     from datetime import datetime
 
-    The inverse scale function:
-      atan(sinh(y))
+#     import matplotlib.pyplot as plt
 
-    Since the Mercator scale tends to infinity at +/- 90 degrees,
-    there is user-defined threshold, above and below which nothing
-    will be plotted.  This defaults to +/- 85 degrees.
+#     import asilib
 
-    __ https://en.wikipedia.org/wiki/Mercator_projection
-    """
-
-    # The scale class must have a member ``name`` that defines the string used
-    # to select the scale.  For example, ``ax.set_yscale("mercator")`` would be
-    # used to select this scale.
-    name = 'mercator'
-
-    def __init__(self, axis, *, thresh=np.deg2rad(85), **kwargs):
-        """
-        Any keyword arguments passed to ``set_xscale`` and ``set_yscale`` will
-        be passed along to the scale's constructor.
-
-        thresh: The degree above which to crop the data.
-        """
-        super().__init__(axis)
-        if thresh >= np.pi / 2:
-            raise ValueError("thresh must be less than pi/2")
-        self.thresh = thresh
-
-    def get_transform(self):
-        """
-        Override this method to return a new instance that does the
-        actual transformation of the data.
-
-        The MercatorLatitudeTransform class is defined below as a
-        nested class of this one.
-        """
-        return self.MercatorLatitudeTransform(self.thresh)
-
-    def set_default_locators_and_formatters(self, axis):
-        """
-        Override to set up the locators and formatters to use with the
-        scale.  This is only required if the scale requires custom
-        locators and formatters.  Writing custom locators and
-        formatters is rather outside the scope of this example, but
-        there are many helpful examples in :mod:`.ticker`.
-
-        In our case, the Mercator example uses a fixed locator from -90 to 90
-        degrees and a custom formatter to convert the radians to degrees and
-        put a degree symbol after the value.
-        """
-        fmt = FuncFormatter(
-            lambda x, pos=None: f"{np.degrees(x):.0f}\N{DEGREE SIGN}")
-        axis.set(major_locator=FixedLocator(np.radians(range(-90, 90, 10))),
-                 major_formatter=fmt, minor_formatter=fmt)
-
-    def limit_range_for_scale(self, vmin, vmax, minpos):
-        """
-        Override to limit the bounds of the axis to the domain of the
-        transform.  In the case of Mercator, the bounds should be
-        limited to the threshold that was passed in.  Unlike the
-        autoscaling provided by the tick locators, this range limiting
-        will always be adhered to, whether the axis range is set
-        manually, determined automatically or changed through panning
-        and zooming.
-        """
-        return max(vmin, -self.thresh), min(vmax, self.thresh)
-
-    class MercatorLatitudeTransform(mtransforms.Transform):
-        # There are two value members that must be defined.
-        # ``input_dims`` and ``output_dims`` specify number of input
-        # dimensions and output dimensions to the transformation.
-        # These are used by the transformation framework to do some
-        # error checking and prevent incompatible transformations from
-        # being connected together.  When defining transforms for a
-        # scale, which are, by definition, separable and have only one
-        # dimension, these members should always be set to 1.
-        input_dims = output_dims = 1
-
-        def __init__(self, thresh):
-            mtransforms.Transform.__init__(self)
-            self.thresh = thresh
-
-        def transform_non_affine(self, a):
-            """
-            This transform takes a numpy array and returns a transformed copy.
-            Since the range of the Mercator scale is limited by the
-            user-specified threshold, the input array must be masked to
-            contain only valid values.  Matplotlib will handle masked arrays
-            and remove the out-of-range data from the plot.  However, the
-            returned array *must* have the same shape as the input array, since
-            these values need to remain synchronized with values in the other
-            dimension.
-            """
-            masked = ma.masked_where((np.isfinite(a) & ((a < -self.thresh) | (a > self.thresh))), a)
-            if masked.mask.any():
-                return np.log(np.abs(np.tan(masked) + 1 / np.cos(masked)))
-            else:
-                return np.log(np.abs(np.tan(a) + 1 / np.cos(a)))
-
-        def inverted(self):
-            """
-            Override this method so Matplotlib knows how to get the
-            inverse transform for this transform.
-            """
-            return MercatorLatitudeScale.InvertedMercatorLatitudeTransform(
-                self.thresh)
-
-    class InvertedMercatorLatitudeTransform(mtransforms.Transform):
-        input_dims = output_dims = 1
-
-        def __init__(self, thresh):
-            mtransforms.Transform.__init__(self)
-            self.thresh = thresh
-
-        def transform_non_affine(self, a):
-            return np.arctan(np.sinh(a))
-
-        def inverted(self):
-            return MercatorLatitudeScale.MercatorLatitudeTransform(self.thresh)
-
-
-# Now that the Scale class has been defined, it must be registered so
-# that Matplotlib can find it.
-mscale.register_scale(MercatorLatitudeScale)
-
-if __name__ == '__main__':
-    from datetime import datetime
-
-    import matplotlib.pyplot as plt
-
-    import asilib
-
-    _, ax = plt.subplots()
-    make_map(lon_bounds=None, lat_bounds=None, ax=ax)
-
-    # asilib.plot_map(
-    #     'THEMIS', 'ATHA', datetime(2010, 4, 5, 6, 7, 0), 110, ax=ax
-    # )
-    # ax.set_yscale('mercator')
-    plt.tight_layout()
-    plt.show()
+#     asi_array_code = 'THEMIS'
+#     location_code = 'ATHA'
+#     time = datetime(2008, 3, 9, 9, 18, 0)
+#     map_alt_km = 110
+#     asilib.plot_map(asi_array_code, location_code, time, map_alt_km)
+#     plt.tight_layout()
+#     plt.show()
