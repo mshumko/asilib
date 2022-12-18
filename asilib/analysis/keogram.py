@@ -327,6 +327,8 @@ class Keogram:
             Path indices corresponding to rows with a pixel within threshold
             degrees distance.
         """
+        if np.array(path).shape[0] == 0:
+            raise ValueError('The path is empty.')
         if np.any(np.isnan(path)):
             raise ValueError("The lat/lon path can't contain NaNs.")
         if np.any(np.max(path) > 180) or np.any(np.min(path) < -180):
