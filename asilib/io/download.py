@@ -502,7 +502,7 @@ class Downloader:
             return download_path
 
         if stream:
-            r = requests.get(self.url, stream=True)
+            r = requests.get(self.url, stream=True, timeout=5)
             file_size = int(r.headers.get('content-length'))
             downloaded_bites = 0
 
@@ -521,7 +521,7 @@ class Downloader:
                     )
             print()  # Add a newline
         else:
-            r = requests.get(self.url)
+            r = requests.get(self.url, timeout=5)
             with open(download_path, 'wb') as f:
                 f.write(r.content)
             print(f'Downloaded {file_name}.')
@@ -563,7 +563,7 @@ class Downloader:
         FileNotFoundError
             If no hyper references were found.
         """
-        request = requests.get(url)
+        request = requests.get(url, timeout=5)
         soup = BeautifulSoup(request.content, 'html.parser')
 
         match = match.replace('*', '.*')  # regex wildcard
@@ -584,7 +584,14 @@ class Downloader:
         Check that the server status code is not
         between 400-599 (error).
         """
-        r = requests.get(self.url)
+        if '.' in self.url.split('/')[-1]:
+            # Since sometimes a file specified by self.url is huge, we don't want to 
+            # waste time downloading it just to check the server status. So strip off
+            # the filename from the url.
+            _url = '/'.join(self.url.split('/')[:-1])
+        else:
+            _url = self.url
+        r = requests.get(_url, timeout=5)
         status_code = r.status_code
         if status_code // 100 in [4, 5]:
             raise ConnectionError(f'{self.url} returned a {status_code} error response.')

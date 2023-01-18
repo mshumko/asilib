@@ -126,7 +126,7 @@ def _get_files(location_code, time, time_range, redownload, missing_ok):
         file_paths = list(pathlib.Path(local_dir).rglob(filename))
 
         if (len(file_paths) == 0) or redownload:
-            d = download.Downloader(image_base_url + f'/{filename}')
+            d = download.Downloader(image_base_url + f'{filename}')
             file_paths = d.download(local_dir, redownload=redownload, stream=True)
         else:
             return file_paths
