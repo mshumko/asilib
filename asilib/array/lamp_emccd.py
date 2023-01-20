@@ -127,9 +127,8 @@ def _get_files(location_code, time, time_range, redownload, missing_ok):
 
         if (len(file_paths) == 0) or redownload:
             d = download.Downloader(image_base_url + f'{filename}')
-            file_paths = d.download(local_dir, redownload=redownload, stream=True)
-        else:
-            return file_paths
+            file_path = d.download(local_dir, redownload=redownload, stream=True)
+            return [file_path]
 
     # Find multiple image files.
     if time_range is not None:

@@ -453,7 +453,6 @@ class Downloader:
         list
             A list of full URLs.
         """
-        self._check_url_status()
         matched_hrefs = self._search_hrefs(self.url, match=match)
         cls = type(self)
         downloaders = [None] * len(matched_hrefs)
@@ -484,7 +483,6 @@ class Downloader:
         pathlib.Path
             The full path to the file.
         """
-        self._check_url_status()
         if download_dir is None and self.download_dir is None:
             raise ValueError(
                 f'download_dir kwarg needs to be set either '
@@ -503,23 +501,28 @@ class Downloader:
 
         if stream:
             r = requests.get(self.url, stream=True, timeout=5)
+            r.raise_for_status()
             file_size = int(r.headers.get('content-length'))
             downloaded_bites = 0
 
             megabyte = 1024 * 1024
-
-            with open(download_path, 'wb') as f:
-                for data in r.iter_content(chunk_size=5 * megabyte):
-                    f.write(data)
-                    # Update the downloaded % in the terminal.
-                    downloaded_bites += len(data)
-                    download_percent = round(100 * downloaded_bites / file_size)
-                    download_str = "#" * (download_percent // 5)
-                    print(
-                        f'Downloading {file_name}: |{download_str:<20}| {download_percent}%',
-                        end='\r',
-                    )
-            print()  # Add a newline
+            try:
+                with open(download_path, 'wb') as f:
+                    for data in r.iter_content(chunk_size=10*megabyte):
+                        f.write(data)
+                        # Update the downloaded % in the terminal.
+                        downloaded_bites += len(data)
+                        download_percent = round(100 * downloaded_bites / file_size)
+                        download_str = "#" * (download_percent // 5)
+                        print(
+                            f'Downloading {file_name}: |{download_str:<20}| {download_percent}%',
+                            end='\r',
+                        )
+                print()  # Add a newline
+            except (Exception, KeyboardInterrupt, SystemExit) as err:
+                download_path.unlink()
+                raise RuntimeError(f'Download interrupted. Partially downloaded file '
+                                f'{download_path} deleted.') from err
         else:
             r = requests.get(self.url, timeout=5)
             with open(download_path, 'wb') as f:
@@ -564,6 +567,7 @@ class Downloader:
             If no hyper references were found.
         """
         request = requests.get(url, timeout=5)
+        request.raise_for_status()
         soup = BeautifulSoup(request.content, 'html.parser')
 
         match = match.replace('*', '.*')  # regex wildcard
@@ -578,24 +582,6 @@ class Downloader:
                 f'references containing the match kwarg="{match}".'
             )
         return matched_hrefs
-
-    def _check_url_status(self):
-        """
-        Check that the server status code is not
-        between 400-599 (error).
-        """
-        if '.' in self.url.split('/')[-1]:
-            # Since sometimes a file specified by self.url is huge, we don't want to 
-            # waste time downloading it just to check the server status. So strip off
-            # the filename from the url.
-            _url = '/'.join(self.url.split('/')[:-1])
-        else:
-            _url = self.url
-        r = requests.get(_url, timeout=5)
-        status_code = r.status_code
-        if status_code // 100 in [4, 5]:
-            raise ConnectionError(f'{self.url} returned a {status_code} error response.')
-        return
 
     def __repr__(self) -> str:
         params = f'{self.url}, download_dir={self.download_dir},'
