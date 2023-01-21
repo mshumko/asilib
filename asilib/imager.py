@@ -9,6 +9,7 @@ import copy
 from typing import List, Tuple, Generator
 
 import numpy as np
+import numpy.polynomial
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
@@ -915,20 +916,26 @@ class Imager:
                 (self.skymap['el'] > el_low) & (self.skymap['el'] <= el_high)
                 ))
             # The ::-1 flips the y-axis (columns) to align well with plt.imshow(origin='lower')
-            _az = self.skymap['az'][:, ::-1].copy()
+            _az = self.skymap['az'].copy()
             _az[id_el] = np.nan
 
             min_az_flat_array = np.nanargmin(np.abs(_az - _azimuths[direction]))
             _direction_pixels[i, :] = np.unravel_index(min_az_flat_array, self.skymap['az'].shape)
-        
-        fit_coeff = np.polyfit(_direction_pixels[:,1], _direction_pixels[:,0], 1) 
 
-        plt.pcolormesh(self.skymap['az'])
-        plt.scatter(_direction_pixels[:,1], _direction_pixels[:,0], s=100, marker='x')
-        x = np.linspace(0, 250)
-        y = fit_coeff[0]*x + fit_coeff[1]
-        plt.plot(y, x)
-        plt.show()
+
+        if True:  # TODO: Remove once convinced that it works.
+            print(self.skymap['az'][_direction_pixels[:,0], _direction_pixels[:,1]])
+            
+            fit_coeff = numpy.polynomial.Polynomial.fit(_direction_pixels[:,0], _direction_pixels[:,1], 1) 
+            print(fit_coeff)
+
+            im = plt.imshow(self.skymap['az'], origin='lower')
+            plt.colorbar(im)
+            plt.scatter(_direction_pixels[:,1], _direction_pixels[:,0], s=100, marker='x', c='r')
+            x = np.linspace(0, 250)
+            y = fit_coeff[0]*x + fit_coeff[1]
+            plt.plot(x, y)
+            plt.show()
         return
 
 
