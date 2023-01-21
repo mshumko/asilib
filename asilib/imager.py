@@ -63,6 +63,7 @@ class Imager:
         color_norm: str = None,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
+        cardinal_directions=None,
     ) -> Tuple[plt.Axes, matplotlib.image.AxesImage]:
         """
         Plots one fisheye image, oriented with North on the top, and East on the right of the image.
@@ -88,6 +89,9 @@ class Imager:
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
             The color of the azimuth and elevation contours.
+        cardinal_directions: list
+            Plot one or more cardinal directions specified by a list. Case insensitive. For example
+            ['N', 'E'] to plot arrows in the North and East directions.
 
         Returns
         -------
@@ -144,6 +148,8 @@ class Imager:
             self._add_label(time, ax)
         if azel_contours:
             self._add_azel_contours(ax, color=azel_contour_color)
+        if cardinal_directions is not None:
+            self._add_cardinal_directions(ax, cardinal_directions)
         return ax, im
 
     def animate_fisheye(self, **kwargs) -> None:
@@ -871,6 +877,60 @@ class Imager:
             color='white',
         )
         return
+
+    def _add_cardinal_directions(self, ax, directions, center=(0.8, 0.1)):
+        """
+        Plot cardinal direction arrows. See _calc_cardinal_direction() for the algorithm.
+        """
+        assert isinstance(directions, (tuple, list, np.array)), ('Cardinal directions must be '
+            'in a tuple, list or np.array.')
+        for direction in directions:
+            direction = direction.upper()
+            if direction.upper() not in ['N', 'S', 'E', 'W']:
+                raise ValueError(f'Cardinality direction "{direction}" is invalid."')
+            slope = self._calc_cardinal_direction(direction)
+        
+        return
+
+    def _calc_cardinal_direction(self, direction, el_step=5):
+        """
+        Calculate the cardinal direction arrows.
+
+        Each direction is calculated by: 
+        1. Calculate the azimuths in each 5-degree elevation step.
+        2. For each elevation step, find the azimuth corresponding to that cardinal direction.
+        The result is a set of points going from 0 to 90 degree elevation along the cardinal
+        direction. 
+        3. Fit those points and extract the slope representing the direction to plot.
+        """
+        _azimuths = {'N':0, 'E':90, 'S':180, 'W':270}
+
+        elevation_steps = np.arange(0, 91, el_step)
+
+        # for direction in directions:
+        _direction_pixels = np.zeros((elevation_steps.shape[0], 2), dtype=int)
+
+        for i, (el_low, el_high) in enumerate(zip(elevation_steps[:-1], elevation_steps[1:])):
+            id_el = np.where(~(
+                (self.skymap['el'] > el_low) & (self.skymap['el'] <= el_high)
+                ))
+            # The ::-1 flips the y-axis (columns) to align well with plt.imshow(origin='lower')
+            _az = self.skymap['az'][:, ::-1].copy()
+            _az[id_el] = np.nan
+
+            min_az_flat_array = np.nanargmin(np.abs(_az - _azimuths[direction]))
+            _direction_pixels[i, :] = np.unravel_index(min_az_flat_array, self.skymap['az'].shape)
+        
+        fit_coeff = np.polyfit(_direction_pixels[:,1], _direction_pixels[:,0], 1) 
+
+        plt.pcolormesh(self.skymap['az'])
+        plt.scatter(_direction_pixels[:,1], _direction_pixels[:,0], s=100, marker='x')
+        x = np.linspace(0, 250)
+        y = fit_coeff[0]*x + fit_coeff[1]
+        plt.plot(y, x)
+        plt.show()
+        return
+
 
     def _mask_low_horizon(self, lon_map, lat_map, el_map, min_elevation, image=None):
         """
