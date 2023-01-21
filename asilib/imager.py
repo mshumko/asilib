@@ -925,20 +925,16 @@ class Imager:
         _direction_pixels = _direction_pixels[~np.isnan(_direction_pixels[:,0]), :]
         _direction_pixels = _direction_pixels.astype(int)
 
+        fit = numpy.polynomial.Polynomial.fit(_direction_pixels[:,1], _direction_pixels[:,0], 1)
 
-        if True:  # TODO: Remove once convinced that it works.
-            print(self.skymap['az'][_direction_pixels[:,0], _direction_pixels[:,1]])
-            
-            fit = numpy.polynomial.Polynomial.fit(_direction_pixels[:,0], _direction_pixels[:,1], 1) 
-            print(fit)
-
+        if False:  # TODO: Remove once convinced that it works. 
             im = plt.imshow(self.skymap['az'], origin='lower')
             plt.colorbar(im)
             plt.scatter(_direction_pixels[:,1], _direction_pixels[:,0], s=100, marker='x', c='r')
             x = np.linspace(0, 250)
-            plt.plot(fit(x), x)
+            plt.plot(x, fit(x))
             plt.show()
-        return
+        return fit.coef[1]
 
 
     def _mask_low_horizon(self, lon_map, lat_map, el_map, min_elevation, image=None):
