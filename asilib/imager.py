@@ -879,9 +879,20 @@ class Imager:
         )
         return
 
-    def _add_cardinal_directions(self, ax, directions, center=(0.8, 0.1)):
+    def _add_cardinal_directions(self, ax, directions, el_step=5, origin=(0.9, 0.1), length=0.1):
         """
         Plot cardinal direction arrows. See _calc_cardinal_direction() for the algorithm.
+
+        Parameters
+        ----------
+        direction: str
+            The cardinal direction. Must be one of 'N', 'S', 'E', or 'W' (case sensitive).
+        el_step: int
+            The elevation steps used to fit the cardinal direction line.
+        origin: tuple
+            The origin of the direction arrows.
+        length: float
+            The arrow length. 
         """
         assert isinstance(directions, (tuple, list, np.array)), ('Cardinal directions must be '
             'in a tuple, list or np.array.')
@@ -889,11 +900,15 @@ class Imager:
             direction = direction.upper()
             if direction.upper() not in ['N', 'S', 'E', 'W']:
                 raise ValueError(f'Cardinality direction "{direction}" is invalid."')
-            slope = self._calc_cardinal_direction(direction)
+            slope = self._calc_cardinal_direction(direction, el_step)
+
+            ax.annotate(direction, xy=origin, 
+                xytext=(0,0),#(origin[0]+length, origin[1]+slope*length),
+                arrowprops={'arrowstyle':"<-", 'color':'r'}, xycoords='axes fraction', color='w')
         
         return
 
-    def _calc_cardinal_direction(self, direction, el_step=5):
+    def _calc_cardinal_direction(self, direction, el_step):
         """
         Calculate the cardinal direction arrows.
 
@@ -903,19 +918,28 @@ class Imager:
         The result is a set of points going from 0 to 90 degree elevation along the cardinal
         direction. 
         3. Fit those points and extract the slope representing the direction to plot.
+
+        Parameters
+        ----------
+        direction: str
+            The cardinal direction. Must be one of 'N', 'S', 'E', or 'W' (case sensitive).
+        el_step: int
+            The elevation steps used to fit the cardinal direction line.
+
+        Returns
+        -------
+        float
+            The slope of the cardinal direction.
         """
         _azimuths = {'N':0, 'E':90, 'S':180, 'W':270}
 
         elevation_steps = np.arange(0, 91, el_step)
-
-        # for direction in directions:
         _direction_pixels = np.nan*np.zeros((elevation_steps.shape[0], 2), dtype=int)
 
         for i, (el_low, el_high) in enumerate(zip(elevation_steps[:-1], elevation_steps[1:])):
             id_el = np.where(~(
                 (self.skymap['el'] > el_low) & (self.skymap['el'] <= el_high)
                 ))
-            # The ::-1 flips the y-axis (columns) to align well with plt.imshow(origin='lower')
             _az = self.skymap['az'].copy()
             _az[id_el] = np.nan
 
@@ -934,7 +958,7 @@ class Imager:
             x = np.linspace(0, 250)
             plt.plot(x, fit(x))
             plt.show()
-        return fit.coef[1]
+        return fit.coef[1]  # slope
 
 
     def _mask_low_horizon(self, lon_map, lat_map, el_map, min_elevation, image=None):
