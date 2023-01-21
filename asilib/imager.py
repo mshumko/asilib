@@ -909,7 +909,7 @@ class Imager:
         elevation_steps = np.arange(0, 91, el_step)
 
         # for direction in directions:
-        _direction_pixels = np.zeros((elevation_steps.shape[0], 2), dtype=int)
+        _direction_pixels = np.nan*np.zeros((elevation_steps.shape[0], 2), dtype=int)
 
         for i, (el_low, el_high) in enumerate(zip(elevation_steps[:-1], elevation_steps[1:])):
             id_el = np.where(~(
@@ -921,20 +921,22 @@ class Imager:
 
             min_az_flat_array = np.nanargmin(np.abs(_az - _azimuths[direction]))
             _direction_pixels[i, :] = np.unravel_index(min_az_flat_array, self.skymap['az'].shape)
+        
+        _direction_pixels = _direction_pixels[~np.isnan(_direction_pixels[:,0]), :]
+        _direction_pixels = _direction_pixels.astype(int)
 
 
         if True:  # TODO: Remove once convinced that it works.
             print(self.skymap['az'][_direction_pixels[:,0], _direction_pixels[:,1]])
             
-            fit_coeff = numpy.polynomial.Polynomial.fit(_direction_pixels[:,0], _direction_pixels[:,1], 1) 
-            print(fit_coeff)
+            fit = numpy.polynomial.Polynomial.fit(_direction_pixels[:,0], _direction_pixels[:,1], 1) 
+            print(fit)
 
             im = plt.imshow(self.skymap['az'], origin='lower')
             plt.colorbar(im)
             plt.scatter(_direction_pixels[:,1], _direction_pixels[:,0], s=100, marker='x', c='r')
             x = np.linspace(0, 250)
-            y = fit_coeff[0]*x + fit_coeff[1]
-            plt.plot(x, y)
+            plt.plot(fit(x), x)
             plt.show()
         return
 
