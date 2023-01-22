@@ -64,7 +64,7 @@ class Imager:
         color_norm: str = None,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
-        cardinal_directions=None,
+        cardinal_directions: str = None,
     ) -> Tuple[plt.Axes, matplotlib.image.AxesImage]:
         """
         Plots one fisheye image, oriented with North on the top, and East on the right of the image.
@@ -90,9 +90,10 @@ class Imager:
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
             The color of the azimuth and elevation contours.
-        cardinal_directions: list
-            Plot one or more cardinal directions specified by a list. Case insensitive. For example
-            ['N', 'E'] to plot arrows in the North and East directions.
+        cardinal_directions: str
+            Plot one or more cardinal directions specified with a string containing the first 
+            letter of one or more cardinal directions. Case insensitive. For example, to plot
+            the North and East directions, set cardinal_directions='NE'.
 
         Returns
         -------
@@ -886,7 +887,8 @@ class Imager:
         Parameters
         ----------
         direction: str
-            The cardinal direction. Must be one of 'N', 'S', 'E', or 'W' (case sensitive).
+            The cardinal direction. Must be a string containing 'N', 'S', 'E', or 'W', or a 
+            combination of them. Case insensitive.
         el_step: int
             The elevation steps used to fit the cardinal direction line.
         origin: tuple
@@ -894,17 +896,18 @@ class Imager:
         length: float
             The arrow length. 
         """
-        assert isinstance(directions, (tuple, list, np.array)), ('Cardinal directions must be '
-            'in a tuple, list or np.array.')
+        assert isinstance(directions, str), ('Cardinal directions must be a string.')
         for direction in directions:
             direction = direction.upper()
-            if direction.upper() not in ['N', 'S', 'E', 'W']:
+            if direction not in ['N', 'S', 'E', 'W']:
                 raise ValueError(f'Cardinality direction "{direction}" is invalid."')
             slope = self._calc_cardinal_direction(direction, el_step)
 
             ax.annotate(direction, xy=origin, 
-                xytext=(0,0),#(origin[0]+length, origin[1]+slope*length),
-                arrowprops={'arrowstyle':"<-", 'color':'r'}, xycoords='axes fraction', color='w')
+                xytext=(origin[0]+length, 
+                        origin[1]+length*slope),  # trig
+                arrowprops={'arrowstyle':"<-", 'color':'r'}, 
+                xycoords='axes fraction', color='w')
         
         return
 
