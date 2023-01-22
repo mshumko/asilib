@@ -9,6 +9,7 @@ import copy
 from typing import List, Tuple, Generator
 
 import numpy as np
+import numpy.linalg
 import numpy.polynomial
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -901,12 +902,13 @@ class Imager:
             direction = direction.upper()
             if direction not in ['N', 'S', 'E', 'W']:
                 raise ValueError(f'Cardinality direction "{direction}" is invalid."')
-            slope = self._calc_cardinal_direction(direction, el_step)
+            rise, run = self._calc_cardinal_direction(direction, el_step)
+            norm = length/np.sqrt(rise**2 + run**2)
 
             ax.annotate(direction, xy=origin, 
-                xytext=(origin[0]+length, 
-                        origin[1]+length*slope),  # trig
-                arrowprops={'arrowstyle':"<-", 'color':'r'}, 
+                xytext=(origin[0]+run*norm, 
+                        origin[1]+rise*norm),  # trig
+                arrowprops={'arrowstyle':"<-", 'color':'w'}, 
                 xycoords='axes fraction', color='w')
         
         return
@@ -920,7 +922,8 @@ class Imager:
         2. For each elevation step, find the azimuth corresponding to that cardinal direction.
         The result is a set of points going from 0 to 90 degree elevation along the cardinal
         direction. 
-        3. Fit those points and extract the slope representing the direction to plot.
+        3. Calculate the rise and run between the two points that are nearest and furthest from 
+        zenith, located on the caridinal direction.
 
         Parameters
         ----------
@@ -932,7 +935,11 @@ class Imager:
         Returns
         -------
         float
-            The slope of the cardinal direction.
+            The rise of the difference in the two pixels that are closest and furthest
+            from zenith
+        float
+            The run of the difference in the two pixels that are closest and furthest
+            from zenith
         """
         _azimuths = {'N':0, 'E':90, 'S':180, 'W':270}
 
@@ -952,16 +959,30 @@ class Imager:
         _direction_pixels = _direction_pixels[~np.isnan(_direction_pixels[:,0]), :]
         _direction_pixels = _direction_pixels.astype(int)
 
-        fit = numpy.polynomial.Polynomial.fit(_direction_pixels[:,1], _direction_pixels[:,0], 1)
+        # Calculate the pixels nerest and furthest away from zenith. This will define the rise
+        # and run.  
+        center_pixel = np.array([self.skymap['az'].shape[0]//2, self.skymap['az'].shape[1]//2])
+        dx = _direction_pixels - np.tile(center_pixel, (_direction_pixels.shape[0], 1))
+        distances = numpy.linalg.norm(dx, axis=1)
+        nearest_pixel = _direction_pixels[np.argmin(distances), :]
+        furthest_pixel = _direction_pixels[np.argmax(distances), :]
+        rise = furthest_pixel[0] - nearest_pixel[0]
+        run = furthest_pixel[1] - nearest_pixel[1]
 
         if False:  # TODO: Remove once convinced that it works. 
+            fit = numpy.polynomial.Polynomial.fit(_direction_pixels[:,1], _direction_pixels[:,0], 1)
             im = plt.imshow(self.skymap['az'], origin='lower')
             plt.colorbar(im)
-            plt.scatter(_direction_pixels[:,1], _direction_pixels[:,0], s=100, marker='x', c='r')
+            plt.scatter(_direction_pixels[:,1], _direction_pixels[:,0], s=100, marker='x', c='w')
+            plt.scatter(*nearest_pixel[::-1], s=100, marker='x', c='r')
+            plt.scatter(*furthest_pixel[::-1], s=100, marker='x', c='b')
             x = np.linspace(0, 250)
             plt.plot(x, fit(x))
+            plt.title(f'{direction=} {fit}\n{rise=}, {run=}')
+            plt.xlim(0, 255)
+            plt.ylim(0, 255)
             plt.show()
-        return fit.coef[1]  # slope
+        return rise, run
 
 
     def _mask_low_horizon(self, lon_map, lat_map, el_map, min_elevation, image=None):
