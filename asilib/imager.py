@@ -943,6 +943,13 @@ class Imager:
         """
         _azimuths = {'N':0, 'E':90, 'S':180, 'W':270}
 
+        # Don't recalculate the rise and run if they've already been calculated.
+        if not hasattr(self, '_cardinal_direction'):
+            self._cardinal_direction = {}
+        else:
+            if direction in self._cardinal_direction.keys():
+                return self._cardinal_direction[direction]
+
         elevation_steps = np.arange(0, 91, el_step)
         _direction_pixels = np.nan*np.zeros((elevation_steps.shape[0], 2), dtype=int)
 
@@ -968,6 +975,7 @@ class Imager:
         furthest_pixel = _direction_pixels[np.argmax(distances), :]
         rise = furthest_pixel[0] - nearest_pixel[0]
         run = furthest_pixel[1] - nearest_pixel[1]
+        self._cardinal_direction[direction] = [rise, run]
 
         if False:  # TODO: Remove once convinced that it works. 
             fit = numpy.polynomial.Polynomial.fit(_direction_pixels[:,1], _direction_pixels[:,0], 1)
