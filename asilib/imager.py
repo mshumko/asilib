@@ -52,6 +52,7 @@ class Imager:
         self.meta = {k.lower(): v for k, v in meta.items()}
         self.skymap = {k.lower(): v for k, v in skymap.items()}
         self.plot_settings = {k.lower(): v for k, v in plot_settings.items()}
+        self._accumulate_n = 1 
         # self._validate_inputs()  # TODO-Validation: Add a small-scale validations to each method.
         return
 
@@ -497,6 +498,10 @@ class Imager:
     #     #     )
     #     return ax, p
 
+    def accumulate(self, n):
+        self._accumulate_n = n
+        return
+
     def _validate_inputs(self):
         """
         Check that the correct keys were passed for either
@@ -543,12 +548,12 @@ class Imager:
 
     def __getitem__(self, _slice):
         """
-        A generator to return images and time stamps one by one.
+        Add time slicing to asilib.
 
         Parameters
         ----------
-        time_range: list of datetime or string-formatted times.
-            The bounding time range.
+        _slice: str, pd.Timestamp, datetime.datetime, or list thereof.
+            The time(s) to slice an Imager object. 
 
         Yields
         ------
@@ -679,13 +684,14 @@ class Imager:
         np.array
             image.
         """
+        # TODO: Add a self._accumulate_n option.
         self._loader_is_gen = inspect.isgeneratorfunction(self._data['loader'])
 
         if 'time_range' not in self._data.keys():
             raise KeyError('Imager was not instantiated with a time_range.')
 
         for path in self._data['path']:
-            # Check is the loader function is a generator. If not, asilib
+            # Check if the loader function is a generator. If not, asilib
             # will load one image file at a time and assume that opening one file
             # won't overwhelm the PC's memory. If loader is a generator,
             # on the other hand, we need to loop over every chunk of data
