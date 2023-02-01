@@ -30,6 +30,7 @@ class Test_keogram(unittest.TestCase):
             self.location_code,
             ['2017-09-27T08', '2017-09-27T08:10'],
             map_alt=self.map_alt,
+            aacgm=True
         )
         reference_path = pathlib.Path(
             asilib.config['ASILIB_DIR'], 'tests', 'data', 'test_steve_keogram.csv'

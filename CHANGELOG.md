@@ -1,3 +1,9 @@
+# Version 0.14.0
+- Added cardinal directions to `asilib.imager.plot_fishsye()` method. Set the `cardinal_directions` kwarg to one or more directions, e.g., 'NE' for north and east directions, or 'NEWS' for all directions.
+- Improved the `asilib.Downloader` class. 
+  - Replaced the `_check_url_status()` implementation that checked if the server is online. Turns out, if the url argument includes a path to a large file, `asilib.Downloader` will download the file just to check the server status. I replaced it with `request.raise_for_status()` that doesn't download the file.
+  - Added a try-catch block for streaming large files. This addresses the bug where a file is partially-downloaded if the stream is interrupted. This goes unnoticed until `asilib` raises file-corrupted errors that are hard to track down. The fix first deletes the partially-downloaded file if the stream is interrupted, and then raises the error.
+
 # Version 0.13.0
 - Added an Active Development warning in the `asilib` docs.
 - Simplified the `Downloader` class.

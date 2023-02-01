@@ -160,7 +160,7 @@ class Keogram:
         # __init__ saves the variables needed to get the images.
         self.asi_array_code = asi_array_code
         self.location_code = location_code
-        self.time_range = time_range
+        self.time_range = utils._validate_time_range(time_range)
 
         # In the full implementation we won't need these if-else statements.
         if self.asi_array_code.lower() == 'themis':
