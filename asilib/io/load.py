@@ -557,7 +557,12 @@ def _create_empty_data_arrays(asi_array_code, time_range, type):
         raise NotImplementedError
 
     time_range = utils._validate_time_range(time_range)
-    max_n_timestamps = int((time_range[1] - time_range[0]).total_seconds() / cadence_s)
+    # + 1 just in case. The THEMIS and REGO cadence is not
+    # always exactly 3 seconds, so in certain circumstances
+    # there may be one or two extra data points.
+    max_n_timestamps = int(
+        (time_range[1] - time_range[0]).total_seconds() / cadence_s
+        ) + 1
 
     if type.lower() == 'keogram':
         data_shape = (max_n_timestamps, img_size)

@@ -160,7 +160,7 @@ class Keogram:
         # __init__ saves the variables needed to get the images.
         self.asi_array_code = asi_array_code
         self.location_code = location_code
-        self.time_range = time_range
+        self.time_range = utils._validate_time_range(time_range)
 
         # In the full implementation we won't need these if-else statements.
         if self.asi_array_code.lower() == 'themis':
@@ -257,7 +257,12 @@ class Keogram:
         Creates an empty 2D keogram and time arrays.
         """
         time_range = utils._validate_time_range(time_range)
-        max_n_timestamps = int((time_range[1] - time_range[0]).total_seconds() / self.asi_cadence_s)
+        # + 1 just in case. The THEMIS and REGO cadence is not
+        # always exactly 3 seconds, so in certain circumstances
+        # there may be one or two extra data points.
+        max_n_timestamps = int(
+            (time_range[1] - time_range[0]).total_seconds() / self.asi_cadence_s
+            )+1
         data_shape = (max_n_timestamps, self.img_size)
 
         # object is the only dtype that can contain datetime objects
@@ -322,6 +327,8 @@ class Keogram:
             Path indices corresponding to rows with a pixel within threshold
             degrees distance.
         """
+        if np.array(path).shape[0] == 0:
+            raise ValueError('The path is empty.')
         if np.any(np.isnan(path)):
             raise ValueError("The lat/lon path can't contain NaNs.")
         if np.any(np.max(path) > 180) or np.any(np.min(path) < -180):
