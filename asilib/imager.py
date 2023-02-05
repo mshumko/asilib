@@ -179,6 +179,10 @@ class Imager:
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
             The color of the azimuth and elevation contours.
+        cardinal_directions: str
+            Plot one or more cardinal directions specified with a string containing the first 
+            letter of one or more cardinal directions. Case insensitive. For example, to plot
+            the North and East directions, set cardinal_directions='NE'.
         movie_container: str
             The movie container: mp4 has better compression but avi was determined
             to be the official container for preserving digital video by the
@@ -202,13 +206,6 @@ class Imager:
         -------
         Add
         """
-
-        # ax = kwargs.get('ax', None)
-        # if ax is None:
-        #     _, ax = plt.subplots(figsize=(6, 6))
-        #     kwargs['ax'] = ax
-        #     plt.tight_layout()
-
         movie_generator = self.animate_fisheye_gen(**kwargs)
 
         for _ in movie_generator:
@@ -224,6 +221,7 @@ class Imager:
         color_norm: str = None,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
+        cardinal_directions: str = None,
         movie_container: str = 'mp4',
         ffmpeg_params={},
         overwrite: bool = False,
@@ -231,7 +229,7 @@ class Imager:
         Tuple[datetime.datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None
     ]:
         """
-        A generator method that animates a series of fisheye images.
+        Animate a series of fisheye images and superpose other data on each image.
 
         A generator behaves like an iterator in that it plots one fisheye image
         at a time and yields (similar to returns) the image. You can modify, or add
@@ -258,6 +256,10 @@ class Imager:
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
             The color of the azimuth and elevation contours.
+        cardinal_directions: str
+            Plot one or more cardinal directions specified with a string containing the first 
+            letter of one or more cardinal directions. Case insensitive. For example, to plot
+            the North and East directions, set cardinal_directions='NE'.
         movie_container: str
             The movie container: mp4 has better compression but avi was determined
             to be the official container for preserving digital video by the
@@ -351,6 +353,8 @@ class Imager:
 
             if azel_contours:
                 self._add_azel_contours(ax, color=azel_contour_color)
+            if cardinal_directions is not None:
+                self._add_cardinal_directions(ax, cardinal_directions)
 
             # Give the user the control of the subplot, image object, and return the image time
             # so that they can manipulate the image to add, for example, the satellite track.
