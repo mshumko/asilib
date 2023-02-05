@@ -294,24 +294,23 @@ class Imager:
 
         Example
         -------
-        TODO: REDO
         | from datetime import datetime
         |
         | import asilib
         |
         | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-        | movie_generator = asilib.animate_fisheye_generator('THEMIS', 'FSMI', time_range)
+        | imager = asilib.themis('FSMI', time_range=time_range)
         |
-        | for image_time, image, ax, im in movie_generator:
-        |       # The code that modifies each image here.
+        | for image_time, image, ax, im in imager:
+        |       # Add your code that modifies each image here.
         |       pass
         |
-        | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
+        | print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
         """
         if ax is None:
             _, ax = plt.subplots()
 
-        # Create the movie directory inside asilib.config['ASI_DATA_DIR'] if it does
+        # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
         # not exist.
         image_save_dir = pathlib.Path(
             asilib.config['ASI_DATA_DIR'],
@@ -320,12 +319,12 @@ class Imager:
             f'{self._data["time_range"][0].strftime("%Y%m%d_%H%M%S")}_{self.meta["array"].lower()}_'
             f'{self.meta["location"].lower()}_fisheye',
         )
-        movie_save_name = (
+        self.animation_name = (
             f'{self._data["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
             f'{self._data["time_range"][-1].strftime("%H%M%S")}_'
             f'{self.meta["array"].lower()}_{self.meta["location"].lower()}_fisheye.{movie_container}'
         )
-        movie_save_path = image_save_dir.parents[1] / movie_save_name
+        movie_save_path = image_save_dir.parents[1] / self.animation_name
         # If the image directory exists we need to first remove all of the images to avoid
         # animating images from different method calls.
         if image_save_dir.is_dir():
@@ -333,10 +332,12 @@ class Imager:
         image_save_dir.mkdir(parents=True)
 
         image_paths = []
+        _progressbar = utils.progressbar(
+            enumerate(self.__iter__()), iter_length=self._estimate_n_times(), 
+            text=self.animation_name
+        )
 
-        for i, (image_time, image) in utils.progressbar(
-            enumerate(self.__iter__()), self._estimate_n_times(), movie_save_name
-        ):
+        for i, (image_time, image) in _progressbar:
             # # If the image is all 0s we have a bad image and we need to skip it.
             # if np.all(image == 0):
             #     continue
