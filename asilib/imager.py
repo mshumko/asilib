@@ -196,15 +196,27 @@ class Imager:
 
         Returns
         -------
-        Add
+        None
 
         Raises
         ------
-        Add
+        NotImplementedError
+            If the colormap is unspecified ('auto' by default) and the
+            auto colormap is undefined for an ASI array.
+        ValueError
+            If the color_norm kwarg is not "log" or "lin".
 
         Example
         -------
-        Add
+        | from datetime import datetime
+        | 
+        | import asilib
+        | 
+        | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+        | imager = asilib.themis('FSMI', time_range=time_range)
+        | imager.animate_fisheye(cardinal_directions='NE', overwrite=True)
+        |
+        | print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
         """
         movie_generator = self.animate_fisheye_gen(**kwargs)
 
@@ -268,8 +280,8 @@ class Imager:
             The additional/overwitten ffmpeg output parameters. The default parameters are:
             framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
         overwrite: bool
-            If true, the data will be downloaded again and the output animation overwritten.
-            If false it will prompt the user to answer y/n.
+            Overwrite the animation. If False, ffmpeg will prompt you to answer y/n if the 
+            animation already exists.
 
         Yields
         ------
@@ -295,16 +307,17 @@ class Imager:
         Example
         -------
         | from datetime import datetime
-        |
+        | 
         | import asilib
-        |
+        | 
         | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
         | imager = asilib.themis('FSMI', time_range=time_range)
-        |
-        | for image_time, image, ax, im in imager:
-        |       # Add your code that modifies each image here.
-        |       pass
-        |
+        | gen = imager.animate_fisheye_gen(cardinal_directions='NE', overwrite=True)
+        | 
+        | for image_time, image, ax, im in gen:
+        |         # Add your code that modifies each image here.
+        |         pass
+        | 
         | print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
         """
         if ax is None:
