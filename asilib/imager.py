@@ -214,6 +214,7 @@ class Imager:
         | 
         | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
         | imager = asilib.themis('FSMI', time_range=time_range)
+        | # TODO: Check THEMIS image orientation.
         | imager.animate_fisheye(cardinal_directions='NE', overwrite=True)
         |
         | print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
