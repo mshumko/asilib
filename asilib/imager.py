@@ -6,6 +6,7 @@ import inspect
 import importlib
 import shutil
 import copy
+from collections import namedtuple
 from typing import List, Tuple, Generator
 
 import numpy as np
@@ -23,8 +24,7 @@ import asilib.utils as utils
 
 class Imager:
     """
-    Manage and analyze the ASI images and time stamps, as well as the associated metadata
-    and skymaps.
+    The central asilib class to plot, animate, and analyze ASI data. 
 
     Parameters
     ----------
@@ -45,6 +45,24 @@ class Imager:
         an image and returns the lower and upper bound numbers, or a len 2 tuple or list.
         The ```color_map``` key must be a valid matplotlib colormap. And lastly, ```color_norm```
         must be either ```lin``` for linear or ```log``` for logarithmic color scale.
+
+    Attributes
+    ----------
+    times
+        Return one or multiple timestamps, depending on if Imager was instantiated using the
+        ``time`` or ``time_range`` kwargs. This loads all of the data into memory, so beware
+        of RAM usage.
+    time
+        Alias for times
+    images
+        Return one or multiple images, depending on if Imager was instantiated using the
+        ``time`` or ``time_range`` kwargs. This loads all of the data into memory, so beware
+        of RAM usage.
+    image
+        Alias for images
+    data
+        A NamedTuple containing times and images. This loads all of the data into memory, so beware
+        of RAM usage.
     """
 
     def __init__(self, data: dict, meta: dict, skymap: dict, plot_settings: dict = {}) -> None:
@@ -744,32 +762,85 @@ class Imager:
     @property
     def times(self):
         """
-        Get one or more ASI timestamps.
+        Get one or multiple ASI timestamps.
+        """
+        if 'time_range' in self._data.keys():
+            if not hasattr(self, "_times"):
+                return self._load_data('times')
+            else: 
+                return self._times
+        elif 'time' in self._data.keys():
+            return self._data['time']
+        else:
+            raise KeyError(f'Either "time" or "time_range" must be in the asilib.Imager._data dictionary.')
+    
+    @property
+    def time(self):
+        return self.times
+    
+    @property
+    def images(self):
+        """
+        Get one or multiple ASI images.
+        """
+        if 'time_range' in self._data.keys():
+            if not hasattr(self, "_images"):
+                return self._load_data('images')
+            else: 
+                return self._images
+        elif 'image' in self._data.keys():
+            return self._data['image']
+        else:
+            raise KeyError(f'Either "time" or "time_range" must be in the asilib.Imager._data dictionary.')
+    
+    def image(self):
+        return self.images
+    
+    def data(self):
+        """
+        Return both the times and images.
+        """
+        _data_type = namedtuple('data', ['times', 'images'])
+        return _data_type(self.times, self.images)
+    
+    def _load_data(self, which):
+        """
+        Load all of the times and store them into self._times.
         """
         self._loader_is_gen = inspect.isgeneratorfunction(self._data['loader'])
-
-        if not hasattr(self, "_times"):
-            self._loader_is_gen = inspect.isgeneratorfunction(self._data['loader'])
+        if (which == 'times') or (which == 'both'):
             self._times = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
-            start_idt = 0
-
-            for path in self._data['path']:
-                if not self._loader_is_gen:
-                    file_times, _ = self._data['loader'](path)
-                    file_idt = np.where((file_times >= self._data['time_range'][0]) & (file_times < self._data['time_range'][1]))[0] 
+        if (which == 'images') or (which == 'both'):
+            self._images = np.nan * np.zeros((self._estimate_n_times(), *self.meta['resolution']))
+        
+        start_idt = 0
+        for path in self._data['path']:
+            if not self._loader_is_gen:
+                file_times, file_images = self._data['loader'](path)
+                file_idt = np.where((file_times >= self._data['time_range'][0]) & (file_times < self._data['time_range'][1]))[0] 
+                if (which == 'times') or (which == 'both'):
                     self._times[start_idt:start_idt+file_idt.shape[0]] = file_times[file_idt]
+                if (which == 'images') or (which == 'both'):
+                    self._times[start_idt:start_idt+file_idt.shape[0]] = file_images[file_idt]  # Assume time is first dimension.
+                start_idt += file_idt.shape[0]
+            
+            else:
+                gen = self._data['loader'](path)
+
+                for time_chunk, image_chunk in gen:
+                    file_idt = np.where((time_chunk >= self._data['time_range'][0]) & (time_chunk < self._data['time_range'][1]))[0] 
+                    if (which == 'times') or (which == 'both'):
+                        self._times[start_idt:start_idt+file_idt.shape[0]] = file_times[file_idt]
+                    if (which == 'images') or (which == 'both'):
+                        self._times[start_idt:start_idt+file_idt.shape[0]] = file_images[file_idt]  # Assume time is first dimension.
                     start_idt += file_idt.shape[0]
-                
-                else:
-                    gen = self._data['loader'](path)
-
-                    for time_chunk, _ in gen:
-                        file_idt = np.where((time_chunk >= self._data['time_range'][0]) & (time_chunk < self._data['time_range'][1]))[0] 
-                        self._times[start_idt:start_idt+file_idt.shape[0]] = time_chunk[file_idt]
-                        start_idt += file_idt.shape[0]
-        return self._times
-    
-
+        if which == 'times':
+            return self._times[0:start_idt]
+        elif which == 'images':
+            return self._images[0:start_idt]
+        else:
+            _data_type = namedtuple('data', ['times', 'images'])
+            return _data_type(self._times[0:start_idt], self._images[0:start_idt])
 
     def data(self, which='time'):
         """
@@ -1200,5 +1271,4 @@ if __name__ == '__main__':
     
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     imager = asilib.themis('FSMI', time_range=time_range)
-    imager.times
-    imager.times
+    print(imager.images)
