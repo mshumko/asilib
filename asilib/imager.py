@@ -766,9 +766,8 @@ class Imager:
         """
         if 'time_range' in self._data.keys():
             if not hasattr(self, "_times"):
-                return self._load_data('times')
-            else: 
-                return self._times
+                self._load_data(times=True) 
+            return self._times
         elif 'time' in self._data.keys():
             return self._data['time']
         else:
@@ -785,32 +784,46 @@ class Imager:
         """
         if 'time_range' in self._data.keys():
             if not hasattr(self, "_images"):
-                return self._load_data('images')
-            else: 
-                return self._images
+                self._load_data(images=True) 
+            return self._images
         elif 'image' in self._data.keys():
             return self._data['image']
         else:
             raise KeyError(f'Either "time" or "time_range" must be in the asilib.Imager._data dictionary.')
     
+    @property
     def image(self):
         return self.images
     
+    @property
     def data(self):
         """
         Return both the times and images.
         """
-        _data_type = namedtuple('data', ['times', 'images'])
-        return _data_type(self.times, self.images)
+        _img_data_type = namedtuple('data', ['times', 'images'])
+
+        if 'time_range' in self._data.keys():
+            if (not hasattr(self, "_times")) or (not hasattr(self, "_images")):
+                self._load_data(times=True, images=True)
+                return _img_data_type(times=self._times, images=self._images)
+            else: 
+                return _img_data_type(times=self._times, images=self._images)
+        elif 'image' in self._data.keys():
+            return _img_data_type(self._data['time'], self._data['image'])
+        else:
+            raise KeyError(f'Either "time" or "time_range" must be in the asilib.Imager._data dictionary.')
     
-    def _load_data(self, which):
+    def _load_data(self, times=False, images=False):
         """
         Load all of the times and store them into self._times.
         """
+        if (not times) and (not images):
+            raise ValueError('Either or both time or images need to be True.')
+        
         self._loader_is_gen = inspect.isgeneratorfunction(self._data['loader'])
-        if (which == 'times') or (which == 'both'):
+        if times:
             self._times = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
-        if (which == 'images') or (which == 'both'):
+        if images:
             self._images = np.nan * np.zeros((self._estimate_n_times(), *self.meta['resolution']))
         
         start_idt = 0
@@ -818,10 +831,10 @@ class Imager:
             if not self._loader_is_gen:
                 file_times, file_images = self._data['loader'](path)
                 file_idt = np.where((file_times >= self._data['time_range'][0]) & (file_times < self._data['time_range'][1]))[0] 
-                if (which == 'times') or (which == 'both'):
+                if times:
                     self._times[start_idt:start_idt+file_idt.shape[0]] = file_times[file_idt]
-                if (which == 'images') or (which == 'both'):
-                    self._times[start_idt:start_idt+file_idt.shape[0]] = file_images[file_idt]  # Assume time is first dimension.
+                if images:
+                    self._images[start_idt:start_idt+file_idt.shape[0]] = file_images[file_idt]  # Assume time is first dimension.
                 start_idt += file_idt.shape[0]
             
             else:
@@ -829,74 +842,11 @@ class Imager:
 
                 for time_chunk, image_chunk in gen:
                     file_idt = np.where((time_chunk >= self._data['time_range'][0]) & (time_chunk < self._data['time_range'][1]))[0] 
-                    if (which == 'times') or (which == 'both'):
+                    if times:
                         self._times[start_idt:start_idt+file_idt.shape[0]] = file_times[file_idt]
-                    if (which == 'images') or (which == 'both'):
-                        self._times[start_idt:start_idt+file_idt.shape[0]] = file_images[file_idt]  # Assume time is first dimension.
+                    if images:
+                        self._images[start_idt:start_idt+file_idt.shape[0]] = image_chunk[file_idt]  # Assume time is first dimension.
                     start_idt += file_idt.shape[0]
-        if which == 'times':
-            return self._times[0:start_idt]
-        elif which == 'images':
-            return self._images[0:start_idt]
-        else:
-            _data_type = namedtuple('data', ['times', 'images'])
-            return _data_type(self._times[0:start_idt], self._images[0:start_idt])
-
-    def data(self, which='time'):
-        """
-        Returns the full data in the specified time_range.
-
-        Warning: this does not respect how much memory you have avaliable; a long enough
-        time_range can completely use up your memory and then your computer will become
-        unresponsive or sluggish (if you have swap memory).
-
-        Parameters
-        ----------
-        which: str
-            Which data to return. Can be ```time``` to return only time stamps, ```image```
-            to return only images, and ```both``` to return both time stamps and images.
-            This kwarg is only used in multi-image Imager objects.
-        """
-        if 'time' in which.lower():
-            times_flag = True
-            images_flag = False
-        elif 'image' in which.lower():
-            times_flag = False
-            images_flag = True
-        elif 'both' in which.lower():
-            times_flag = True
-            images_flag = True
-        else:
-            raise ValueError("'which' kwarg must be 'time', 'image', or 'both'.")
-
-        if ('time_range' in self._data.keys()) and (self._data['time_range'] is not None):
-            if times_flag:
-                _times = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
-            else:
-                _times = None
-            if images_flag:
-                _images = np.nan * np.zeros((self._estimate_n_times(), *self.meta['resolution']))
-            else:
-                _images = None
-
-            for i, (time, image) in enumerate(self.__iter__()):
-                if times_flag:
-                    _times[i] = time
-                if images_flag:
-                    _images[i, ...] = image
-
-            # Filter out missing data
-            if times_flag:
-                # np.nan does not work with an array of datetime objects.
-                nonempty_times = [isinstance(t_i, datetime.datetime) for t_i in _times]
-                _times = _times[nonempty_times]
-            if images_flag:
-                nonempty_images = np.where(~np.isnan(_images[:, 0, 0]))[0]
-                _images = _images[nonempty_images, ...]
-            return _times, _images
-
-        elif ('time' in self._data.keys()) and (self._data['time'] is not None):
-            return self._data['time'], self._data['image']
 
     def __str__(self) -> str:
         if ('time' in self._data.keys()) and (self._data['time'] is not None):
@@ -1271,4 +1221,7 @@ if __name__ == '__main__':
     
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     imager = asilib.themis('FSMI', time_range=time_range)
-    print(imager.images)
+    print(imager.images.shape)
+    print(imager.times.shape)
+    print(imager.data.times.shape)
+    print(imager.data.images.shape)
