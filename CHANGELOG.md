@@ -1,13 +1,11 @@
-# Version 0.14.0
-- Added cardinal directions to `asilib.imager.plot_fishsye()` method. Set the `cardinal_directions` kwarg to one or more directions, e.g., 'NE' for north and east directions, or 'NEWS' for all directions.
-- Improved the `asilib.Downloader` class. 
-  - Replaced the `_check_url_status()` implementation that checked if the server is online. Turns out, if the url argument includes a path to a large file, `asilib.Downloader` will download the file just to check the server status. I replaced it with `request.raise_for_status()` that doesn't download the file.
-  - Added a try-catch block for streaming large files. This addresses the bug where a file is partially-downloaded if the stream is interrupted. This goes unnoticed until `asilib` raises file-corrupted errors that are hard to track down. The fix first deletes the partially-downloaded file if the stream is interrupted, and then raises the error.
-
 # Version 0.13.0
 - Added an Active Development warning in the `asilib` docs.
 - Simplified the `Downloader` class.
 - Fixed a download bug. It arose because the `overwrite` kwarg played two overlapping roles: to redownload data and overwrite animations (the ffmpeg argument). I fixed the bug with the `redownload` kwarg reserved only for downloading data, and `overwrite` kwarg reserved for overwriting animations.
+- - Added cardinal directions to `asilib.imager.plot_fisheye()` and `asilib.imager.plot_fisheye_gen()` methods. To use it, set the `cardinal_directions` kwarg to one or more directions, e.g., 'NE' for north and east directions, or 'NEWS' for all directions.
+- Improved the `asilib.Downloader` class. 
+  - Replaced the `_check_url_status()` implementation that checked if the server is online. Turns out, if the url argument includes a path to a large file, `asilib.Downloader` will download the file just to check the server status. I replaced it with `request.raise_for_status()` that doesn't download the file.
+  - Added a try-catch block for streaming large files. This addresses the bug where a file is partially-downloaded if the stream is interrupted. This goes unnoticed until `asilib` raises file-corrupted errors that are hard to track down. The fix first deletes the partially-downloaded file if the stream is interrupted, and then raises the error.
 
 # Version 0.12.0
 - First merge of the Imager class. The `asilib.Imager` and `asilib.Conjunction` classes are still under development, but you can try it out! Call the `asilib.themis()` function to play around with an Imager instance.
