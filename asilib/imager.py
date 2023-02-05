@@ -740,6 +740,36 @@ class Imager:
         n_sec = (self._data['time_range'][1] - self._data['time_range'][0]).total_seconds()
         # +2 is for when time_range is a bit bigger than an integer number of samples
         return int(n_sec / self.meta['cadence']) + 2
+    
+    @property
+    def times(self):
+        """
+        Get one or more ASI timestamps.
+        """
+        self._loader_is_gen = inspect.isgeneratorfunction(self._data['loader'])
+
+        if not hasattr(self, "_times"):
+            self._loader_is_gen = inspect.isgeneratorfunction(self._data['loader'])
+            self._times = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
+            start_idt = 0
+
+            for path in self._data['path']:
+                if not self._loader_is_gen:
+                    file_times, _ = self._data['loader'](path)
+                    file_idt = np.where((file_times >= self._data['time_range'][0]) & (file_times < self._data['time_range'][1]))[0] 
+                    self._times[start_idt:start_idt+file_idt.shape[0]] = file_times[file_idt]
+                    start_idt += file_idt.shape[0]
+                
+                else:
+                    gen = self._data['loader'](path)
+
+                    for time_chunk, _ in gen:
+                        file_idt = np.where((time_chunk >= self._data['time_range'][0]) & (time_chunk < self._data['time_range'][1]))[0] 
+                        self._times[start_idt:start_idt+file_idt.shape[0]] = time_chunk[file_idt]
+                        start_idt += file_idt.shape[0]
+        return self._times
+    
+
 
     def data(self, which='time'):
         """
@@ -935,7 +965,6 @@ class Imager:
                         origin[1]+rise*norm),  # trig
                 arrowprops={'arrowstyle':"<-", 'color':'w'}, 
                 xycoords='axes fraction', color='w')
-        
         return
 
     def _calc_cardinal_direction(self, direction, el_step):
@@ -1001,20 +1030,6 @@ class Imager:
         rise = furthest_pixel[0] - nearest_pixel[0]
         run = furthest_pixel[1] - nearest_pixel[1]
         self._cardinal_direction[direction] = [rise, run]
-
-        if False:  # TODO: Remove once convinced that it works. 
-            fit = numpy.polynomial.Polynomial.fit(_direction_pixels[:,1], _direction_pixels[:,0], 1)
-            im = plt.imshow(self.skymap['az'], origin='lower')
-            plt.colorbar(im)
-            plt.scatter(_direction_pixels[:,1], _direction_pixels[:,0], s=100, marker='x', c='w')
-            plt.scatter(*nearest_pixel[::-1], s=100, marker='x', c='r')
-            plt.scatter(*furthest_pixel[::-1], s=100, marker='x', c='b')
-            x = np.linspace(0, 250)
-            plt.plot(x, fit(x))
-            plt.title(f'{direction=} {fit}\n{rise=}, {run=}')
-            plt.xlim(0, 255)
-            plt.ylim(0, 255)
-            plt.show()
         return rise, run
 
 
@@ -1176,3 +1191,14 @@ class Imager:
             **pcolormesh_kwargs,
         )
         return p
+
+
+if __name__ == '__main__':
+    from datetime import datetime
+    
+    import asilib
+    
+    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+    imager = asilib.themis('FSMI', time_range=time_range)
+    imager.times
+    imager.times
