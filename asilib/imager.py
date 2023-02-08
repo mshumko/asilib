@@ -736,19 +736,22 @@ class Imager:
             if not self._loader_is_gen:
                 times, images = self._data['loader'](path)
 
-                for time, image in zip(times, images):
-                    if (time < self._data['time_range'][0]) or (time > self._data['time_range'][1]):
-                        continue
+                idt = np.where(
+                        (times > self._data['time_range'][0]) &
+                        (times <= self._data['time_range'][1])
+                    )[0]
+                for time, image in zip(times[idt], images[idt]):
                     yield time, image
+                    
             else:
                 gen = self._data['loader'](path)
 
                 for time_chunk, image_chunk in gen:
-                    for time, image in zip(time_chunk, image_chunk):
-                        if (time < self._data['time_range'][0]) or (
-                            time > self._data['time_range'][1]
-                        ):
-                            continue
+                    idt = np.where(
+                        (time_chunk > self._data['time_range'][0]) &
+                        (time_chunk <= self._data['time_range'][1])
+                    )[0]
+                    for time, image in zip(time_chunk[idt], image_chunk[idt]):
                         yield time, image
 
     def _estimate_n_times(self):
