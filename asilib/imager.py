@@ -84,7 +84,7 @@ class Imager:
         color_norm: str = None,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
-        cardinal_directions: str = None,
+        cardinal_directions: str = 'NE',
     ) -> Tuple[plt.Axes, matplotlib.image.AxesImage]:
         """
         Plots one fisheye image, oriented with North on the top, and East on the right of the image.
@@ -232,7 +232,6 @@ class Imager:
         | 
         | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
         | imager = asilib.themis('FSMI', time_range=time_range)
-        | # TODO: Check THEMIS image orientation.
         | imager.animate_fisheye(cardinal_directions='NE', overwrite=True)
         |
         | print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
@@ -252,7 +251,7 @@ class Imager:
         color_norm: str = None,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
-        cardinal_directions: str = None,
+        cardinal_directions: str = 'NE',
         movie_container: str = 'mp4',
         ffmpeg_params={},
         overwrite: bool = False,
