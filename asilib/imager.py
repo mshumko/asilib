@@ -187,7 +187,7 @@ class Imager:
             Flag to add the "asi_array_code/location_code/image_time" text to the plot.
         color_map: str
             The matplotlib colormap to use. By default will use a black-white colormap.
-            For more information See https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html
+            For more information See https://matplotlib.org/stable/tutorials/colors/colormaps.html
         color_bounds: List[float]
             The lower and upper values of the color scale. The default is: low=1st_quartile and
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
@@ -276,7 +276,7 @@ class Imager:
             Flag to add the "asi_array_code/location_code/image_time" text to the plot.
         color_map: str
             The matplotlib colormap to use. By default will use a black-white colormap.
-            For more information See https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html
+            For more information See https://matplotlib.org/stable/tutorials/colors/colormaps.html
         color_bounds: List[float]
             The lower and upper values of the color scale. The default is: low=1st_quartile and
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
@@ -441,7 +441,7 @@ class Imager:
     #     color_map: str
     #         The matplotlib colormap to use. If 'auto', will default to a
     #         black-red colormap for REGO and black-white colormap for THEMIS.
-    #         For more information See https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html
+    #         For more information See https://matplotlib.org/stable/tutorials/colors/colormaps.html
     #     min_elevation: float
     #         Masks the pixels below min_elevation degrees.
     #     norm: bool
