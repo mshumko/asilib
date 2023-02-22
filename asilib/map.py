@@ -237,3 +237,14 @@ def _consecutive(data, jump_bool):
     how-to-find-the-groups-of-consecutive-elements-in-a-numpy-array
     """
     return np.split(data, np.where(jump_bool)[0] + 1)
+
+if __name__ == '__main__':
+    import asilib.map
+    import matplotlib.pyplot as plt
+
+    # Test asilib's maps
+    ax = asilib.map.map()
+    plt.show()
+
+    
+    
