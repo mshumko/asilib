@@ -1,5 +1,16 @@
 """
-Create a geographic map using the simple built-in function or cartopy.
+Plot geographic maps using cartopy or the simple built-in function. Before you
+project an ASI image onto a map, you will need to create a map using the 
+following functions.
+
+The simplest way to make a map is via :py:meth:`~asilib.map.create_map` that
+by default makes a map above North America. :py:meth:`~asilib.map.create_map` 
+automatically chooses what library to plot the map: cartopy if it is installed,
+or asilib's :py:meth:`~asilib.map.create_simple_map` function to create a simple
+map.
+
+You can override this automatic behavior by calling the underlying functions directly:
+:py:meth:`~asilib.map.create_simple_map` or :py:meth:`~asilib.map.create_cartopy_map`.
 """
 import pathlib
 from typing import List, Union
@@ -55,18 +66,16 @@ def create_map(
     plt.Axes
         The subplot object containing the map.
 
-    Example
-    -------
-    # If you have cartopy installed.
-    ...
-    # If you don't have cartopy installed.
-    ...
+    Examples
+    --------
+    If you have cartopy installed see the examples in :py:meth:`~asilib.map.create_cartopy_map`.
+    Alternatively, if you don't have cartopy installed see the examples in :py:meth:`~asilib.map.create_simple_map`.
 
     See Also
     --------
-    asilib.make_simple_map: 
+    :py:meth:`~asilib.map.create_simple_map`: 
         Make a simple map using asilib's own map library.
-    asilib.make_cartopy_map:
+    :py:meth:`~asilib.map.create_cartopy_map`:
         Make a map using the cartopy library.
     """
     if cartopy_imported:

@@ -69,3 +69,12 @@ LAMP
    :members:
    :undoc-members:
    :show-inheritance:
+
+
+Geographic Maps
+===============
+
+.. automodule:: asilib.map
+   :members: create_map, create_cartopy_map, create_simple_map
+   :undoc-members:
+   :show-inheritance:
