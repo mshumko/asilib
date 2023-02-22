@@ -45,6 +45,10 @@ class Imager:
         an image and returns the lower and upper bound numbers, or a len 2 tuple or list.
         The ```color_map``` key must be a valid matplotlib colormap. And lastly, ```color_norm```
         must be either ```lin``` for linear or ```log``` for logarithmic color scale.
+    memory_mode: str
+        Switch between the ```lazy``` mode to stream data and ```eager`` mode to return data
+        in chunks (one file at a time). The ```lazy``` mode is slower and it uses much less 
+        RAM than the ```eager``` mode.
 
     Attributes
     ----------
@@ -65,12 +69,14 @@ class Imager:
         of RAM usage.
     """
 
-    def __init__(self, data: dict, meta: dict, skymap: dict, plot_settings: dict = {}) -> None:
+    def __init__(self, data: dict, meta: dict, skymap: dict, plot_settings: dict = {},
+                memory_mode: str='lazy') -> None:
         self._data = {k.lower(): v for k, v in data.items()}
         self.meta = {k.lower(): v for k, v in meta.items()}
         self.skymap = {k.lower(): v for k, v in skymap.items()}
         self.plot_settings = {k.lower(): v for k, v in plot_settings.items()}
         self._accumulate_n = 1 
+        self._memory_mode = memory_mode.lower()
         # self._validate_inputs()  # TODO-Validation: Add a small-scale validations to each method.
         return
 
@@ -701,13 +707,14 @@ class Imager:
 
         elif isinstance(_slice, tuple):
             raise NotImplementedError(
-                'At this time Imager does not support ' 'multi-dimensional indexing.'
+                'At this time Imager does not support multi-dimensional indexing.'
             )
         return
 
     def __iter__(self):
         """
-        Iterate over individual timestamps and images.
+        Iterate over individual timestamps and images if the self._memory_mode is
+        ```lazy``` and whole files if self._memory_mode is ```eager```.
 
         Parameters
         ----------
@@ -739,6 +746,8 @@ class Imager:
                         (times > self._data['time_range'][0]) &
                         (times <= self._data['time_range'][1])
                     )[0]
+                if self._memory_mode == 'eager':
+                    yield time_chunk[idt], image_chunk[idt]
                 for time, image in zip(times[idt], images[idt]):
                     yield time, image
                     
@@ -750,15 +759,19 @@ class Imager:
                         (time_chunk > self._data['time_range'][0]) &
                         (time_chunk <= self._data['time_range'][1])
                     )[0]
+                    if self._memory_mode == 'eager':
+                        yield time_chunk[idt], image_chunk[idt]
+
                     for time, image in zip(time_chunk[idt], image_chunk[idt]):
                         yield time, image
 
     def _estimate_n_times(self):
         """
-        Estimate the maximum number of time stamps for the Imager's time range..
+        Estimate the maximum number of time stamps for the Imager's time range.
         """
         n_sec = (self._data['time_range'][1] - self._data['time_range'][0]).total_seconds()
-        # +2 is for when time_range is a bit bigger than an integer number of samples
+        # +2 is for when time_range includes the start and end time stamps. 
+        # This will be trimmed later.
         return int(n_sec / self.meta['cadence']) + 2
     
     @property
