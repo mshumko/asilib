@@ -22,7 +22,7 @@ except ImportError as err:
 import asilib
 
 
-def map(
+def create_map(
     lon_bounds: tuple = (-160, -50),
     lat_bounds: tuple = (40, 82),
     ax: Union[plt.Axes, dict] = None,
@@ -57,6 +57,10 @@ def map(
 
     Example
     -------
+    # If you have cartopy installed.
+    ...
+    # If you don't have cartopy installed.
+    ...
 
     See Also
     --------
@@ -66,14 +70,27 @@ def map(
         Make a map using the cartopy library.
     """
     if cartopy_imported:
-        # use cartopy
-        pass
+        if ax is not None:
+            assert isinstance(ax, dict), (
+                f'The ax kwarg must be a dictionary with fig:position key-values'
+                f', not {type(ax)}. See the docstring for more information.'
+                )
+        ax = create_cartopy_map(
+            lon_bounds=lon_bounds, lat_bounds=lat_bounds, fig_ax=ax, 
+            coast_color=coast_color, land_color=land_color, 
+            ocean_color=ocean_color
+        )
     else:
-        # asilib engine
-        pass
-    return
+        if ax is not None:
+            assert isinstance(ax, plt.Axes), f'The ax kwarg must be a subplot, not {type(ax)}.'
+        ax = create_simple_map(
+            lon_bounds=lon_bounds, lat_bounds=lat_bounds, ax=ax, 
+            coast_color=coast_color, land_color=land_color, 
+            ocean_color=ocean_color
+            )
+    return ax
 
-def simple_map(
+def create_simple_map(
     lon_bounds: tuple = (-140, -60),
     lat_bounds: tuple = (40, 82),
     ax: plt.Axes = None,
@@ -153,10 +170,10 @@ def simple_map(
     ax.set_ylim(lat_bounds)
     return ax
 
-def cartopy_map(
+def create_cartopy_map(
     lon_bounds: tuple = (-160, -50),
     lat_bounds: tuple = (40, 82),
-    fig_ax: dict = None,
+    fig_ax: tuple = None,
     coast_color: str = 'k',
     land_color: str = 'g',
     ocean_color: str = 'w',
@@ -172,7 +189,8 @@ def cartopy_map(
     lat_bounds: tuple or list
         A tuple of length 2 specifying the map's latitude bounds.
     fig_ax: dict
-        Make a map on an existing figure. The dictionary key:values must be
+        Add a map on an existing subplot. The two-element tuple must have the
+        plt.figure object
         'fig': figure object, and 'ax': the subplot position in the
         (nrows, ncols, index) format, or a GridSpec object. For example
         fig_ax = {}
@@ -209,7 +227,7 @@ def cartopy_map(
 
     if fig_ax is None:
         fig = plt.figure(figsize=(8, 5))
-        ax = fig.add_subplot(1, 1, 1, projection=projection)
+        ax = fig.add_subplot(111, projection=projection)
     # else:
     #     if hasattr(fig_ax['ax'], '__len__') and len(fig_ax['ax']) == 3:
     #         # If fig_ax['ax'] is in the format (X,Y,Z)
@@ -223,7 +241,7 @@ def cartopy_map(
     if ocean_color is not None:
         ax.add_feature(cfeature.OCEAN, color=ocean_color)
     if coast_color is not None:
-        ax.add_feature(cfeature.COASTLINE, color=coast_color)
+        ax.add_feature(cfeature.COASTLINE, edgecolor=coast_color)
     ax.gridlines(linestyle=':')
     ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
     return ax
@@ -243,8 +261,6 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     # Test asilib's maps
-    ax = asilib.map.map()
+    ax = asilib.map.create_map()
+    print(ax)
     plt.show()
-
-    
-    
