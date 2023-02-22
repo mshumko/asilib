@@ -77,6 +77,8 @@ class Imager:
         self.plot_settings = {k.lower(): v for k, v in plot_settings.items()}
         self._accumulate_n = 1 
         self._memory_mode = memory_mode.lower()
+        if self._memory_mode != 'lazy':
+            raise NotImplementedError(f'{self._memory_mode} is not implemented.')
         # self._validate_inputs()  # TODO-Validation: Add a small-scale validations to each method.
         return
 
