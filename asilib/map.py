@@ -25,7 +25,7 @@ import asilib
 def map(
     lon_bounds: tuple = (-160, -50),
     lat_bounds: tuple = (40, 82),
-    ax: plt.Axes = None,
+    ax: Union[plt.Axes, dict] = None,
     coast_color: str = 'k',
     land_color: str = 'g',
     ocean_color: str = 'w',
@@ -37,17 +37,18 @@ def map(
     Parameters
     ----------
     lon_bounds: tuple
-        The map's longitude boundary.
+        The map's longitude bounds.
     lat_bounds: tuple
-        The map's latitude boundary.
-    ax: plt.Axes
-        The subplot to put the map on.
+        The map's latitude bounds.
+    ax: plt.Axes, dict
+        The subplot to put the map on. If cartopy is installed, ```ax``` must be
+        a dictionary specifying the figure object and subplot position
     coast_color: str
-        The coast color.
+        The coast color. If None will not draw it.
     land_color: str
-        The land color.
+        The land color. If None will not draw it.
     ocean_color: str
-        The ocean color.
+        The ocean color. If None will not draw it.
 
     Returns
     -------
@@ -209,13 +210,13 @@ def cartopy_map(
     if fig_ax is None:
         fig = plt.figure(figsize=(8, 5))
         ax = fig.add_subplot(1, 1, 1, projection=projection)
-    else:
-        if hasattr(fig_ax['ax'], '__len__') and len(fig_ax['ax']) == 3:
-            # If fig_ax['ax'] is in the format (X,Y,Z)
-            ax = fig_ax['fig'].add_subplot(*fig_ax['ax'], projection=projection)
-        else:
-            # If fig_ax['ax'] is in the format XYZ or a gridspec object.
-            ax = fig_ax['fig'].add_subplot(fig_ax['ax'], projection=projection)
+    # else:
+    #     if hasattr(fig_ax['ax'], '__len__') and len(fig_ax['ax']) == 3:
+    #         # If fig_ax['ax'] is in the format (X,Y,Z)
+    #         ax = fig_ax['fig'].add_subplot(*fig_ax['ax'], projection=projection)
+    #     else:
+    #         # If fig_ax['ax'] is in the format XYZ or a gridspec object.
+    #         ax = fig_ax['fig'].add_subplot(fig_ax['ax'], projection=projection)
 
     if land_color is not None:
         ax.add_feature(cfeature.LAND, color=land_color)
