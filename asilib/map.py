@@ -140,9 +140,36 @@ def create_simple_map(
 
     Example
     -------
-    | import asilib
-    |
-    | ax = asilib.make_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
+    >>> import asilib.map
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+
+    # Create a simple map above Scandinavia in a single plot
+
+    >>> ax = asilib.map.create_simple_map(lon_bounds=[0, 38], lat_bounds=[50, 75])
+    >>> ax.set_title('Generated via asilib.map.create_simple_map()')
+
+    # The above examples made a map on one subplot. But what if you have multiple 
+    # subplots?
+
+    >>> fig = plt.figure(figsize=(6, 10))
+    >>> bx = fig.add_subplot(2,1,1)
+    >>> bx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], ax=bx)
+    >>> cx = fig.add_subplot(2,1,2)
+    >>> cx.plot(np.arange(10), np.random.rand(10))
+    >>> fig.suptitle('Two subplots with equal aspect ratios')
+
+    # Another multi-subplot example with different height ratios. The syntax is the same as
+    # in plt.subplot() (See the args section in 
+    # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplot.html).
+
+    >>> fig = plt.figure(figsize=(6, 10))
+    >>> dx = fig.add_subplot(3,1,(1, 2))
+    >>> dx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], ax=dx)
+    >>> ex = fig.add_subplot(3,1,3)
+    >>> ex.plot(np.arange(10), np.random.rand(10))
+    >>> fig.suptitle('Two subplots with differing aspect ratios')
+    >>> plt.show()
     """
     shp_path = asilib.config['ASILIB_DIR'] / 'data' / f'{file}'
 
@@ -287,23 +314,19 @@ if __name__ == '__main__':
     import numpy as np
     import matplotlib.pyplot as plt
 
-    # Create a cartopy map above Scandinavia in a single plot
+    # Create a simple map above Scandinavia in a single plot
 
-    ax = asilib.map.create_cartopy_map(lon_bounds=[0, 38], lat_bounds=[50, 75])
-    ax.set_title('Generated via asilib.map.create_cartopy_map()')
-    
-    # If you have cartopy installed, the following example creates the same plot.
-
-    bx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75])
-    bx.set_title('Generated via asilib.map.create_map()')
+    ax = asilib.map.create_simple_map(lon_bounds=[0, 38], lat_bounds=[50, 75])
+    ax.set_title('Generated via asilib.map.create_simple_map()')
 
     # The above examples made a map on one subplot. But what if you have multiple 
     # subplots?
 
     fig = plt.figure(figsize=(6, 10))
-    cx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], ax=(fig, (2,1,1)))
-    dx = fig.add_subplot(2,1,2)
-    dx.plot(np.arange(10), np.random.rand(10))
+    bx = fig.add_subplot(2,1,1)
+    bx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], ax=bx)
+    cx = fig.add_subplot(2,1,2)
+    cx.plot(np.arange(10), np.random.rand(10))
     fig.suptitle('Two subplots with equal aspect ratios')
 
     # Another multi-subplot example with different height ratios. The syntax is the same as
@@ -311,9 +334,10 @@ if __name__ == '__main__':
     # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplot.html).
 
     fig = plt.figure(figsize=(6, 10))
-    cx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], ax=(fig, (3,1,(1,2))))
-    dx = fig.add_subplot(3,1,3)
-    dx.plot(np.arange(10), np.random.rand(10))
+    dx = fig.add_subplot(3,1,(1, 2))
+    dx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], ax=dx)
+    ex = fig.add_subplot(3,1,3)
+    ex.plot(np.arange(10), np.random.rand(10))
     fig.suptitle('Two subplots with differing aspect ratios')
 
     plt.show()
