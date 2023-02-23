@@ -3,6 +3,7 @@ Tests the themis() data loading function.
 """
 from datetime import datetime
 
+import requests
 import pytest
 
 import asilib.array.themis as themis
@@ -17,12 +18,12 @@ def test_themis_time():
     # _data should not be accessed by the user.
     assert img._data['time'] == datetime(2014, 5, 5, 4, 49, 9, 37070)
     # And data() should be
-    assert img.data()[0] == datetime(2014, 5, 5, 4, 49, 9, 37070)
-    assert img.data()[1][0, 0] == 3464
-    assert img.data()[1][-1, -1] == 3477
+    assert img.data['times'] == datetime(2014, 5, 5, 4, 49, 9, 37070)
+    assert img.data['images'][0, 0] == 3464
+    assert img.data['images'][-1, -1] == 3477
     assert img.skymap['path'].name == 'themis_skymap_gill_20130103-%2B_vXX.sav'
     # Does not call the download function
-    img2 = themis.themis('gill', time='2014-05-05T04:49:10', redownload=True)
+    img2 = themis.themis('gill', time='2014-05-05T04:49:10', redownload=False)
     assert img2._data['time'] == datetime(2014, 5, 5, 4, 49, 9, 37070)
     return
 
@@ -42,7 +43,7 @@ def test_themis_no_file():
     Tests that themis() returns a FileNotFound error when we try to download
     non-existant data.
     """
-    with pytest.raises(ConnectionError):
+    with pytest.raises(requests.exceptions.HTTPError):
         themis.themis('pina', time='2011/07/07T02:00')
     return
 

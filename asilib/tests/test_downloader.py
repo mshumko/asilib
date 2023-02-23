@@ -7,6 +7,7 @@ import tempfile
 from datetime import datetime
 
 import pytest
+import requests
 
 import asilib
 from asilib.io.download import Downloader
@@ -17,7 +18,7 @@ def test_bad_url():
     Checks that Downloader() raises an error for a non-existant URL.
     """
     d = Downloader('https://data.phys.ucalgary.ca/DOES_NOT_EXIST_9876')
-    with pytest.raises(ConnectionError):
+    with pytest.raises(requests.exceptions.HTTPError):
         d.ls()
     return
 
