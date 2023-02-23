@@ -1,3 +1,12 @@
+"""
+asilib.Imager provides methods to load ASI time stamps and images, as well as
+basic plotting methods.
+
+.. note::
+    Most of the basic asilib operations are to download and load large amounts
+    of images. Therefore, your performance is largely impacted by your internet speed
+    and the type of hard drive/memory on your machine. 
+"""
 import datetime
 import dateutil.parser
 import pathlib
@@ -26,6 +35,13 @@ class Imager:
     """
     The central asilib class to plot, animate, and analyze ASI data. 
 
+    .. note::
+        Considering that some ASIs produce enough data to overwhelm your computer's memory, 
+        for example the Phantom ASIs in support of the LAMP sounding rocket produced a whopping 
+        190 GB/hour of data, by default asilib loads data as needed. This is the "lazy" mode
+        that prioritizes memory at the expense of higher CPU usage. Alternatively, if memory is
+        not a concern, asilib supports an "eager" mode that loads all of the data into memory.
+
     Parameters
     ----------
     data: dict
@@ -52,23 +68,14 @@ class Imager:
 
     Attributes
     ----------
-    times
-        Return one or multiple timestamps, depending on if Imager was instantiated using the
-        ``time`` or ``time_range`` kwargs. This loads all of the data into memory, so beware
-        of RAM usage.
-    time
-        Alias for times
-    images
-        Return one or multiple images, depending on if Imager was instantiated using the
-        ``time`` or ``time_range`` kwargs. This loads all of the data into memory, so beware
-        of RAM usage.
-    image
-        Alias for images
     data
-        A NamedTuple containing times and images. This loads all of the data into memory, so beware
-        of RAM usage.
-    """
+        A NamedTuple containing times and images. This loads all of the data into 
+        memory (eager mode), so beware of your memory usage, as asilib will not.
 
+    Methods
+    -------
+
+    """
     def __init__(self, data: dict, meta: dict, skymap: dict, plot_settings: dict = {},
                 memory_mode: str='lazy') -> None:
         self._data = {k.lower(): v for k, v in data.items()}
