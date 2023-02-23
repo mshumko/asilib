@@ -21,7 +21,7 @@ import asilib
 # -- Project information -----------------------------------------------------
 
 project = 'asilib'
-copyright = '2021, Mykhaylo Shumko'
+copyright = '2023, Mykhaylo Shumko'
 author = 'Mykhaylo Shumko'
 version = str(asilib.__version__)
 
@@ -40,6 +40,7 @@ extensions = [
     'nbsphinx'
 ]
 
+copybutton_prompt_text = ">>> "
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
