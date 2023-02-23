@@ -785,7 +785,7 @@ class Imager:
         _img_data_type = namedtuple('data', ['times', 'images'])
 
         if 'time_range' in self._data.keys():
-            _times = np.datetime64("NaT") * np.zeros(self._estimate_n_times(), dtype=object)
+            _times = np.nan*np.zeros(self._estimate_n_times(), dtype=object)
             _images = np.nan * np.zeros((self._estimate_n_times(), *self.meta['resolution']))
             
             start_idt = 0
@@ -794,7 +794,7 @@ class Imager:
                 _images[start_idt:start_idt+time_chunk.shape[0]] = image_chunk
                 start_idt += time_chunk.shape[0]
             # Cut any unfilled times and images 
-            valid_ind = np.where(~np.isnat(_times))[0]
+            valid_ind = np.where(~np.isnan(_images[:,0,0]))[0]
             return _img_data_type(_times[valid_ind], _images[valid_ind])
         
         elif 'time' in self._data.keys():
@@ -1180,4 +1180,5 @@ if __name__ == '__main__':
     
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     imager = asilib.themis('FSMI', time_range=time_range)
+    print(imager.data.times)
     pass
