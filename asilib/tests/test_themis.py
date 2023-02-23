@@ -18,9 +18,11 @@ def test_themis_time():
     # _data should not be accessed by the user.
     assert img._data['time'] == datetime(2014, 5, 5, 4, 49, 9, 37070)
     # And data() should be
-    assert img.data['times'] == datetime(2014, 5, 5, 4, 49, 9, 37070)
-    assert img.data['images'][0, 0] == 3464
-    assert img.data['images'][-1, -1] == 3477
+    assert img.data.times == datetime(2014, 5, 5, 4, 49, 9, 37070)
+    assert img.data[0] == datetime(2014, 5, 5, 4, 49, 9, 37070)
+    assert img.data.images[0, 0] == 3464
+    assert img.data[1][0, 0] == 3464
+    assert img.data.images[-1, -1] == 3477
     assert img.skymap['path'].name == 'themis_skymap_gill_20130103-%2B_vXX.sav'
     # Does not call the download function
     img2 = themis.themis('gill', time='2014-05-05T04:49:10', redownload=False)
@@ -35,6 +37,11 @@ def test_themis_time_range():
     img = themis.themis('gill', time_range=['2014-05-05T05:10', '2014-05-05T05:12'])
     assert img._data['path'][0].name == '20140505_0510_gill_themis19_full.pgm.gz'
     assert img._data['path'][1].name == '20140505_0511_gill_themis19_full.pgm.gz'
+
+    assert img.data.times[0] == datetime(2014, 5, 5, 5, 10, 0, 30996)
+    assert img.data.times[-1] == datetime(2014, 5, 5, 5, 11, 57, 23046)
+    assert img.data.times.shape == (40,)
+    assert img.data.images.shape == (40, 256, 256)
     return
 
 

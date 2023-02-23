@@ -780,22 +780,34 @@ class Imager:
     @property
     def data(self):
         """
-        Load all of the times and store them into self._times.
+        Load ASI data.
+
+        Returns
+        -------
+        namedtuple
+            A named tuple containing (times, images). Members can be accessed using either
+            index notation, or dot notation. 
         """
         _img_data_type = namedtuple('data', ['times', 'images'])
 
         if 'time_range' in self._data.keys():
-            _times = np.nan*np.zeros(self._estimate_n_times(), dtype=object)
-            _images = np.nan * np.zeros((self._estimate_n_times(), *self.meta['resolution']))
+            # If already run.
+            if hasattr(self, '_times') and hasattr(self, '_images'):
+                return _img_data_type(self._times, self._images)
+            
+            self._times = np.nan*np.zeros(self._estimate_n_times(), dtype=object)
+            self._images = np.nan * np.zeros((self._estimate_n_times(), *self.meta['resolution']))
             
             start_idt = 0
             for time_chunk, image_chunk in self.iter_chunks():
-                _times[start_idt:start_idt+time_chunk.shape[0]] = time_chunk
-                _images[start_idt:start_idt+time_chunk.shape[0]] = image_chunk
+                self._times[start_idt:start_idt+time_chunk.shape[0]] = time_chunk
+                self._images[start_idt:start_idt+time_chunk.shape[0]] = image_chunk
                 start_idt += time_chunk.shape[0]
             # Cut any unfilled times and images 
-            valid_ind = np.where(~np.isnan(_images[:,0,0]))[0]
-            return _img_data_type(_times[valid_ind], _images[valid_ind])
+            valid_ind = np.where(~np.isnan(self._images[:,0,0]))[0]
+            self._times = self._times[valid_ind]
+            self._images = self._images[valid_ind]
+            return _img_data_type(self._times, self._images)
         
         elif 'time' in self._data.keys():
             return _img_data_type(self._data['time'], self._data['image'])
