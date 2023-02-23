@@ -715,8 +715,7 @@ class Imager:
 
     def __iter__(self):
         """
-        Iterate over individual timestamps and images if the self._memory_mode is
-        ```lazy``` and whole files if self._memory_mode is ```eager```.
+        Iterate over individual timestamps and images.
 
         Parameters
         ----------
@@ -730,11 +729,18 @@ class Imager:
             image.
         """
         # TODO: Add a self._accumulate_n option.
-        self._loader_is_gen = inspect.isgeneratorfunction(self._data['loader'])
+        for time_chunk, image_chunk in self.iter_chunks():
+            for time_i, image_i in zip(time_chunk, image_chunk):
+                yield time_i, image_i 
 
+    def iter_chunks(self):
+        """
+        Iterate over chucks of ASI time stamps and images.
+        """
+        self._loader_is_gen = inspect.isgeneratorfunction(self._data['loader'])
         if 'time_range' not in self._data.keys():
             raise KeyError('Imager was not instantiated with a time_range.')
-
+        
         for path in self._data['path']:
             # Check if the loader function is a generator. If not, asilib
             # will load one image file at a time and assume that opening one file
@@ -748,10 +754,7 @@ class Imager:
                         (times > self._data['time_range'][0]) &
                         (times <= self._data['time_range'][1])
                     )[0]
-                if self._memory_mode == 'eager':
-                    yield time_chunk[idt], image_chunk[idt]
-                for time, image in zip(times[idt], images[idt]):
-                    yield time, image
+                yield times[idt], images[idt]
                     
             else:
                 gen = self._data['loader'](path)
@@ -761,11 +764,8 @@ class Imager:
                         (time_chunk > self._data['time_range'][0]) &
                         (time_chunk <= self._data['time_range'][1])
                     )[0]
-                    if self._memory_mode == 'eager':
-                        yield time_chunk[idt], image_chunk[idt]
-
-                    for time, image in zip(time_chunk[idt], image_chunk[idt]):
-                        yield time, image
+                    yield time_chunk[idt], image_chunk[idt]
+        return
 
     def _estimate_n_times(self):
         """
@@ -775,95 +775,37 @@ class Imager:
         # +2 is for when time_range includes the start and end time stamps. 
         # This will be trimmed later.
         return int(n_sec / self.meta['cadence']) + 2
-    
-    @property
-    def times(self):
-        """
-        Get one or multiple ASI timestamps.
-        """
-        if 'time_range' in self._data.keys():
-            if not hasattr(self, "_times"):
-                self._load_data(times=True) 
-            return self._times
-        elif 'time' in self._data.keys():
-            return self._data['time']
-        else:
-            raise KeyError(f'Either "time" or "time_range" must be in the asilib.Imager._data dictionary.')
-    
-    @property
-    def time(self):
         return self.times
-    
-    @property
-    def images(self):
-        """
-        Get one or multiple ASI images.
-        """
-        if 'time_range' in self._data.keys():
-            if not hasattr(self, "_images"):
-                self._load_data(images=True) 
-            return self._images
-        elif 'image' in self._data.keys():
-            return self._data['image']
-        else:
-            raise KeyError(f'Either "time" or "time_range" must be in the asilib.Imager._data dictionary.')
-    
-    @property
-    def image(self):
-        return self.images
-    
+
     @property
     def data(self):
         """
-        Return both the times and images.
+        Load all of the times and store them into self._times.
         """
         _img_data_type = namedtuple('data', ['times', 'images'])
 
         if 'time_range' in self._data.keys():
-            if (not hasattr(self, "_times")) or (not hasattr(self, "_images")):
-                self._load_data(times=True, images=True)
-                return _img_data_type(times=self._times, images=self._images)
-            else: 
-                return _img_data_type(times=self._times, images=self._images)
-        elif 'image' in self._data.keys():
-            return _img_data_type(self._data['time'], self._data['image'])
-        else:
-            raise KeyError(f'Either "time" or "time_range" must be in the asilib.Imager._data dictionary.')
-    
-    def _load_data(self, times=False, images=False):
-        """
-        Load all of the times and store them into self._times.
-        """
-        if (not times) and (not images):
-            raise ValueError('Either or both time or images need to be True.')
-        
-        self._loader_is_gen = inspect.isgeneratorfunction(self._data['loader'])
-        if times:
-            self._times = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
-        if images:
-            self._images = np.nan * np.zeros((self._estimate_n_times(), *self.meta['resolution']))
-        
-        start_idt = 0
-        for path in self._data['path']:
-            if not self._loader_is_gen:
-                file_times, file_images = self._data['loader'](path)
-                file_idt = np.where((file_times >= self._data['time_range'][0]) & (file_times < self._data['time_range'][1]))[0] 
-                if times:
-                    self._times[start_idt:start_idt+file_idt.shape[0]] = file_times[file_idt]
-                if images:
-                    self._images[start_idt:start_idt+file_idt.shape[0]] = file_images[file_idt]  # Assume time is first dimension.
-                start_idt += file_idt.shape[0]
+            _times = np.datetime64("NaT") * np.zeros(self._estimate_n_times(), dtype=object)
+            _images = np.nan * np.zeros((self._estimate_n_times(), *self.meta['resolution']))
             
-            else:
-                gen = self._data['loader'](path)
+            start_idt = 0
+            for time_chunk, image_chunk in self.iter_chunks():
+                _times[start_idt:start_idt+time_chunk.shape[0]] = time_chunk
+                _images[start_idt:start_idt+time_chunk.shape[0]] = image_chunk
+                start_idt += time_chunk.shape[0]
+            # Cut any unfilled times and images 
+            valid_ind = np.where(~np.isnat(_times))[0]
+            return _img_data_type(_times[valid_ind], _images[valid_ind])
+        
+        elif 'time' in self._data.keys():
+            return _img_data_type(self._data['time'], self._data['image'])
+        
+        else:
+            raise ValueError(f'This imager instance does not contain either the '
+                             f'"time" or "time_range" data variables. The data '
+                             f'variables are {self._data.keys()}.')
+        
 
-                for time_chunk, image_chunk in gen:
-                    file_idt = np.where((time_chunk >= self._data['time_range'][0]) & (time_chunk < self._data['time_range'][1]))[0] 
-                    if times:
-                        self._times[start_idt:start_idt+file_idt.shape[0]] = file_times[file_idt]
-                    if images:
-                        self._images[start_idt:start_idt+file_idt.shape[0]] = image_chunk[file_idt]  # Assume time is first dimension.
-                    start_idt += file_idt.shape[0]
 
     def __str__(self) -> str:
         if ('time' in self._data.keys()) and (self._data['time'] is not None):
@@ -1238,7 +1180,4 @@ if __name__ == '__main__':
     
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     imager = asilib.themis('FSMI', time_range=time_range)
-    print(imager.images.shape)
-    print(imager.times.shape)
-    print(imager.data.times.shape)
-    print(imager.data.images.shape)
+    pass
