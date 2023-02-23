@@ -21,14 +21,15 @@ By default this directory is set to `~/asilib-data/`, but you can configure the 
 .. note::
     The longitude units are converted from [0, 360] to [-180, 180] degrees in the skymap calibration files.
 
-Function Summary
-================
+Summary
+=======
 
 .. autosummary::
    :nosignatures:
 
    asilib.imager.Imager
    asilib.conjunction.Conjunction
+   asilib.map
    asilib.array.themis.themis
    asilib.array.lamp_emccd.lamp
    asilib.array.lamp_phantom.lamp
