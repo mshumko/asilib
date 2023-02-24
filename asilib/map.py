@@ -17,12 +17,12 @@ The two functions are called similarly with the exception of the ``ax``  kwarg i
 need to specify what subplot to create the map on:
 
 - for :py:meth:`~asilib.map.create_simple_map` you must pass in a ``ax`` subplot object, and 
-- for :py:meth:`~asilib.map.create_cartopy_map`, you need to pass in a ``fig_ax`` tuple containing two elements. The first element is the ```plt.Figure`` object, and the second element is a 3 digit number (or a tuple) specifying where to place that subplot. For example,
+- for :py:meth:`~asilib.map.create_cartopy_map`, you need to pass in a ``ax`` tuple containing two elements. The first element is the ```plt.Figure`` object, and the second element is a 3 digit number (or a tuple) specifying where to place that subplot. For example,
 
     .. code-block:: python
 
         >>> fig = plt.Figure()
-        >>> ax = asilib.map.create_cartopy_map(fig_ax=(fig, 111))
+        >>> ax = asilib.map.create_cartopy_map(ax=(fig, 111))
 """
 
 import pathlib
@@ -103,7 +103,7 @@ def create_map(
         ax = create_cartopy_map(
             lon_bounds=lon_bounds,
             lat_bounds=lat_bounds,
-            fig_ax=ax,
+            ax=ax,
             coast_color=coast_color,
             land_color=land_color,
             ocean_color=ocean_color,
@@ -230,7 +230,7 @@ def create_simple_map(
 def create_cartopy_map(
     lon_bounds: tuple = (-160, -50),
     lat_bounds: tuple = (40, 82),
-    fig_ax: tuple = None,
+    ax: tuple = None,
     coast_color: str = 'k',
     land_color: str = 'g',
     ocean_color: str = 'w',
@@ -245,7 +245,7 @@ def create_cartopy_map(
         A tuple of length 2 specifying the map's longitude bounds.
     lat_bounds: tuple or list
         A tuple of length 2 specifying the map's latitude bounds.
-    fig_ax: tuple
+    ax: tuple
         A two element tuple specifying the ``plt.Figure`` object and subplot position
         passed directly as ``args`` into
         `fig.add_subplot() <https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure.add_subplot>`_.
@@ -254,7 +254,7 @@ def create_cartopy_map(
         .. code-block:: python
 
             fig = plt.Figure()
-            ax = asilib.map.create_cartopy_map(fig_ax=(fig, 111))
+            ax = asilib.map.create_cartopy_map(ax=(fig, 111))
 
     coast_color: str
         The coast color. If None will not draw it.
@@ -308,22 +308,24 @@ def create_cartopy_map(
     central_lat = np.mean(lat_bounds)
     projection = ccrs.Orthographic(central_lon, central_lat)
 
-    if fig_ax is None:
+    if ax is None:
         fig = plt.figure(figsize=(8, 5))
-        ax = fig.add_subplot(111, projection=projection)
+        _ax = fig.add_subplot(111, projection=projection)
     else:
-        fig = fig_ax[0]
-        ax = fig.add_subplot(*fig_ax[1], projection=projection)
-
+        fig = ax[0]
+        if isinstance(ax[1], int):
+            _ax = fig.add_subplot(ax[1], projection=projection)
+        else:
+            _ax = fig.add_subplot(*ax[1], projection=projection)
     if land_color is not None:
-        ax.add_feature(cfeature.LAND, color=land_color)
+        _ax.add_feature(cfeature.LAND, color=land_color)
     if ocean_color is not None:
-        ax.add_feature(cfeature.OCEAN, color=ocean_color)
+        _ax.add_feature(cfeature.OCEAN, color=ocean_color)
     if coast_color is not None:
-        ax.add_feature(cfeature.COASTLINE, edgecolor=coast_color)
-    ax.gridlines(linestyle=':')
-    ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
-    return ax
+        _ax.add_feature(cfeature.COASTLINE, edgecolor=coast_color)
+    _ax.gridlines(linestyle=':')
+    _ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
+    return _ax
 
 
 def _consecutive(data, jump_bool):

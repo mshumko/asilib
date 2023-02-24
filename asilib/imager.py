@@ -118,7 +118,7 @@ class Imager:
             Flag to add the "asi_array_code/location_code/image_time" text to the plot.
         color_map: str
             The matplotlib colormap to use. By default will use a black-white colormap.
-            For more information See https://matplotlib.org/3.3.3/tutorials/colors/colormaps.html
+            For more information See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
         color_bounds: List[float]
             The lower and upper values of the color scale. The default is: low=1st_quartile and
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
@@ -205,7 +205,7 @@ class Imager:
             Flag to add the "asi_array_code/location_code/image_time" text to the plot.
         color_map: str
             The matplotlib colormap to use. By default will use a black-white colormap.
-            For more information See https://matplotlib.org/stable/tutorials/colors/colormaps.html
+            For more information See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
         color_bounds: List[float]
             The lower and upper values of the color scale. The default is: low=1st_quartile and
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
@@ -294,7 +294,7 @@ class Imager:
             Flag to add the "asi_array_code/location_code/image_time" text to the plot.
         color_map: str
             The matplotlib colormap to use. By default will use a black-white colormap.
-            For more information See https://matplotlib.org/stable/tutorials/colors/colormaps.html
+            For more information See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
         color_bounds: List[float]
             The lower and upper values of the color scale. The default is: low=1st_quartile and
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
@@ -508,6 +508,21 @@ class Imager:
         >>> ax[1].plot(np.arange(10), np.random.rand(10))
         >>> plt.tight_layout()
         >>> plt.show()
+
+        # If you have cartopy installed, here is how you can project a single image 
+        # onto a two-panel geographic map.
+
+        >>> imager = asilib.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
+        >>> fig = plt.figure(figsize=(10, 6))
+        >>> ax = [None, None]
+        >>> ax[0] = asilib.map.create_cartopy_map(lon_bounds=(-127, -100), lat_bounds=(45, 65), ax=(fig, 121))
+        >>> ax[1] = plt.subplot(122)
+        >>> # or let asilib choose for you by calling
+        >>> # ax[0] = asilib.map.create_map(lon_bounds=(-127, -100), lat_bounds=(45, 65), ax=(fig, 121))
+        >>> imager.plot_map(lon_bounds=(-127, -100), lat_bounds=(45, 65), ax=ax[0])
+        >>> ax[1].plot(np.arange(10), np.random.rand(10))
+        >>> plt.tight_layout()
+        >>> plt.show()
         """
         assert 'image' in self._data.keys(), (f'The "image" key not in '
             f'Imager._data: got {self._data.keys()}')
@@ -528,6 +543,11 @@ class Imager:
             self.skymap['lon'], self.skymap['lat'], self.skymap['el'], min_elevation, image=image
         )
 
+        if cartopy_imported:
+            assert 'transform' not in pcolormesh_kwargs.keys(), (
+                f"The pcolormesh_kwargs in Imager.plot_map() can't contain "
+                f"'transform' key because it is reserved for cartopy.")
+            pcolormesh_kwargs['transform'] = ccrs.PlateCarree()
         p = self._pcolormesh_nan(
             lon_map,
             lat_map,
@@ -1134,7 +1154,6 @@ class Imager:
         pcolormesh_kwargs={},
     ):
         """
-        # TODO: Remove when done (move into Imager)
         Since pcolormesh cant handle nan lat/lon grid values, we will compress them to the
         nearest valid lat/lon grid. There are two main steps:
 
@@ -1148,8 +1167,7 @@ class Imager:
         Essentially this is a reassignment (or a compression) of all nan values in the periphery
         to the valid grid values in the center.
 
-        Function taken from Michael, scivision @ GitHub.:
-        https://github.com/scivision/python-matlab-examples/blob/0dd8129bda8f0ec2c46dae734d8e43628346388c/PlotPcolor/pcolormesh_NaN.py
+        Function taken from `Michael, scivision @ GitHub <https://github.com/scivision/python-matlab-examples/blob/0dd8129bda8f0ec2c46dae734d8e43628346388c/PlotPcolor/pcolormesh_NaN.py>`_.
         """
         # mask is True when lat and lon grid values are not nan.
         mask = np.isfinite(x) & np.isfinite(y)
@@ -1195,24 +1213,3 @@ class Imager:
             **pcolormesh_kwargs,
         )
         return p
-
-
-if __name__ == '__main__':
-    from datetime import datetime
-    import numpy as np
-    import asilib
-
-    # If you have cartopy installed, here is how you can project a single image 
-    # onto a two-panel geographic map.
-
-    imager = asilib.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
-    fig = plt.figure(figsize=(10, 6))
-    ax = [None, None]
-    ax[0] = asilib.map.create_cartopy_map(lon_bounds=(-127, -100), lat_bounds=(45, 65), ax=(fig, 121))
-    ax[1] = plt.subplot(122)
-    # or let asilib choose for you by calling
-    # ax[0] = asilib.map.create_map(lon_bounds=(-127, -100), lat_bounds=(45, 65), ax=(fig, 121))
-    imager.plot_map(lon_bounds=(-127, -100), lat_bounds=(45, 65), ax=ax[0])
-    ax[1].plot(np.arange(10), np.random.rand(10))
-    plt.tight_layout()
-    plt.show()
