@@ -482,8 +482,34 @@ class Imager:
             The subplot object to modify the axis, labels, etc.
         p: plt.AxesImage
             The plt.pcolormesh image object. Common use for p is to add a colorbar.
+
+        Examples
+        --------
+        >>> from datetime import datetime
+        >>> import numpy as np
+        >>> import asilib
+
+        # Project a single image onto a single-panel geographic map.
+
+        >>> imager = asilib.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
+        >>> imager.plot_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
+        >>> plt.tight_layout()
+        >>> plt.show()
+
+        # Project a single image onto a two-panel geographic map using the
+        # simple asilib map.
+
+        >>> imager = asilib.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
+        >>> fig, ax = plt.subplots(1, 2, figsize=(10, 6))
+        >>> ax[0] = asilib.map.create_simple_map(lon_bounds=(-127, -100), lat_bounds=(45, 65), ax=ax[0])
+        >>> # or let asilib choose for you by calling
+        >>> # ax[0] = asilib.map.create_map(lon_bounds=(-127, -100), lat_bounds=(45, 65), ax=ax[0])
+        >>> imager.plot_map(lon_bounds=(-127, -100), lat_bounds=(45, 65), ax=ax[0])
+        >>> ax[1].plot(np.arange(10), np.random.rand(10))
+        >>> plt.tight_layout()
+        >>> plt.show()
         """
-        assert 'image' not in self._data.keys(), (f'The "image" key not in '
+        assert 'image' in self._data.keys(), (f'The "image" key not in '
             f'Imager._data: got {self._data.keys()}')
         for _skymap_key in ['lat', 'lon', 'el']:
             assert _skymap_key in self.skymap.keys(), (f'The "{_skymap_key}" key not in '
@@ -1173,10 +1199,20 @@ class Imager:
 
 if __name__ == '__main__':
     from datetime import datetime
-
+    import numpy as np
     import asilib
 
-    imager = asilib.themis('FSMI', time=datetime(2015, 3, 26, 6, 7))
-    imager.plot_map()
+    # If you have cartopy installed, here is how you can project a single image 
+    # onto a two-panel geographic map.
+
+    imager = asilib.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
+    fig = plt.figure(figsize=(10, 6))
+    ax = [None, None]
+    ax[0] = asilib.map.create_cartopy_map(lon_bounds=(-127, -100), lat_bounds=(45, 65), ax=(fig, 121))
+    ax[1] = plt.subplot(122)
+    # or let asilib choose for you by calling
+    # ax[0] = asilib.map.create_map(lon_bounds=(-127, -100), lat_bounds=(45, 65), ax=(fig, 121))
+    imager.plot_map(lon_bounds=(-127, -100), lat_bounds=(45, 65), ax=ax[0])
+    ax[1].plot(np.arange(10), np.random.rand(10))
+    plt.tight_layout()
     plt.show()
-    pass
