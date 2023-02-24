@@ -25,6 +25,14 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib
 import ffmpeg
+try:
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+    cartopy_imported = True
+except ImportError as err:
+    # You can also get a ModuleNotFoundError if cartopy is not installed
+    # (as compared to failed to import), but it is a subclass of ImportError.
+    cartopy_imported = False
 
 import asilib
 import asilib.map
@@ -498,12 +506,16 @@ class Imager:
         )
 
         if asi_label:
+            if cartopy_imported:
+                transform = ccrs.PlateCarree()
+            else:
+                transform = ax.transData
             ax.text(
-                skymap['SITE_MAP_LONGITUDE'],
-                skymap['SITE_MAP_LATITUDE'],
-                location_code.upper(),
+                self.meta['lon'],
+                self.meta['lat'],
+                self.meta['location'].upper(),
                 color='r',
-                transform=ccrs.PlateCarree(),
+                transform=transform,
                 va='center',
                 ha='center',
             )
