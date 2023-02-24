@@ -15,7 +15,7 @@ import importlib
 import shutil
 import copy
 from collections import namedtuple
-from typing import List, Tuple, Generator
+from typing import List, Tuple, Generator, Union
 
 import numpy as np
 import numpy.linalg
@@ -27,6 +27,7 @@ import matplotlib
 import ffmpeg
 
 import asilib
+import asilib.map
 import asilib.utils as utils
 
 
@@ -410,143 +411,112 @@ class Imager:
         self._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
         return
 
-    # def plot_map(
-    #     self,
-    #     time: utils._time_type=None,
-    #     ax: plt.Axes = None,
-    #     map_style: str = 'green',
-    #     color_map: str = 'auto',
-    #     min_elevation: float = 10,
-    #     norm: bool = True,
-    #     asi_label: bool = True,
-    #     color_bounds: List[float] = None,
-    #     color_norm: str = 'log',
-    #     pcolormesh_kwargs: dict = {},
-    #     ) -> plt.Axes:
-    #     """
-    #     Projects the ASI images to a map at an altitude defined in the skymap calibration file.
+    def plot_map(
+        self,
+        lon_bounds: tuple = (-160, -50),
+        lat_bounds: tuple = (40, 82),
+        ax: Union[plt.Axes, tuple] = None,
+        coast_color: str = 'k',
+        land_color: str = 'g',
+        ocean_color: str = 'w',
+        color_map: str = None,
+        color_bounds: List[float] = None,
+        color_norm: str = None,
+        min_elevation: float = 10,
+        asi_label: bool = True,
+        pcolormesh_kwargs: dict = {},
+        ) -> plt.Axes:
+        """
+        Projects the ASI images to a map at an altitude defined in the skymap calibration file.
 
-    #     Parameters
-    #     ----------
-    #     asi_array_code: str
-    #         The imager array name, i.e. ``THEMIS`` or ``REGO``.
-    #     location_code: str
-    #         The ASI station code, i.e. ``ATHA``
-    #     time: datetime.datetime or str
-    #         The date and time to download of the data. If str, ``time`` must be in the
-    #         ISO 8601 standard.
-    #     map_alt: float
-    #         The altitude in kilometers to project to. Must be an altitude value
-    #         in the skymap calibration.
-    #     time_thresh_s: float
-    #         The maximum allowable time difference between ``time`` and an ASI time stamp.
-    #         This is relevant only when ``time`` is specified.
-    #     ax: plt.Axes
-    #         The subplot to plot the image on. If None, this function will
-    #         create one.
-    #     map_style: str
-    #         If ax is None, this kwarg toggles between two predefined map styles:
-    #         'green' map has blue oceans and green land, while the `white` map
-    #         has white oceans and land with black coastlines.
-    #     color_map: str
-    #         The matplotlib colormap to use. If 'auto', will default to a
-    #         black-red colormap for REGO and black-white colormap for THEMIS.
-    #         For more information See https://matplotlib.org/stable/tutorials/colors/colormaps.html
-    #     min_elevation: float
-    #         Masks the pixels below min_elevation degrees.
-    #     norm: bool
-    #         If True, normalizes the image array to 0-1. This is useful when
-    #         mapping images from multiple imagers.
-    #     asi_label: bool
-    #         Annotates the map with the ASI code in the center of the image.
-    #     color_bounds: List[float] or None
-    #         The lower and upper values of the color scale. If None, will
-    #         automatically set it to low=1st_quartile and
-    #         high=min(3rd_quartile, 10*1st_quartile)
-    #     color_norm: str
-    #         Sets the 'lin' linear or 'log' logarithmic color normalization.
-    #     pcolormesh_kwargs: dict
-    #         A dictionary of keyword arguments (kwargs) to pass directly into
-    #         plt.pcolormesh. One use of this parameter is to change the colormap. For example,
-    #         pcolormesh_kwargs = {'cmap':'tu}
+        Parameters
+        ----------
+        lon_bounds: tuple
+            The map's longitude bounds.
+        lat_bounds: tuple
+            The map's latitude bounds.
+        ax: plt.Axes, tuple
+            The subplot to put the map on. If cartopy is installed, ```ax``` must be
+            a two element tuple specifying the ``plt.Figure`` object and subplot position
+            passed directly as ``args`` into
+            `fig.add_subplot() <https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure.add_subplot>`_.
+        coast_color: str
+            The coast color. If None will not draw it.
+        land_color: str
+            The land color. If None will not draw it.
+        ocean_color: str
+            The ocean color. If None will not draw it.
+        time_thresh_s: float
+            The maximum allowable time difference between ``time`` and an ASI time stamp.
+            This is relevant only when ``time`` is specified.
+        color_map: str
+            The matplotlib colormap to use. If 'auto', will default to a
+            black-red colormap for REGO and black-white colormap for THEMIS.
+            For more information See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
+        min_elevation: float
+            Masks the pixels below min_elevation degrees.
+        asi_label: bool
+            Annotates the map with the ASI code in the center of the image.
+        color_bounds: List[float] or None
+            The lower and upper values of the color scale. If None, will
+            automatically set it to low=1st_quartile and
+            high=min(3rd_quartile, 10*1st_quartile)
+        color_norm: str
+            Sets the 'lin' linear or 'log' logarithmic color normalization.
+        pcolormesh_kwargs: dict
+            A dictionary of keyword arguments (kwargs) to pass directly into
+            plt.pcolormesh. One use of this parameter is to change the colormap. For example,
+            pcolormesh_kwargs = {'cmap':'tu}
 
-    #     Returns
-    #     -------
-    #     image_time: datetime.datetime
-    #         The time of the current image.
-    #     image: np.array
-    #         The 2d ASI image corresponding to image_time.
-    #     skyamp: dict
-    #         The skymap calibration for that ASI.
-    #     ax: plt.Axes
-    #         The subplot object to modify the axis, labels, etc.
-    #     p: plt.AxesImage
-    #         The plt.pcolormesh image object. Common use for p is to add a colorbar.
-    #     """
-    #     # Halt here if cartopy is not installed.
-    #     if importlib.util.find_spec("cartopy") is None:
-    #         raise ImportError(
-    #             "cartopy can't be imported. This is a required dependency for asilib.plot_map()"
-    #             " that must be installed separately. See https://scitools.org.uk/cartopy/docs/latest/installing.html"
-    #             " and https://aurora-asi-lib.readthedocs.io/en/latest/installation.html."
-    #         )
+        Returns
+        -------
+        ax: plt.Axes
+            The subplot object to modify the axis, labels, etc.
+        p: plt.AxesImage
+            The plt.pcolormesh image object. Common use for p is to add a colorbar.
+        """
+        if ax is None:
+            ax = asilib.map.create_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds,
+                ax=ax, coast_color=coast_color, land_color=land_color, ocean_color=ocean_color)
 
-    #     image_time, image = load.load_image(
-    #         asi_array_code, location_code, time=time, time_thresh_s=time_thresh_s
-    #     )
-    #     skymap = load.load_skymap(asi_array_code, location_code, time)
+        color_bounds, color_map, color_norm = self._plot_params(
+            image, color_bounds, color_map, color_norm
+        )
 
-    #     # Check that the map_alt is in the skymap calibration data.
-    #     assert (
-    #         map_alt in skymap['FULL_MAP_ALTITUDE'] / 1000
-    #     ), f'{map_alt} km is not in skymap calibration altitudes: {skymap["FULL_MAP_ALTITUDE"]/1000} km'
-    #     alt_index = np.where(skymap['FULL_MAP_ALTITUDE'] / 1000 == map_alt)[0][0]
+        lon_map, lat_map, image = self._mask_low_horizon(
+            self.skymap['lon'], self.skymap['lat'], self.skymap['el'], min_elevation, image=image
+        )
 
-    #     lon_map, lat_map, image = self._mask_low_horizon(
-    #         skymap['FULL_MAP_LONGITUDE'][alt_index, :, :],
-    #         skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
-    #         skymap['FULL_ELEVATION'],
-    #         min_elevation,
-    #         image=image
-    #     )
+        if color_bounds is None:
+            color_bounds = asilib.plot.utils.get_color_bounds(image)
+        _color_map = asilib.plot.utils.get_color_map(asi_array_code, color_map)
+        _norm = asilib.plot.utils.get_color_norm(color_norm, color_bounds)
 
-    #     if norm:
-    #         image /= np.nanmax(image)
+        p = self._pcolormesh_nan(
+            lon_map,
+            lat_map,
+            image,
+            ax,
+            cmap=_color_map,
+            norm=_norm,
+            pcolormesh_kwargs=pcolormesh_kwargs,
+        )
 
-    #     # Set up the plot parameters
-    #     if ax is None:
-    #         ax = self.create_cartopy_map(map_style=map_style)
-
-    #     if color_bounds is None:
-    #         color_bounds = asilib.plot.utils.get_color_bounds(image)
-    #     _color_map = asilib.plot.utils.get_color_map(asi_array_code, color_map)
-    #     _norm = asilib.plot.utils.get_color_norm(color_norm, color_bounds)
-
-    #     p = self._pcolormesh_nan(
-    #         lon_map,
-    #         lat_map,
-    #         image,
-    #         ax,
-    #         cmap=_color_map,
-    #         norm=_norm,
-    #         pcolormesh_kwargs=pcolormesh_kwargs,
-    #     )
-
-    #     # if asi_label:
-    #     #     ax.text(
-    #     #         skymap['SITE_MAP_LONGITUDE'],
-    #     #         skymap['SITE_MAP_LATITUDE'],
-    #     #         location_code.upper(),
-    #     #         color='r',
-    #     #         transform=ccrs.PlateCarree(),
-    #     #         va='center',
-    #     #         ha='center',
-    #     #     )
-    #     return ax, p
+        if asi_label:
+            ax.text(
+                skymap['SITE_MAP_LONGITUDE'],
+                skymap['SITE_MAP_LATITUDE'],
+                location_code.upper(),
+                color='r',
+                transform=ccrs.PlateCarree(),
+                va='center',
+                ha='center',
+            )
+        return ax, p
 
     def accumulate(self, n):
         self._accumulate_n = n
-        return
+        return self
 
     def _validate_inputs(self):
         """
