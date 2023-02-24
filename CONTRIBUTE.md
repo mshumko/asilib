@@ -15,7 +15,7 @@ To compile the documentation with sphinx, change diretcory into `aurora-asi-lib/
 cd aurora-asi-lib
 python3 -m black -l 100 -S asilib/
 ```
-- [ ] Update version number (can also be minor or majorl; this will generate a new tag v`MAJOR`.`MINOR`.`PATCH`):
+- [ ] Update version number (can also be minor or major; this will generate a new tag v`MAJOR`.`MINOR`.`PATCH`):
 ```
 bumpversion patch
 ```
