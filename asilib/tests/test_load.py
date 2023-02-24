@@ -140,11 +140,9 @@ class TestPlotImage(unittest.TestCase):
         return
 
     def test_themis_broadcast_error_bug(self):
-        asi_times, images = load.load_image('THEMIS', 'gill', 
-            time_range=(
-                '2006-12-08 06:31:27', '2006-12-08 06:33:19'
-                )
-            )
+        asi_times, images = load.load_image(
+            'THEMIS', 'gill', time_range=('2006-12-08 06:31:27', '2006-12-08 06:33:19')
+        )
         assert asi_times.shape[0] == 38
         assert images.shape == (38, 256, 256)
         return

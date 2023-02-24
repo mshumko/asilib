@@ -226,11 +226,18 @@ class Keogram:
         )
         start_time_index = 0
         for file_image_times, file_images in image_generator:
-            # Check if the image time stamps are out of order. Otherwise this will cause 
+            # Check if the image time stamps are out of order. Otherwise this will cause
             # a broadcast numpy error.
-            dt = np.array([(f-i).total_seconds() for i, f in zip(file_image_times[:-1], file_image_times[1:])])
+            dt = np.array(
+                [
+                    (f - i).total_seconds()
+                    for i, f in zip(file_image_times[:-1], file_image_times[1:])
+                ]
+            )
             if not np.all(dt > 0):
-                raise ValueError(f'{self.asi_array_code}-{self.location_code} time stamps are out of order.')
+                raise ValueError(
+                    f'{self.asi_array_code}-{self.location_code} time stamps are out of order.'
+                )
             end_time_index = start_time_index + file_images.shape[0]
             self._keo[start_time_index:end_time_index, :] = file_images[
                 :, self._pixels[:, 0], self._pixels[:, 1]
@@ -260,9 +267,9 @@ class Keogram:
         # + 1 just in case. The THEMIS and REGO cadence is not
         # always exactly 3 seconds, so in certain circumstances
         # there may be one or two extra data points.
-        max_n_timestamps = int(
-            (time_range[1] - time_range[0]).total_seconds() / self.asi_cadence_s
-            )+1
+        max_n_timestamps = (
+            int((time_range[1] - time_range[0]).total_seconds() / self.asi_cadence_s) + 1
+        )
         data_shape = (max_n_timestamps, self.img_size)
 
         # object is the only dtype that can contain datetime objects

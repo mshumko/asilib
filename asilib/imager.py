@@ -33,11 +33,11 @@ import asilib.utils as utils
 
 class Imager:
     """
-    The central asilib class to plot, animate, and analyze ASI data. 
+    The central asilib class to plot, animate, and analyze ASI data.
 
     .. note::
-        Considering that some ASIs produce enough data to overwhelm your computer's memory, 
-        for example the Phantom ASIs in support of the LAMP sounding rocket produced a whopping 
+        Considering that some ASIs produce enough data to overwhelm your computer's memory,
+        for example the Phantom ASIs in support of the LAMP sounding rocket produced a whopping
         190 GB/hour of data, by default asilib loads data as needed. This is the "lazy" mode
         that prioritizes memory at the expense of higher CPU usage. Alternatively, if memory is
         not a concern, asilib supports an "eager" mode that loads all of the data into memory.
@@ -63,26 +63,33 @@ class Imager:
         must be either ```lin``` for linear or ```log``` for logarithmic color scale.
     memory_mode: str
         Switch between the ```lazy``` mode to stream data and ```eager`` mode to return data
-        in chunks (one file at a time). The ```lazy``` mode is slower and it uses much less 
+        in chunks (one file at a time). The ```lazy``` mode is slower and it uses much less
         RAM than the ```eager``` mode.
 
     Attributes
     ----------
     data
-        A NamedTuple containing times and images. This loads all of the data into 
+        A NamedTuple containing times and images. This loads all of the data into
         memory (eager mode), so beware of your memory usage, as asilib will not.
 
     Methods
     -------
 
     """
-    def __init__(self, data: dict, meta: dict, skymap: dict, plot_settings: dict = {},
-                memory_mode: str='lazy') -> None:
+
+    def __init__(
+        self,
+        data: dict,
+        meta: dict,
+        skymap: dict,
+        plot_settings: dict = {},
+        memory_mode: str = 'lazy',
+    ) -> None:
         self._data = {k.lower(): v for k, v in data.items()}
         self.meta = {k.lower(): v for k, v in meta.items()}
         self.skymap = {k.lower(): v for k, v in skymap.items()}
         self.plot_settings = {k.lower(): v for k, v in plot_settings.items()}
-        self._accumulate_n = 1 
+        self._accumulate_n = 1
         self._memory_mode = memory_mode.lower()
         if self._memory_mode not in ['lazy', 'eager']:
             raise NotImplementedError(f'{self._memory_mode} is not implemented.')
@@ -126,7 +133,7 @@ class Imager:
         azel_contour_color: str
             The color of the azimuth and elevation contours.
         cardinal_directions: str
-            Plot one or more cardinal directions specified with a string containing the first 
+            Plot one or more cardinal directions specified with a string containing the first
             letter of one or more cardinal directions. Case insensitive. For example, to plot
             the North and East directions, set cardinal_directions='NE'.
 
@@ -213,7 +220,7 @@ class Imager:
         azel_contour_color: str
             The color of the azimuth and elevation contours.
         cardinal_directions: str
-            Plot one or more cardinal directions specified with a string containing the first 
+            Plot one or more cardinal directions specified with a string containing the first
             letter of one or more cardinal directions. Case insensitive. For example, to plot
             the North and East directions, set cardinal_directions='NE'.
         movie_container: str
@@ -242,9 +249,9 @@ class Imager:
         Example
         -------
         | from datetime import datetime
-        | 
+        |
         | import asilib
-        | 
+        |
         | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
         | imager = asilib.themis('FSMI', time_range=time_range)
         | imager.animate_fisheye(cardinal_directions='NE', overwrite=True)
@@ -302,7 +309,7 @@ class Imager:
         azel_contour_color: str
             The color of the azimuth and elevation contours.
         cardinal_directions: str
-            Plot one or more cardinal directions specified with a string containing the first 
+            Plot one or more cardinal directions specified with a string containing the first
             letter of one or more cardinal directions. Case insensitive. For example, to plot
             the North and East directions, set cardinal_directions='NE'.
         movie_container: str
@@ -313,7 +320,7 @@ class Imager:
             The additional/overwitten ffmpeg output parameters. The default parameters are:
             framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
         overwrite: bool
-            Overwrite the animation. If False, ffmpeg will prompt you to answer y/n if the 
+            Overwrite the animation. If False, ffmpeg will prompt you to answer y/n if the
             animation already exists.
 
         Yields
@@ -340,17 +347,17 @@ class Imager:
         Example
         -------
         | from datetime import datetime
-        | 
+        |
         | import asilib
-        | 
+        |
         | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
         | imager = asilib.themis('FSMI', time_range=time_range)
         | gen = imager.animate_fisheye_gen(cardinal_directions='NE', overwrite=True)
-        | 
+        |
         | for image_time, image, ax, im in gen:
         |         # Add your code that modifies each image here.
         |         pass
-        | 
+        |
         | print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
         """
         if ax is None:
@@ -379,8 +386,9 @@ class Imager:
 
         image_paths = []
         _progressbar = utils.progressbar(
-            enumerate(self.__iter__()), iter_length=self._estimate_n_times(), 
-            text=self.animation_name
+            enumerate(self.__iter__()),
+            iter_length=self._estimate_n_times(),
+            text=self.animation_name,
         )
 
         for i, (image_time, image) in _progressbar:
@@ -604,7 +612,7 @@ class Imager:
         Parameters
         ----------
         _slice: str, pd.Timestamp, datetime.datetime, or list thereof.
-            The time(s) to slice an Imager object. 
+            The time(s) to slice an Imager object.
 
         Yields
         ------
@@ -738,7 +746,7 @@ class Imager:
         # TODO: Add a self._accumulate_n option.
         for time_chunk, image_chunk in self.iter_chunks():
             for time_i, image_i in zip(time_chunk, image_chunk):
-                yield time_i, image_i 
+                yield time_i, image_i
 
     def iter_chunks(self):
         """
@@ -747,7 +755,7 @@ class Imager:
         self._loader_is_gen = inspect.isgeneratorfunction(self._data['loader'])
         if 'time_range' not in self._data.keys():
             raise KeyError('Imager was not instantiated with a time_range.')
-        
+
         for path in self._data['path']:
             # Check if the loader function is a generator. If not, asilib
             # will load one image file at a time and assume that opening one file
@@ -758,18 +766,17 @@ class Imager:
                 times, images = self._data['loader'](path)
 
                 idt = np.where(
-                        (times > self._data['time_range'][0]) &
-                        (times <= self._data['time_range'][1])
-                    )[0]
+                    (times > self._data['time_range'][0]) & (times <= self._data['time_range'][1])
+                )[0]
                 yield times[idt], images[idt]
-                    
+
             else:
                 gen = self._data['loader'](path)
 
                 for time_chunk, image_chunk in gen:
                     idt = np.where(
-                        (time_chunk > self._data['time_range'][0]) &
-                        (time_chunk <= self._data['time_range'][1])
+                        (time_chunk > self._data['time_range'][0])
+                        & (time_chunk <= self._data['time_range'][1])
                     )[0]
                     yield time_chunk[idt], image_chunk[idt]
         return
@@ -779,7 +786,7 @@ class Imager:
         Estimate the maximum number of time stamps for the Imager's time range.
         """
         n_sec = (self._data['time_range'][1] - self._data['time_range'][0]).total_seconds()
-        # +2 is for when time_range includes the start and end time stamps. 
+        # +2 is for when time_range includes the start and end time stamps.
         # This will be trimmed later.
         return int(n_sec / self.meta['cadence']) + 2
         return self.times
@@ -793,7 +800,7 @@ class Imager:
         -------
         namedtuple
             A named tuple containing (times, images). Members can be accessed using either
-            index notation, or dot notation. 
+            index notation, or dot notation.
         """
         _img_data_type = namedtuple('data', ['times', 'images'])
 
@@ -801,30 +808,30 @@ class Imager:
             # If already run.
             if hasattr(self, '_times') and hasattr(self, '_images'):
                 return _img_data_type(self._times, self._images)
-            
-            self._times = np.nan*np.zeros(self._estimate_n_times(), dtype=object)
+
+            self._times = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
             self._images = np.nan * np.zeros((self._estimate_n_times(), *self.meta['resolution']))
-            
+
             start_idt = 0
             for time_chunk, image_chunk in self.iter_chunks():
-                self._times[start_idt:start_idt+time_chunk.shape[0]] = time_chunk
-                self._images[start_idt:start_idt+time_chunk.shape[0]] = image_chunk
+                self._times[start_idt : start_idt + time_chunk.shape[0]] = time_chunk
+                self._images[start_idt : start_idt + time_chunk.shape[0]] = image_chunk
                 start_idt += time_chunk.shape[0]
-            # Cut any unfilled times and images 
-            valid_ind = np.where(~np.isnan(self._images[:,0,0]))[0]
+            # Cut any unfilled times and images
+            valid_ind = np.where(~np.isnan(self._images[:, 0, 0]))[0]
             self._times = self._times[valid_ind]
             self._images = self._images[valid_ind]
             return _img_data_type(self._times, self._images)
-        
+
         elif 'time' in self._data.keys():
             return _img_data_type(self._data['time'], self._data['image'])
-        
-        else:
-            raise ValueError(f'This imager instance does not contain either the '
-                             f'"time" or "time_range" data variables. The data '
-                             f'variables are {self._data.keys()}.')
-        
 
+        else:
+            raise ValueError(
+                f'This imager instance does not contain either the '
+                f'"time" or "time_range" data variables. The data '
+                f'variables are {self._data.keys()}.'
+            )
 
     def __str__(self) -> str:
         if ('time' in self._data.keys()) and (self._data['time'] is not None):
@@ -942,40 +949,43 @@ class Imager:
         Parameters
         ----------
         direction: str
-            The cardinal direction. Must be a string containing 'N', 'S', 'E', or 'W', or a 
+            The cardinal direction. Must be a string containing 'N', 'S', 'E', or 'W', or a
             combination of them. Case insensitive.
         el_step: int
             The elevation steps used to fit the cardinal direction line.
         origin: tuple
             The origin of the direction arrows.
         length: float
-            The arrow length. 
+            The arrow length.
         """
-        assert isinstance(directions, str), ('Cardinal directions must be a string.')
+        assert isinstance(directions, str), 'Cardinal directions must be a string.'
         for direction in directions:
             direction = direction.upper()
             if direction not in ['N', 'S', 'E', 'W']:
                 raise ValueError(f'Cardinality direction "{direction}" is invalid."')
             rise, run = self._calc_cardinal_direction(direction, el_step)
-            norm = length/np.sqrt(rise**2 + run**2)
+            norm = length / np.sqrt(rise**2 + run**2)
 
-            ax.annotate(direction, xy=origin, 
-                xytext=(origin[0]+run*norm, 
-                        origin[1]+rise*norm),  # trig
-                arrowprops={'arrowstyle':"<-", 'color':'w'}, 
-                xycoords='axes fraction', color='w')
+            ax.annotate(
+                direction,
+                xy=origin,
+                xytext=(origin[0] + run * norm, origin[1] + rise * norm),  # trig
+                arrowprops={'arrowstyle': "<-", 'color': 'w'},
+                xycoords='axes fraction',
+                color='w',
+            )
         return
 
     def _calc_cardinal_direction(self, direction, el_step):
         """
         Calculate the cardinal direction arrows.
 
-        Each direction is calculated by: 
+        Each direction is calculated by:
         1. Calculate the azimuths in each 5-degree elevation step.
         2. For each elevation step, find the azimuth corresponding to that cardinal direction.
         The result is a set of points going from 0 to 90 degree elevation along the cardinal
-        direction. 
-        3. Calculate the rise and run between the two points that are nearest and furthest from 
+        direction.
+        3. Calculate the rise and run between the two points that are nearest and furthest from
         zenith, located on the caridinal direction.
 
         Parameters
@@ -994,7 +1004,7 @@ class Imager:
             The run of the difference in the two pixels that are closest and furthest
             from zenith
         """
-        _azimuths = {'N':0, 'E':90, 'S':180, 'W':270}
+        _azimuths = {'N': 0, 'E': 90, 'S': 180, 'W': 270}
 
         # Don't recalculate the rise and run if they've already been calculated.
         if not hasattr(self, '_cardinal_direction'):
@@ -1004,24 +1014,22 @@ class Imager:
                 return self._cardinal_direction[direction]
 
         elevation_steps = np.arange(0, 91, el_step)
-        _direction_pixels = np.nan*np.zeros((elevation_steps.shape[0], 2), dtype=int)
+        _direction_pixels = np.nan * np.zeros((elevation_steps.shape[0], 2), dtype=int)
 
         for i, (el_low, el_high) in enumerate(zip(elevation_steps[:-1], elevation_steps[1:])):
-            id_el = np.where(~(
-                (self.skymap['el'] > el_low) & (self.skymap['el'] <= el_high)
-                ))
+            id_el = np.where(~((self.skymap['el'] > el_low) & (self.skymap['el'] <= el_high)))
             _az = self.skymap['az'].copy()
             _az[id_el] = np.nan
 
             min_az_flat_array = np.nanargmin(np.abs(_az - _azimuths[direction]))
             _direction_pixels[i, :] = np.unravel_index(min_az_flat_array, self.skymap['az'].shape)
-        
-        _direction_pixels = _direction_pixels[~np.isnan(_direction_pixels[:,0]), :]
+
+        _direction_pixels = _direction_pixels[~np.isnan(_direction_pixels[:, 0]), :]
         _direction_pixels = _direction_pixels.astype(int)
 
         # Calculate the pixels nerest and furthest away from zenith. This will define the rise
-        # and run.  
-        center_pixel = np.array([self.skymap['az'].shape[0]//2, self.skymap['az'].shape[1]//2])
+        # and run.
+        center_pixel = np.array([self.skymap['az'].shape[0] // 2, self.skymap['az'].shape[1] // 2])
         dx = _direction_pixels - np.tile(center_pixel, (_direction_pixels.shape[0], 1))
         distances = numpy.linalg.norm(dx, axis=1)
         nearest_pixel = _direction_pixels[np.argmin(distances), :]
@@ -1030,7 +1038,6 @@ class Imager:
         run = furthest_pixel[1] - nearest_pixel[1]
         self._cardinal_direction[direction] = [rise, run]
         return rise, run
-
 
     def _mask_low_horizon(self, lon_map, lat_map, el_map, min_elevation, image=None):
         """
@@ -1194,9 +1201,9 @@ class Imager:
 
 if __name__ == '__main__':
     from datetime import datetime
-    
+
     import asilib
-    
+
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     imager = asilib.themis('FSMI', time_range=time_range)
     print(imager.data.times)

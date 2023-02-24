@@ -508,7 +508,7 @@ class Downloader:
             megabyte = 1024 * 1024
             try:
                 with open(download_path, 'wb') as f:
-                    for data in r.iter_content(chunk_size=10*megabyte):
+                    for data in r.iter_content(chunk_size=10 * megabyte):
                         f.write(data)
                         # Update the downloaded % in the terminal.
                         downloaded_bites += len(data)
@@ -521,8 +521,9 @@ class Downloader:
                 print()  # Add a newline
             except (Exception, KeyboardInterrupt, SystemExit) as err:
                 download_path.unlink()
-                raise RuntimeError(f'Download interrupted. Partially downloaded file '
-                                f'{download_path} deleted.') from err
+                raise RuntimeError(
+                    f'Download interrupted. Partially downloaded file ' f'{download_path} deleted.'
+                ) from err
         else:
             r = requests.get(self.url, timeout=5)
             with open(download_path, 'wb') as f:

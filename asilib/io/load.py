@@ -174,7 +174,9 @@ def load_image_generator(
         if len(idx) == 0:
             # This happens occasionally if, for example, time_range[0].minute = 57 while
             # epoch[-1].minute = 55. Continue to not try to yield an empty file.
-            warnings.warn(f'{asi_array_code}-{location_code}, {hour} UT has no images in the time range.')
+            warnings.warn(
+                f'{asi_array_code}-{location_code}, {hour} UT has no images in the time range.'
+            )
             continue
         yield epoch[idx], cdf_obj.varget(image_key, startrec=idx[0], endrec=idx[-1])
 
@@ -560,9 +562,7 @@ def _create_empty_data_arrays(asi_array_code, time_range, type):
     # + 1 just in case. The THEMIS and REGO cadence is not
     # always exactly 3 seconds, so in certain circumstances
     # there may be one or two extra data points.
-    max_n_timestamps = int(
-        (time_range[1] - time_range[0]).total_seconds() / cadence_s
-        ) + 1
+    max_n_timestamps = int((time_range[1] - time_range[0]).total_seconds() / cadence_s) + 1
 
     if type.lower() == 'keogram':
         data_shape = (max_n_timestamps, img_size)

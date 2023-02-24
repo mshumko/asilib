@@ -82,7 +82,6 @@ for mlat_index in mlat_indices:
     if (msp_df.loc[mlat_index, 'glat'] < max(lat_bounds)) and (
         msp_df.loc[mlat_index, 'glat'] > min(lat_bounds)
     ):
-
         ax.text(
             msp_df.loc[mlat_index, 'glon'],
             msp_df.loc[mlat_index, 'glat'],

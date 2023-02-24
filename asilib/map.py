@@ -37,11 +37,12 @@ import numpy.ma
 try:
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
+
     cartopy_imported = True
 except ImportError as err:
     # You can also get a ModuleNotFoundError if cartopy is not installed
     # (as compared to failed to import), but it is a subclass of ImportError.
-    cartopy_imported =  False
+    cartopy_imported = False
 
 import asilib
 
@@ -53,9 +54,9 @@ def create_map(
     coast_color: str = 'k',
     land_color: str = 'g',
     ocean_color: str = 'w',
-    ):
+):
     """
-    Create a geographic map using cartopy (if installed) or asilib's own 
+    Create a geographic map using cartopy (if installed) or asilib's own
     map library.
 
     Parameters
@@ -67,7 +68,7 @@ def create_map(
     ax: plt.Axes, tuple
         The subplot to put the map on. If cartopy is installed, ```ax``` must be
         a two element tuple specifying the ``plt.Figure`` object and subplot position
-        passed directly as ``args`` into  
+        passed directly as ``args`` into
         `fig.add_subplot() <https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure.add_subplot>`_.
     coast_color: str
         The coast color. If None will not draw it.
@@ -88,7 +89,7 @@ def create_map(
 
     See Also
     --------
-    :py:meth:`~asilib.map.create_simple_map`: 
+    :py:meth:`~asilib.map.create_simple_map`:
         Create a simple map using asilib's own map library.
     :py:meth:`~asilib.map.create_cartopy_map`:
         Create a map using the cartopy library.
@@ -98,21 +99,28 @@ def create_map(
             assert isinstance(ax, tuple), (
                 f'The ax kwarg must be a tuple with (fig, position) values, '
                 f'not {type(ax)}. See the docstring for more information.'
-                )
+            )
         ax = create_cartopy_map(
-            lon_bounds=lon_bounds, lat_bounds=lat_bounds, fig_ax=ax, 
-            coast_color=coast_color, land_color=land_color, 
-            ocean_color=ocean_color
+            lon_bounds=lon_bounds,
+            lat_bounds=lat_bounds,
+            fig_ax=ax,
+            coast_color=coast_color,
+            land_color=land_color,
+            ocean_color=ocean_color,
         )
     else:
         if ax is not None:
             assert isinstance(ax, plt.Axes), f'The ax kwarg must be a subplot, not {type(ax)}.'
         ax = create_simple_map(
-            lon_bounds=lon_bounds, lat_bounds=lat_bounds, ax=ax, 
-            coast_color=coast_color, land_color=land_color, 
-            ocean_color=ocean_color
-            )
+            lon_bounds=lon_bounds,
+            lat_bounds=lat_bounds,
+            ax=ax,
+            coast_color=coast_color,
+            land_color=land_color,
+            ocean_color=ocean_color,
+        )
     return ax
+
 
 def create_simple_map(
     lon_bounds: tuple = (-140, -60),
@@ -161,7 +169,7 @@ def create_simple_map(
     >>> ax = asilib.map.create_simple_map(lon_bounds=[0, 38], lat_bounds=[50, 75])
     >>> ax.set_title('Generated via asilib.map.create_simple_map()')
 
-    # The above examples made a map on one subplot. But what if you have multiple 
+    # The above examples made a map on one subplot. But what if you have multiple
     # subplots?
 
     >>> fig = plt.figure(figsize=(6, 10))
@@ -172,7 +180,7 @@ def create_simple_map(
     >>> fig.suptitle('Two subplots with equal aspect ratios')
 
     # Another multi-subplot example with different height ratios. The syntax is the same as
-    # in plt.subplot() (See the args section in 
+    # in plt.subplot() (See the args section in
     # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplot.html).
 
     >>> fig = plt.figure(figsize=(6, 10))
@@ -218,6 +226,7 @@ def create_simple_map(
     ax.set_ylim(lat_bounds)
     return ax
 
+
 def create_cartopy_map(
     lon_bounds: tuple = (-160, -50),
     lat_bounds: tuple = (40, 82),
@@ -238,7 +247,7 @@ def create_cartopy_map(
         A tuple of length 2 specifying the map's latitude bounds.
     fig_ax: tuple
         A two element tuple specifying the ``plt.Figure`` object and subplot position
-        passed directly as ``args`` into  
+        passed directly as ``args`` into
         `fig.add_subplot() <https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure.add_subplot>`_.
         For example:
 
@@ -246,7 +255,7 @@ def create_cartopy_map(
 
             fig = plt.Figure()
             ax = asilib.map.create_cartopy_map(fig_ax=(fig, 111))
-        
+
     coast_color: str
         The coast color. If None will not draw it.
     land_color: str
@@ -258,7 +267,7 @@ def create_cartopy_map(
     -------
     ax: plt.Axes
         The subplot object with a cartopy map.
-    
+
     Examples
     --------
     >>> import asilib.map
@@ -269,7 +278,7 @@ def create_cartopy_map(
 
     >>> ax = asilib.map.create_cartopy_map(lon_bounds=[0, 38], lat_bounds=[50, 75])
     >>> ax.set_title('Generated via asilib.map.create_cartopy_map()')
-    
+
     # If you have cartopy installed, the following example creates the same plot.
 
     >>> bx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75])
@@ -284,7 +293,7 @@ def create_cartopy_map(
     >>> fig.suptitle('Two subplots with equal aspect ratios')
 
     # Another multi-subplot example with different height ratios. The syntax is the same as
-    # in plt.subplot() (See the args section in 
+    # in plt.subplot() (See the args section in
     # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplot.html).
 
     >>> fig = plt.figure(figsize=(6, 10))
@@ -326,6 +335,7 @@ def _consecutive(data, jump_bool):
     """
     return np.split(data, np.where(jump_bool)[0] + 1)
 
+
 if __name__ == '__main__':
     import asilib.map
     import numpy as np
@@ -339,20 +349,20 @@ if __name__ == '__main__':
     # The above examples made a map on one subplot. But what if you have multiple subplots?
 
     fig = plt.figure(figsize=(6, 10))
-    bx = fig.add_subplot(2,1,1)
+    bx = fig.add_subplot(2, 1, 1)
     bx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], ax=bx)
-    cx = fig.add_subplot(2,1,2)
+    cx = fig.add_subplot(2, 1, 2)
     cx.plot(np.arange(10), np.random.rand(10))
     fig.suptitle('Two subplots with equal aspect ratios')
 
     # Another multi-subplot example with different height ratios. The syntax is the same as
-    # in plt.subplot() (See the args section in 
+    # in plt.subplot() (See the args section in
     # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplot.html).
 
     fig = plt.figure(figsize=(6, 10))
-    dx = fig.add_subplot(3,1,(1, 2))
+    dx = fig.add_subplot(3, 1, (1, 2))
     dx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], ax=dx)
-    ex = fig.add_subplot(3,1,3)
+    ex = fig.add_subplot(3, 1, 3)
     ex.plot(np.arange(10), np.random.rand(10))
     fig.suptitle('Two subplots with differing aspect ratios')
 
