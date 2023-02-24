@@ -487,18 +487,13 @@ class Imager:
             self.skymap['lon'], self.skymap['lat'], self.skymap['el'], min_elevation, image=image
         )
 
-        if color_bounds is None:
-            color_bounds = asilib.plot.utils.get_color_bounds(image)
-        _color_map = asilib.plot.utils.get_color_map(asi_array_code, color_map)
-        _norm = asilib.plot.utils.get_color_norm(color_norm, color_bounds)
-
         p = self._pcolormesh_nan(
             lon_map,
             lat_map,
-            image,
+            self._data['image'],
             ax,
-            cmap=_color_map,
-            norm=_norm,
+            cmap=color_map,
+            norm=color_norm,
             pcolormesh_kwargs=pcolormesh_kwargs,
         )
 
@@ -702,9 +697,13 @@ class Imager:
             image.
         """
         # TODO: Add a self._accumulate_n option.
-        for time_chunk, image_chunk in self.iter_chunks():
-            for time_i, image_i in zip(time_chunk, image_chunk):
+        if hasattr(self, '_times') and hasattr(self, '_images'):
+            for time_i, image_i in zip(self._times, self._images):
                 yield time_i, image_i
+        else:
+            for time_chunk, image_chunk in self.iter_chunks():
+                for time_i, image_i in zip(time_chunk, image_chunk):
+                    yield time_i, image_i
 
     def iter_chunks(self):
         """
@@ -840,15 +839,12 @@ class Imager:
                 color_norm = self.plot_settings['color_norm']
             else:
                 color_norm = 'log'
-        else:
-            color_norm = color_norm
-
-        if color_norm == 'log':
+        elif color_norm == 'log':
             color_norm = colors.LogNorm(vmin=color_bounds[0], vmax=color_bounds[1])
         elif color_norm == 'lin':
             color_norm = colors.Normalize(vmin=color_bounds[0], vmax=color_bounds[1])
         else:
-            raise ValueError('color_norm must be either "log" or "lin".')
+            raise ValueError(f'color_norm must be either None, "log", or "lin", not {color_norm=}.')
 
         return color_bounds, color_map, color_norm
 
