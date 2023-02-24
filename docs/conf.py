@@ -76,6 +76,10 @@ napoleon_use_admonition_for_examples = True
 
 autodoc_typehints = "none"
 
+autodoc_default_options = {
+    'member-order': 'bysource'
+}
+
 def linkcode_resolve(domain, info):
     if domain != 'py':
         return None
