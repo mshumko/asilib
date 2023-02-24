@@ -10,7 +10,6 @@ basic plotting methods.
 import datetime
 import dateutil.parser
 import pathlib
-import numbers
 import inspect
 import importlib
 import shutil
@@ -71,10 +70,6 @@ class Imager:
     data
         A NamedTuple containing times and images. This loads all of the data into
         memory (eager mode), so beware of your memory usage, as asilib will not.
-
-    Methods
-    -------
-
     """
 
     def __init__(
@@ -109,7 +104,7 @@ class Imager:
         cardinal_directions: str = 'NE',
     ) -> Tuple[plt.Axes, matplotlib.image.AxesImage]:
         """
-        Plots one fisheye image, oriented with North on the top, and East on the right of the image.
+        Plots one fisheye image, oriented with North on the top, and East on the left of the image.
 
         Parameters
         ----------
@@ -281,7 +276,7 @@ class Imager:
         Tuple[datetime.datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None
     ]:
         """
-        Animate a series of fisheye images and superpose other data on each image.
+        Animate a series of fisheye images and superpose your data on each image.
 
         A generator behaves like an iterator in that it plots one fisheye image
         at a time and yields (similar to returns) the image. You can modify, or add
@@ -730,7 +725,8 @@ class Imager:
 
     def __iter__(self):
         """
-        Iterate over individual timestamps and images.
+        Iterate over individual timestamps and images using the 
+        ```for time, image in asilib.Imager(...)```.
 
         Parameters
         ----------
@@ -789,7 +785,6 @@ class Imager:
         # +2 is for when time_range includes the start and end time stamps.
         # This will be trimmed later.
         return int(n_sec / self.meta['cadence']) + 2
-        return self.times
 
     @property
     def data(self):
