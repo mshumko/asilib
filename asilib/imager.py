@@ -60,10 +60,6 @@ class Imager:
         an image and returns the lower and upper bound numbers, or a len 2 tuple or list.
         The ```color_map``` key must be a valid matplotlib colormap. And lastly, ```color_norm```
         must be either ```lin``` for linear or ```log``` for logarithmic color scale.
-    memory_mode: str
-        Switch between the ```lazy``` mode to stream data and ```eager`` mode to return data
-        in chunks (one file at a time). The ```lazy``` mode is slower and it uses much less
-        RAM than the ```eager``` mode.
 
     Attributes
     ----------
@@ -78,16 +74,12 @@ class Imager:
         meta: dict,
         skymap: dict,
         plot_settings: dict = {},
-        memory_mode: str = 'lazy',
     ) -> None:
         self._data = {k.lower(): v for k, v in data.items()}
         self.meta = {k.lower(): v for k, v in meta.items()}
         self.skymap = {k.lower(): v for k, v in skymap.items()}
         self.plot_settings = {k.lower(): v for k, v in plot_settings.items()}
         self._accumulate_n = 1
-        self._memory_mode = memory_mode.lower()
-        if self._memory_mode not in ['lazy', 'eager']:
-            raise NotImplementedError(f'{self._memory_mode} is not implemented.')
         # self._validate_inputs()  # TODO-Validation: Add a small-scale validations to each method.
         return
 
