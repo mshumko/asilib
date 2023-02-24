@@ -483,10 +483,17 @@ class Imager:
         p: plt.AxesImage
             The plt.pcolormesh image object. Common use for p is to add a colorbar.
         """
+        assert 'image' not in self._data.keys(), (f'The "image" key not in '
+            f'Imager._data: got {self._data.keys()}')
+        for _skymap_key in ['lat', 'lon', 'el']:
+            assert _skymap_key in self.skymap.keys(), (f'The "{_skymap_key}" key not in '
+                f'Imager.skymap: got {self.skymap.keys()}')
+
         if ax is None:
             ax = asilib.map.create_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds,
                 ax=ax, coast_color=coast_color, land_color=land_color, ocean_color=ocean_color)
 
+        image = self._data['image']
         color_bounds, color_map, color_norm = self._plot_params(
             image, color_bounds, color_map, color_norm
         )
@@ -498,7 +505,7 @@ class Imager:
         p = self._pcolormesh_nan(
             lon_map,
             lat_map,
-            self._data['image'],
+            image,
             ax,
             cmap=color_map,
             norm=color_norm,
@@ -1169,7 +1176,7 @@ if __name__ == '__main__':
 
     import asilib
 
-    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    imager = asilib.themis('FSMI', time_range=time_range)
-    print(imager.data.times)
+    imager = asilib.themis('FSMI', time=datetime(2015, 3, 26, 6, 7))
+    imager.plot_map()
+    plt.show()
     pass
