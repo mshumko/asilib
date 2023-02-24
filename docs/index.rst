@@ -1,8 +1,3 @@
-.. asilib documentation master file, created by
-   sphinx-quickstart on Sat Feb  6 19:53:56 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 .. image:: ./_static/aurora-asi-lib_logo.png
   :alt: Alternative text
 
@@ -13,8 +8,8 @@
 
 Easily download, plot, animate, and analyze auroral all sky imager (ASI) data.
 
-Supported ASI arrays (camera systems)
--------------------------------------
+Supported ASI arrays
+--------------------
 
 - Red-line Emission Geospace Observatory (REGO)
 - Time History of Events and Macroscale Interactions during Substorms (THEMIS).
