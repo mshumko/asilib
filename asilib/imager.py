@@ -465,8 +465,7 @@ class Imager:
             Sets the 'lin' linear or 'log' logarithmic color normalization.
         pcolormesh_kwargs: dict
             A dictionary of keyword arguments (kwargs) to pass directly into
-            plt.pcolormesh. One use of this parameter is to change the colormap. For example,
-            pcolormesh_kwargs = {'cmap':'tu}
+            plt.pcolormesh.
 
         Returns
         -------
@@ -649,6 +648,7 @@ class Imager:
         color_bounds: List[float] = None,
         color_norm: str = None,
         min_elevation: float = 10,
+        pcolormesh_kwargs: dict = {},
         asi_label: bool = True,
         movie_container: str = 'mp4',
         ffmpeg_params={},
@@ -694,6 +694,9 @@ class Imager:
             Set the 'lin' linear or 'log' logarithmic color normalization.
         min_elevation: float
             Masks the pixels below min_elevation degrees.
+        pcolormesh_kwargs: dict
+            A dictionary of keyword arguments (kwargs) to pass directly into
+            plt.pcolormesh.
         asi_label: bool
             Annotates the map with the ASI code in the center of the mapped image.
         movie_container: str
@@ -746,7 +749,8 @@ class Imager:
         >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
         """
         if ax is None:
-            _, ax = asilib.map.create_map()
+            ax = asilib.map.create_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds,
+                ax=ax, coast_color=coast_color, land_color=land_color, ocean_color=ocean_color)
 
         # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
         # not exist.
@@ -764,7 +768,7 @@ class Imager:
         )
         movie_save_path = image_save_dir.parents[1] / self.animation_name
         # If the image directory exists we need to first remove all of the images to avoid
-        # animating images from different method calls.
+        # animating images produced by different method calls.
         if image_save_dir.is_dir():
             shutil.rmtree(image_save_dir)
         image_save_dir.mkdir(parents=True)
@@ -783,11 +787,11 @@ class Imager:
             ax.clear()
             ax.axis('off')
             # Use an underscore so the original method parameters are not overwritten.
-            _color_map, _color_norm = self._plot_params(
-                image, color_bounds, color_map, color_norm
-            )
+            color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
-            # TODO: Call the _map_image here.
+            ax, p = self._plot_mapped_image(
+                ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs
+            )
 
             # Give the user the control of the subplot, image object, and return the image time
             # so that they can manipulate the image to add, for example, the satellite track.
