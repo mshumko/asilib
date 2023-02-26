@@ -449,9 +449,6 @@ class Imager:
             The land color. If None will not draw it.
         ocean_color: str
             The ocean color. If None will not draw it.
-        time_thresh_s: float
-            The maximum allowable time difference between ``time`` and an ASI time stamp.
-            This is relevant only when ``time`` is specified.
         color_map: str
             The matplotlib colormap to use. If 'auto', will default to a
             black-red colormap for REGO and black-white colormap for THEMIS.
@@ -459,7 +456,7 @@ class Imager:
         min_elevation: float
             Masks the pixels below min_elevation degrees.
         asi_label: bool
-            Annotates the map with the ASI code in the center of the image.
+            Annotates the map with the ASI code in the center of the mapped image.
         color_bounds: List[float] or None
             The lower and upper values of the color scale. If None, will
             automatically set it to low=1st_quartile and
@@ -642,14 +639,17 @@ class Imager:
 
     def animate_map_gen(
         self,
-        ax: plt.Axes = None,
-        label: bool = True,
+        lon_bounds: tuple = (-160, -50),
+        lat_bounds: tuple = (40, 82),
+        ax: Union[plt.Axes, tuple] = None,
+        coast_color: str = 'k',
+        land_color: str = 'g',
+        ocean_color: str = 'w',
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        azel_contours: bool = False,
-        azel_contour_color: str = 'yellow',
-        cardinal_directions: str = 'NE',
+        min_elevation: float = 10,
+        asi_label: bool = True,
         movie_container: str = 'mp4',
         ffmpeg_params={},
         overwrite: bool = False,
@@ -668,26 +668,34 @@ class Imager:
 
         Parameters
         ----------
-        ax: plt.Axes
-            The optional subplot that will be drawn on.
-        label: bool
-            Flag to add the "asi_array_code/location_code/image_time" text to the plot.
+        lon_bounds: tuple
+            The map's longitude bounds.
+        lat_bounds: tuple
+            The map's latitude bounds.
+        ax: plt.Axes, tuple
+            The subplot to put the map on. If cartopy is installed, ```ax``` must be
+            a two element tuple specifying the ``plt.Figure`` object and subplot position
+            passed directly as ``args`` into
+            `fig.add_subplot() <https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure.add_subplot>`_.
+        coast_color: str
+            The coast color. If None will not draw it.
+        land_color: str
+            The land color. If None will not draw it.
+        ocean_color: str
+            The ocean color. If None will not draw it.
         color_map: str
-            The matplotlib colormap to use. By default will use a black-white colormap.
+            The matplotlib colormap to use. If 'auto', will default to a
+            black-red colormap for REGO and black-white colormap for THEMIS.
             For more information See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
         color_bounds: List[float]
             The lower and upper values of the color scale. The default is: low=1st_quartile and
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
         color_norm: str
             Set the 'lin' linear or 'log' logarithmic color normalization.
-        azel_contours: bool
-            Superpose azimuth and elevation contours on or off.
-        azel_contour_color: str
-            The color of the azimuth and elevation contours.
-        cardinal_directions: str
-            Plot one or more cardinal directions specified with a string containing the first
-            letter of one or more cardinal directions. Case insensitive. For example, to plot
-            the North and East directions, set cardinal_directions='NE'.
+        min_elevation: float
+            Masks the pixels below min_elevation degrees.
+        asi_label: bool
+            Annotates the map with the ASI code in the center of the mapped image.
         movie_container: str
             The movie container: mp4 has better compression but avi was determined
             to be the official container for preserving digital video by the
