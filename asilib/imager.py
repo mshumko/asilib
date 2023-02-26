@@ -152,21 +152,19 @@ class Imager:
 
         Example
         -------
-        | from datetime import datetime
-        |
-        | import matplotlib.pyplot as plt
-        |
-        | import asilib
-        |
-        | # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active
-        | # auroral arc powered by accelerated electrons from very high altitudes"
-        | time = datetime(2017, 9, 15, 2, 34, 0)
-        | ax, im = asilib.plot_fisheye('THEMIS', 'RANK', time,
-        |     color_norm='log')
-        |
-        | plt.colorbar(im)
-        | ax.axis('off')
-        | plt.show()
+        >>> # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active
+        >>> # auroral arc powered by accelerated electrons from very high altitudes"
+        >>>
+        >>> from datetime import datetime
+        >>> import matplotlib.pyplot as plt
+        >>> import asilib
+        >>>
+        >>> time = datetime(2017, 9, 15, 2, 34, 0)
+        >>> ax, im = asilib.plot_fisheye('THEMIS', 'RANK', time, color_norm='log')
+        >>>
+        >>> plt.colorbar(im)
+        >>> ax.axis('off')
+        >>> plt.show()
         """
         if ax is None:
             _, ax = plt.subplots()
@@ -244,15 +242,13 @@ class Imager:
 
         Example
         -------
-        | from datetime import datetime
-        |
-        | import asilib
-        |
-        | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-        | imager = asilib.themis('FSMI', time_range=time_range)
-        | imager.animate_fisheye(cardinal_directions='NE', overwrite=True)
-        |
-        | print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
+        >>> from datetime import datetime
+        >>> import asilib
+        >>>
+        >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+        >>> imager = asilib.themis('FSMI', time_range=time_range)
+        >>> imager.animate_fisheye(cardinal_directions='NE', overwrite=True)
+        >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
         """
         movie_generator = self.animate_fisheye_gen(**kwargs)
 
@@ -342,19 +338,18 @@ class Imager:
 
         Example
         -------
-        | from datetime import datetime
-        |
-        | import asilib
-        |
-        | time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-        | imager = asilib.themis('FSMI', time_range=time_range)
-        | gen = imager.animate_fisheye_gen(cardinal_directions='NE', overwrite=True)
-        |
-        | for image_time, image, ax, im in gen:
-        |         # Add your code that modifies each image here.
-        |         pass
-        |
-        | print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
+        >>> from datetime import datetime
+        >>> import asilib
+        >>>
+        >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+        >>> imager = asilib.themis('FSMI', time_range=time_range)
+        >>> gen = imager.animate_fisheye_gen(cardinal_directions='NE', overwrite=True)
+        >>>
+        >>> for image_time, image, ax, im in gen:
+        >>>         # Add your code that modifies each image here.
+        >>>         pass
+        >>>
+        >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
         """
         if ax is None:
             _, ax = plt.subplots()
