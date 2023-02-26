@@ -177,7 +177,7 @@ class Imager:
         else:
             raise ValueError('I am not supposed to get here. Congrats! You found a bug!')
 
-        color_bounds, color_map, color_norm = self._plot_params(
+        color_map, color_norm = self._plot_params(
             image, color_bounds, color_map, color_norm
         )
 
@@ -389,7 +389,7 @@ class Imager:
             ax.clear()
             ax.axis('off')
             # Use an underscore so the original method parameters are not overwritten.
-            _, _color_map, _color_norm = self._plot_params(
+            _color_map, _color_norm = self._plot_params(
                 image, color_bounds, color_map, color_norm
             )
 
@@ -530,11 +530,18 @@ class Imager:
                 ax=ax, coast_color=coast_color, land_color=land_color, ocean_color=ocean_color)
 
         image = self._data['image']
-        color_bounds, color_map, color_norm = self._plot_params(
+        color_map, color_norm = self._plot_params(
             image, color_bounds, color_map, color_norm
         )
 
-        lon_map, lat_map, image = self._mask_low_horizon(
+        ax, p = self._plot_mapped_image(image, color_map, color_norm, asi_label)
+        return ax, p
+
+    def _plot_mapped_image(self, ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs):
+        """
+        
+        """
+        _masked_lon_map, _masked_lat_map, _masked_image = self._mask_low_horizon(
             self.skymap['lon'], self.skymap['lat'], self.skymap['el'], min_elevation, image=image
         )
 
@@ -544,9 +551,9 @@ class Imager:
                 f"'transform' key because it is reserved for cartopy.")
             pcolormesh_kwargs['transform'] = ccrs.PlateCarree()
         p = self._pcolormesh_nan(
-            lon_map,
-            lat_map,
-            image,
+            _masked_lon_map,
+            _masked_lat_map,
+            _masked_image,
             ax,
             cmap=color_map,
             norm=color_norm,
@@ -568,6 +575,221 @@ class Imager:
                 ha='center',
             )
         return ax, p
+
+
+    def animate_map(self, **kwargs) -> None:
+        """
+        A wrapper for the ```animate_map_gen()``` method that animates a series of
+        mapped images. Any kwargs are passed directly into ```animate_map_gen()```.
+
+        Parameters
+        ----------
+        ax: plt.Axes
+            The optional subplot that will be drawn on.
+        label: bool
+            Flag to add the "asi_array_code/location_code/image_time" text to the plot.
+        color_map: str
+            The matplotlib colormap to use. By default will use a black-white colormap.
+            For more information See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
+        color_bounds: List[float]
+            The lower and upper values of the color scale. The default is: low=1st_quartile and
+            high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
+        color_norm: str
+            Set the 'lin' linear or 'log' logarithmic color normalization.
+        azel_contours: bool
+            Superpose azimuth and elevation contours on or off.
+        azel_contour_color: str
+            The color of the azimuth and elevation contours.
+        cardinal_directions: str
+            Plot one or more cardinal directions specified with a string containing the first
+            letter of one or more cardinal directions. Case insensitive. For example, to plot
+            the North and East directions, set cardinal_directions='NE'.
+        movie_container: str
+            The movie container: mp4 has better compression but avi was determined
+            to be the official container for preserving digital video by the
+            National Archives and Records Administration.
+        ffmpeg_params: dict
+            The additional/overwitten ffmpeg output parameters. The default parameters are:
+            framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
+        overwrite: bool
+            If true, the output will be overwritten automatically. If false it will
+            prompt the user to answer y/n.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        NotImplementedError
+            If the colormap is unspecified ('auto' by default) and the
+            auto colormap is undefined for an ASI array.
+        ValueError
+            If the color_norm kwarg is not "log" or "lin".
+
+        Example
+        -------
+        
+        """
+        movie_generator = self.animate_map_gen(**kwargs)
+
+        for _ in movie_generator:
+            pass
+        return
+
+    def animate_map_gen(
+        self,
+        ax: plt.Axes = None,
+        label: bool = True,
+        color_map: str = None,
+        color_bounds: List[float] = None,
+        color_norm: str = None,
+        azel_contours: bool = False,
+        azel_contour_color: str = 'yellow',
+        cardinal_directions: str = 'NE',
+        movie_container: str = 'mp4',
+        ffmpeg_params={},
+        overwrite: bool = False,
+    ) -> Generator[
+        Tuple[datetime.datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None
+    ]:
+        """
+        Animate a series of mapped images and superpose your data on each image.
+
+        A generator behaves like an iterator in that it plots one fisheye image
+        at a time and yields (similar to returns) the image. You can modify, or add
+        content to the image (such as a spacecraft position). Then, once the iteration
+        is complete, this method stitches the images into an animation. See the examples
+        below and in the examples page for use cases. The ```animate_fisheye()``` method
+        takes care of the iteration.
+
+        Parameters
+        ----------
+        ax: plt.Axes
+            The optional subplot that will be drawn on.
+        label: bool
+            Flag to add the "asi_array_code/location_code/image_time" text to the plot.
+        color_map: str
+            The matplotlib colormap to use. By default will use a black-white colormap.
+            For more information See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
+        color_bounds: List[float]
+            The lower and upper values of the color scale. The default is: low=1st_quartile and
+            high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
+        color_norm: str
+            Set the 'lin' linear or 'log' logarithmic color normalization.
+        azel_contours: bool
+            Superpose azimuth and elevation contours on or off.
+        azel_contour_color: str
+            The color of the azimuth and elevation contours.
+        cardinal_directions: str
+            Plot one or more cardinal directions specified with a string containing the first
+            letter of one or more cardinal directions. Case insensitive. For example, to plot
+            the North and East directions, set cardinal_directions='NE'.
+        movie_container: str
+            The movie container: mp4 has better compression but avi was determined
+            to be the official container for preserving digital video by the
+            National Archives and Records Administration.
+        ffmpeg_params: dict
+            The additional/overwitten ffmpeg output parameters. The default parameters are:
+            framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
+        overwrite: bool
+            Overwrite the animation. If False, ffmpeg will prompt you to answer y/n if the
+            animation already exists.
+
+        Yields
+        ------
+        image_time: datetime.datetime
+            The time of the current image.
+        image: np.ndarray
+            A 2d image array of the image corresponding to image_time
+        ax: plt.Axes
+            The subplot object to modify the axis, labels, etc.
+        im: plt.AxesImage
+            The plt.imshow image object. Common use for im is to add a colorbar.
+            The image is oriented in the map orientation (north is up, south is down,
+            west is right, and east is left). Set azel_contours=True to confirm.
+
+        Raises
+        ------
+        NotImplementedError
+            If the colormap is unspecified ('auto' by default) and the
+            auto colormap is undefined for an ASI array.
+        ValueError
+            If the color_norm kwarg is not "log" or "lin".
+
+        Example
+        -------
+        >>> from datetime import datetime
+        >>> import matplotlib.pyplot as plt
+        >>> import asilib
+        >>>
+        >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+        >>> imager = asilib.themis('FSMI', time_range=time_range)
+        >>> ax = asilib.map.create_map()
+        >>> gen = imager.animate_map_gen(cardinal_directions='NE', overwrite=True, ax=ax)
+        >>>
+        >>> for image_time, image, ax, im in gen:
+        >>>         # Add your code that modifies each image here.
+        >>>         pass
+        >>>
+        >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
+        """
+        if ax is None:
+            _, ax = asilib.map.create_map()
+
+        # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
+        # not exist.
+        image_save_dir = pathlib.Path(
+            asilib.config['ASI_DATA_DIR'],
+            'animations',
+            'images',
+            f'{self._data["time_range"][0].strftime("%Y%m%d_%H%M%S")}_{self.meta["array"].lower()}_'
+            f'{self.meta["location"].lower()}_map',
+        )
+        self.animation_name = (
+            f'{self._data["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
+            f'{self._data["time_range"][-1].strftime("%H%M%S")}_'
+            f'{self.meta["array"].lower()}_{self.meta["location"].lower()}_map.{movie_container}'
+        )
+        movie_save_path = image_save_dir.parents[1] / self.animation_name
+        # If the image directory exists we need to first remove all of the images to avoid
+        # animating images from different method calls.
+        if image_save_dir.is_dir():
+            shutil.rmtree(image_save_dir)
+        image_save_dir.mkdir(parents=True)
+
+        image_paths = []
+        _progressbar = utils.progressbar(
+            enumerate(self.__iter__()),
+            iter_length=self._estimate_n_times(),
+            text=self.animation_name,
+        )
+
+        for i, (image_time, image) in _progressbar:
+            # # If the image is all 0s we have a bad image and we need to skip it.
+            # if np.all(image == 0):
+            #     continue
+            ax.clear()
+            ax.axis('off')
+            # Use an underscore so the original method parameters are not overwritten.
+            _color_map, _color_norm = self._plot_params(
+                image, color_bounds, color_map, color_norm
+            )
+
+            # TODO: Call the _map_image here.
+
+            # Give the user the control of the subplot, image object, and return the image time
+            # so that they can manipulate the image to add, for example, the satellite track.
+            yield image_time, image, ax, p
+
+            # Save the plot before the next iteration.
+            save_name = f'{str(i).zfill(6)}.png'
+            plt.savefig(image_save_dir / save_name)
+            image_paths.append(image_save_dir / save_name)
+
+        self._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
+        return
+
 
     def accumulate(self, n):
         self._accumulate_n = n
@@ -871,6 +1093,7 @@ class Imager:
         # Check the plot_settings dict and fall back to a default if user did not specify
         # color_bounds in the method call.
         if color_bounds is None:
+            # Is it part of the plot_settings generated by the ASI data loader?
             if 'color_bounds' in self.plot_settings.keys():
                 # Is it a function?
                 if callable(self.plot_settings['color_bounds']):
@@ -880,11 +1103,11 @@ class Imager:
             else:
                 lower, upper = np.quantile(image, (0.25, 0.98))
                 color_bounds = [lower, np.min([upper, lower * 10])]
-        else:  # color_bounds is specified in the method call.
-            if callable(color_bounds):
+        else:
+            if callable(color_bounds):  # function that ouputs vmin, vmax
                 color_bounds = color_bounds(image)
             else:
-                color_bounds = color_bounds
+                color_bounds = color_bounds  # vmin, vmax
 
         if color_map is None:
             if 'color_map' in self.plot_settings.keys():
@@ -906,7 +1129,7 @@ class Imager:
         else:
             raise ValueError(f'color_norm must be either None, "log", or "lin", not {color_norm=}.')
 
-        return color_bounds, color_map, color_norm
+        return color_map, color_norm
 
     def _add_azel_contours(self, ax: plt.Axes, color: str = 'yellow') -> None:
         """
