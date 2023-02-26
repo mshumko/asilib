@@ -159,8 +159,8 @@ class Imager:
         >>> import matplotlib.pyplot as plt
         >>> import asilib
         >>>
-        >>> time = datetime(2017, 9, 15, 2, 34, 0)
-        >>> ax, im = asilib.plot_fisheye('THEMIS', 'RANK', time, color_norm='log')
+        >>> asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
+        >>> ax, im = asi.plot_fisheye(cardinal_directions='NE')
         >>>
         >>> plt.colorbar(im)
         >>> ax.axis('off')
@@ -170,10 +170,10 @@ class Imager:
             _, ax = plt.subplots()
 
         if time is not None:
-            self = self.__getitem__(time)
-            time, image = self.data()
+            self_copy = self.__getitem__(time)
+            time, image = self_copy.data
         elif 'time' in self._data.keys():
-            time, image = self.data()
+            time, image = self.data
         else:
             raise ValueError('I am not supposed to get here. Congrats! You found a bug!')
 
@@ -539,7 +539,7 @@ class Imager:
 
     def _plot_mapped_image(self, ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs):
         """
-        
+        Plot the image onto a geographic map using the modified version of plt.pcolormesh.
         """
         _masked_lon_map, _masked_lat_map, _masked_image = self._mask_low_horizon(
             self.skymap['lon'], self.skymap['lat'], self.skymap['el'], min_elevation, image=image
@@ -1431,3 +1431,6 @@ class Imager:
             **pcolormesh_kwargs,
         )
         return p
+    
+if __name__ == '__main__':
+    pass
