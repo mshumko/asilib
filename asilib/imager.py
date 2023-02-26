@@ -531,7 +531,7 @@ class Imager:
             image, color_bounds, color_map, color_norm
         )
 
-        ax, p = self._plot_mapped_image(
+        ax, p, _ = self._plot_mapped_image(
             ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs
             )
         return ax, p
@@ -544,11 +544,12 @@ class Imager:
             self.skymap['lon'], self.skymap['lat'], self.skymap['el'], min_elevation, image=image
         )
 
+        pcolormesh_kwargs_copy = pcolormesh_kwargs.copy()
         if cartopy_imported:
             assert 'transform' not in pcolormesh_kwargs.keys(), (
                 f"The pcolormesh_kwargs in Imager.plot_map() can't contain "
                 f"'transform' key because it is reserved for cartopy.")
-            pcolormesh_kwargs['transform'] = ccrs.PlateCarree()
+            pcolormesh_kwargs_copy['transform'] = ccrs.PlateCarree()
         p = self._pcolormesh_nan(
             _masked_lon_map,
             _masked_lat_map,
@@ -556,7 +557,7 @@ class Imager:
             ax,
             cmap=color_map,
             norm=color_norm,
-            pcolormesh_kwargs=pcolormesh_kwargs,
+            pcolormesh_kwargs=pcolormesh_kwargs_copy,
         )
 
         if asi_label:
@@ -564,7 +565,7 @@ class Imager:
                 transform = ccrs.PlateCarree()
             else:
                 transform = ax.transData
-            ax.text(
+            label = ax.text(
                 self.meta['lon'],
                 self.meta['lat'],
                 self.meta['location'].upper(),
@@ -573,7 +574,9 @@ class Imager:
                 va='center',
                 ha='center',
             )
-        return ax, p
+        else:
+            label = None
+        return ax, p, label
 
 
     def animate_map(self, **kwargs) -> None:
@@ -723,14 +726,6 @@ class Imager:
             The image is oriented in the map orientation (north is up, south is down,
             west is right, and east is left). Set azel_contours=True to confirm.
 
-        Raises
-        ------
-        NotImplementedError
-            If the colormap is unspecified ('auto' by default) and the
-            auto colormap is undefined for an ASI array.
-        ValueError
-            If the color_norm kwarg is not "log" or "lin".
-
         Example
         -------
         >>> from datetime import datetime
@@ -750,8 +745,7 @@ class Imager:
         """
         if ax is None:
             ax = asilib.map.create_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds,
-                ax=ax, coast_color=coast_color, land_color=land_color, ocean_color=ocean_color)
-
+                coast_color=coast_color, land_color=land_color, ocean_color=ocean_color)
         # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
         # not exist.
         image_save_dir = pathlib.Path(
@@ -779,28 +773,32 @@ class Imager:
             iter_length=self._estimate_n_times(),
             text=self.animation_name,
         )
-
         for i, (image_time, image) in _progressbar:
-            # # If the image is all 0s we have a bad image and we need to skip it.
-            # if np.all(image == 0):
-            #     continue
-            ax.clear()
-            ax.axis('off')
+            # ax.clear()
+            # ax.axis('off')
+            
             # Use an underscore so the original method parameters are not overwritten.
-            color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
+            _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
-            ax, p = self._plot_mapped_image(
-                ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs
+            ax, pcolormesh_obj, label_obj = self._plot_mapped_image(
+                ax, image, min_elevation, _color_map, _color_norm, asi_label, pcolormesh_kwargs
             )
 
             # Give the user the control of the subplot, image object, and return the image time
             # so that they can manipulate the image to add, for example, the satellite track.
-            yield image_time, image, ax, p
+            yield image_time, image, ax, pcolormesh_obj
 
             # Save the plot before the next iteration.
             save_name = f'{str(i).zfill(6)}.png'
             plt.savefig(image_save_dir / save_name)
             image_paths.append(image_save_dir / save_name)
+
+            # Remove the ASI label and pcolormesh object.
+            # TODO: Work out a way to only remove the objects created by this function
+            # and not other texsts or collections passed in by the user.
+            if label_obj is not None:
+                ax.texts.remove(label_obj)
+            ax.collections.remove(pcolormesh_obj)
 
         self._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
         return
@@ -1448,4 +1446,16 @@ class Imager:
         return p
     
 if __name__ == '__main__':
-    pass
+    from datetime import datetime
+    import matplotlib.pyplot as plt
+    import asilib
+
+    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+    imager = asilib.themis('FSMI', time_range=time_range)
+    ax = asilib.map.create_map(lon_bounds=(-120, -100), lat_bounds=(55, 65))
+    gen = imager.animate_map_gen(overwrite=True, ax=ax)
+    
+    for image_time, image, ax, im in gen:
+            # Add your code that modifies each image here.
+            pass
+    print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
