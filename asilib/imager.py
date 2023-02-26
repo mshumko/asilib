@@ -482,6 +482,7 @@ class Imager:
         --------
         >>> from datetime import datetime
         >>> import numpy as np
+        >>> import matplotlib.pyplot as plt
         >>> import asilib
 
         # Project a single image onto a single-panel geographic map.
@@ -534,7 +535,9 @@ class Imager:
             image, color_bounds, color_map, color_norm
         )
 
-        ax, p = self._plot_mapped_image(image, color_map, color_norm, asi_label)
+        ax, p = self._plot_mapped_image(
+            ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs
+            )
         return ax, p
 
     def _plot_mapped_image(self, ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs):
