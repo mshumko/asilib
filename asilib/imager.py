@@ -728,20 +728,31 @@ class Imager:
 
         Example
         -------
-        >>> from datetime import datetime
-        >>> import matplotlib.pyplot as plt
-        >>> import asilib
-        >>>
-        >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-        >>> imager = asilib.themis('FSMI', time_range=time_range)
-        >>> ax = asilib.map.create_map()
-        >>> gen = imager.animate_map_gen(cardinal_directions='NE', overwrite=True, ax=ax)
-        >>>
-        >>> for image_time, image, ax, im in gen:
-        >>>         # Add your code that modifies each image here.
-        >>>         pass
-        >>>
-        >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
+        .. code-block:: python
+
+            >>> from datetime import datetime
+            >>> import matplotlib.pyplot as plt
+            >>> import asilib
+            >>> 
+            >>> location = 'FSMI'
+            >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+            >>> imager = asilib.themis(location, time_range=time_range)
+            >>> ax = asilib.map.create_map(lon_bounds=(-120, -100), lat_bounds=(55, 65))
+            >>> plt.tight_layout()
+            >>> 
+            >>> gen = imager.animate_map_gen(overwrite=True, ax=ax)
+            >>> 
+            >>> for image_time, image, ax, im in gen:
+            >>>     # Add your code that modifies each image here... 
+            >>>     # To demonstate, lets annotate each frame with the timestamp.
+            >>>     # We will need to delete the prior text object, otherwise the current one
+            >>>     # will overplot on the prior one.
+            >>>     if 'text_obj' in locals():
+            >>>             ax.texts.remove(text_obj)
+            >>>     text_obj = ax.text(0, 0.9, f'THEMIS-{location} at {image_time:%F %T}',
+            >>>             transform=ax.transAxes, color='white', fontsize=15)
+            >>>
+            >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
         """
         if ax is None:
             ax = asilib.map.create_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds,
@@ -1444,18 +1455,3 @@ class Imager:
             **pcolormesh_kwargs,
         )
         return p
-    
-if __name__ == '__main__':
-    from datetime import datetime
-    import matplotlib.pyplot as plt
-    import asilib
-
-    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    imager = asilib.themis('FSMI', time_range=time_range)
-    ax = asilib.map.create_map(lon_bounds=(-120, -100), lat_bounds=(55, 65))
-    gen = imager.animate_map_gen(overwrite=True, ax=ax)
-    
-    for image_time, image, ax, im in gen:
-            # Add your code that modifies each image here.
-            pass
-    print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
