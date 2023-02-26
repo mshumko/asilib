@@ -183,7 +183,7 @@ class Imager:
 
         im = ax.imshow(image[:, :], cmap=color_map, norm=color_norm, origin="lower")
         if label:
-            self._add_label(time, ax)
+            self._add_fisheye_label(time, ax)
         if azel_contours:
             self._add_azel_contours(ax, color=azel_contour_color)
         if cardinal_directions is not None:
@@ -395,7 +395,7 @@ class Imager:
 
             im = ax.imshow(image, cmap=_color_map, norm=_color_norm, origin='lower')
             if label:
-                self._add_label(image_time, ax)
+                self._add_fisheye_label(image_time, ax)
 
             if azel_contours:
                 self._add_azel_contours(ax, color=azel_contour_color)
@@ -937,7 +937,7 @@ class Imager:
         plt.clabel(el_contours, inline=True, fontsize=12, rightside_up=True)
         return
 
-    def _add_label(self, image_time, ax: plt.Axes):
+    def _add_fisheye_label(self, image_time, ax: plt.Axes):
         """
         Adds a ASI array-location-time label to the image
         """
