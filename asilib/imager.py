@@ -752,9 +752,9 @@ class Imager:
             >>>
             >>> for image_time, image, ax, im in gen:
             >>>     # Add your code that modifies each image here...
-            >>>     # To demonstate, lets annotate each frame with the timestamp.
+            >>>     # To demonstrate, lets annotate each frame with the timestamp.
             >>>     # We will need to delete the prior text object, otherwise the current one
-            >>>     # will overplot on the prior one.
+            >>>     # will overplot on the prior one---clean up after yourself!
             >>>     if 'text_obj' in locals():
             >>>             ax.texts.remove(text_obj)
             >>>     text_obj = ax.text(0, 0.9, f'THEMIS-{location} at {image_time:%F %T}',
@@ -798,9 +798,6 @@ class Imager:
             text=self.animation_name,
         )
         for i, (image_time, image) in _progressbar:
-            # ax.clear()
-            # ax.axis('off')
-
             # Use an underscore so the original method parameters are not overwritten.
             _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
@@ -817,9 +814,7 @@ class Imager:
             plt.savefig(image_save_dir / save_name)
             image_paths.append(image_save_dir / save_name)
 
-            # Remove the ASI label and pcolormesh object.
-            # TODO: Work out a way to only remove the objects created by this function
-            # and not other texsts or collections passed in by the user.
+            # Clean up the objects that this method generated.
             if label_obj is not None:
                 ax.texts.remove(label_obj)
             ax.collections.remove(pcolormesh_obj)
