@@ -16,6 +16,7 @@ import shutil
 import copy
 from collections import namedtuple
 from typing import List, Tuple, Generator, Union
+import warnings
 
 import numpy as np
 import numpy.linalg
@@ -25,6 +26,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib
 import ffmpeg
+import aacgmv2
 try:
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
@@ -578,7 +580,6 @@ class Imager:
             label = None
         return ax, p, label
 
-
     def animate_map(self, **kwargs) -> None:
         """
         A wrapper for the ```animate_map_gen()``` method that animates a series of
@@ -814,6 +815,155 @@ class Imager:
         self._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
         return
 
+    def keogram(self, path: np.array=None, aacgm=False, minimum_elevation:float=0) -> tuple(np.array, np.array, np.array):
+        """
+        Create a keogram along the meridian or a custom path.
+
+        Parameters
+        ----------
+        path: array
+            Make a keogram along a custom path. The path is a lat/lon array of shape (n, 2). 
+            Longitude must be between [-180, 180].
+        aacgm: bool
+            Map the keogram latitudes to Altitude Adjusted Corrected Geogmagnetic Coordinates
+            (aacgmv2) derived by Shepherd, S. G. (2014), Altitude-adjusted corrected geomagnetic
+            coordinates: Definition and functional approximations, Journal of Geophysical
+            Research: Space Physics, 119, 7501-7521, doi:10.1002/2014JA020264.
+        minimum_elevation: float
+            The minimum elevation of pixels to use in the keogram.
+
+        Returns
+        -------
+        keo: pd.DataFrame
+            The 2d keogram with the time index. The columns are the (geographic or magnetic)
+            latitudes if map_alt is specified, otherwise it is the image pixel indices.
+        """
+        self._keogram_time = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
+        self._keogram = np.nan * np.zeros((self._estimate_n_times(), self.meta['resolution'][0]))
+        
+        # Determine what pixels to slice
+        self._keogram_pixels(path, minimum_elevation)
+        # Not all of the pixels are valid (e.g. below the horizon)
+        self._keo = self._keo[:, : self._pixels.shape[0]]
+        self._geogram_lat = self._keogram_latitude(aacgm)
+
+        start_time_index = 0
+        for time_chunk, image_chunk in self.iter_chunks():
+            end_time_index = start_time_index + image_chunk.shape[0]
+
+            self._keogram[start_time_index:end_time_index, :] = image_chunk[
+                :, self._pixels[:, 0], self._pixels[:, 1]
+            ]
+            self._keogram_time[start_time_index:end_time_index] = time_chunk
+            start_time_index += image_chunk.shape[0]
+
+        # Remove NaN keogram rows (unfilled or the data is NaN.).
+        i_valid = np.where(~np.isnan(self._keogram[:, 0]))[0]
+        self._keogram = self._keogram[i_valid, :]
+        self._keogram_time = self._keogram_time[i_valid]
+
+        if self._keogram.shape[0] == 0:
+            raise ValueError(
+                f"The keogram is empty for {self.meta['array']}/{self.meta['location']} "
+                f"during {self._data['time_range']}. The images likely don't exist "
+                f"in this time interval."
+            )
+
+        
+        return self._keogram_time, self._geogram_lat, self._keogram
+
+    def plot_keogram(self):
+        raise NotImplementedError
+        return
+
+    def _keogram_pixels(self, path, minimum_elevation=0):
+        """
+        Find what pixels to index and reshape the keogram.
+        """
+        # CASE 1: No path provided. Output self._pixels that slice the meridian.
+        if path is None:
+            self._pixels = np.column_stack(
+                (
+                    np.arange(self._keo.shape[1]),
+                    self._keo.shape[1] * np.ones(self._keo.shape[1]) // 2,
+                )
+            ).astype(int)
+
+        # CASE 2: A path is provided so now we need to calculate the custom path
+        # on the lat/lon skymap.
+        else:
+            self._pixels = self._path_to_pixels(path)
+
+        above_elevation = np.where(
+            self.skymap['el'][self._pixels[:, 0], self._pixels[:, 1]]
+            >= minimum_elevation
+        )[0]
+        self._pixels = self._pixels[above_elevation]
+        return
+
+    def _path_to_pixels(self, path:np.array, threshold:float=1) -> np.array:
+        """
+        Map a lat/lon path to ASI x- and y-pixels.
+
+        Parameters
+        ----------
+        path: np.array
+            The lat/lon array of shape (n, 2). Longitude must be between [-180, 180]
+        threshold: float
+            The maximum distance threshold, in degrees, between the path (lat, lon)
+            and the skymap (lat, lon)
+
+        Returns
+        -------
+        np.array
+            ASI x and y indices along the path.
+        """
+        if np.array(path).shape[0] == 0:
+            raise ValueError('The path is empty.')
+        if np.any(np.isnan(path)):
+            raise ValueError("The lat/lon path can't contain NaNs.")
+        if np.any(np.max(path) > 180) or np.any(np.min(path) < -180):
+            raise ValueError("The lat/lon values must be in the range -180 to 180.")
+
+        nearest_pixels = np.nan * np.zeros_like(path)
+
+        for i, (lat, lon) in enumerate(path):
+            distances = np.sqrt(
+                (self.skymap['lat'] - lat) ** 2 + (self.skymap['lon'] - lon) ** 2
+            )
+            idx = np.where(distances == np.nanmin(distances))
+
+            if distances[idx][0] > threshold:
+                warnings.warn(
+                    f'Some of the keogram path coordinates are outside of the '
+                    f'maximum {threshold} degrees distance from the nearest '
+                    f'skymap map coordinate.'
+                )
+                continue
+            nearest_pixels[i, :] = [idx[0][0], idx[1][0]]
+
+        valid_pixels = np.where(np.isfinite(nearest_pixels[:, 0]))[0]
+        if valid_pixels.shape[0] == 0:
+            raise ValueError('The keogram path is completely outside of the skymap.')
+        return nearest_pixels[valid_pixels, :].astype(int)
+
+    def _keogram_latitude(self, aacgm):
+        """
+        Keogram's vertical axis: geographic latitude, magnetic latitude, or pixel index.
+        """
+        _geo_lats = self.skymap['lat'][self._pixels[:, 0], self._pixels[:, 1]]
+        if aacgm:
+            _geo_lons = self.skymap['lon'][self._pixels[:, 0], self._pixels[:, 1]]
+            _aacgm_lats = aacgmv2.convert_latlon_arr(
+                _geo_lats,
+                _geo_lons,
+                self.skymap['alt'],
+                self._data['time_range'][0],
+                method_code="G2A",
+            )[0]
+            return _aacgm_lats
+        else:
+            return _geo_lats
 
     def accumulate(self, n):
         self._accumulate_n = n
