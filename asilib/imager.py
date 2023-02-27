@@ -27,9 +27,11 @@ import matplotlib.colors as colors
 import matplotlib
 import ffmpeg
 import aacgmv2
+
 try:
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
+
     cartopy_imported = True
 except ImportError as err:
     # You can also get a ModuleNotFoundError if cartopy is not installed
@@ -179,9 +181,7 @@ class Imager:
         else:
             raise ValueError('I am not supposed to get here. Congrats! You found a bug!')
 
-        color_map, color_norm = self._plot_params(
-            image, color_bounds, color_map, color_norm
-        )
+        color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
         im = ax.imshow(image[:, :], cmap=color_map, norm=color_norm, origin="lower")
         if label:
@@ -391,9 +391,7 @@ class Imager:
             ax.clear()
             ax.axis('off')
             # Use an underscore so the original method parameters are not overwritten.
-            _color_map, _color_norm = self._plot_params(
-                image, color_bounds, color_map, color_norm
-            )
+            _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
             im = ax.imshow(image, cmap=_color_map, norm=_color_norm, origin='lower')
             if label:
@@ -430,7 +428,7 @@ class Imager:
         min_elevation: float = 10,
         asi_label: bool = True,
         pcolormesh_kwargs: dict = {},
-        ) -> plt.Axes:
+    ) -> plt.Axes:
         """
         Projects the ASI images to a map at an altitude defined in the skymap calibration file.
 
@@ -503,7 +501,7 @@ class Imager:
         >>> plt.tight_layout()
         >>> plt.show()
 
-        # If you have cartopy installed, here is how you can project a single image 
+        # If you have cartopy installed, here is how you can project a single image
         # onto a two-panel geographic map.
 
         >>> imager = asilib.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
@@ -518,27 +516,35 @@ class Imager:
         >>> plt.tight_layout()
         >>> plt.show()
         """
-        assert 'image' in self._data.keys(), (f'The "image" key not in '
-            f'Imager._data: got {self._data.keys()}')
+        assert 'image' in self._data.keys(), (
+            f'The "image" key not in ' f'Imager._data: got {self._data.keys()}'
+        )
         for _skymap_key in ['lat', 'lon', 'el']:
-            assert _skymap_key in self.skymap.keys(), (f'The "{_skymap_key}" key not in '
-                f'Imager.skymap: got {self.skymap.keys()}')
+            assert _skymap_key in self.skymap.keys(), (
+                f'The "{_skymap_key}" key not in ' f'Imager.skymap: got {self.skymap.keys()}'
+            )
 
         if ax is None:
-            ax = asilib.map.create_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds,
-                ax=ax, coast_color=coast_color, land_color=land_color, ocean_color=ocean_color)
+            ax = asilib.map.create_map(
+                lon_bounds=lon_bounds,
+                lat_bounds=lat_bounds,
+                ax=ax,
+                coast_color=coast_color,
+                land_color=land_color,
+                ocean_color=ocean_color,
+            )
 
         image = self._data['image']
-        color_map, color_norm = self._plot_params(
-            image, color_bounds, color_map, color_norm
-        )
+        color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
         ax, p, _ = self._plot_mapped_image(
             ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs
-            )
+        )
         return ax, p
 
-    def _plot_mapped_image(self, ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs):
+    def _plot_mapped_image(
+        self, ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs
+    ):
         """
         Plot the image onto a geographic map using the modified version of plt.pcolormesh.
         """
@@ -550,7 +556,8 @@ class Imager:
         if cartopy_imported:
             assert 'transform' not in pcolormesh_kwargs.keys(), (
                 f"The pcolormesh_kwargs in Imager.plot_map() can't contain "
-                f"'transform' key because it is reserved for cartopy.")
+                f"'transform' key because it is reserved for cartopy."
+            )
             pcolormesh_kwargs_copy['transform'] = ccrs.PlateCarree()
         p = self._pcolormesh_nan(
             _masked_lon_map,
@@ -632,7 +639,7 @@ class Imager:
 
         Example
         -------
-        
+
         """
         movie_generator = self.animate_map_gen(**kwargs)
 
@@ -734,17 +741,17 @@ class Imager:
             >>> from datetime import datetime
             >>> import matplotlib.pyplot as plt
             >>> import asilib
-            >>> 
+            >>>
             >>> location = 'FSMI'
             >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
             >>> imager = asilib.themis(location, time_range=time_range)
             >>> ax = asilib.map.create_map(lon_bounds=(-120, -100), lat_bounds=(55, 65))
             >>> plt.tight_layout()
-            >>> 
+            >>>
             >>> gen = imager.animate_map_gen(overwrite=True, ax=ax)
-            >>> 
+            >>>
             >>> for image_time, image, ax, im in gen:
-            >>>     # Add your code that modifies each image here... 
+            >>>     # Add your code that modifies each image here...
             >>>     # To demonstate, lets annotate each frame with the timestamp.
             >>>     # We will need to delete the prior text object, otherwise the current one
             >>>     # will overplot on the prior one.
@@ -756,8 +763,13 @@ class Imager:
             >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
         """
         if ax is None:
-            ax = asilib.map.create_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds,
-                coast_color=coast_color, land_color=land_color, ocean_color=ocean_color)
+            ax = asilib.map.create_map(
+                lon_bounds=lon_bounds,
+                lat_bounds=lat_bounds,
+                coast_color=coast_color,
+                land_color=land_color,
+                ocean_color=ocean_color,
+            )
         # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
         # not exist.
         image_save_dir = pathlib.Path(
@@ -788,7 +800,7 @@ class Imager:
         for i, (image_time, image) in _progressbar:
             # ax.clear()
             # ax.axis('off')
-            
+
             # Use an underscore so the original method parameters are not overwritten.
             _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
@@ -815,14 +827,16 @@ class Imager:
         self._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
         return
 
-    def keogram(self, path: np.array=None, aacgm=False, minimum_elevation:float=0) -> tuple(np.array, np.array, np.array):
+    def keogram(
+        self, path: np.array = None, aacgm=False, minimum_elevation: float = 0
+    ) -> tuple(np.array, np.array, np.array):
         """
         Create a keogram along the meridian or a custom path.
 
         Parameters
         ----------
         path: array
-            Make a keogram along a custom path. The path is a lat/lon array of shape (n, 2). 
+            Make a keogram along a custom path. The path is a lat/lon array of shape (n, 2).
             Longitude must be between [-180, 180].
         aacgm: bool
             Map the keogram latitudes to Altitude Adjusted Corrected Geogmagnetic Coordinates
@@ -840,7 +854,7 @@ class Imager:
         """
         self._keogram_time = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
         self._keogram = np.nan * np.zeros((self._estimate_n_times(), self.meta['resolution'][0]))
-        
+
         # Determine what pixels to slice
         self._keogram_pixels(path, minimum_elevation)
         # Not all of the pixels are valid (e.g. below the horizon)
@@ -869,7 +883,6 @@ class Imager:
                 f"in this time interval."
             )
 
-        
         return self._keogram_time, self._geogram_lat, self._keogram
 
     def plot_keogram(self):
@@ -895,13 +908,12 @@ class Imager:
             self._pixels = self._path_to_pixels(path)
 
         above_elevation = np.where(
-            self.skymap['el'][self._pixels[:, 0], self._pixels[:, 1]]
-            >= minimum_elevation
+            self.skymap['el'][self._pixels[:, 0], self._pixels[:, 1]] >= minimum_elevation
         )[0]
         self._pixels = self._pixels[above_elevation]
         return
 
-    def _path_to_pixels(self, path:np.array, threshold:float=1) -> np.array:
+    def _path_to_pixels(self, path: np.array, threshold: float = 1) -> np.array:
         """
         Map a lat/lon path to ASI x- and y-pixels.
 
@@ -928,9 +940,7 @@ class Imager:
         nearest_pixels = np.nan * np.zeros_like(path)
 
         for i, (lat, lon) in enumerate(path):
-            distances = np.sqrt(
-                (self.skymap['lat'] - lat) ** 2 + (self.skymap['lon'] - lon) ** 2
-            )
+            distances = np.sqrt((self.skymap['lat'] - lat) ** 2 + (self.skymap['lon'] - lon) ** 2)
             idx = np.where(distances == np.nanmin(distances))
 
             if distances[idx][0] > threshold:
@@ -1138,7 +1148,7 @@ class Imager:
 
     def __iter__(self):
         """
-        Iterate over individual timestamps and images using the 
+        Iterate over individual timestamps and images using the
         ```for time, image in asilib.Imager(...)```.
 
         Parameters
@@ -1374,7 +1384,7 @@ class Imager:
             if direction not in ['N', 'S', 'E', 'W']:
                 raise ValueError(f'Cardinality direction "{direction}" is invalid."')
             rise, run = self._calc_cardinal_direction(direction, el_step)
-            norm = length / np.sqrt(rise**2 + run**2)
+            norm = length / np.sqrt(rise ** 2 + run ** 2)
 
             ax.annotate(
                 direction,
