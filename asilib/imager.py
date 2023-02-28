@@ -940,25 +940,26 @@ class Imager:
 
         Example
         -------
-        | import matplotlib.pyplot as plt
-        |
-        | import asilib
-        |
-        | asi_array_code='REGO'
-        | location_code='LUCK'
-        | time_range=['2017-09-27T07', '2017-09-27T09']
-        |
-        | fig, ax = plt.subplots(figsize=(8, 6))
-        | ax, im = asilib.plot_keogram(asi_array_code, location_code, time_range,
-        |                ax=ax, map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
-        |
-        | plt.colorbar(im)
-        | plt.tight_layout()
-        | plt.show()
+        >>> import matplotlib.pyplot as plt
+        >>>
+        >>> import asilib
+        >>>
+        >>> time_range=['2017-09-27T07', '2017-09-27T09']
+        >>>
+        >>> fig, ax = plt.subplots(2, sharex=True)
+        >>> asi = asilib.themis('LUCK', time_range=time_range)  # TODO: Ultimately update to REGO.
+        >>> _, p = asi.plot_keogram(ax=ax[0], color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
+        >>> asi.plot_keogram(ax=ax[1], color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'}, aacgm=True)
+        >>> ax[0].set_ylabel('Geographic Lat [deg])
+        >>> ax[1].set_ylabel('Magnetic Lat [deg])
+        >>>
+        >>> plt.colorbar(p)
+        >>> plt.tight_layout()
+        >>> plt.show()
         """
         if ax is None:
-            fig, ax = plt.subplots()
-            
+            _, ax = plt.subplots()
+
         _keogram_time, _geogram_lat, _keogram = self.keogram(
             path=path, aacgm=aacgm, minimum_elevation=minimum_elevation)
 
