@@ -450,9 +450,7 @@ class Imager:
         ocean_color: str
             The ocean color. If None will not draw it.
         color_map: str
-            The matplotlib colormap to use. If 'auto', will default to a
-            black-red colormap for REGO and black-white colormap for THEMIS.
-            For more information See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
+            The matplotlib colormap to use. See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
         min_elevation: float
             Masks the pixels below min_elevation degrees.
         asi_label: bool
@@ -851,21 +849,32 @@ class Imager:
 
         Example
         -------
-        | import matplotlib.pyplot as plt
-        |
-        | import asilib
-        |
-        | asi_array_code='REGO'
-        | location_code='LUCK'
-        | time_range=['2017-09-27T07', '2017-09-27T09']
-        |
-        | fig, ax = plt.subplots(figsize=(8, 6))
-        | ax, im = asilib.plot_keogram(asi_array_code, location_code, time_range,
-        |                ax=ax, map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
-        |
-        | plt.colorbar(im)
-        | plt.tight_layout()
-        | plt.show()
+        >>> # A keogram in geographic and magnetic latitude coordinates. See
+        >>> # Imager.plot_keogram() on how to plot a keogram.
+        >>> # Event from https://doi.org/10.1029/2021GL094696
+        >>> import numpy as np
+        >>> import asilib
+        >>> 
+        >>> time_range=['2008-01-16T10', '2008-01-16T12']
+        >>> 
+        >>> asi = asilib.themis('GILL', time_range=time_range)
+        >>> time, geo_lat, geo_keogram = asi.keogram()  # geographic latitude
+        >>> time, mag_lat, mag_keogram = asi.keogram(aacgm=True)  # magnetic latitude
+        >>> time
+        array([datetime.datetime(2008, 1, 16, 10, 0, 0, 20162),
+            datetime.datetime(2008, 1, 16, 10, 0, 3, 9658),
+            datetime.datetime(2008, 1, 16, 10, 0, 6, 29345), ...,
+            datetime.datetime(2008, 1, 16, 11, 59, 51, 50496),
+            datetime.datetime(2008, 1, 16, 11, 59, 54, 10602),
+            datetime.datetime(2008, 1, 16, 11, 59, 57, 60543)], dtype=object)
+        >>> geo_lat[:10]
+        array([47.900368, 48.506763, 49.057587, 49.556927, 50.009083, 50.418365,
+            50.788963, 51.124836, 51.42965 , 51.706768], dtype=float32)
+        >>> mag_lat[:10]
+        array([57.97198543, 58.55886486, 59.09144098, 59.57379565, 60.01019679,
+            60.40490277, 60.76203547, 61.0854798 , 61.37882613, 61.64536043])
+        >>> np.all(mag_keogram == geo_keogram)  # aacgm=True only changes the latitudes.
+        True
         """
         self._keogram_time = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
         self._keogram = np.nan * np.zeros((self._estimate_n_times(), self.meta['resolution'][0]))
@@ -897,7 +906,6 @@ class Imager:
                 f"during {self._data['time_range']}. The images likely don't exist "
                 f"in this time interval."
             )
-
         return self._keogram_time, self._geogram_lat, self._keogram
 
     def plot_keogram(self, ax:plt.Axes = None, path: np.array = None, 

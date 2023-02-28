@@ -1,3 +1,10 @@
+# Version 0.14.0
+- Added `Imager.plot_map()`, `Imager.animate_map()`, `Imager.animate_map_gen()` methods and documentation that project images, or a series of images, onto a geographic map.
+- Added `Imager.keogram()`, and `Imager.plot_keogram()` methods to make keograms
+  - Along the meridian or a custom path
+  - With geographic or magnetic latitudes, depending on the `aacgm` kwarg.
+- `asilib.Imager` functionality is complete, with a first draft of the documentation & examples.
+
 # Version 0.13.0
 - Added an Active Development warning in the `asilib` docs.
 - Simplified the `Downloader` class.
