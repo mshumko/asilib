@@ -418,7 +418,7 @@ class Imager:
         self,
         lon_bounds: tuple = (-160, -50),
         lat_bounds: tuple = (40, 82),
-        ax: Union[plt.Axes, tuple] = None,
+        ax: Union[plt.Axes, tuple] = None,  # TODO: Mention gridspec (https://matplotlib.org/stable/tutorials/intermediate/arranging_axes.html#id1)
         coast_color: str = 'k',
         land_color: str = 'g',
         ocean_color: str = 'w',
@@ -625,20 +625,19 @@ class Imager:
             If true, the output will be overwritten automatically. If false it will
             prompt the user to answer y/n.
 
-        Returns
-        -------
-        None
-
-        Raises
-        ------
-        NotImplementedError
-            If the colormap is unspecified ('auto' by default) and the
-            auto colormap is undefined for an ASI array.
-        ValueError
-            If the color_norm kwarg is not "log" or "lin".
-
         Example
         -------
+        .. code-block:: python
+
+            >>> from datetime import datetime
+            >>> import matplotlib.pyplot as plt
+            >>> import asilib
+            >>>
+            >>> location = 'FSMI'
+            >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+            >>> asi = asilib.themis(location, time_range=time_range)
+            >>> asi.animate_map(overwrite=True)
+            >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name}')
 
         """
         movie_generator = self.animate_map_gen(**kwargs)
@@ -940,21 +939,23 @@ class Imager:
 
         Example
         -------
+        >>> # Plot a keogram in geographic and magnetic latitude coordinates.
+        >>> # Event from https://doi.org/10.1029/2021GL094696
         >>> import matplotlib.pyplot as plt
-        >>>
         >>> import asilib
-        >>>
+        >>> 
         >>> time_range=['2008-01-16T10', '2008-01-16T12']
-        >>>
-        >>> fig, ax = plt.subplots(2, sharex=True)
+        >>> fig, ax = plt.subplots(2, sharex=True, figsize=(10, 6))
+        >>> 
         >>> asi = asilib.themis('GILL', time_range=time_range)
-        >>> _, p = asi.plot_keogram(ax=ax[0], color_bounds=(300, 800), color_map='turbo')
-        >>> asi.plot_keogram(ax=ax[1], color_bounds=(300, 800), color_map='turbo', aacgm=True)
+        >>> _, p = asi.plot_keogram(ax=ax[0], color_map='turbo')
+        >>> asi.plot_keogram(ax=ax[1], color_map='turbo', aacgm=True, title=False)
+        >>> 
         >>> ax[0].set_ylabel('Geographic Lat [deg]')
         >>> ax[1].set_ylabel('Magnetic Lat [deg]')
-        >>>
-        >>> plt.colorbar(p)
-        >>> plt.tight_layout()
+        >>> fig.subplots_adjust(right=0.8)
+        >>> cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
+        >>> fig.colorbar(p, cax=cbar_ax)
         >>> plt.show()
         """
         if ax is None:
@@ -1712,20 +1713,3 @@ class Imager:
             **pcolormesh_kwargs,
         )
         return p
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    import asilib
-
-    time_range=['2008-01-16T10', '2008-01-16T12']
-    fig, ax = plt.subplots(2, sharex=True)
-
-    asi = asilib.themis('GILL', time_range=time_range)
-    _, p = asi.plot_keogram(ax=ax[0], color_map='turbo')
-    asi.plot_keogram(ax=ax[1], color_map='turbo', aacgm=True, title=False)
-
-    ax[0].set_ylabel('Geographic Lat [deg]')
-    ax[1].set_ylabel('Magnetic Lat [deg]')
-    fig.colorbar(p)
-    plt.tight_layout()
-    plt.show()
