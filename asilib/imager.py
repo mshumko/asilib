@@ -850,6 +850,24 @@ class Imager:
             aacgm if True.
         np.array:
             Keogram array with rows corresponding to times and columns with latitudes.
+
+        Example
+        -------
+        | import matplotlib.pyplot as plt
+        |
+        | import asilib
+        |
+        | asi_array_code='REGO'
+        | location_code='LUCK'
+        | time_range=['2017-09-27T07', '2017-09-27T09']
+        |
+        | fig, ax = plt.subplots(figsize=(8, 6))
+        | ax, im = asilib.plot_keogram(asi_array_code, location_code, time_range,
+        |                ax=ax, map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
+        |
+        | plt.colorbar(im)
+        | plt.tight_layout()
+        | plt.show()
         """
         self._keogram_time = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
         self._keogram = np.nan * np.zeros((self._estimate_n_times(), self.meta['resolution'][0]))
@@ -884,9 +902,60 @@ class Imager:
 
         return self._keogram_time, self._geogram_lat, self._keogram
 
-    def plot_keogram(self):
-        raise NotImplementedError
-        return
+    def plot_keogram(self, ax:plt.Axes = None, path: np.array = None, 
+                    aacgm=False, title: bool = True, minimum_elevation: float = 0)->plt.Axes:
+        """
+        Plot a keogram along the meridian or a custom path.
+
+        Parameters
+        ----------
+        ax: plt.Axes
+            The subplot to plot the keogram on.
+        path: np.array
+            Make a keogram along a custom path. The path is a lat/lon array of shape (n, 2).
+            Longitude must be between [-180, 180].
+        aacgm: bool
+            Map the keogram latitudes to Altitude Adjusted Corrected Geogmagnetic Coordinates
+            (aacgmv2) derived by Shepherd, S. G. (2014), Altitude-adjusted corrected geomagnetic
+            coordinates: Definition and functional approximations, Journal of Geophysical
+            Research: Space Physics, 119, 7501-7521, doi:10.1002/2014JA020264.
+        title: bool
+            Add a plot title with the date, ASI array, and ASI location.
+        minimum_elevation: float
+            The minimum elevation of pixels to use in the keogram.
+
+        Example
+        -------
+        | import matplotlib.pyplot as plt
+        |
+        | import asilib
+        |
+        | asi_array_code='REGO'
+        | location_code='LUCK'
+        | time_range=['2017-09-27T07', '2017-09-27T09']
+        |
+        | fig, ax = plt.subplots(figsize=(8, 6))
+        | ax, im = asilib.plot_keogram(asi_array_code, location_code, time_range,
+        |                ax=ax, map_alt=230, color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
+        |
+        | plt.colorbar(im)
+        | plt.tight_layout()
+        | plt.show()
+        """
+        im = ax.pcolormesh(
+        keo_df.index,
+        keo_df.columns,
+        keo_df.to_numpy()[:-1, :-1].T,
+        norm=norm,
+        shading='flat',
+        **pcolormesh_kwargs,
+        )
+
+        if title:
+            ax.set_title(
+                f'{time_range[0].date()} | {asi_array_code.upper()}-{location_code.upper()} keogram'
+            )
+        return ax, im
 
     def _keogram_pixels(self, path, minimum_elevation=0):
         """
