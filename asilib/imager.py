@@ -823,7 +823,7 @@ class Imager:
 
     def keogram(
         self, path: np.array = None, aacgm=False, minimum_elevation: float = 0
-    ) -> tuple(np.array, np.array, np.array):
+    ) -> Tuple[np.array, np.array, np.array]:
         """
         Create a keogram along the meridian or a custom path.
 
@@ -944,14 +944,14 @@ class Imager:
         >>>
         >>> import asilib
         >>>
-        >>> time_range=['2017-09-27T07', '2017-09-27T09']
+        >>> time_range=['2008-01-16T10', '2008-01-16T12']
         >>>
         >>> fig, ax = plt.subplots(2, sharex=True)
-        >>> asi = asilib.themis('LUCK', time_range=time_range)  # TODO: Ultimately update to REGO.
+        >>> asi = asilib.themis('GILL', time_range=time_range)
         >>> _, p = asi.plot_keogram(ax=ax[0], color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
         >>> asi.plot_keogram(ax=ax[1], color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'}, aacgm=True)
-        >>> ax[0].set_ylabel('Geographic Lat [deg])
-        >>> ax[1].set_ylabel('Magnetic Lat [deg])
+        >>> ax[0].set_ylabel('Geographic Lat [deg]')
+        >>> ax[1].set_ylabel('Magnetic Lat [deg]')
         >>>
         >>> plt.colorbar(p)
         >>> plt.tight_layout()
