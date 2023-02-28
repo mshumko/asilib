@@ -843,9 +843,13 @@ class Imager:
 
         Returns
         -------
-        keo: pd.DataFrame
-            The 2d keogram with the time index. The columns are the (geographic or magnetic)
-            latitudes if map_alt is specified, otherwise it is the image pixel indices.
+        np.array:
+            Keogram timestamps
+        np.array:
+            Keogram latitudes: geographic if the aacgm kwarg is False and magnetic is 
+            aacgm if True.
+        np.array:
+            Keogram array with rows corresponding to times and columns with latitudes.
         """
         self._keogram_time = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
         self._keogram = np.nan * np.zeros((self._estimate_n_times(), self.meta['resolution'][0]))
