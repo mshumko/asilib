@@ -874,7 +874,7 @@ class Imager:
         # Determine what pixels to slice
         self._keogram_pixels(path, minimum_elevation)
         # Not all of the pixels are valid (e.g. below the horizon)
-        self._keo = self._keo[:, : self._pixels.shape[0]]
+        self._keogram = self._keogram[:, : self._pixels.shape[0]]
         self._geogram_lat = self._keogram_latitude(aacgm)
 
         start_time_index = 0
@@ -948,8 +948,8 @@ class Imager:
         >>>
         >>> fig, ax = plt.subplots(2, sharex=True)
         >>> asi = asilib.themis('GILL', time_range=time_range)
-        >>> _, p = asi.plot_keogram(ax=ax[0], color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'})
-        >>> asi.plot_keogram(ax=ax[1], color_bounds=(300, 800), pcolormesh_kwargs={'cmap':'turbo'}, aacgm=True)
+        >>> _, p = asi.plot_keogram(ax=ax[0], color_bounds=(300, 800), color_map='turbo')
+        >>> asi.plot_keogram(ax=ax[1], color_bounds=(300, 800), color_map='turbo', aacgm=True)
         >>> ax[0].set_ylabel('Geographic Lat [deg]')
         >>> ax[1].set_ylabel('Magnetic Lat [deg]')
         >>>
@@ -960,6 +960,11 @@ class Imager:
         if ax is None:
             _, ax = plt.subplots()
 
+        if ('cmap' in pcolormesh_kwargs.keys()) and (color_map is not None):
+            raise ValueError('The colormap is defined in both the color_map and pcolormesh_kwargs["cmap"].')
+        if ('norm' in pcolormesh_kwargs.keys()) and (color_norm is not None):
+            raise ValueError('The color norm is defined in both the color_norm and pcolormesh_kwargs["norm"].')
+
         _keogram_time, _geogram_lat, _keogram = self.keogram(
             path=path, aacgm=aacgm, minimum_elevation=minimum_elevation)
 
@@ -968,7 +973,7 @@ class Imager:
         pcolormesh_obj = ax.pcolormesh(
             _keogram_time,
             _geogram_lat,
-            _keogram,
+            _keogram[:-1, :-1].T,
             norm=_color_norm,
             shading='flat',
             cmap=_color_map,
@@ -989,8 +994,8 @@ class Imager:
         if path is None:
             self._pixels = np.column_stack(
                 (
-                    np.arange(self._keo.shape[1]),
-                    self._keo.shape[1] * np.ones(self._keo.shape[1]) // 2,
+                    np.arange(self._keogram.shape[1]),
+                    self._keogram.shape[1] * np.ones(self._keogram.shape[1]) // 2,
                 )
             ).astype(int)
 
@@ -1059,7 +1064,7 @@ class Imager:
             _aacgm_lats = aacgmv2.convert_latlon_arr(
                 _geo_lats,
                 _geo_lons,
-                self.skymap['alt'],
+                self.skymap['alt']/1E3,
                 self._data['time_range'][0],
                 method_code="G2A",
             )[0]
@@ -1707,3 +1712,20 @@ class Imager:
             **pcolormesh_kwargs,
         )
         return p
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    import asilib
+
+    time_range=['2008-01-16T10', '2008-01-16T12']
+    fig, ax = plt.subplots(2, sharex=True)
+
+    asi = asilib.themis('GILL', time_range=time_range)
+    _, p = asi.plot_keogram(ax=ax[0], color_map='turbo')
+    asi.plot_keogram(ax=ax[1], color_map='turbo', aacgm=True, title=False)
+
+    ax[0].set_ylabel('Geographic Lat [deg]')
+    ax[1].set_ylabel('Magnetic Lat [deg]')
+    fig.colorbar(p)
+    plt.tight_layout()
+    plt.show()
