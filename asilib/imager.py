@@ -103,7 +103,7 @@ class Imager:
         label: bool = True,
         color_map: str = None,
         color_bounds: List[float] = None,
-        color_norm: str = None,
+        color_norm: str = 'log',
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
@@ -264,7 +264,7 @@ class Imager:
         label: bool = True,
         color_map: str = None,
         color_bounds: List[float] = None,
-        color_norm: str = None,
+        color_norm: str = 'log',
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
@@ -424,7 +424,7 @@ class Imager:
         ocean_color: str = 'w',
         color_map: str = None,
         color_bounds: List[float] = None,
-        color_norm: str = None,
+        color_norm: str = 'log',
         min_elevation: float = 10,
         asi_label: bool = True,
         pcolormesh_kwargs: dict = {},
@@ -657,7 +657,7 @@ class Imager:
         ocean_color: str = 'w',
         color_map: str = None,
         color_bounds: List[float] = None,
-        color_norm: str = None,
+        color_norm: str = 'log',
         min_elevation: float = 10,
         pcolormesh_kwargs: dict = {},
         asi_label: bool = True,
@@ -695,9 +695,8 @@ class Imager:
         ocean_color: str
             The ocean color. If None will not draw it.
         color_map: str
-            The matplotlib colormap to use. If 'auto', will default to a
-            black-red colormap for REGO and black-white colormap for THEMIS.
-            For more information See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
+            The matplotlib colormap to use. See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_
+            for supported colormaps.
         color_bounds: List[float]
             The lower and upper values of the color scale. The default is: low=1st_quartile and
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
@@ -903,7 +902,11 @@ class Imager:
         return self._keogram_time, self._geogram_lat, self._keogram
 
     def plot_keogram(self, ax:plt.Axes = None, path: np.array = None, 
-                    aacgm=False, title: bool = True, minimum_elevation: float = 0)->plt.Axes:
+                    aacgm=False, title: bool = True, minimum_elevation: float = 0,
+                    color_map: str = None,
+                    color_bounds: List[float] = None,
+                    color_norm: str = 'log',
+                    pcolormesh_kwargs={})->plt.Axes:
         """
         Plot a keogram along the meridian or a custom path.
 
@@ -923,6 +926,17 @@ class Imager:
             Add a plot title with the date, ASI array, and ASI location.
         minimum_elevation: float
             The minimum elevation of pixels to use in the keogram.
+        color_map: str
+            The matplotlib colormap to use. See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_
+            for supported colormaps.
+        color_bounds: List[float]
+            The lower and upper values of the color scale. The default is: low=1st_quartile and
+            high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
+        color_norm: str
+            Set the 'lin' linear or 'log' logarithmic color normalization.
+        pcolormesh_kwargs: dict
+            A dictionary of keyword arguments (kwargs) to pass directly into
+            plt.pcolormesh.
 
         Example
         -------
@@ -942,20 +956,29 @@ class Imager:
         | plt.tight_layout()
         | plt.show()
         """
-        im = ax.pcolormesh(
-        keo_df.index,
-        keo_df.columns,
-        keo_df.to_numpy()[:-1, :-1].T,
-        norm=norm,
-        shading='flat',
-        **pcolormesh_kwargs,
+        if ax is None:
+            fig, ax = plt.subplots()
+            
+        _keogram_time, _geogram_lat, _keogram = self.keogram(
+            path=path, aacgm=aacgm, minimum_elevation=minimum_elevation)
+
+        _color_map, _color_norm = self._plot_params(_keogram, color_bounds, color_map, color_norm)
+
+        pcolormesh_obj = ax.pcolormesh(
+            _keogram_time,
+            _geogram_lat,
+            _keogram,
+            norm=_color_norm,
+            shading='flat',
+            cmap=_color_map,
+            **pcolormesh_kwargs,
         )
 
         if title:
             ax.set_title(
-                f'{time_range[0].date()} | {asi_array_code.upper()}-{location_code.upper()} keogram'
+                f'{self._data["time_range"][0].date()} | {self.meta["array"]}-{self.meta["location"]} keogram'
             )
-        return ax, im
+        return ax, pcolormesh_obj
 
     def _keogram_pixels(self, path, minimum_elevation=0):
         """
