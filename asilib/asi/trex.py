@@ -126,7 +126,7 @@ def trex_nir(
 
     if load_images:
         # Download and find image data
-        file_paths = themis._get_pgm_files(pgm_base_url, 'trex', location_code, time, time_range, local_pgm_dir, 
+        file_paths = themis._get_pgm_files('trex', location_code, time, time_range, pgm_base_url, local_pgm_dir, 
             redownload, missing_ok)
 
         if time is not None:

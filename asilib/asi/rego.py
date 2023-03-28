@@ -98,7 +98,7 @@ def rego(
 
     if load_images:
         # Download and find image data
-        file_paths = themis._get_pgm_files(pgm_base_url, 'rego', location_code, time, time_range, local_pgm_dir, 
+        file_paths = themis._get_pgm_files('rego', location_code, time, time_range, pgm_base_url, local_pgm_dir, 
             redownload, missing_ok)
 
         if time is not None:
