@@ -2,9 +2,11 @@
 Tests the themis() data loading and asilib plotting functions.
 """
 from datetime import datetime
+import pathlib
 
 import requests
 import pytest
+import matplotlib.testing.decorators
 
 import asilib.asi.themis as themis
 
@@ -102,3 +104,50 @@ def test_themis_asi_meta():
 ##########################################
 ############# TEST EXAMPLES ##############
 ##########################################
+@matplotlib.testing.decorators.image_comparison(['test_themis_fisheye.png'])
+def test_themis_fisheye():
+    """
+    Plot a fisheye lens image.
+
+    To update the baseline image run the code in this test and then save the figure via
+    plt.savefig(pathlib.Path(asilib.__file__).parent / 'tests' / 'baseline_images/test_themis/test_themis_fisheye.png') 
+    """
+    from datetime import datetime
+    import matplotlib
+    import matplotlib.pyplot as plt
+    import asilib
+
+    # Need this in the test and when making the baseline image. This ensures that the 
+    # dimensions of the resulting plots will be different.
+
+    matplotlib.use('Agg')
+
+    asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
+    ax, im = asi.plot_fisheye(cardinal_directions='NE', origin=(0.95, 0.05))
+    plt.colorbar(im)
+    ax.axis('off')
+    return
+
+@matplotlib.testing.decorators.image_comparison(['test_themis_map.png'])
+def test_themis_map():
+    """
+    Plot a fisheye lens image.
+
+    To update the baseline image run the code in this test and then save the figure via
+    plt.savefig(pathlib.Path(asilib.__file__).parent / 'tests' / 'baseline_images/test_themis/test_themis_map.png') 
+    """
+    from datetime import datetime
+    import matplotlib
+    import matplotlib.pyplot as plt
+    import asilib
+
+    # Need this in the test and when making the baseline image. This ensures that the 
+    # dimensions of the resulting plots will be different.
+
+    matplotlib.use('Agg')
+
+    asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
+    ax, im = asi.plot_fisheye(cardinal_directions='NE', origin=(0.95, 0.05))
+    plt.colorbar(im)
+    ax.axis('off')
+    return
