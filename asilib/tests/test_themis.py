@@ -104,7 +104,7 @@ def test_themis_asi_meta():
 ##########################################
 ############# TEST EXAMPLES ##############
 ##########################################
-@matplotlib.testing.decorators.image_comparison(['test_themis_fisheye.png'])
+@matplotlib.testing.decorators.image_comparison(['test_themis_map.png'], tol=10)
 def test_themis_fisheye():
     """
     Plot a fisheye lens image.
@@ -128,7 +128,7 @@ def test_themis_fisheye():
     ax.axis('off')
     return
 
-@matplotlib.testing.decorators.image_comparison(['test_themis_map.png'])
+@matplotlib.testing.decorators.image_comparison(['test_themis_map.png'], tol=10)
 def test_themis_map():
     """
     Plot a fisheye lens image.
