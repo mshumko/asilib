@@ -1,5 +1,5 @@
 """
-Tests the themis() data loading function.
+Tests the themis() data loading and asilib plotting functions.
 """
 from datetime import datetime
 
@@ -8,6 +8,9 @@ import pytest
 
 import asilib.asi.themis as themis
 
+##########################################
+############# TEST LOADERS ###############
+##########################################
 
 def test_themis_time():
     """
@@ -95,3 +98,7 @@ def test_themis_asi_meta():
         'resolution': (256, 256),
     }
     return
+
+##########################################
+############# TEST EXAMPLES ##############
+##########################################

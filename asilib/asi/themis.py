@@ -81,7 +81,7 @@ def themis(
 
     if load_images:
         # Download and find image data
-        file_paths = _get_pgm_files('themis', location_code, time, time_range, local_pgm_dir, redownload, missing_ok)
+        file_paths = _get_pgm_files('themis', location_code, time, time_range, pgm_base_url, local_pgm_dir, redownload, missing_ok)
 
         if time is not None:
             # Find and load the nearest time stamp
@@ -218,8 +218,8 @@ def themis_info() -> pd.DataFrame:
     return df.reset_index(drop=True)
 
 
-def _get_pgm_files(base_url, array:str, location_code:str, time:datetime, time_range:Iterable[datetime], 
-                    save_dir:Union[str, pathlib.Path], redownload:bool, missing_ok:bool
+def _get_pgm_files(array:str, location_code:str, time:datetime, time_range:Iterable[datetime], 
+                    base_url:str, save_dir:Union[str, pathlib.Path], redownload:bool, missing_ok:bool
                     )->List[pathlib.Path]:
     """ 
     Look for and download 1-minute PGM files.
@@ -236,6 +236,8 @@ def _get_pgm_files(base_url, array:str, location_code:str, time:datetime, time_r
     time_range: Iterable[datetime]
         An iterable with a start and end time. Either time or time_range must be 
         specified, but not both.
+    base_url: str
+        The starting URL to search for file.
     save_dir: str or pathlib.Path
         The parent directory where to save the data to.
     redownload: bool
@@ -258,7 +260,7 @@ def _get_pgm_files(base_url, array:str, location_code:str, time:datetime, time_r
     if redownload:
         # Option 1/4: Download one minute of data regardless if it is already saved
         if time is not None:
-            return [_download_one_pgm_file(base_url, array, location_code, time, save_dir, redownload)]
+            return [_download_one_pgm_file(array, location_code, time, base_url, save_dir, redownload)]
 
         # Option 2/4: Download the data in time range regardless if it is already saved.
         elif time_range is not None:
@@ -268,7 +270,7 @@ def _get_pgm_files(base_url, array:str, location_code:str, time:datetime, time_r
             for file_time in file_times:
                 try:
                     file_paths.append(
-                        _download_one_pgm_file(base_url, array, location_code, file_time, save_dir, redownload)
+                        _download_one_pgm_file(array, location_code, file_time, base_url, save_dir, redownload)
                     )
                 except (FileNotFoundError, AssertionError) as err:
                     if missing_ok and (
@@ -286,7 +288,7 @@ def _get_pgm_files(base_url, array:str, location_code:str, time:datetime, time_r
             if len(local_file_paths) == 1:
                 return local_file_paths
             else:
-                return [_download_one_pgm_file(base_url, array, location_code, time, save_dir, redownload)]
+                return [_download_one_pgm_file(array, location_code, time, base_url, save_dir, redownload)]
 
         # Option 4/4: Download the data in time range if they don't exist locally.
         elif time_range is not None:
@@ -303,7 +305,7 @@ def _get_pgm_files(base_url, array:str, location_code:str, time:datetime, time_r
                 else:
                     try:
                         file_paths.append(
-                            _download_one_pgm_file(base_url, array, location_code, file_time, save_dir, redownload)
+                            _download_one_pgm_file(array, location_code, file_time, base_url, save_dir, redownload)
                         )
                     except (FileNotFoundError, AssertionError) as err:
                         if missing_ok and (
@@ -315,8 +317,8 @@ def _get_pgm_files(base_url, array:str, location_code:str, time:datetime, time_r
             return file_paths
 
 
-def _download_one_pgm_file(base_url:str, array:str, location_code:str, time:datetime, 
-        save_dir:Union[str, pathlib.Path], redownload:bool, 
+def _download_one_pgm_file(array:str, location_code:str, time:datetime, 
+        base_url:str, save_dir:Union[str, pathlib.Path], redownload:bool, 
         )->pathlib.Path:
     """
     Download one PGM file.
@@ -329,6 +331,8 @@ def _download_one_pgm_file(base_url:str, array:str, location_code:str, time:date
         The ASI four-letter location code.
     time: str or datetime.datetime
         A time to look for the ASI data at.
+    base_url: str
+        The starting URL to search for file.
     save_dir: str or pathlib.Path
         The parent directory where to save the data to.
     redownload: bool
