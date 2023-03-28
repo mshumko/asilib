@@ -11,7 +11,6 @@ import datetime
 import dateutil.parser
 import pathlib
 import inspect
-import importlib
 import shutil
 import copy
 from collections import namedtuple
@@ -22,9 +21,9 @@ import numpy as np
 import numpy.linalg
 import numpy.polynomial
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-import matplotlib
 import ffmpeg
 import aacgmv2
 
@@ -73,12 +72,6 @@ class Imager:
         an image and returns the lower and upper bound numbers, or a len 2 tuple or list.
         The ```color_map``` key must be a valid matplotlib colormap. And lastly, ```color_norm```
         must be either ```lin``` for linear or ```log``` for logarithmic color scale.
-
-    Attributes
-    ----------
-    data
-        A NamedTuple containing times and images. This loads all of the data into
-        memory (eager mode), so beware of your memory usage, as asilib will not.
     """
 
     def __init__(
@@ -107,6 +100,7 @@ class Imager:
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
+        origin:tuple=(0.8, 0.1)
     ) -> Tuple[plt.Axes, matplotlib.image.AxesImage]:
         """
         Plots one fisheye image, oriented with North on the top, and East on the left of the image.
@@ -136,6 +130,8 @@ class Imager:
             Plot one or more cardinal directions specified with a string containing the first
             letter of one or more cardinal directions. Case insensitive. For example, to plot
             the North and East directions, set cardinal_directions='NE'.
+        origin: tuple
+            The origin of the cardinal direction arrows.
 
         Returns
         -------
@@ -158,14 +154,11 @@ class Imager:
         -------
         >>> # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active
         >>> # auroral arc powered by accelerated electrons from very high altitudes"
-        >>>
         >>> from datetime import datetime
         >>> import matplotlib.pyplot as plt
         >>> import asilib
-        >>>
         >>> asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
-        >>> ax, im = asi.plot_fisheye(cardinal_directions='NE')
-        >>>
+        >>> ax, im = asi.plot_fisheye(cardinal_directions='NE', origin=(0.95, 0.05))
         >>> plt.colorbar(im)
         >>> ax.axis('off')
         >>> plt.show()
@@ -189,7 +182,7 @@ class Imager:
         if azel_contours:
             self._add_azel_contours(ax, color=azel_contour_color)
         if cardinal_directions is not None:
-            self._add_cardinal_directions(ax, cardinal_directions)
+            self._add_cardinal_directions(ax, cardinal_directions, origin=origin)
         return ax, im
 
     def animate_fisheye(self, **kwargs) -> None:
@@ -219,6 +212,8 @@ class Imager:
             Plot one or more cardinal directions specified with a string containing the first
             letter of one or more cardinal directions. Case insensitive. For example, to plot
             the North and East directions, set cardinal_directions='NE'.
+        origin: tuple
+            The origin of the cardinal direction arrows.
         movie_container: str
             The movie container: mp4 has better compression but avi was determined
             to be the official container for preserving digital video by the
@@ -246,10 +241,9 @@ class Imager:
         -------
         >>> from datetime import datetime
         >>> import asilib
-        >>>
         >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
         >>> imager = asilib.themis('FSMI', time_range=time_range)
-        >>> imager.animate_fisheye(cardinal_directions='NE', overwrite=True)
+        >>> imager.animate_fisheye(cardinal_directions='NE', origin:tuple=(0.95, 0.05), overwrite=True)
         >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
         """
         movie_generator = self.animate_fisheye_gen(**kwargs)
@@ -268,6 +262,7 @@ class Imager:
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
+        origin:tuple=(0.8, 0.1),
         movie_container: str = 'mp4',
         ffmpeg_params={},
         overwrite: bool = False,
@@ -306,6 +301,8 @@ class Imager:
             Plot one or more cardinal directions specified with a string containing the first
             letter of one or more cardinal directions. Case insensitive. For example, to plot
             the North and East directions, set cardinal_directions='NE'.
+        origin: tuple
+            The origin of the cardinal direction arrows.
         movie_container: str
             The movie container: mp4 has better compression but avi was determined
             to be the official container for preserving digital video by the
@@ -342,15 +339,13 @@ class Imager:
         -------
         >>> from datetime import datetime
         >>> import asilib
-        >>>
         >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
         >>> imager = asilib.themis('FSMI', time_range=time_range)
-        >>> gen = imager.animate_fisheye_gen(cardinal_directions='NE', overwrite=True)
-        >>>
+        >>> gen = imager.animate_fisheye_gen(cardinal_directions='NE', origin=(0.95, 0.05), overwrite=True)
         >>> for image_time, image, ax, im in gen:
-        >>>         # Add your code that modifies each image here.
-        >>>         pass
-        >>>
+        ...         # Add your code that modifies each image here.
+        ...         pass
+        ...
         >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
         """
         if ax is None:
@@ -885,15 +880,28 @@ class Imager:
         self._keogram = self._keogram[:, : self._pixels.shape[0]]
         self._geogram_lat = self._keogram_latitude(aacgm)
 
-        start_time_index = 0
-        for time_chunk, image_chunk in self.iter_chunks():
-            end_time_index = start_time_index + image_chunk.shape[0]
-
-            self._keogram[start_time_index:end_time_index, :] = image_chunk[
+        #TODO: Add a test to trigger this behavior.
+        if (hasattr(self, '_times')) and (hasattr(self, '_images')):
+            # if self.data() was already called
+            self._keogram[0:self._images.shape[0]] = self._images[
                 :, self._pixels[:, 0], self._pixels[:, 1]
-            ]
-            self._keogram_time[start_time_index:end_time_index] = time_chunk
-            start_time_index += image_chunk.shape[0]
+                ]
+        else:
+            # Otherwise load the data, one file at a time.
+            start_time_index = 0
+            _progressbar = utils.progressbar(
+                    self.iter_files(),
+                    iter_length=np.array(self._data['path']).shape[0],
+                    text=f'{self.meta["array"]} {self.meta["location"]} keogram',
+                )
+            for file_times, file_images in _progressbar:
+                end_time_index = start_time_index + file_images.shape[0]
+
+                self._keogram[start_time_index:end_time_index, :] = file_images[
+                    :, self._pixels[:, 0], self._pixels[:, 1]
+                ]
+                self._keogram_time[start_time_index:end_time_index] = file_times
+                start_time_index += file_images.shape[0]
 
         # Remove NaN keogram rows (unfilled or the data is NaN.).
         i_valid = np.where(~np.isnan(self._keogram[:, 0]))[0]
@@ -984,7 +992,7 @@ class Imager:
             _geogram_lat,
             _keogram[:-1, :-1].T,
             norm=_color_norm,
-            shading='flat',
+            shading='auto',
             cmap=_color_map,
             **pcolormesh_kwargs,
         )
@@ -995,7 +1003,7 @@ class Imager:
             )
         return ax, pcolormesh_obj
 
-    def _keogram_pixels(self, path, minimum_elevation=0):
+    def _keogram_pixels(self, path, minimum_elevation=20):
         """
         Find what pixels to index and reshape the keogram.
         """
@@ -1014,7 +1022,8 @@ class Imager:
             self._pixels = self._path_to_pixels(path)
 
         above_elevation = np.where(
-            self.skymap['el'][self._pixels[:, 0], self._pixels[:, 1]] >= minimum_elevation
+            (self.skymap['el'][self._pixels[:, 0], self._pixels[:, 1]] >= minimum_elevation) &
+            (np.isfinite(self.skymap['lat'][self._pixels[:, 0], self._pixels[:, 1]])) 
         )[0]
         self._pixels = self._pixels[above_elevation]
         return
@@ -1068,12 +1077,13 @@ class Imager:
         Keogram's vertical axis: geographic latitude, magnetic latitude, or pixel index.
         """
         _geo_lats = self.skymap['lat'][self._pixels[:, 0], self._pixels[:, 1]]
+        assert np.all(np.isfinite(_geo_lats)), f'Some keogram lats are NaNs {_geo_lats=}.'
         if aacgm:
             _geo_lons = self.skymap['lon'][self._pixels[:, 0], self._pixels[:, 1]]
             _aacgm_lats = aacgmv2.convert_latlon_arr(
                 _geo_lats,
                 _geo_lons,
-                self.skymap['alt']/1E3,
+                self.skymap['alt'],
                 self._data['time_range'][0],
                 method_code="G2A",
             )[0]
@@ -1273,13 +1283,38 @@ class Imager:
             for time_i, image_i in zip(self._times, self._images):
                 yield time_i, image_i
         else:
-            for time_chunk, image_chunk in self.iter_chunks():
-                for time_i, image_i in zip(time_chunk, image_chunk):
+            for file_times, file_images in self.iter_files():
+                for time_i, image_i in zip(file_times, file_images):
                     yield time_i, image_i
 
-    def iter_chunks(self):
+    def iter_files(self) -> Union[np.array, np.array]:
         """
-        Iterate over chucks of ASI time stamps and images.
+        Iterate one ASI file (or large chunks of a file) at a time.
+        The output data is clipped by time_range.
+
+        Yields
+        ------
+        np.array:
+            ASI timestamps in datetine.datetime() or numpy.datetime64() format.
+        np.array:
+            ASI images.
+
+        Example
+        -------
+        Loop over ~5 minutes of data, starting in the middle of one file.
+            .. code-block:: python
+
+                >>> import asilib
+                >>> time_range=['2008-01-16T10:00:30', '2008-01-16T10:05'] 
+                >>> asi = asilib.themis('GILL', time_range=time_range)
+                >>> for file_times, file_images in asi.iter_files():
+                ...     print(file_times[0], file_times[-1], file_images.shape)
+                ... 
+                2008-01-16 10:00:30.019526 2008-01-16 10:00:57.049007 (10, 256, 256)
+                2008-01-16 10:01:00.058996 2008-01-16 10:01:57.049620 (20, 256, 256)
+                2008-01-16 10:02:00.059597 2008-01-16 10:02:57.029981 (20, 256, 256)
+                2008-01-16 10:03:00.050822 2008-01-16 10:03:57.020254 (20, 256, 256)
+                2008-01-16 10:04:00.030448 2008-01-16 10:04:57.046170 (20, 256, 256)
         """
         self._loader_is_gen = inspect.isgeneratorfunction(self._data['loader'])
         if 'time_range' not in self._data.keys():
@@ -1309,6 +1344,31 @@ class Imager:
                     )[0]
                     yield time_chunk[idt], image_chunk[idt]
         return
+    
+    def iter_chunks(self, chunk_size:int) -> Union[np.array, np.array]:
+        """
+        Chunk and iterate over the ASI data. The output data is 
+        clipped by time_range.
+
+        Parameters
+        ----------
+        chunk_size: int
+            The number of time stamps and images to return.
+
+        Yields
+        ------
+        np.array:
+            ASI timestamps in datetine.datetime() or numpy.datetime64() format.
+        np.array:
+            ASI images.
+
+        Example
+        ------- 
+        TODO: Add
+        """
+        raise NotImplementedError
+    
+        yield
 
     def _estimate_n_times(self):
         """
@@ -1341,10 +1401,10 @@ class Imager:
             self._images = np.nan * np.zeros((self._estimate_n_times(), *self.meta['resolution']))
 
             start_idt = 0
-            for time_chunk, image_chunk in self.iter_chunks():
-                self._times[start_idt : start_idt + time_chunk.shape[0]] = time_chunk
-                self._images[start_idt : start_idt + time_chunk.shape[0]] = image_chunk
-                start_idt += time_chunk.shape[0]
+            for file_times, file_images in self.iter_files():
+                self._times[start_idt : start_idt + file_times.shape[0]] = file_times
+                self._images[start_idt : start_idt + file_times.shape[0]] = file_images
+                start_idt += file_times.shape[0]
             # Cut any unfilled times and images
             valid_ind = np.where(~np.isnan(self._images[:, 0, 0]))[0]
             self._times = self._times[valid_ind]
@@ -1468,7 +1528,7 @@ class Imager:
         )
         return
 
-    def _add_cardinal_directions(self, ax, directions, el_step=5, origin=(0.9, 0.1), length=0.1):
+    def _add_cardinal_directions(self, ax, directions, el_step=10, origin=(0.8, 0.1), length=0.1):
         """
         Plot cardinal direction arrows. See _calc_cardinal_direction() for the algorithm.
 
@@ -1716,7 +1776,7 @@ class Imager:
             y,
             c,
             cmap=cmap,
-            shading='flat',
+            shading='auto',
             norm=norm,
             **pcolormesh_kwargs,
         )

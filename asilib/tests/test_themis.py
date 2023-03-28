@@ -6,7 +6,7 @@ from datetime import datetime
 import requests
 import pytest
 
-import asilib.array.themis as themis
+import asilib.asi.themis as themis
 
 
 def test_themis_time():

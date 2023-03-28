@@ -1,11 +1,14 @@
 array,location_code,name,latitude,longitude
-REGO,GILL,Gillam,56.376,-94.64
+REGO,ATHA,Athabasca,54.71,-113.28
 REGO,FSIM,Fort Simpson,61.756,-121.23
 REGO,FSMI,Fort Smith,60.017,-111.95
+REGO,GILL,Gillam,56.376,-94.64
+REGO,KAKT,Kaktovik,70.13, -143.62
+REGO,LUCK,Lucky Lake,51.15,-107.1
+REGO,LYRN,Longyearbyen,78.15,16.04
 REGO,RANK,Rankin Inlet,62.82,-92.11
 REGO,RESU,Resolute Bay,74.7,-94.83
-REGO,LUCK,Lucky Lake,51.15,-107.1
-REGO,ATHA,Athabasca,54.71,-113.28
+REGO,SACH,Sachs Harbour,71.99,-125.26
 REGO,TALO,Taloyoak,69.53,-93.53
 THEMIS,ATHA,Athabasca,54.71,-113.28
 THEMIS,CHBG,Chibougamau,49.814,-74.419
@@ -29,4 +32,22 @@ THEMIS,SNKQ,Sanikiluaq,56.536,-79.23
 THEMIS,TALO,Taloyoak,69.53,-93.53
 THEMIS,TPAS,The Pas,53.994,-100.941
 THEMIS,WHIT,Whitehorse,61.01,-135.223
-THEMIS,YKNF,Yellow Knife,62.52,-114.31
+THEMIS,YKNF,Yellowknife,62.52,-114.31
+TREx_NIR,ATHA,Athabasca,54.60,-113.64
+TREx_NIR,FSMI,Fort Smith,60.03,-111.93
+TREx_NIR,GILL,Gillam,56.38,-94.64
+TREx_NIR,LUCK,Lucky Lake,51.15,-107.26
+TREx_NIR,PINA,Pinawa,50.26,-95.87
+TREx_NIR,RABB,Rabbit Lake,58.23,-103.68
+TREx_Blue,ATHA,Athabasca,54.60,-113.64
+TREx_Blue,FSMI,Fort Smith,60.03,-111.93
+TREx_Blue,GILL,Gillam,56.38,-94.64
+TREx_Blue,LUCK,Lucky Lake,51.15,-107.26
+TREx_Blue,PINA,Pinawa,50.26,-95.87
+TREx_Blue,RABB,Rabbit Lake,58.23,-103.68
+TREx_RGB,ATHA,Athabasca,54.60,-113.64
+TREx_RGB,FSMI,Fort Smith,60.03,-111.93
+TREx_RGB,GILL,Gillam,56.38,-94.64
+TREx_RGB,LUCK,Lucky Lake,51.15,-107.26
+TREx_RGB,PINA,Pinawa,50.26,-95.87
+TREx_RGB,RABB,Rabbit Lake,58.23,-103.68
