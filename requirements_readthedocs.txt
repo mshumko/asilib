@@ -13,7 +13,7 @@ aacgmv2==2.6.0
 # Necessary libraries to load ASI data.
 themis-imager-readfile==1.0.11
 rego-imager-readfile==1.0.2
-trex-imager-readfile==1.1.0
+h5py==3.8.0
 
 # Dev
 bump2version==1.0.1 # For bumping up the versions
@@ -23,6 +23,7 @@ pytest==7.2.1
 pytest-cov==2.12.0
 
 # Docs
+sphinx==5.3.0
 sphinx-copybutton==0.3.1
 furo==2021.4.11b34
 nbsphinx==0.8.6

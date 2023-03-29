@@ -46,4 +46,3 @@ from asilib.imager import Imager
 from asilib.conjunction import Conjunction
 from asilib.asi.themis import themis, themis_info, themis_skymap
 from asilib.asi.rego import rego, rego_info, rego_skymap
-from asilib.asi.trex import trex_nir, trex_nir_info, trex_nir_skymap
