@@ -1,12 +1,17 @@
 """
-Tests the themis() data loading function.
+Tests the themis() data loading and the example plotting functions.
 """
 from datetime import datetime
 
 import requests
 import pytest
+import matplotlib.testing.decorators
 
-import asilib.array.themis as themis
+import asilib.asi.themis as themis
+
+##########################################
+############# TEST LOADERS ###############
+##########################################
 
 
 def test_themis_time():
@@ -94,4 +99,63 @@ def test_themis_asi_meta():
         'cadence': 3,
         'resolution': (256, 256),
     }
+    return
+
+
+##########################################
+############# TEST EXAMPLES ##############
+##########################################
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_themis_fisheye'], tol=10, remove_text=True, extensions=['png']
+)
+def test_themis_fisheye():
+    """
+    Plot a fisheye lens image.
+    """
+    from datetime import datetime
+    import matplotlib.pyplot as plt
+    import asilib
+
+    asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
+    ax, im = asi.plot_fisheye(cardinal_directions='NE', origin=(0.95, 0.05))
+    plt.colorbar(im)
+    ax.axis('off')
+    return
+
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_themis_map'], tol=10, remove_text=True, extensions=['png']
+)
+def test_themis_map():
+    """
+    Plot a fisheye lens image on a map.
+    """
+    from datetime import datetime
+    import matplotlib.pyplot as plt
+    import asilib
+
+    asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
+    ax, im = asi.plot_map()
+    plt.colorbar(im)
+    ax.axis('off')
+    return
+
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_themis_keogram'], tol=10, remove_text=True, extensions=['png']
+)
+def test_themis_keogram():
+    """
+    Plot a keogram.
+    """
+    from datetime import datetime
+    import matplotlib.pyplot as plt
+    import asilib
+
+    asi = asilib.themis(
+        'RANK', time_range=(datetime(2017, 9, 15, 2, 30, 0), datetime(2017, 9, 15, 2, 35, 0))
+    )
+    ax, im = asi.plot_keogram()
+    plt.colorbar(im)
+    ax.axis('off')
     return

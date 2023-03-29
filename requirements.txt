@@ -9,16 +9,23 @@ ffmpeg-python==0.2.0
 pymap3d==2.5.0
 pyshp==2.3.1
 aacgmv2==2.6.0
--e .
 
-# For development
+# Necessary libraries to load ASI data.
+themis-imager-readfile==1.0.11
+rego-imager-readfile==1.0.2
+h5py==3.8.0
+
+# Dev
 bump2version==1.0.1 # For bumping up the versions
-black==20.8b1 # For formatting code.
+black==23.3.0 # For formatting code.
 pytest==7.2.1
 pytest-cov==2.12.0
 
-# For docs
-# Sphinx themes
+# Docs
+sphinx==5.3.0
 sphinx-copybutton==0.3.1
 furo==2021.4.11b34
 nbsphinx==0.8.6
+jinja2<3.1.0
+
+-e .

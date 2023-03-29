@@ -23,7 +23,3 @@ def test_find():
     c = asilib.Conjunction(img, times, lla)
     c.find()
     return
-
-
-# def test_load_images():
-#     return

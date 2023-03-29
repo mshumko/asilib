@@ -17,3 +17,5 @@ docs/_build/
 .vscode/settings.json
 asilib/tests/.coverage
 .vscode/launch.json
+docs/reference/api/*
+asilib/tests/result_images/*

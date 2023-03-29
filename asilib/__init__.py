@@ -1,7 +1,7 @@
 import pathlib
 import configparser
 
-__version__ = '0.14.0'
+__version__ = '0.14.1'
 
 # Load the configuration settings.
 HERE = pathlib.Path(__file__).parent.resolve()
@@ -44,4 +44,5 @@ from asilib.analysis.equal_area import equal_area
 # Imager implementation functions and classes.
 from asilib.imager import Imager
 from asilib.conjunction import Conjunction
-from asilib.array.themis import themis, themis_info
+from asilib.asi.themis import themis, themis_info, themis_skymap
+from asilib.asi.rego import rego, rego_info, rego_skymap

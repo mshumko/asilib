@@ -30,9 +30,9 @@ Summary
    asilib.imager.Imager
    asilib.conjunction.Conjunction
    asilib.map
-   asilib.array.themis.themis
-   asilib.array.lamp_emccd.lamp
-   asilib.array.lamp_phantom.lamp
+   asilib.asi.themis.themis
+   asilib.asi.lamp_emccd.lamp
+   asilib.asi.lamp_phantom.lamp
 
 
 Imager
@@ -53,7 +53,7 @@ Supported ASI systems (arrays)
 
 THEMIS
 ^^^^^^
-.. automodule:: asilib.array.themis
+.. automodule:: asilib.asi.themis
    :members:
    :undoc-members:
    :show-inheritance:
@@ -61,12 +61,12 @@ THEMIS
 LAMP
 ^^^^
 
-.. automodule:: asilib.array.lamp_emccd
+.. automodule:: asilib.asi.lamp_emccd
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: asilib.array.lamp_phantom
+.. automodule:: asilib.asi.lamp_phantom
    :members:
    :undoc-members:
    :show-inheritance:
