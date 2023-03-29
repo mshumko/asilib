@@ -1,3 +1,8 @@
+# Version 0.14.1
+- Added tests for `asilib.themis()` plotting functions
+- Moved map creating examples to `asilib.map.create_map()`.
+- Fixed numerous minor bugs in `asilib.Imager()`.
+
 # Version 0.14.0
 - Added `Imager.plot_map()`, `Imager.animate_map()`, `Imager.animate_map_gen()` methods and documentation that project images, or a series of images, onto a geographic map.
 - Added `Imager.keogram()`, and `Imager.plot_keogram()` methods to make keograms
