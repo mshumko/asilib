@@ -18,3 +18,4 @@ docs/_build/
 asilib/tests/.coverage
 .vscode/launch.json
 docs/reference/api/*
+tests/result_images/*
