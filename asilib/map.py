@@ -112,8 +112,8 @@ def create_map(
     >>> fig = plt.figure(figsize=(6, 10))
     >>> bx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, 211))
     >>> cx = fig.add_subplot(2, 1, 2)
-    >>> cx.plot(np.arange(10), np.random.rand(10))
-    >>> fig.suptitle('Two subplots with equal aspect ratios')
+    >>> cx.plot(np.arange(10), np.arange(10))
+    >>> fig.suptitle('Two subplots with equal sizes')
     >>> plt.show()
 
     >>> # Another multi-subplot example with different height ratios. The syntax is the same as in plt.subplot() (See the args section in https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplot.html).
@@ -124,8 +124,8 @@ def create_map(
     >>> dx = (3, 1, (1, 2))
     >>> dx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, dx))
     >>> ex = fig.add_subplot(3, 1, 3)
-    >>> ex.plot(np.arange(10), np.random.rand(10))
-    >>> fig.suptitle('Two subplots with differing aspect ratios')
+    >>> ex.plot(np.arange(10), np.arange(10))
+    >>> fig.suptitle('Two subplots with unequal sizes')
     >>> plt.show()
 
     >>> # And make a map using gridspec 

@@ -1,5 +1,5 @@
 """
-Tests the themis() data loading and asilib plotting functions.
+Tests the themis() data loading and the example plotting functions.
 """
 from datetime import datetime
 
