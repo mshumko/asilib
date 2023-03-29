@@ -521,7 +521,6 @@ class Imager:
             ax = asilib.map.create_map(
                 lon_bounds=lon_bounds,
                 lat_bounds=lat_bounds,
-                ax=ax,
                 coast_color=coast_color,
                 land_color=land_color,
                 ocean_color=ocean_color,
