@@ -101,7 +101,7 @@ class Imager:
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
         origin:tuple=(0.8, 0.1)
-    ) -> Tuple[plt.Axes, matplotlib.image.AxesImage]:
+    ) -> Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
         """
         Plots one fisheye image, oriented with North on the top, and East on the left of the image.
 
@@ -137,7 +137,7 @@ class Imager:
         -------
         ax: plt.Axes
             The subplot object to modify the axis, labels, etc.
-        im: plt.AxesImage
+        im: matplotlib.collections.QuadMesh
             The plt.imshow image object. Common use for im is to add a colorbar.
             The image is oriented in the map orientation (north is up, south is down,
             west is right, and east is left). Set azel_contours=True to confirm.
@@ -267,7 +267,7 @@ class Imager:
         ffmpeg_params={},
         overwrite: bool = False,
     ) -> Generator[
-        Tuple[datetime.datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None
+        Tuple[datetime.datetime, np.ndarray, plt.Axes, matplotlib.collections.QuadMesh], None, None
     ]:
         """
         Animate a series of fisheye images and superpose your data on each image.
@@ -322,7 +322,7 @@ class Imager:
             A 2d image array of the image corresponding to image_time
         ax: plt.Axes
             The subplot object to modify the axis, labels, etc.
-        im: plt.AxesImage
+        im: matplotlib.collections.QuadMesh
             The plt.imshow image object. Common use for im is to add a colorbar.
             The image is oriented in the map orientation (north is up, south is down,
             west is right, and east is left). Set azel_contours=True to confirm.
@@ -423,7 +423,7 @@ class Imager:
         min_elevation: float = 10,
         asi_label: bool = True,
         pcolormesh_kwargs: dict = {},
-    ) -> plt.Axes:
+    ) -> Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
         """
         Projects the ASI images to a map at an altitude defined in the skymap calibration file.
 
@@ -462,9 +462,9 @@ class Imager:
 
         Returns
         -------
-        ax: plt.Axes
+        plt.Axes
             The subplot object to modify the axis, labels, etc.
-        p: plt.AxesImage
+        matplotlib.collections.QuadMesh
             The plt.pcolormesh image object. Common use for p is to add a colorbar.
 
         Examples
@@ -657,7 +657,7 @@ class Imager:
         ffmpeg_params={},
         overwrite: bool = False,
     ) -> Generator[
-        Tuple[datetime.datetime, np.ndarray, plt.Axes, matplotlib.image.AxesImage], None, None
+        Tuple[datetime.datetime, np.ndarray, plt.Axes, matplotlib.collections.QuadMesh], None, None
     ]:
         """
         Animate a series of mapped images and superpose your data on each image.
@@ -720,7 +720,7 @@ class Imager:
             A 2d image array of the image corresponding to image_time
         ax: plt.Axes
             The subplot object to modify the axis, labels, etc.
-        im: plt.AxesImage
+        im: matplotlib.collections.QuadMesh
             The plt.imshow image object. Common use for im is to add a colorbar.
             The image is oriented in the map orientation (north is up, south is down,
             west is right, and east is left). Set azel_contours=True to confirm.
@@ -921,7 +921,7 @@ class Imager:
                     color_map: str = None,
                     color_bounds: List[float] = None,
                     color_norm: str = 'log',
-                    pcolormesh_kwargs={})->plt.Axes:
+                    pcolormesh_kwargs={})->Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
         """
         Plot a keogram along the meridian or a custom path.
 
@@ -952,6 +952,13 @@ class Imager:
         pcolormesh_kwargs: dict
             A dictionary of keyword arguments (kwargs) to pass directly into
             plt.pcolormesh.
+
+        Returns
+        -------
+        plt.Axes
+            The subplot object to modify the axis, labels, etc.
+        matplotlib.collections.QuadMesh
+            The plt.pcolormesh image object, useful to add a colorbar, for example.
 
         Example
         -------
