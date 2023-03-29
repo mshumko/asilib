@@ -77,7 +77,7 @@ def create_map(
         .. code-block:: python
 
             fig = plt.Figure()
-            ax = asilib.map.create_cartopy_map(ax=(fig, 111))
+            ax = asilib.map.create_cartopy_map(fig_ax=(fig, 111))
     coast_color: str
         The coast color. If None will not draw it.
     land_color: str
@@ -92,8 +92,51 @@ def create_map(
 
     Examples
     --------
-    If you have cartopy installed see the examples in :py:meth:`~asilib.map.create_cartopy_map`.
-    Alternatively, if you don't have cartopy installed see the examples in :py:meth:`~asilib.map.create_simple_map`.
+    These examples will differ if you have cartopy installed or not. To force a consistent map, 
+    replace ``asilib.map.create_map`` with ``asilib.map.create_simple_map`` or 
+    ``asilib.map.create_cartopy_map``.
+
+    Examples
+    --------
+    >>> # Create a map above Scandinavia in a single subplot
+    >>> import asilib.map
+    >>> import matplotlib.pyplot as plt
+    >>> ax = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75])
+    >>> ax.set_title('Generated via asilib.map.create_map()')
+    >>> plt.show()
+
+    >>> # The above examples made a map on one subplot. But what if you have multiple subplots?
+    >>> import asilib.map
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+    >>> fig = plt.figure(figsize=(6, 10))
+    >>> bx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, 211))
+    >>> cx = fig.add_subplot(2, 1, 2)
+    >>> cx.plot(np.arange(10), np.random.rand(10))
+    >>> fig.suptitle('Two subplots with equal aspect ratios')
+    >>> plt.show()
+
+    >>> # Another multi-subplot example with different height ratios. The syntax is the same as in plt.subplot() (See the args section in https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplot.html).
+    >>> import asilib.map
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+    >>> fig = plt.figure(figsize=(6, 10))
+    >>> dx = (3, 1, (1, 2))
+    >>> dx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, dx))
+    >>> ex = fig.add_subplot(3, 1, 3)
+    >>> ex.plot(np.arange(10), np.random.rand(10))
+    >>> fig.suptitle('Two subplots with differing aspect ratios')
+    >>> plt.show()
+
+    >>> # And make a map using gridspec 
+    >>> import asilib.map
+    >>> import matplotlib.pyplot as plt
+    >>> import matplotlib.gridspec
+    >>> fig = plt.figure()
+    >>> gs = matplotlib.gridspec.GridSpec(1, 1, fig)
+    >>> dx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, gs))
+    >>> dx.set_title('Map made using gridspec')
+    >>> plt.show()
 
     See Also
     --------
@@ -151,7 +194,7 @@ def create_simple_map(
         .. code-block:: python
 
             fig = plt.Figure()
-            ax = asilib.map.create_cartopy_map(ax=(fig, 111))
+            ax = asilib.map.create_simple_map(fig_ax=(fig, 111))
     coast_color: str
         The coast color. If None will not draw it.
     land_color: str
@@ -163,52 +206,14 @@ def create_simple_map(
         shapefile in asilib/data/{file}. You can download other shapefiles from
         https://www.naturalearthdata.com/downloads/10m-physical-vectors/.
 
+    Examples
+    --------
+    See :py:meth:`~asilib.map.create_map` and replace ``create_map`` with ``create_simple_map``.
+
     Returns
     -------
     plt.Axes
         The subplot object containing the map.
-
-    Examples
-    --------
-    >>> # Create a cartopy map above Scandinavia in a single subplot
-    >>> import asilib.map
-    >>> import matplotlib.pyplot as plt
-    >>> ax = asilib.map.create_simple_map(lon_bounds=[0, 38], lat_bounds=[50, 75])
-    >>> ax.set_title('Generated via asilib.map.create_simple_map()')
-    >>> plt.show()
-
-    >>> # The above examples made a map on one subplot. But what if you have multiple subplots?
-    >>> import asilib.map
-    >>> import numpy as np
-    >>> import matplotlib.pyplot as plt
-    >>> fig = plt.figure(figsize=(6, 10))
-    >>> bx = asilib.map.create_simple_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, 211))
-    >>> cx = fig.add_subplot(2, 1, 2)
-    >>> cx.plot(np.arange(10), np.random.rand(10))
-    >>> fig.suptitle('Two subplots with equal aspect ratios')
-    >>> plt.show()
-
-    >>> # Another multi-subplot example with different height ratios. The syntax is the same as in plt.subplot() (See the args section in https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplot.html).
-    >>> import asilib.map
-    >>> import numpy as np
-    >>> import matplotlib.pyplot as plt
-    >>> fig = plt.figure(figsize=(6, 10))
-    >>> dx = (3, 1, (1, 2))
-    >>> dx = asilib.map.create_simple_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, dx))
-    >>> ex = fig.add_subplot(3, 1, 3)
-    >>> ex.plot(np.arange(10), np.random.rand(10))
-    >>> fig.suptitle('Two subplots with differing aspect ratios')
-    >>> plt.show()
-
-    >>> # And make a map using gridspec 
-    >>> import asilib.map
-    >>> import matplotlib.pyplot as plt
-    >>> import matplotlib.gridspec
-    >>> fig = plt.figure()
-    >>> gs = matplotlib.gridspec.GridSpec(1, 1, fig)
-    >>> dx = asilib.map.create_simple_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, gs))
-    >>> dx.set_title('Map made using gridspec')
-    >>> plt.show()
     """
     _validate_fig_ax(fig_ax)
     shp_path = asilib.config['ASILIB_DIR'] / 'data' / f'{file}'
@@ -281,7 +286,7 @@ def create_cartopy_map(
         .. code-block:: python
 
             fig = plt.Figure()
-            ax = asilib.map.create_cartopy_map(ax=(fig, 111))
+            ax = asilib.map.create_cartopy_map(fig_ax=(fig, 111))
 
     coast_color: str
         The coast color. If None will not draw it.
@@ -297,45 +302,7 @@ def create_cartopy_map(
 
     Examples
     --------
-    >>> # Create a cartopy map above Scandinavia in a single subplot
-    >>> import asilib.map
-    >>> import matplotlib.pyplot as plt
-    >>> ax = asilib.map.create_cartopy_map(lon_bounds=[0, 38], lat_bounds=[50, 75])
-    >>> ax.set_title('Generated via asilib.map.create_cartopy_map()')
-    >>> plt.show()
-
-    >>> # The above examples made a map on one subplot. But what if you have multiple subplots?
-    >>> import asilib.map
-    >>> import numpy as np
-    >>> import matplotlib.pyplot as plt
-    >>> fig = plt.figure(figsize=(6, 10))
-    >>> bx = asilib.map.create_cartopy_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, 211))
-    >>> cx = fig.add_subplot(2, 1, 2)
-    >>> cx.plot(np.arange(10), np.random.rand(10))
-    >>> fig.suptitle('Two subplots with equal aspect ratios')
-    >>> plt.show()
-
-    >>> # Another multi-subplot example with different height ratios. The syntax is the same as in plt.subplot() (See the args section in https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplot.html).
-    >>> import asilib.map
-    >>> import numpy as np
-    >>> import matplotlib.pyplot as plt
-    >>> fig = plt.figure(figsize=(6, 10))
-    >>> dx = (3, 1, (1, 2))
-    >>> dx = asilib.map.create_cartopy_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, dx))
-    >>> ex = fig.add_subplot(3, 1, 3)
-    >>> ex.plot(np.arange(10), np.random.rand(10))
-    >>> fig.suptitle('Two subplots with differing aspect ratios')
-    >>> plt.show()
-
-    >>> # And make a map using gridspec 
-    >>> import asilib.map
-    >>> import matplotlib.pyplot as plt
-    >>> import matplotlib.gridspec
-    >>> fig = plt.figure()
-    >>> gs = matplotlib.gridspec.GridSpec(1, 1, fig)
-    >>> dx = asilib.map.create_cartopy_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, gs))
-    >>> dx.set_title('Map made using gridspec')
-    >>> plt.show()
+    See :py:meth:`~asilib.map.create_map` and replace ``create_map`` with ``create_simple_map``.
     """
     _validate_fig_ax(fig_ax)
     plot_extent = [*lon_bounds, *lat_bounds]
