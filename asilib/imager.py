@@ -100,7 +100,7 @@ class Imager:
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
-        origin:tuple=(0.8, 0.1)
+        origin: tuple = (0.8, 0.1),
     ) -> Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
         """
         Plots one fisheye image, oriented with North on the top, and East on the left of the image.
@@ -262,7 +262,7 @@ class Imager:
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
-        origin:tuple=(0.8, 0.1),
+        origin: tuple = (0.8, 0.1),
         movie_container: str = 'mp4',
         ffmpeg_params={},
         overwrite: bool = False,
@@ -413,7 +413,9 @@ class Imager:
         self,
         lon_bounds: tuple = (-160, -50),
         lat_bounds: tuple = (40, 82),
-        ax: Union[plt.Axes, tuple] = None,  # TODO: Mention gridspec (https://matplotlib.org/stable/tutorials/intermediate/arranging_axes.html#id1)
+        ax: Union[
+            plt.Axes, tuple
+        ] = None,  # TODO: Mention gridspec (https://matplotlib.org/stable/tutorials/intermediate/arranging_axes.html#id1)
         coast_color: str = 'k',
         land_color: str = 'g',
         ocean_color: str = 'w',
@@ -836,7 +838,7 @@ class Imager:
         np.array:
             Keogram timestamps
         np.array:
-            Keogram latitudes: geographic if the aacgm kwarg is False and magnetic is 
+            Keogram latitudes: geographic if the aacgm kwarg is False and magnetic is
             aacgm if True.
         np.array:
             Keogram array with rows corresponding to times and columns with latitudes.
@@ -848,9 +850,9 @@ class Imager:
         >>> # Event from https://doi.org/10.1029/2021GL094696
         >>> import numpy as np
         >>> import asilib
-        >>> 
+        >>>
         >>> time_range=['2008-01-16T10', '2008-01-16T12']
-        >>> 
+        >>>
         >>> asi = asilib.themis('GILL', time_range=time_range)
         >>> time, geo_lat, geo_keogram = asi.keogram()  # geographic latitude
         >>> time, mag_lat, mag_keogram = asi.keogram(aacgm=True)  # magnetic latitude
@@ -879,20 +881,20 @@ class Imager:
         self._keogram = self._keogram[:, : self._pixels.shape[0]]
         self._geogram_lat = self._keogram_latitude(aacgm)
 
-        #TODO: Add a test to trigger this behavior.
+        # TODO: Add a test to trigger this behavior.
         if (hasattr(self, '_times')) and (hasattr(self, '_images')):
             # if self.data() was already called
-            self._keogram[0:self._images.shape[0]] = self._images[
+            self._keogram[0 : self._images.shape[0]] = self._images[
                 :, self._pixels[:, 0], self._pixels[:, 1]
-                ]
+            ]
         else:
             # Otherwise load the data, one file at a time.
             start_time_index = 0
             _progressbar = utils.progressbar(
-                    self.iter_files(),
-                    iter_length=np.array(self._data['path']).shape[0],
-                    text=f'{self.meta["array"]} {self.meta["location"]} keogram',
-                )
+                self.iter_files(),
+                iter_length=np.array(self._data['path']).shape[0],
+                text=f'{self.meta["array"]} {self.meta["location"]} keogram',
+            )
             for file_times, file_images in _progressbar:
                 end_time_index = start_time_index + file_images.shape[0]
 
@@ -915,12 +917,18 @@ class Imager:
             )
         return self._keogram_time, self._geogram_lat, self._keogram
 
-    def plot_keogram(self, ax:plt.Axes = None, path: np.array = None, 
-                    aacgm=False, title: bool = True, minimum_elevation: float = 0,
-                    color_map: str = None,
-                    color_bounds: List[float] = None,
-                    color_norm: str = 'log',
-                    pcolormesh_kwargs={})->Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
+    def plot_keogram(
+        self,
+        ax: plt.Axes = None,
+        path: np.array = None,
+        aacgm=False,
+        title: bool = True,
+        minimum_elevation: float = 0,
+        color_map: str = None,
+        color_bounds: List[float] = None,
+        color_norm: str = 'log',
+        pcolormesh_kwargs={},
+    ) -> Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
         """
         Plot a keogram along the meridian or a custom path.
 
@@ -965,14 +973,14 @@ class Imager:
         >>> # Event from https://doi.org/10.1029/2021GL094696
         >>> import matplotlib.pyplot as plt
         >>> import asilib
-        >>> 
+        >>>
         >>> time_range=['2008-01-16T10', '2008-01-16T12']
         >>> fig, ax = plt.subplots(2, sharex=True, figsize=(10, 6))
-        >>> 
+        >>>
         >>> asi = asilib.themis('GILL', time_range=time_range)
         >>> _, p = asi.plot_keogram(ax=ax[0], color_map='turbo')
         >>> asi.plot_keogram(ax=ax[1], color_map='turbo', aacgm=True, title=False)
-        >>> 
+        >>>
         >>> ax[0].set_ylabel('Geographic Lat [deg]')
         >>> ax[1].set_ylabel('Magnetic Lat [deg]')
         >>> fig.subplots_adjust(right=0.8)
@@ -984,12 +992,17 @@ class Imager:
             _, ax = plt.subplots()
 
         if ('cmap' in pcolormesh_kwargs.keys()) and (color_map is not None):
-            raise ValueError('The colormap is defined in both the color_map and pcolormesh_kwargs["cmap"].')
+            raise ValueError(
+                'The colormap is defined in both the color_map and pcolormesh_kwargs["cmap"].'
+            )
         if ('norm' in pcolormesh_kwargs.keys()) and (color_norm is not None):
-            raise ValueError('The color norm is defined in both the color_norm and pcolormesh_kwargs["norm"].')
+            raise ValueError(
+                'The color norm is defined in both the color_norm and pcolormesh_kwargs["norm"].'
+            )
 
         _keogram_time, _geogram_lat, _keogram = self.keogram(
-            path=path, aacgm=aacgm, minimum_elevation=minimum_elevation)
+            path=path, aacgm=aacgm, minimum_elevation=minimum_elevation
+        )
 
         _color_map, _color_norm = self._plot_params(_keogram, color_bounds, color_map, color_norm)
 
@@ -1028,8 +1041,8 @@ class Imager:
             self._pixels = self._path_to_pixels(path)
 
         above_elevation = np.where(
-            (self.skymap['el'][self._pixels[:, 0], self._pixels[:, 1]] >= minimum_elevation) &
-            (np.isfinite(self.skymap['lat'][self._pixels[:, 0], self._pixels[:, 1]])) 
+            (self.skymap['el'][self._pixels[:, 0], self._pixels[:, 1]] >= minimum_elevation)
+            & (np.isfinite(self.skymap['lat'][self._pixels[:, 0], self._pixels[:, 1]]))
         )[0]
         self._pixels = self._pixels[above_elevation]
         return
@@ -1311,11 +1324,11 @@ class Imager:
             .. code-block:: python
 
                 >>> import asilib
-                >>> time_range=['2008-01-16T10:00:30', '2008-01-16T10:05'] 
+                >>> time_range=['2008-01-16T10:00:30', '2008-01-16T10:05']
                 >>> asi = asilib.themis('GILL', time_range=time_range)
                 >>> for file_times, file_images in asi.iter_files():
                 ...     print(file_times[0], file_times[-1], file_images.shape)
-                ... 
+                ...
                 2008-01-16 10:00:30.019526 2008-01-16 10:00:57.049007 (10, 256, 256)
                 2008-01-16 10:01:00.058996 2008-01-16 10:01:57.049620 (20, 256, 256)
                 2008-01-16 10:02:00.059597 2008-01-16 10:02:57.029981 (20, 256, 256)
@@ -1350,10 +1363,10 @@ class Imager:
                     )[0]
                     yield time_chunk[idt], image_chunk[idt]
         return
-    
-    def iter_chunks(self, chunk_size:int) -> Union[np.array, np.array]:
+
+    def iter_chunks(self, chunk_size: int) -> Union[np.array, np.array]:
         """
-        Chunk and iterate over the ASI data. The output data is 
+        Chunk and iterate over the ASI data. The output data is
         clipped by time_range.
 
         Parameters
@@ -1369,11 +1382,11 @@ class Imager:
             ASI images.
 
         Example
-        ------- 
+        -------
         TODO: Add
         """
         raise NotImplementedError
-    
+
         yield
 
     def _estimate_n_times(self):
@@ -1556,7 +1569,7 @@ class Imager:
             if direction not in ['N', 'S', 'E', 'W']:
                 raise ValueError(f'Cardinality direction "{direction}" is invalid."')
             rise, run = self._calc_cardinal_direction(direction, el_step)
-            norm = length / np.sqrt(rise ** 2 + run ** 2)
+            norm = length / np.sqrt(rise**2 + run**2)
 
             ax.annotate(
                 direction,

@@ -13,6 +13,7 @@ import asilib.asi.themis as themis
 ############# TEST LOADERS ###############
 ##########################################
 
+
 def test_themis_time():
     """
     Tests that one file is loaded and themis() returns the correct file.
@@ -100,14 +101,16 @@ def test_themis_asi_meta():
     }
     return
 
+
 ##########################################
 ############# TEST EXAMPLES ##############
 ##########################################
-@matplotlib.testing.decorators.image_comparison(baseline_images=['test_themis_fisheye'], 
-    tol=10, remove_text=True, extensions=['png'])
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_themis_fisheye'], tol=10, remove_text=True, extensions=['png']
+)
 def test_themis_fisheye():
     """
-    Plot a fisheye lens image.    
+    Plot a fisheye lens image.
     """
     from datetime import datetime
     import matplotlib.pyplot as plt
@@ -119,8 +122,10 @@ def test_themis_fisheye():
     ax.axis('off')
     return
 
-@matplotlib.testing.decorators.image_comparison(baseline_images=['test_themis_map'], 
-    tol=10, remove_text=True, extensions=['png'])
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_themis_map'], tol=10, remove_text=True, extensions=['png']
+)
 def test_themis_map():
     """
     Plot a fisheye lens image on a map.
@@ -135,8 +140,10 @@ def test_themis_map():
     ax.axis('off')
     return
 
-@matplotlib.testing.decorators.image_comparison(baseline_images=['test_themis_keogram'], 
-    tol=10, remove_text=True, extensions=['png'])
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_themis_keogram'], tol=10, remove_text=True, extensions=['png']
+)
 def test_themis_keogram():
     """
     Plot a keogram.
@@ -145,9 +152,9 @@ def test_themis_keogram():
     import matplotlib.pyplot as plt
     import asilib
 
-    asi = asilib.themis('RANK', 
-        time_range=(datetime(2017, 9, 15, 2, 30, 0), datetime(2017, 9, 15, 2, 35, 0))
-        )
+    asi = asilib.themis(
+        'RANK', time_range=(datetime(2017, 9, 15, 2, 30, 0), datetime(2017, 9, 15, 2, 35, 0))
+    )
     ax, im = asi.plot_keogram()
     plt.colorbar(im)
     ax.axis('off')

@@ -68,7 +68,7 @@ def create_map(
     lat_bounds: tuple
         The map's latitude bounds.
     fig_ax: Tuple[matplotlib.figure.Figure, int]
-        A two element tuple. First element is a ``matplotlib.figure.Figure`` object and second element is the 
+        A two element tuple. First element is a ``matplotlib.figure.Figure`` object and second element is the
         subplot index or matplotlib.gridspec.SubplotSpec object. The second element is passed directly as ``args``
         `fig.add_subplot() <https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure.add_subplot>`_.
 
@@ -92,8 +92,8 @@ def create_map(
 
     Examples
     --------
-    These examples will differ if you have cartopy installed or not. To force a consistent map, 
-    replace ``asilib.map.create_map`` with ``asilib.map.create_simple_map`` or 
+    These examples will differ if you have cartopy installed or not. To force a consistent map,
+    replace ``asilib.map.create_map`` with ``asilib.map.create_simple_map`` or
     ``asilib.map.create_cartopy_map``.
 
     Examples
@@ -128,7 +128,7 @@ def create_map(
     >>> fig.suptitle('Two subplots with unequal sizes')
     >>> plt.show()
 
-    >>> # And make a map using gridspec 
+    >>> # And make a map using gridspec
     >>> import asilib.map
     >>> import matplotlib.pyplot as plt
     >>> import matplotlib.gridspec
@@ -185,7 +185,7 @@ def create_simple_map(
     lat_bounds: tuple
         The map's latitude bounds.
     fig_ax: Tuple[matplotlib.figure.Figure, int]
-        A two element tuple. First element is a ``matplotlib.figure.Figure`` object and second element is the 
+        A two element tuple. First element is a ``matplotlib.figure.Figure`` object and second element is the
         subplot index or matplotlib.gridspec.SubplotSpec object. The second element is passed directly as ``args``
         `fig.add_subplot() <https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure.add_subplot>`_.
 
@@ -277,7 +277,7 @@ def create_cartopy_map(
     lat_bounds: tuple or list
         A tuple of length 2 specifying the map's latitude bounds.
     fig_ax: Tuple[matplotlib.figure.Figure, int]
-        A two element tuple. First element is a ``matplotlib.figure.Figure`` object and second element is the 
+        A two element tuple. First element is a ``matplotlib.figure.Figure`` object and second element is the
         subplot index or matplotlib.gridspec.SubplotSpec object. The second element is passed directly as ``args``
         `fig.add_subplot() <https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure.add_subplot>`_.
 
@@ -329,6 +329,7 @@ def create_cartopy_map(
     _ax.set_extent(plot_extent, crs=ccrs.PlateCarree())
     return _ax
 
+
 def _validate_fig_ax(fig_ax):
     if fig_ax is not None:
         valid_first_param = isinstance(fig_ax[0], matplotlib.figure.Figure)
@@ -340,9 +341,12 @@ def _validate_fig_ax(fig_ax):
         elif valid_second_param and not valid_first_param:
             raise ValueError('First element of fig_ax must be a plt.figure object.')
         else:
-            raise ValueError(f'fig_ax must be a 2-element tuple with plt.figure as the first element'
-                             f'and either an integer or plt.gridspec object as the second element.')
+            raise ValueError(
+                f'fig_ax must be a 2-element tuple with plt.figure as the first element'
+                f'and either an integer or plt.gridspec object as the second element.'
+            )
     return
+
 
 def _consecutive(data, jump_bool):
     """
@@ -381,7 +385,7 @@ if __name__ == '__main__':
     ex.plot(np.arange(10), np.random.rand(10))
     fig.suptitle('Two subplots with differing aspect ratios')
 
-    # And make a map using gridspec 
+    # And make a map using gridspec
     fig = plt.figure()
     gs = matplotlib.gridspec.GridSpec(1, 1, fig)
     dx = asilib.map.create_cartopy_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, gs))

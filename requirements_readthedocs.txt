@@ -18,7 +18,7 @@ trex-imager-readfile==1.1.0
 # Dev
 bump2version==1.0.1 # For bumping up the versions
 bumpversion==0.6.0
-black==20.8b1 # For formatting code.
+black==23.3.0 # For formatting code.
 pytest==7.2.1
 pytest-cov==2.12.0
 

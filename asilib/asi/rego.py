@@ -93,13 +93,21 @@ def rego(
         time = utils.validate_time(time)
     else:
         time_range = utils.validate_time_range(time_range)
-    
+
     local_pgm_dir = local_base_dir / 'images' / location_code.lower()
 
     if load_images:
         # Download and find image data
-        file_paths = themis._get_pgm_files('rego', location_code, time, time_range, pgm_base_url, local_pgm_dir, 
-            redownload, missing_ok)
+        file_paths = themis._get_pgm_files(
+            'rego',
+            location_code,
+            time,
+            time_range,
+            pgm_base_url,
+            local_pgm_dir,
+            redownload,
+            missing_ok,
+        )
 
         if time is not None:
             # Find and load the nearest time stamp
@@ -143,7 +151,7 @@ def rego(
     skymap = {
         'lat': _skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
         'lon': _skymap['FULL_MAP_LONGITUDE'][alt_index, :, :],
-        'alt': _skymap['FULL_MAP_ALTITUDE'][alt_index]/1E3,
+        'alt': _skymap['FULL_MAP_ALTITUDE'][alt_index] / 1e3,
         'el': _skymap['FULL_ELEVATION'],
         'az': _skymap['FULL_AZIMUTH'],
         'path': _skymap['PATH'],
@@ -154,7 +162,7 @@ def rego(
         'location': location_code.upper(),
         'lat': float(_skymap['SITE_MAP_LATITUDE']),
         'lon': float(_skymap['SITE_MAP_LONGITUDE']),
-        'alt': float(_skymap['SITE_MAP_ALTITUDE'])/1E3,
+        'alt': float(_skymap['SITE_MAP_ALTITUDE']) / 1e3,
         'cadence': 3,
         'resolution': (512, 512),
     }
@@ -175,7 +183,8 @@ def rego_info() -> pd.DataFrame:
     df = df[df['array'] == 'REGO']
     return df.reset_index(drop=True)
 
-def rego_skymap(location_code:str, time:utils._time_type, redownload:bool=False) -> dict:
+
+def rego_skymap(location_code: str, time: utils._time_type, redownload: bool = False) -> dict:
     """
     Load a REGO ASI skymap file.
 
@@ -297,6 +306,7 @@ def _tranform_longitude_to_180(skymap):
         np.mod(skymap['FULL_MAP_LONGITUDE'][valid_val_idx] + 180, 360) - 180
     )
     return skymap
+
 
 def _load_rego_pgm(path):
     images, meta, problematic_file_list = rego_imager_readfile.read(str(path))

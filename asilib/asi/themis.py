@@ -81,7 +81,16 @@ def themis(
 
     if load_images:
         # Download and find image data
-        file_paths = _get_pgm_files('themis', location_code, time, time_range, pgm_base_url, local_pgm_dir, redownload, missing_ok)
+        file_paths = _get_pgm_files(
+            'themis',
+            location_code,
+            time,
+            time_range,
+            pgm_base_url,
+            local_pgm_dir,
+            redownload,
+            missing_ok,
+        )
 
         if time is not None:
             # Find and load the nearest time stamp
@@ -125,7 +134,7 @@ def themis(
     skymap = {
         'lat': _skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
         'lon': _skymap['FULL_MAP_LONGITUDE'][alt_index, :, :],
-        'alt': _skymap['FULL_MAP_ALTITUDE'][alt_index]/1E3,
+        'alt': _skymap['FULL_MAP_ALTITUDE'][alt_index] / 1e3,
         'el': _skymap['FULL_ELEVATION'],
         'az': _skymap['FULL_AZIMUTH'],
         'path': _skymap['PATH'],
@@ -136,11 +145,12 @@ def themis(
         'location': location_code.upper(),
         'lat': float(_skymap['SITE_MAP_LATITUDE']),
         'lon': float(_skymap['SITE_MAP_LONGITUDE']),
-        'alt': float(_skymap['SITE_MAP_ALTITUDE'])/1E3,
+        'alt': float(_skymap['SITE_MAP_ALTITUDE']) / 1e3,
         'cadence': 3,
         'resolution': (256, 256),
     }
     return imager(data, meta, skymap)
+
 
 def themis_skymap(location_code, time, redownload):
     """
@@ -218,23 +228,30 @@ def themis_info() -> pd.DataFrame:
     return df.reset_index(drop=True)
 
 
-def _get_pgm_files(array:str, location_code:str, time:datetime, time_range:Iterable[datetime], 
-                    base_url:str, save_dir:Union[str, pathlib.Path], redownload:bool, missing_ok:bool
-                    )->List[pathlib.Path]:
-    """ 
+def _get_pgm_files(
+    array: str,
+    location_code: str,
+    time: datetime,
+    time_range: Iterable[datetime],
+    base_url: str,
+    save_dir: Union[str, pathlib.Path],
+    redownload: bool,
+    missing_ok: bool,
+) -> List[pathlib.Path]:
+    """
     Look for and download 1-minute PGM files.
 
     Parameters
     ----------
     array: str
-        The ASI array name. 
-    location_code:str 
+        The ASI array name.
+    location_code:str
         The THEMIS location code.
     time: datetime.datetime
         Time to download one file. Either time or time_range must be specified,
         but not both.
     time_range: Iterable[datetime]
-        An iterable with a start and end time. Either time or time_range must be 
+        An iterable with a start and end time. Either time or time_range must be
         specified, but not both.
     base_url: str
         The starting URL to search for file.
@@ -260,7 +277,9 @@ def _get_pgm_files(array:str, location_code:str, time:datetime, time_range:Itera
     if redownload:
         # Option 1/4: Download one minute of data regardless if it is already saved
         if time is not None:
-            return [_download_one_pgm_file(array, location_code, time, base_url, save_dir, redownload)]
+            return [
+                _download_one_pgm_file(array, location_code, time, base_url, save_dir, redownload)
+            ]
 
         # Option 2/4: Download the data in time range regardless if it is already saved.
         elif time_range is not None:
@@ -270,7 +289,9 @@ def _get_pgm_files(array:str, location_code:str, time:datetime, time_range:Itera
             for file_time in file_times:
                 try:
                     file_paths.append(
-                        _download_one_pgm_file(array, location_code, file_time, base_url, save_dir, redownload)
+                        _download_one_pgm_file(
+                            array, location_code, file_time, base_url, save_dir, redownload
+                        )
                     )
                 except (FileNotFoundError, AssertionError) as err:
                     if missing_ok and (
@@ -288,7 +309,11 @@ def _get_pgm_files(array:str, location_code:str, time:datetime, time_range:Itera
             if len(local_file_paths) == 1:
                 return local_file_paths
             else:
-                return [_download_one_pgm_file(array, location_code, time, base_url, save_dir, redownload)]
+                return [
+                    _download_one_pgm_file(
+                        array, location_code, time, base_url, save_dir, redownload
+                    )
+                ]
 
         # Option 4/4: Download the data in time range if they don't exist locally.
         elif time_range is not None:
@@ -305,7 +330,9 @@ def _get_pgm_files(array:str, location_code:str, time:datetime, time_range:Itera
                 else:
                     try:
                         file_paths.append(
-                            _download_one_pgm_file(array, location_code, file_time, base_url, save_dir, redownload)
+                            _download_one_pgm_file(
+                                array, location_code, file_time, base_url, save_dir, redownload
+                            )
                         )
                     except (FileNotFoundError, AssertionError) as err:
                         if missing_ok and (
@@ -317,16 +344,21 @@ def _get_pgm_files(array:str, location_code:str, time:datetime, time_range:Itera
             return file_paths
 
 
-def _download_one_pgm_file(array:str, location_code:str, time:datetime, 
-        base_url:str, save_dir:Union[str, pathlib.Path], redownload:bool, 
-        )->pathlib.Path:
+def _download_one_pgm_file(
+    array: str,
+    location_code: str,
+    time: datetime,
+    base_url: str,
+    save_dir: Union[str, pathlib.Path],
+    redownload: bool,
+) -> pathlib.Path:
     """
     Download one PGM file.
 
     Parameters
     ----------
     array: str
-        The ASI array name. 
+        The ASI array name.
     location_code: str
         The ASI four-letter location code.
     time: str or datetime.datetime
@@ -414,7 +446,7 @@ def _tranform_longitude_to_180(skymap):
     return skymap
 
 
-def _load_pgm(path:Union[pathlib.Path, str]) -> Tuple[np.array, np.array]:
+def _load_pgm(path: Union[pathlib.Path, str]) -> Tuple[np.array, np.array]:
     """
     Read in a single THEMIS PGM file.
 
