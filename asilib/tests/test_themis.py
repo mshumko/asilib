@@ -2,7 +2,6 @@
 Tests the themis() data loading and asilib plotting functions.
 """
 from datetime import datetime
-import pathlib
 
 import requests
 import pytest
@@ -104,23 +103,15 @@ def test_themis_asi_meta():
 ##########################################
 ############# TEST EXAMPLES ##############
 ##########################################
-@matplotlib.testing.decorators.image_comparison(['test_themis_map.png'], tol=10)
+@matplotlib.testing.decorators.image_comparison(baseline_images=['test_themis_fisheye'], 
+    tol=10, remove_text=True, extensions=['png'])
 def test_themis_fisheye():
     """
-    Plot a fisheye lens image.
-
-    To update the baseline image run the code in this test and then save the figure via
-    plt.savefig(pathlib.Path(asilib.__file__).parent / 'tests' / 'baseline_images/test_themis/test_themis_fisheye.png') 
+    Plot a fisheye lens image.    
     """
     from datetime import datetime
-    import matplotlib
     import matplotlib.pyplot as plt
     import asilib
-
-    # Need this in the test and when making the baseline image. This ensures that the 
-    # dimensions of the resulting plots will be different.
-
-    matplotlib.use('Agg')
 
     asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
     ax, im = asi.plot_fisheye(cardinal_directions='NE', origin=(0.95, 0.05))
@@ -128,26 +119,36 @@ def test_themis_fisheye():
     ax.axis('off')
     return
 
-@matplotlib.testing.decorators.image_comparison(['test_themis_map.png'], tol=10)
+@matplotlib.testing.decorators.image_comparison(baseline_images=['test_themis_map'], 
+    tol=10, remove_text=True, extensions=['png'])
 def test_themis_map():
     """
-    Plot a fisheye lens image.
-
-    To update the baseline image run the code in this test and then save the figure via
-    plt.savefig(pathlib.Path(asilib.__file__).parent / 'tests' / 'baseline_images/test_themis/test_themis_map.png') 
+    Plot a fisheye lens image on a map.
     """
     from datetime import datetime
-    import matplotlib
     import matplotlib.pyplot as plt
     import asilib
 
-    # Need this in the test and when making the baseline image. This ensures that the 
-    # dimensions of the resulting plots will be different.
-
-    matplotlib.use('Agg')
-
     asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
-    ax, im = asi.plot_fisheye(cardinal_directions='NE', origin=(0.95, 0.05))
+    ax, im = asi.plot_map()
+    plt.colorbar(im)
+    ax.axis('off')
+    return
+
+@matplotlib.testing.decorators.image_comparison(baseline_images=['test_themis_keogram'], 
+    tol=10, remove_text=True, extensions=['png'])
+def test_themis_keogram():
+    """
+    Plot a keogram.
+    """
+    from datetime import datetime
+    import matplotlib.pyplot as plt
+    import asilib
+
+    asi = asilib.themis('RANK', 
+        time_range=(datetime(2017, 9, 15, 2, 30, 0), datetime(2017, 9, 15, 2, 35, 0))
+        )
+    ax, im = asi.plot_keogram()
     plt.colorbar(im)
     ax.axis('off')
     return

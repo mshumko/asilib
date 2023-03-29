@@ -35,7 +35,8 @@ Tests
 -----
 At a bare minimum, your asi loader function needs to include an example in its docstring. Furthermore, this example should also be wrapped up in a test.
 
-If you need to verify an image against a reference, please see the example in test_themis.py.
+See the matplotlib docs on how to create and test functions that create images.
+https://matplotlib.org/stable/devel/testing.html#writing-an-image-comparison-test
 
 Examples
 --------
