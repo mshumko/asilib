@@ -3,10 +3,7 @@ Test the geographic map creation functions. This does not test the cartopy
 maps.
 """
 
-import pytest
 import matplotlib.testing.decorators
-
-import asilib.map
 
 
 @matplotlib.testing.decorators.image_comparison(baseline_images=['test_create_map_no_subplot'], 
