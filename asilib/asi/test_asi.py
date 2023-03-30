@@ -79,8 +79,9 @@ def get_skymap(meta, alt):
     skymap['lat'][~np.isfinite(skymap['el'])] = np.nan
     skymap['path'] = __file__ 
 
-    # Calculate angle using dot product
-    dot_product = np.dot([0, 1], [_lons-meta['lon'], _lats-meta['lat']])
+    # Calculate angle using dot product equation of a northward-pointing unit vector and
+    # the (_lons, _lats) grid.
+    dot_product = 0*(_lons-meta['lon']) + 1*(_lats-meta['lat'])
     norm = 1*np.sqrt((_lons-meta['lon'])**2 + (_lats-meta['lat'])**2)
     skymap['az'] = np.arccos(dot_product/norm)
    
