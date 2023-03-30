@@ -79,11 +79,11 @@ def get_skymap(meta, alt):
     skymap['lat'][~np.isfinite(skymap['el'])] = np.nan
     skymap['path'] = __file__ 
 
-    # Calculate angle using dot product equation of a northward-pointing unit vector and
-    # the (_lons, _lats) grid.
+    # Calculate the azimuthal angle using cross product between a northward-pointing unit vector 
+    # and the (_lons, _lats) grid. See https://stackoverflow.com/a/16544330 for an explanation.
     dot_product = 0*(_lons-meta['lon']) + 1*(_lats-meta['lat'])
-    norm = 1*np.sqrt((_lons-meta['lon'])**2 + (_lats-meta['lat'])**2)
-    skymap['az'] = np.arccos(dot_product/norm)
+    determinant = 0*(_lats-meta['lat']) - 1*(_lons-meta['lon'])
+    skymap['az'] = (180/np.pi)*np.arctan2(determinant, dot_product)
    
     p = plt.pcolormesh(skymap['az'])
     plt.colorbar(p)
