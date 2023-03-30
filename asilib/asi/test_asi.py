@@ -195,15 +195,14 @@ def _data_loader(file_path):
     # Assume that the image time stamps are at exact seconds
     date_time_str = '_'.join(file_path.split('_')[:2])
     file_time = datetime.strptime(date_time_str, '%Y%m%d_%H%M%S')
-    location = file_path.split('_')[2]
 
     times = np.array([file_time + timedelta(seconds=i*10) for i in range(3600//10)])  # 10 s cadence
     
-    images = np.zeros((times.shape[0], 516, 516))
+    images = np.ones((times.shape[0], 516, 516))
     for i, time in enumerate(times):
         sec = (time-file_time).total_seconds()
-        images[i, int(sec % 516), :] = 255
-        images[i, :, int(sec % 516)] = 100
+        images[i, int(sec % 516)-10:int(sec % 516)+10, :] = 255
+        images[i, :, int(sec % 516)-10:int(sec % 516)+10] = 100
     return times, images
 
 def _get_file_path(meta, time):
@@ -232,5 +231,10 @@ def plot_skymap(location_code, alt=110, pixel_center=True):
     return
 
 if __name__ == '__main__':
-    asi = test_asi('GILL', time_range=('2015-01-01T15:00:15.17', '2015-01-01T20:00'))
-    pass
+    # asi = test_asi('GILL', time_range=('2015-01-01T15:00:15.17', '2015-01-01T20:00'))
+    asi = test_asi('GILL', time='2015-01-01T15:15:15.17')
+    _, ax = plt.subplots(1, 2)
+    asi.plot_fisheye(color_bounds=(1, 255), ax=ax[0])
+    p = ax[1].pcolormesh(asi.skymap['az'], cmap='seismic', vmin=0, vmax=180)
+    plt.colorbar(p, ax=ax[1])
+    plt.show()

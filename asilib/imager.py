@@ -172,11 +172,11 @@ class Imager:
         elif 'time' in self._data.keys():
             time, image = self.data
         else:
-            raise ValueError('I am not supposed to get here. Congrats! You found a bug!')
+            raise ValueError("The asilib.Imager instance wasn't specified with a time to plot.")
 
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
-        im = ax.imshow(image[:, :], cmap=color_map, norm=color_norm, origin="lower")
+        im = ax.imshow(image, cmap=color_map, norm=color_norm, origin="lower")
         if label:
             self._add_fisheye_label(time, ax)
         if azel_contours:
