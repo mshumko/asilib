@@ -78,11 +78,15 @@ def get_skymap(meta, alt):
     skymap['lat'] = _lats
     skymap['lat'][~np.isfinite(skymap['el'])] = np.nan
     skymap['path'] = __file__ 
-    skymap['az'] = 0
+
+    # Calculate angle using dot product
+    dot_product = np.dot([0, 1], [_lons-meta['lon'], _lats-meta['lat']])
+    norm = 1*np.sqrt((_lons-meta['lon'])**2 + (_lats-meta['lat'])**2)
+    skymap['az'] = np.arccos(dot_product/norm)
    
-    # p = plt.pcolormesh(skymap['lon'])
-    # plt.colorbar(p)
-    # plt.show()
+    p = plt.pcolormesh(skymap['az'])
+    plt.colorbar(p)
+    plt.show()
     return skymap
 
 if __name__ == '__main__':
