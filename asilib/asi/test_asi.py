@@ -7,24 +7,41 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import asilib
+import asilib.utils as utils
 
 
-def test_asi(location_code, time=None, time_range=None, alt=110):
+def test_asi(location_code:str, time: utils._time_type=None,
+    time_range: utils._time_range_type=None, alt:int=110)-> asilib.Imager:
     """
-    A fake ASI array to test asilib.Imager. This array consists of three locations.
-    1. GILL,
-    2. ATHA, and
-    3. TPAS.
+    Create an Imager instance with the test_asi images and skymaps.
+
+    Parameters
+    ----------
+    location_code: str
+        The ASI's location code (four letters). Can be either GILL, ATHA, or TPAS.
+        Case insensitive.
+    time: str or datetime.datetime
+        A time to look for the ASI data at. Either the time or the time_range
+        must be specified.
+    time_range: list of str or datetime.datetime
+        A length 2 list of string-formatted times or datetimes to bracket
+        the ASI data time interval.
+    alt: int
+        The reference skymap altitude, in kilometers.
+
+    Returns
+    -------
+    :py:meth:`~asilib.imager.Imager`
+        The test_asi Imager instance.
     """
     location_code = location_code.upper()
     locations = asi_info()
     _location = locations.loc[locations.index == location_code, :]
+
     meta = get_meta(_location)
-
     skymap = get_skymap(meta, alt=alt)
-
-    return
-    # return asilib.Imager(None, meta, skymap)
+    data = get_data(meta, time=time, time_range=time_range)
+    return asilib.Imager(data, meta, skymap)
 
 def asi_info()->pd.DataFrame:
     """
@@ -93,6 +110,10 @@ def get_skymap(meta, alt):
     skymap['az'] = -1*skymap['az']
     skymap['az'][skymap['az'] < 0] = 360 + skymap['az'][skymap['az'] < 0]
     return skymap
+
+
+def get_data(time=None, time_range=None):
+
 
 def plot_skymap(location_code, alt=110):
     """
