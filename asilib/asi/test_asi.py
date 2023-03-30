@@ -156,18 +156,32 @@ def get_data(meta: dict, time: utils._time_type=None, time_range: utils._time_ra
     if (time is None) and (time_range is None):
         raise ValueError("Either time or time_range must be specified.")
     
-    _data = {}
     if time is not None:
         time = utils.validate_time(time)
-        file_path = f'{time:%Y%m%d_%H}0000_{meta["location"]}_test_asi.file'  # does not exist.
-        times, images = _data_loader(file_path)
+        file_path = _get_file_path(meta, time)
+        image_times, images = _data_loader(file_path)
 
         # find the nearest image to the requested time.
-        
+        dt = np.array([(image_time-time).total_seconds() for image_time in image_times])
+        dt = np.abs(dt)
+        min_idt = np.argmin(dt)
+        assert abs((image_times[min_idt] - time).total_seconds()) < 10, ('Requested image is'
+            ' more than 10 seconds away from the nearest image time.')
+        return {'time':image_times[min_idt], 'image':images[min_idt, ...]}
         
     else:
         time_range = utils.validate_time_range(time_range)
-        _data['time_range'] = time_range
+        start_file_time = time_range[0].replace(minute=0, second=0, microsecond=0)
+        hours = (time_range[1]-time_range[0]).hour + 1  # +1 to load the final hour.
+        
+        # These are all of the keys required by asilib.Imager.
+        _data = {
+            'time_range':time_range,
+            'path': [_get_file_path(start_file_time+timedelta(hours=i)) for i in range(hours)],
+            'start_time':[start_file_time+timedelta(hours=i) for i in range(hours)],
+            'end_time':[start_file_time+timedelta(hours=1+i) for i in range(hours)],
+            'loader':_data_loader
+        }
     return _data
 
 def _data_loader(file_path):
@@ -189,6 +203,9 @@ def _data_loader(file_path):
         images[i, sec % 516, :] = 255
         images[i, :, sec % 516] = 100
     return times, images
+
+def _get_file_path(meta, time):
+    return f'{time:%Y%m%d_%H}0000_{meta["location"]}_test_asi.file'  # does not exist.
 
 def plot_skymap(location_code, alt=110, pixel_center=True):
     """
