@@ -32,7 +32,7 @@ def test_asi(location_code:str, time: utils._time_type=None,
     Returns
     -------
     :py:meth:`~asilib.imager.Imager`
-        The test_asi Imager instance.
+        The an Imager instance with the test_asi data.
     """
     location_code = location_code.upper()
     locations = asi_info()
@@ -112,7 +112,39 @@ def get_skymap(meta, alt):
     return skymap
 
 
-def get_data(time=None, time_range=None):
+def get_data(meta: dict, time: utils._time_type=None, time_range: utils._time_range_type=None) -> dict:
+    """
+    Get some images and time stamps. One image and time stamp if time is specified,
+    or multiple images if time_range is specified.
+
+    Parameters
+    ----------
+    meta: dict
+        The ASI metadata with the imager resolution and cadence.
+    time: str or datetime.datetime
+        A time to look for the ASI data at. Either the time or the time_range
+        must be specified.
+    time_range: list of str or datetime.datetime
+        A length 2 list of string-formatted times or datetimes to bracket
+        the ASI data time interval.
+    """
+    if (time is not None) and (time_range is not None):
+        raise ValueError("time and time_range can't be simultaneously specified.")
+    if (time is None) and (time_range is None):
+        raise ValueError("Either time or time_range must be specified.")
+    
+    _data = {}
+    if time is not None:
+        time = utils.validate_time(time)
+        # Assume that the image time stamps are at exact seconds
+        _data['time'] = time.replace(microsecond=0) 
+        _data['image'] = np.zeros(meta['resolution'])
+        _data['image'][meta['resolution'][0]/2, :] = 255
+        _data['image'][:, meta['resolution'][1]/3] = 100
+    else:
+        time_range = utils.validate_time_range(time_range)
+        _data['time_range'] = time_range
+    return _data
 
 
 def plot_skymap(location_code, alt=110):
