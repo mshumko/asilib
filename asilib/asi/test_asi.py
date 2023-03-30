@@ -81,7 +81,7 @@ def get_meta(location_dict):
 def get_skymap(meta:dict, alt:int, pixel_center:bool=True):
     """
     Create a skymap based on the ASI location in the metadata.
-    
+
     Parameters
     ----------
     meta: dict
@@ -188,7 +188,7 @@ def _data_loader(file_path):
 
     return times, images
 
-def plot_skymap(location_code, alt=110):
+def plot_skymap(location_code, alt=110, pixel_center=True):
     """
     Visualize the skymap to get a better idea on what a realistic one looks like 
     (if perfectly aligned).
@@ -198,7 +198,7 @@ def plot_skymap(location_code, alt=110):
     _location = locations.loc[locations.index == location_code, :]
     meta = get_meta(_location)
 
-    skymap = get_skymap(meta, alt=alt)
+    skymap = get_skymap(meta, alt=alt, pixel_center=pixel_center)
     keys = ['el', 'az', 'lat', 'lon']
     fig, ax = plt.subplots(1, len(keys), sharex=True, sharey=True, figsize=(3.7*len(keys), 4))
 
@@ -211,5 +211,5 @@ def plot_skymap(location_code, alt=110):
     return
 
 if __name__ == '__main__':
-    plot_skymap('GILL')
+    plot_skymap('GILL', pixel_center=False)
     plt.show()
