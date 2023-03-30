@@ -19,17 +19,7 @@ def test_asi(location_code, time=None, time_range=None, alt=110):
     location_code = location_code.upper()
     locations = asi_info()
     _location = locations.loc[locations.index == location_code, :]
-
-    # The metadata about the chosen ASI. 
-    meta = {
-        'array': 'TEST',
-        'location': location_code,
-        'lat': _location['lat'].to_numpy(),
-        'lon': _location['lon'].to_numpy(),
-        'alt': _location['alt'].to_numpy() / 1e3,  # km 
-        'cadence': 10,
-        'resolution': (512, 512),
-    }
+    meta = get_meta(_location)
 
     skymap = get_skymap(meta, alt=alt)
 
@@ -49,6 +39,21 @@ def asi_info()->pd.DataFrame:
         index=['GILL', 'ATHA', 'TPAS']
         )
     return locations
+
+def get_meta(location_dict):
+    """
+    Get the ASI metadata.
+    """
+    meta = {
+        'array': 'TEST',
+        'location': location_dict.index,
+        'lat': location_dict['lat'].to_numpy(),
+        'lon': location_dict['lon'].to_numpy(),
+        'alt': location_dict['alt'].to_numpy() / 1e3,  # km 
+        'cadence': 10,
+        'resolution': (512, 512),
+    }
+    return meta
 
 def get_skymap(meta, alt):
     """
@@ -89,6 +94,28 @@ def get_skymap(meta, alt):
     skymap['az'][skymap['az'] < 0] = 360 + skymap['az'][skymap['az'] < 0]
     return skymap
 
+def plot_skymap(location_code, alt=110):
+    """
+    Visualize the skymap to get a better idea on what a realistic one looks like 
+    (if perfectly aligned).
+    """
+    location_code = location_code.upper()
+    locations = asi_info()
+    _location = locations.loc[locations.index == location_code, :]
+    meta = get_meta(_location)
+
+    skymap = get_skymap(meta, alt=alt)
+    keys = ['el', 'az', 'lat', 'lon']
+    fig, ax = plt.subplots(1, len(keys), sharex=True, sharey=True, figsize=(3.7*len(keys), 4))
+
+    for ax_i, key in zip(ax, keys):
+        p = ax_i.pcolormesh(skymap[key])
+        plt.colorbar(p, ax=ax_i)
+        ax_i.set_title(key)
+    plt.suptitle('asilib | test ASI skymap')
+    plt.tight_layout()
+    return
+
 if __name__ == '__main__':
-    asi = test_asi('GILL')
-    pass
+    plot_skymap('GILL')
+    plt.show()
