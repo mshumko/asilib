@@ -469,6 +469,7 @@ class Conjunction:
         return pixel_index
 
     def _nearest_pixel(self, asi_azel_cal, sat_azel):
+        # TODO: Consider swapping cdist for the haversine function.
         dist_matrix = scipy.spatial.distance.cdist(asi_azel_cal, sat_azel, metric='euclidean')
         # Now find the minimum distance for each sat_azel.
         idx_min_dist = np.argmin(dist_matrix, axis=0)

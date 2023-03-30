@@ -68,24 +68,18 @@ def get_skymap(meta, alt):
     dst = np.sqrt((_lons-meta['lon'])**2 + (_lats-meta['lat'])**2)
     # the 105 multiplier could be 90, but I chose 105 (and -15 offset) to make the 
     # skymap realistic: the edges are NaNs.
-    skymap['el'] = 105*np.exp(-dst**2 / (2.0 * std**2))-15
-    skymap['el'][skymap['el'] < 0] = np.nan
-
+    elevations =  105*np.exp(-dst**2 / (2.0 * std**2))-15
+    elevations[elevations < 0] = np.nan
+    # These are the required skymap keys for asilib.Imager to work.
+    skymap['el'] = elevations
     skymap['alt'] = alt
     skymap['lon'] = _lons
     skymap['lon'][~np.isfinite(skymap['el'])] = np.nan
     skymap['lat'] = _lats
     skymap['lat'][~np.isfinite(skymap['el'])] = np.nan
     skymap['path'] = __file__ 
-
-    # _skymap = {
-    #     'lat': _skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
-    #     'lon': _skymap['FULL_MAP_LONGITUDE'][alt_index, :, :],
-    #     'alt': _skymap['FULL_MAP_ALTITUDE'][alt_index] / 1e3,
-    #     'el': _skymap['FULL_ELEVATION'],
-    #     'az': _skymap['FULL_AZIMUTH'],
-    #     'path': _skymap['PATH'],
-    # }
+    skymap['az'] = 0
+   
     # p = plt.pcolormesh(skymap['lon'])
     # plt.colorbar(p)
     # plt.show()
