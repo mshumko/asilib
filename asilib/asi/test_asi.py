@@ -84,10 +84,9 @@ def get_skymap(meta, alt):
     dot_product = 0*(_lons-meta['lon']) + 1*(_lats-meta['lat'])
     determinant = 0*(_lats-meta['lat']) - 1*(_lons-meta['lon'])
     skymap['az'] = (180/np.pi)*np.arctan2(determinant, dot_product)
-   
-    p = plt.pcolormesh(skymap['az'])
-    plt.colorbar(p)
-    plt.show()
+    # transform so it goes 0->360 in a clockwise direction.
+    skymap['az'] = -1*skymap['az']
+    skymap['az'][skymap['az'] < 0] = 360 + skymap['az'][skymap['az'] < 0]
     return skymap
 
 if __name__ == '__main__':
