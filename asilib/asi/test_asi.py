@@ -6,11 +6,12 @@ import numpy as np
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
+import pytest
 
 import asilib
 import asilib.utils as utils
 
-
+@pytest.mark.skip(reason='This is an ASI wrapper and not a test.')
 def test_asi(location_code:str, time: utils._time_type=None,
     time_range: utils._time_range_type=None, alt:int=110, 
     pixel_center:bool=True)-> asilib.Imager:
