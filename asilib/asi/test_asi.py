@@ -70,7 +70,7 @@ def get_meta(location_dict):
     """
     meta = {
         'array': 'TEST',
-        'location': location_dict.index,
+        'location': location_dict.index[0],
         'lat': location_dict['lat'].to_numpy(),
         'lon': location_dict['lon'].to_numpy(),
         'alt': location_dict['alt'].to_numpy() / 1e3,  # km 
@@ -105,7 +105,7 @@ def get_skymap(meta:dict, alt:int, pixel_center:bool=True):
     else:
         pad = 1
 
-    # TODO: Add 1 to test map edges too.
+    # TODO: Add tests for skymaps specifying pixel edges too.
     _lons, _lats = np.meshgrid(
         np.linspace(*lon_bounds, num=meta['resolution'][0]+pad),
         np.linspace(*lat_bounds, num=meta['resolution'][1]+pad)
@@ -173,12 +173,12 @@ def get_data(meta: dict, time: utils._time_type=None, time_range: utils._time_ra
     else:
         time_range = utils.validate_time_range(time_range)
         start_file_time = time_range[0].replace(minute=0, second=0, microsecond=0)
-        hours = (time_range[1]-time_range[0]).hour + 1  # +1 to load the final hour.
+        hours = int((time_range[1]-time_range[0]).total_seconds()//3600) + 1  # +1 to load the final hour.
         
         # These are all of the keys required by asilib.Imager.
         _data = {
             'time_range':time_range,
-            'path': [_get_file_path(start_file_time+timedelta(hours=i)) for i in range(hours)],
+            'path': [_get_file_path(meta, start_file_time+timedelta(hours=i)) for i in range(hours)],
             'start_time':[start_file_time+timedelta(hours=i) for i in range(hours)],
             'end_time':[start_file_time+timedelta(hours=1+i) for i in range(hours)],
             'loader':_data_loader
@@ -193,20 +193,21 @@ def _data_loader(file_path):
     line whose position is determined by seconds_since_start modulo resolution (516).
     """
     # Assume that the image time stamps are at exact seconds
-    file_time = datetime.strptime(file_path.split('_')[:2], '%Y%m%d_%H')
+    date_time_str = '_'.join(file_path.split('_')[:2])
+    file_time = datetime.strptime(date_time_str, '%Y%m%d_%H%M%S')
     location = file_path.split('_')[2]
 
-    times = np.array([file_time + timedelta(seconds=i*10) for i in np.arange(3600//10)])  # 10 s cadence
+    times = np.array([file_time + timedelta(seconds=i*10) for i in range(3600//10)])  # 10 s cadence
     
     images = np.zeros((times.shape[0], 516, 516))
     for i, time in enumerate(times):
         sec = (time-file_time).total_seconds()
-        images[i, sec % 516, :] = 255
-        images[i, :, sec % 516] = 100
+        images[i, int(sec % 516), :] = 255
+        images[i, :, int(sec % 516)] = 100
     return times, images
 
 def _get_file_path(meta, time):
-    return f'{time:%Y%m%d_%H}0000_{meta["location"]}_test_asi.file'  # does not exist.
+    return f'{time:%Y%m%d_%H}0000_{meta["location"]}_test_asi.images'  # does not exist.
 
 def plot_skymap(location_code, alt=110, pixel_center=True):
     """
@@ -231,5 +232,5 @@ def plot_skymap(location_code, alt=110, pixel_center=True):
     return
 
 if __name__ == '__main__':
-    plot_skymap('GILL', pixel_center=False)
-    plt.show()
+    asi = test_asi('GILL', time_range=('2015-01-01T15:00:15.17', '2015-01-01T20:00'))
+    pass
