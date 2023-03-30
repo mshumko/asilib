@@ -173,19 +173,21 @@ def get_data(meta: dict, time: utils._time_type=None, time_range: utils._time_ra
 def _data_loader(file_path):
     """
     Given a file_path, open the file and return the time stamps and images.
+
+    Time stamps are every 10 seconds. The images are all 0s except a horizontal and a vertical 
+    line whose position is determined by seconds_since_start modulo resolution (516).
     """
     # Assume that the image time stamps are at exact seconds
     file_time = datetime.strptime(file_path.split('_')[:2], '%Y%m%d_%H')
     location = file_path.split('_')[2]
 
     times = np.array([file_time + timedelta(seconds=i*10) for i in np.arange(3600//10)])  # 10 s cadence
-    images = np.zeros((times.shape[0], 516, 516))
     
-    _data['time'] = time.replace(microsecond=0) 
-    _data['image'] = np.zeros(meta['resolution'])
-    _data['image'][meta['resolution'][0]/2, :] = 255
-    _data['image'][:, meta['resolution'][1]/3] = 100
-
+    images = np.zeros((times.shape[0], 516, 516))
+    for i, time in enumerate(times):
+        sec = (time-file_time).total_seconds()
+        images[i, sec % 516, :] = 255
+        images[i, :, sec % 516] = 100
     return times, images
 
 def plot_skymap(location_code, alt=110, pixel_center=True):
