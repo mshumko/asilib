@@ -3,6 +3,7 @@ An ASI for testing asilib.Imager.
 """
 import pandas as pd
 import numpy as np
+from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
 
@@ -11,7 +12,8 @@ import asilib.utils as utils
 
 
 def test_asi(location_code:str, time: utils._time_type=None,
-    time_range: utils._time_range_type=None, alt:int=110)-> asilib.Imager:
+    time_range: utils._time_range_type=None, alt:int=110, 
+    pixel_center:bool=True)-> asilib.Imager:
     """
     Create an Imager instance with the test_asi images and skymaps.
 
@@ -28,6 +30,10 @@ def test_asi(location_code:str, time: utils._time_type=None,
         the ASI data time interval.
     alt: int
         The reference skymap altitude, in kilometers.
+    pixel_center: bool
+        If True, then the skymap specifies the pixel centers, otherwise the skymap specifies 
+        the pixel vertices. Specifying the vertices more accurately describes how the pixels
+        field of view transforms from a square to a polynomial.
 
     Returns
     -------
@@ -39,7 +45,7 @@ def test_asi(location_code:str, time: utils._time_type=None,
     _location = locations.loc[locations.index == location_code, :]
 
     meta = get_meta(_location)
-    skymap = get_skymap(meta, alt=alt)
+    skymap = get_skymap(meta, alt=alt, pixel_center=pixel_center)
     data = get_data(meta, time=time, time_range=time_range)
     return asilib.Imager(data, meta, skymap)
 
@@ -72,9 +78,20 @@ def get_meta(location_dict):
     }
     return meta
 
-def get_skymap(meta, alt):
+def get_skymap(meta:dict, alt:int, pixel_center:bool=True):
     """
     Create a skymap based on the ASI location in the metadata.
+    
+    Parameters
+    ----------
+    meta: dict
+        The ASI metadata with the imager resolution and cadence.
+    alt: int
+        The reference skymap altitude, in kilometers.
+    pixel_center: bool
+        If True, then the skymap specifies the pixel centers, otherwise the skymap specifies 
+        the pixel vertices. Specifying the vertices more accurately describes how the pixels
+        field of view transforms from a square to a polynomial.
     """
     assert alt in [90, 110, 150], (f'The {alt} km altitude does not have a corresponding map: '
                                    'valid_altitudes=[90, 110, 150].')
@@ -82,9 +99,15 @@ def get_skymap(meta, alt):
     lon_bounds = [meta['lon']-10*(alt/110), meta['lon']+10*(alt/110)]
     lat_bounds = [meta['lat']-10*(alt/110), meta['lat']+10*(alt/110)]
 
+    if pixel_center:
+        pad = 0
+    else:
+        pad = 1
+
+    # TODO: Add 1 to test map edges too.
     _lons, _lats = np.meshgrid(
-        np.linspace(*lon_bounds, num=meta['resolution'][0]),
-        np.linspace(*lat_bounds, num=meta['resolution'][1])
+        np.linspace(*lon_bounds, num=meta['resolution'][0]+pad),
+        np.linspace(*lat_bounds, num=meta['resolution'][1]+pad)
         )
     std = 5*(alt/110)
     dst = np.sqrt((_lons-meta['lon'])**2 + (_lats-meta['lat'])**2)
@@ -136,16 +159,34 @@ def get_data(meta: dict, time: utils._time_type=None, time_range: utils._time_ra
     _data = {}
     if time is not None:
         time = utils.validate_time(time)
-        # Assume that the image time stamps are at exact seconds
-        _data['time'] = time.replace(microsecond=0) 
-        _data['image'] = np.zeros(meta['resolution'])
-        _data['image'][meta['resolution'][0]/2, :] = 255
-        _data['image'][:, meta['resolution'][1]/3] = 100
+        file_path = f'{time:%Y%m%d_%H}0000_{meta["location"]}_test_asi.file'  # does not exist.
+        times, images = _data_loader(file_path)
+
+        # find the nearest image to the requested time.
+        
+        
     else:
         time_range = utils.validate_time_range(time_range)
         _data['time_range'] = time_range
     return _data
 
+def _data_loader(file_path):
+    """
+    Given a file_path, open the file and return the time stamps and images.
+    """
+    # Assume that the image time stamps are at exact seconds
+    file_time = datetime.strptime(file_path.split('_')[:2], '%Y%m%d_%H')
+    location = file_path.split('_')[2]
+
+    times = np.array([file_time + timedelta(seconds=i*10) for i in np.arange(3600//10)])  # 10 s cadence
+    images = np.zeros((times.shape[0], 516, 516))
+    
+    _data['time'] = time.replace(microsecond=0) 
+    _data['image'] = np.zeros(meta['resolution'])
+    _data['image'][meta['resolution'][0]/2, :] = 255
+    _data['image'][:, meta['resolution'][1]/3] = 100
+
+    return times, images
 
 def plot_skymap(location_code, alt=110):
     """
