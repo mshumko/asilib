@@ -1,0 +1,17 @@
+name: Feature request
+title: "ENH: <Please write a comprehensive title after the 'ENH: ' prefix>"
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      If you're looking to request a new feature or change in functionality,
+      including adding or changing the meaning of arguments to an existing
+      function, please first read the Scope of asilib, to determine if this 
+      feature aligns with the asilib design goals. 
+
+- type: textarea
+  attributes:
+    label: "Proposed new feature or change:"
+  validations:
+    required: true
