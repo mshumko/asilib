@@ -259,7 +259,17 @@ def test_str():
     """
     Tests the __str__() for printing user-readable information about the imager
     """
-    raise NotImplementedError
+    import matplotlib.pyplot as plt
+    import asilib
+    
+    time_range=['2008-01-16T10', '2008-01-16T12']
+    
+    asi = asilib.themis('GILL', time_range=time_range)
+    assert str(asi) == ('A THEMIS-GILL Imager. time_range=[datetime.datetime(2008, 1, 16, 10, 0), '
+        'datetime.datetime(2008, 1, 16, 12, 0)]')
+
+    asi2 = asilib.themis('GILL', time=time_range[0])
+    assert str(asi2) == 'A THEMIS-GILL Imager. time=2008-01-16 10:00:00.020162'
     return
 
 def test_repr():
