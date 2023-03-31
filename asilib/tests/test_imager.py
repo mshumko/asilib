@@ -84,3 +84,83 @@ def test_plot_keogram():
     asi = fake_asi('GILL', time_range=('2015-01-01T15:00:15.17', '2015-01-01T19:30'))
     asi.plot_keogram()
     return
+
+##########################################
+############# TEST EXAMPLES ##############
+##########################################
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_fisheye_example'], tol=10, remove_text=True, extensions=['png']
+)
+def test_fisheye_example():
+    """
+    Test that asilib.Imager plots a bright auroral arc that was analyzed by 
+    Imajo et al., 2021 "Active auroral arc powered by accelerated electrons 
+    from very high altitudes"
+    """
+    from datetime import datetime
+    import matplotlib.pyplot as plt
+    import asilib
+    asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
+    ax, im = asi.plot_fisheye(cardinal_directions='NE', origin=(0.95, 0.05))
+    plt.colorbar(im)
+    ax.axis('off')
+
+
+def test_animate_fisheye_example():
+    """
+    Test that asilib.Imager.animate_fisheye() method works. Since I have not 
+    found a way to compare animations, lets assume that the plot_fisheye() 
+    tests in the underlying plotting methods pass, and we just need
+    to check that the movie exists with the correct number of underlying plots.
+    """
+    from datetime import datetime
+    import asilib
+    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+    asi = asilib.themis('FSMI', time_range=time_range)
+    asi.animate_fisheye(cardinal_directions='NE', origin=(0.95, 0.05), overwrite=True)
+    print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name}')
+
+    # End of example. 
+    animation_path = asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name
+    image_parent_dir_chunks = asi.animation_name.split('_')
+    image_parent_dir = '_'.join(image_parent_dir_chunks[0:2]) + '_'
+    image_parent_dir = image_parent_dir + '_'.join(image_parent_dir_chunks[3:])
+    image_parent_dir = image_parent_dir.split('.')[0]
+    plot_dir = asilib.config["ASI_DATA_DIR"] / "animations" / 'images' / image_parent_dir
+    image_paths = list(plot_dir.glob('*.png'))
+
+    assert animation_path.exists()
+    assert plot_dir.exists()
+    assert len(image_paths) == 100
+    return
+
+def test_animate_map_example():
+    """
+    Test that asilib.Imager.animate_map() method works. Since I have not 
+    found a way to compare animations, lets assume that the plot_map() 
+    tests in the underlying plotting methods pass, and we just need
+    to check that the movie exists with the correct number of underlying plots.
+    """
+    from datetime import datetime
+    import matplotlib.pyplot as plt
+    import asilib
+    location = 'FSMI'
+    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+    asi = asilib.themis(location, time_range=time_range)
+    asi.animate_map(overwrite=True)
+    print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name}')
+
+    # End of example.
+    animation_path = asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name
+    image_parent_dir_chunks = asi.animation_name.split('_')
+    image_parent_dir = '_'.join(image_parent_dir_chunks[0:2]) + '_'
+    image_parent_dir = image_parent_dir + '_'.join(image_parent_dir_chunks[3:])
+    image_parent_dir = image_parent_dir.split('.')[0]
+    plot_dir = asilib.config["ASI_DATA_DIR"] / "animations" / 'images' / image_parent_dir
+    image_paths = list(plot_dir.glob('*.png'))
+
+    assert animation_path.exists()
+    assert plot_dir.exists()
+    assert len(image_paths) == 100
+    return

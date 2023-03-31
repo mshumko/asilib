@@ -244,7 +244,7 @@ class Imager:
         >>> import asilib
         >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
         >>> imager = asilib.themis('FSMI', time_range=time_range)
-        >>> imager.animate_fisheye(cardinal_directions='NE', origin:tuple=(0.95, 0.05), overwrite=True)
+        >>> imager.animate_fisheye(cardinal_directions='NE', origin=(0.95, 0.05), overwrite=True)
         >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
         """
         movie_generator = self.animate_fisheye_gen(**kwargs)
