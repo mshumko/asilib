@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 import matplotlib.testing.decorators
 
+import asilib
 from asilib.asi.fake_asi import fake_asi
 
 
@@ -294,6 +295,9 @@ def test_str():
 def test_repr():
     """
     Tests the __repr__() for printing machine-readable information about the imager
-    """
-    raise NotImplementedError
+    """    
+    asi = asilib.Imager(data={'data':0}, skymap={'skymap':1}, meta={'meta':2},
+        plot_settings={'plot_settings':3})
+    assert repr(asi) == ("Imager(data={'data': 0}, skymap={'skymap': 1}, meta={'meta': 2},"
+        " plot_settings={'plot_settings': 3})")
     return

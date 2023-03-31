@@ -6,7 +6,8 @@
 4. animate_map(),
 5. plot_keogram(),
 6. __getitem__,
-7. __str__.
+7. __str__,
+8. __repr__.
 
 - Fixed a `asilib.Imager` bug that was triggered when the time slicing is outside of the time_range. Before, it raised an unhelpful `AssertionError`, but now it raises an informative `FileNotFoundError`.
 

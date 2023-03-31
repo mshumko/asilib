@@ -1096,6 +1096,7 @@ class Imager:
         asilib.Imager:
             A sliced version of the Imager.
         """
+        # TODO: Break up into smaller methods.
         # Deal with the [time_i:time_f] slice logic.
         if isinstance(_slice, slice):
             if isinstance(_slice.start, str):
@@ -1662,10 +1663,13 @@ class Imager:
                 raise FileNotFoundError("Windows doesn't have ffmpeg installed.") from err
         return
 
-    # def __repr__(self):
-    #     params = (f'{self.asi_array}, {self.asi_location}, '
-    #               f'{self.time}, {self.image}, skymap={self.skymap}')
-    #     return f'{self.__class__.__qualname__}(' + params + ')'
+    def __repr__(self):
+        """
+        A machine-readable representation of Imager.
+        """
+        params = (f'data={self._data}, skymap={self.skymap}, '
+                  f'meta={self.meta}, plot_settings={self.plot_settings}')
+        return f'{self.__class__.__qualname__}(' + params + ')'
 
     def _pcolormesh_nan(
         self,
