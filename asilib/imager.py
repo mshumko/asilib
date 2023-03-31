@@ -31,6 +31,7 @@ try:
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
     import cartopy.mpl.geoaxes
+
     cartopy_imported = True
 except ImportError as err:
     # You can also get a ModuleNotFoundError if cartopy is not installed
@@ -1576,7 +1577,8 @@ class Imager:
                 arrowprops={'arrowstyle': "<-", 'color': 'w'},
                 xycoords='axes fraction',
                 color='w',
-                ha='center', va='center'
+                ha='center',
+                va='center',
             )
         return
 
@@ -1644,7 +1646,7 @@ class Imager:
 
         if validate:
             fig, ax = plt.subplots()
-            p = ax.pcolormesh(self.skymap['az']); 
+            p = ax.pcolormesh(self.skymap['az'])
             plt.colorbar(p, ax=ax)
             ax.scatter(_direction_pixels[:, 1], _direction_pixels[:, 0])
             ax.set_title(f'{direction} | {rise=}, {run=}')

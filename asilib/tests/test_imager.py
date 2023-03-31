@@ -23,6 +23,7 @@ def test_time():
     assert ind == (318, 0)
     return
 
+
 def test_time_range():
     """
     Test if fake_asi timestamps are correctly accessed.
@@ -32,13 +33,14 @@ def test_time_range():
     assert asi.data.images.shape == (1798, 512, 512)
     assert np.isclose(asi.data.images.mean(), 14.048684923216552)
     assert asi._data['path'] == [
-        '20150101_150000_GILL_fake_asi.images', 
+        '20150101_150000_GILL_fake_asi.images',
         '20150101_160000_GILL_fake_asi.images',
         '20150101_170000_GILL_fake_asi.images',
         '20150101_180000_GILL_fake_asi.images',
-        '20150101_190000_GILL_fake_asi.images'
-        ]
+        '20150101_190000_GILL_fake_asi.images',
+    ]
     return
+
 
 def test_iter_files():
     """
@@ -56,6 +58,7 @@ def test_iter_files():
     assert counter == len(n_timestamps_reference)
     return
 
+
 ##########################################
 ############# TEST PLOTTING ##############
 ##########################################
@@ -69,6 +72,7 @@ def test_fisheye():
     asi = fake_asi('GILL', time='2015-01-01T15:14:00.17')
     asi.plot_fisheye(color_bounds=(1, 255), origin=(0.85, 0.15), cardinal_directions='NEWS')
     return
+
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_plot_keogram'], tol=10, remove_text=True, extensions=['png']
