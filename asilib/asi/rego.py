@@ -13,6 +13,7 @@ import dateutil.parser
 import numpy as np
 import pandas as pd
 import scipy.io
+import matplotlib.colors
 import rego_imager_readfile
 
 import asilib
@@ -82,7 +83,7 @@ def rego(
     >>> alt_km = 110
     >>> fig = plt.figure(figsize=(10, 6))
     >>> ax = fig.add_subplot(121)
-    >>> bx = asilib.map.create_map(ax=(fig, 122), lon_bounds = (-102, -82), lat_bounds = (58, 68))
+    >>> bx = asilib.map.create_map(fig_ax=(fig, 122), lon_bounds = (-102, -82), lat_bounds = (58, 68))
     >>> asi = asilib.rego(location_code, time=time, alt=alt_km)
     >>> asi.plot_fisheye(ax=ax)
     >>> asi.plot_map(ax=bx)
@@ -166,7 +167,10 @@ def rego(
         'cadence': 3,
         'resolution': (512, 512),
     }
-    return imager(data, meta, skymap)
+    plot_settings = {
+        'color_map':matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
+    }
+    return imager(data, meta, skymap, plot_settings=plot_settings)
 
 
 def rego_info() -> pd.DataFrame:

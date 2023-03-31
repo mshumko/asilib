@@ -1,3 +1,5 @@
+# Version 0.14.3
+
 # Version 0.14.2
 - Added a `asilib.asi.fake_asi` function to quickly test `asilib.Imager`. 
 - Using the `fake_asi` I found and fixed a few errors in `asilib.Imager`.
