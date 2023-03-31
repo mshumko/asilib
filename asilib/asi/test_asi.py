@@ -106,8 +106,9 @@ def get_skymap(meta:dict, alt:int, pixel_center:bool=True):
         pad = 1
 
     # TODO: Add tests for skymaps specifying pixel edges too.
+    # lon_bounds[::-1] so that east is to the right. 
     _lons, _lats = np.meshgrid(
-        np.linspace(*lon_bounds, num=meta['resolution'][0]+pad),
+        np.linspace(*lon_bounds[::-1], num=meta['resolution'][0]+pad),
         np.linspace(*lat_bounds, num=meta['resolution'][1]+pad)
         )
     std = 5*(alt/110)
@@ -233,7 +234,7 @@ def plot_skymap(location_code, alt=110, pixel_center=True):
 if __name__ == '__main__':
     # asi = test_asi('GILL', time_range=('2015-01-01T15:00:15.17', '2015-01-01T20:00'))
     asi = test_asi('GILL', time='2015-01-01T15:15:15.17')
-    _, ax = plt.subplots(1, 2)
+    _, ax = plt.subplots(1, 2, figsize=(8, 4))
     asi.plot_fisheye(color_bounds=(1, 255), ax=ax[0])
     p = ax[1].pcolormesh(asi.skymap['az'], cmap='seismic', vmin=0, vmax=180)
     plt.colorbar(p, ax=ax[1])
