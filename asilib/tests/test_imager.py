@@ -180,3 +180,91 @@ def test_animate_map_example():
     assert plot_dir.exists()
     assert len(image_paths) == 100
     return
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_plot_keogram_geographic_example'], tol=10, remove_text=True, extensions=['png']
+)
+def test_plot_keogram_geographic_example():
+    """
+    Tests that the keogram is correctly plotted with geographic lats
+    Event from https://doi.org/10.1029/2021GL094696
+    """
+    import matplotlib.pyplot as plt
+    import asilib
+    
+    time_range=['2008-01-16T10', '2008-01-16T12']
+    
+    asi = asilib.themis('GILL', time_range=time_range)
+    ax, p = asi.plot_keogram(color_map='turbo')
+    
+    ax.set_ylabel('Geographic Lat [deg]')
+    plt.colorbar(p)
+    return
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_plot_keogram_magnetic_example'], tol=10, remove_text=True, extensions=['png']
+)
+def test_plot_keogram_magnetic_example():
+    """
+    Tests that the keogram is correctly plotted with magnetic lats
+    Event from https://doi.org/10.1029/2021GL094696
+    """
+    import matplotlib.pyplot as plt
+    import asilib
+    
+    time_range=['2008-01-16T10', '2008-01-16T12']
+    
+    asi = asilib.themis('GILL', time_range=time_range)
+    ax, p = asi.plot_keogram(color_map='turbo', aacgm=True, title=False)
+    ax.set_ylabel('Magnetic Lat [deg]')
+    plt.colorbar(p)
+    return
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_plot_keogram_magnetic_path_example'], tol=10, remove_text=True, extensions=['png']
+)
+def test_plot_keogram_magnetic_path_example():
+    """
+    Tests that the keogram is correctly plotted with magnetic lats
+    Event from https://doi.org/10.1029/2021GL094696
+    """
+    import matplotlib.pyplot as plt
+    import asilib
+    
+    time_range=['2008-01-16T10', '2008-01-16T12']
+    
+    asi = asilib.themis('GILL', time_range=time_range)
+
+    latlon = np.column_stack(
+        (
+            asi.skymap['lat'][:, asi.meta['resolution'][0] // 3],
+            asi.skymap['lon'][:, asi.meta['resolution'][0] // 3],
+        )
+    )
+    latlon = latlon[np.where(~np.isnan(latlon[:, 0]))[0], :]
+    ax, p = asi.plot_keogram(color_map='turbo', aacgm=True, title=False, 
+        path=latlon)
+    ax.set_ylabel('Magnetic Lat [deg]\nCustom path')
+    plt.colorbar(p)
+    return
+
+def test_getitem():
+    """
+    Tests the __getitem__() for time slicing.
+    """
+    raise NotImplementedError
+    return
+
+def test_str():
+    """
+    Tests the __str__() for printing user-readable information about the imager
+    """
+    raise NotImplementedError
+    return
+
+def test_repr():
+    """
+    Tests the __repr__() for printing machine-readable information about the imager
+    """
+    raise NotImplementedError
+    return
