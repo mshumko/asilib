@@ -1578,10 +1578,11 @@ class Imager:
                 arrowprops={'arrowstyle': "<-", 'color': 'w'},
                 xycoords='axes fraction',
                 color='w',
+                ha='center', va='center'
             )
         return
 
-    def _calc_cardinal_direction(self, direction, el_step):
+    def _calc_cardinal_direction(self, direction, el_step, validate=False):
         """
         Calculate the cardinal direction arrows.
 
@@ -1642,6 +1643,15 @@ class Imager:
         rise = furthest_pixel[0] - nearest_pixel[0]
         run = furthest_pixel[1] - nearest_pixel[1]
         self._cardinal_direction[direction] = [rise, run]
+
+        if validate:
+            fig, ax = plt.subplots()
+            p = ax.pcolormesh(self.skymap['az']); 
+            plt.colorbar(p, ax=ax)
+            ax.scatter(_direction_pixels[:, 1], _direction_pixels[:, 0])
+            ax.set_title(f'{direction} | {rise=}, {run=}')
+            plt.show()
+
         return rise, run
 
     def _mask_low_horizon(self, lon_map, lat_map, el_map, min_elevation, image=None):
