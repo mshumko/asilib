@@ -1,4 +1,14 @@
 # Version 0.14.3
+- The following `asilib.Imager` methods are now tested:
+1. plot_fisheye(),
+2. plot_map(),
+3. animate_fisheye(),
+4. animate_map(),
+5. plot_keogram(),
+6. __getitem__,
+7. __str__.
+
+- Fixed a `asilib.Imager` bug that was triggered when the time slicing is outside of the time_range. Before, it raised an unhelpful `AssertionError`, but now it raises an informative `FileNotFoundError`.
 
 # Version 0.14.2
 - Added a `asilib.asi.fake_asi` function to quickly test `asilib.Imager`. 
