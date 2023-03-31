@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pytest
 import numpy as np
 import matplotlib.testing.decorators
 
@@ -252,14 +253,32 @@ def test_getitem():
     """
     Tests the __getitem__() for time slicing.
     """
-    raise NotImplementedError
+    import asilib
+    
+    time_range=['2008-01-16T10', '2008-01-16T12']
+    
+    asi = asilib.themis('GILL', time_range=time_range)
+
+    asi_one_time = asi['2008-01-16T11:05:10']
+    assert asi_one_time.data.times == datetime(2008, 1, 16, 11, 5, 9, 10571)
+    assert np.all(asi_one_time.data.images[0, :10] == np.array(
+        [3498, 3527, 3459, 3516, 3484, 3505, 3483, 3479, 3499, 3481]
+        ))
+    with pytest.raises(FileNotFoundError):
+        # Outside time_range.
+        asi['2010-01-16T11:00:00']
+        asi['2005-01-16T11:00:00']
+    asi_time_range = asi['2008-01-16T10:30':datetime(2008, 1, 16, 10, 40)]
+    assert asi_time_range.data.times.shape[0] == 200
+    assert asi_time_range.data.times[0] == datetime(2008, 1, 16, 10, 30, 0, 16380)
+    assert asi_time_range.data.times[-1] == datetime(2008, 1, 16, 10, 39, 57, 25495)
+    assert asi_time_range.data.images.shape == (200, 256, 256)
     return
 
 def test_str():
     """
     Tests the __str__() for printing user-readable information about the imager
     """
-    import matplotlib.pyplot as plt
     import asilib
     
     time_range=['2008-01-16T10', '2008-01-16T12']

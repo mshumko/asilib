@@ -1160,7 +1160,9 @@ class Imager:
                     (slice_time >= np.array(self._data['start_time']))
                     & (slice_time < np.array(self._data['end_time']))
                 )[0]
-                assert len(file_index) == 1
+                if len(file_index) != 1:
+                    raise FileNotFoundError(f'{slice_time} out of imager range: '
+                        f'{self._data["start_time"][0]}-{self._data["end_time"][-1]}')
                 file_index = file_index[0]
                 file_path = self._data['path'][file_index]
                 file_times, file_images = self._data['loader'](file_path)
