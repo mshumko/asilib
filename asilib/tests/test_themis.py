@@ -133,9 +133,11 @@ def test_themis_map():
     from datetime import datetime
     import matplotlib.pyplot as plt
     import asilib
+    import asilib.map
 
     asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
-    ax, im = asi.plot_map()
+    ax = asilib.map.create_simple_map()
+    ax, im = asi.plot_map(ax=ax)
     plt.colorbar(im)
     ax.axis('off')
     return

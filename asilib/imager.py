@@ -30,7 +30,7 @@ import aacgmv2
 try:
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
-
+    import cartopy.mpl.geoaxes
     cartopy_imported = True
 except ImportError as err:
     # You can also get a ModuleNotFoundError if cartopy is not installed
@@ -413,9 +413,7 @@ class Imager:
         self,
         lon_bounds: tuple = (-160, -50),
         lat_bounds: tuple = (40, 82),
-        ax: Union[
-            plt.Axes, tuple
-        ] = None,  # TODO: Mention gridspec (https://matplotlib.org/stable/tutorials/intermediate/arranging_axes.html#id1)
+        ax: Union[plt.Axes, tuple] = None,
         coast_color: str = 'k',
         land_color: str = 'g',
         ocean_color: str = 'w',
@@ -547,7 +545,7 @@ class Imager:
         )
 
         pcolormesh_kwargs_copy = pcolormesh_kwargs.copy()
-        if cartopy_imported:
+        if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
             assert 'transform' not in pcolormesh_kwargs.keys(), (
                 f"The pcolormesh_kwargs in Imager.plot_map() can't contain "
                 f"'transform' key because it is reserved for cartopy."
@@ -564,7 +562,7 @@ class Imager:
         )
 
         if asi_label:
-            if cartopy_imported:
+            if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
                 transform = ccrs.PlateCarree()
             else:
                 transform = ax.transData
