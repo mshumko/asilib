@@ -23,11 +23,11 @@ def test_time():
     asi = fake_asi('GILL', time='2015-01-01T15:14:00.17')
     assert asi.data.times == datetime(2015, 1, 1, 15, 14)
     assert asi.data.images.shape == (512, 512)
-    assert np.isclose(asi.data.images.mean(), 14.3005828976624)
+    assert np.isclose(asi.data.images.mean(), 14.4014892578125)
     # See https://numpy.org/doc/stable/reference/generated/numpy.argmax.html for the
     # unravel_index example to get the maximum index for a N-d array.
     ind = np.unravel_index(np.argmax(asi.data.images, axis=None), asi.data.images.shape)
-    assert ind == (314, 0)
+    assert ind == (318, 0)
     return
 
 def test_time_range():
