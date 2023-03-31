@@ -1,3 +1,8 @@
+# Version 0.14.2
+- Added a `asilib.asi.fake_asi` function to quickly test `asilib.Imager`. 
+- Using the `fake_asi` I found and fixed a few errors in `asilib.Imager`.
+- Added more tests for `asilib.asi.themis()`, `asilib.map.create_map()` and began adding tests for `asilib.Imager`.
+
 # Version 0.14.1
 - Added tests for `asilib.themis()` plotting functions
 - Moved map creating examples to `asilib.map.create_map()`.
