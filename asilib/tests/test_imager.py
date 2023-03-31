@@ -90,9 +90,9 @@ def test_plot_keogram():
 ##########################################
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_fisheye_example'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_plot_fisheye_example'], tol=10, remove_text=True, extensions=['png']
 )
-def test_fisheye_example():
+def test_plot_fisheye_example():
     """
     Test that asilib.Imager plots a bright auroral arc that was analyzed by 
     Imajo et al., 2021 "Active auroral arc powered by accelerated electrons 
@@ -105,6 +105,22 @@ def test_fisheye_example():
     ax, im = asi.plot_fisheye(cardinal_directions='NE', origin=(0.95, 0.05))
     plt.colorbar(im)
     ax.axis('off')
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_plot_map_example'], tol=10, remove_text=True, extensions=['png']
+)
+def test_plot_map_example():
+    """
+    Test a mapped image of STEVE.
+    """
+    from datetime import datetime
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import asilib
+    asi = asilib.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
+    asi.plot_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
+    plt.tight_layout()
+    return
 
 
 def test_animate_fisheye_example():
