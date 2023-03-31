@@ -14,7 +14,9 @@ except ImportError as err:
     # (as compared to failed to import), but it is a subclass of ImportError.
     cartopy_imported = False
 
-## SIMPLE MAPS ##
+##########################################
+########## TEST SIMPLE MAP ###############
+##########################################
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_create_simple_map_no_subplot'], tol=10, remove_text=True, extensions=['png']
@@ -93,7 +95,10 @@ def test_create_simple_map_gridspec():
     return
 
 
-## CARTOPY MAPS ##
+##########################################
+########## TEST CARTOPY MAP ##############
+##########################################
+
 @pytest.mark.skipif(not cartopy_imported, reason='cartopy not installed')
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_create_cartopy_map_no_subplot'], tol=10, remove_text=True, extensions=['png']
