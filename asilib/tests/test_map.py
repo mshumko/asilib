@@ -16,7 +16,7 @@ def test_create_map_no_subplot():
     import asilib.map
     import matplotlib.pyplot as plt
 
-    ax = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75])
+    ax = asilib.map.create_simple_map(lon_bounds=[0, 38], lat_bounds=[50, 75])
     ax.set_title('Generated via asilib.map.create_map()')
     return
 
@@ -34,7 +34,7 @@ def test_create_map_equal_subplots():
     import matplotlib.pyplot as plt
 
     fig = plt.figure(figsize=(6, 10))
-    bx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, 211))
+    bx = asilib.map.create_simple_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, 211))
     cx = fig.add_subplot(2, 1, 2)
     cx.plot(np.arange(10), np.arange(10))
     fig.suptitle('Two subplots with equal sizes')
@@ -58,7 +58,7 @@ def test_create_map_unequal_subplots():
 
     fig = plt.figure(figsize=(6, 10))
     dx = (3, 1, (1, 2))
-    dx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, dx))
+    dx = asilib.map.create_simple_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, dx))
     ex = fig.add_subplot(3, 1, 3)
     ex.plot(np.arange(10), np.arange(10))
     fig.suptitle('Two subplots with unequal sizes')
@@ -78,6 +78,6 @@ def test_create_map_gridspec():
 
     fig = plt.figure()
     gs = matplotlib.gridspec.GridSpec(1, 1, fig)
-    dx = asilib.map.create_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, gs))
+    dx = asilib.map.create_simple_map(lon_bounds=[0, 38], lat_bounds=[50, 75], fig_ax=(fig, gs))
     dx.set_title('Map made using gridspec')
     return
