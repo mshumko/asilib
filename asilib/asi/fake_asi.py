@@ -6,17 +6,16 @@ import numpy as np
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
-import pytest
 
 import asilib
 import asilib.utils as utils
 
-@pytest.mark.skip(reason='This is an ASI wrapper and not a test.')
-def test_asi(location_code:str, time: utils._time_type=None,
+
+def fake_asi(location_code:str, time: utils._time_type=None,
     time_range: utils._time_range_type=None, alt:int=110, 
     pixel_center:bool=True)-> asilib.Imager:
     """
-    Create an Imager instance with the test_asi images and skymaps.
+    Create an Imager instance with the fake_asi images and skymaps.
 
     Parameters
     ----------
@@ -39,7 +38,7 @@ def test_asi(location_code:str, time: utils._time_type=None,
     Returns
     -------
     :py:meth:`~asilib.imager.Imager`
-        The an Imager instance with the test_asi data.
+        The an Imager instance with the fake_asi data.
     """
     location_code = location_code.upper()
     locations = asi_info()
@@ -191,7 +190,7 @@ def _data_loader(file_path):
     Given a file_path, open the file and return the time stamps and images.
 
     Time stamps are every 10 seconds. The images are all 0s except a horizontal and a vertical 
-    line whose position is determined by seconds_since_start modulo resolution (516).
+    line whose position is determined by seconds_since_start modulo resolution (512).
     """
     # Assume that the image time stamps are at exact seconds
     date_time_str = '_'.join(file_path.split('_')[:2])
@@ -199,15 +198,15 @@ def _data_loader(file_path):
 
     times = np.array([file_time + timedelta(seconds=i*10) for i in range(3600//10)])  # 10 s cadence
     
-    images = np.ones((times.shape[0], 516, 516))
+    images = np.ones((times.shape[0], 512, 512))
     for i, time in enumerate(times):
         sec = (time-file_time).total_seconds()
-        images[i, int(sec % 516)-10:int(sec % 516)+10, :] = 255
-        images[i, :, int(sec % 516)-10:int(sec % 516)+10] = 100
+        images[i, int(sec % 512)-10:int(sec % 512)+10, :] = 255
+        images[i, :, int(sec % 512)-10:int(sec % 512)+10] = 100
     return times, images
 
 def _get_file_path(meta, time):
-    return f'{time:%Y%m%d_%H}0000_{meta["location"]}_test_asi.images'  # does not exist.
+    return f'{time:%Y%m%d_%H}0000_{meta["location"]}_fake_asi.images'  # does not exist.
 
 def plot_skymap(location_code, alt=110, pixel_center=True):
     """
@@ -232,10 +231,7 @@ def plot_skymap(location_code, alt=110, pixel_center=True):
     return
 
 if __name__ == '__main__':
-    # asi = test_asi('GILL', time_range=('2015-01-01T15:00:15.17', '2015-01-01T20:00'))
-    asi = test_asi('GILL', time='2015-01-01T15:15:15.17')
-    _, ax = plt.subplots(1, 2, figsize=(8, 4))
-    asi.plot_fisheye(color_bounds=(1, 255), ax=ax[0], origin=(0.9, 0.1), cardinal_directions='NEWS')
-    p = ax[1].pcolormesh(asi.skymap['az'])
-    plt.colorbar(p, ax=ax[1])
+    # asi = fake_asi('GILL', time_range=('2015-01-01T15:00:15.17', '2015-01-01T20:00'))
+    asi = fake_asi('GILL', time='2015-01-01T15:14:00.17')
+    asi.plot_fisheye(color_bounds=(1, 255), origin=(0.85, 0.15), cardinal_directions='NEWS')
     plt.show()
