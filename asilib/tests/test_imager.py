@@ -119,8 +119,11 @@ def test_plot_map_example():
     import numpy as np
     import matplotlib.pyplot as plt
     import asilib
+    import asilib.map
+
+    ax = asilib.map.create_simple_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
     asi = asilib.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
-    asi.plot_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
+    asi.plot_map(ax=ax)
     plt.tight_layout()
     return
 
