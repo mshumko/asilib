@@ -5,9 +5,10 @@
 3. `animate_fisheye()`,
 4. `animate_map()`,
 5. `plot_keogram()`,
-6. `__getitem__`,
-7. `__str__`, and
-8. `__repr__`.
+6. `iter_files`,
+7. `__getitem__`,
+8. `__str__`, and
+9. `__repr__`.
 
 - The `asilib.themis()` and `asilib.rego()` examples are now tested as well.
 
