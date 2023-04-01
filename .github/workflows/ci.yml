@@ -13,7 +13,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11"]
@@ -25,14 +25,17 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Setup PROJ
+      uses: ./.github/actions/setup-proj
     - name: Install dependencies
       run: |
         sudo apt-get update
+        sudo apt-get install libgeos-dev
         sudo apt-get install ffmpeg
         sudo apt-get install python3-dev
 
         # python -m pip install --upgrade pip
-        python -m pip install flake8 pytest
+        python -m pip install flake8 pytest cartopy
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |
