@@ -9,6 +9,8 @@
 7. `__str__`, and
 8. `__repr__`.
 
+- The `asilib.themis()` and `asilib.rego()` examples are now tested as well.
+
 - Fixed a `asilib.Imager` bug that was triggered when the time slicing is outside of the time_range. Before, it raised an unhelpful `AssertionError`, but now it raises an informative `FileNotFoundError`.
 
 # Version 0.14.2
