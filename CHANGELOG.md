@@ -1,3 +1,8 @@
+# Version 0.14.4
+- Updated GitHub Actions:
+  - test the `cartopy` maps,
+  - test using `ubuntu-latest`.
+
 # Version 0.14.3
 - The following `asilib.Imager` methods are now tested:
 1. `plot_fisheye()`,
