@@ -4,6 +4,7 @@ Tests the asilib's Conjunction class.
 from datetime import datetime, timedelta
 import dateutil.parser
 
+import matplotlib.pyplot as plt
 import pytest
 import numpy as np
 
@@ -56,12 +57,18 @@ def test_find_multiple():
     img = asilib.themis('gill', time=t0, load_images=False, alt=110)
     _times, _lla = get_one_time_lla(img, alt=110)
 
-    times = np.repeat(_times, n_passes)
-    lla = np.repeat(_lla, n_passes, axis=0)
+    # TODO: Need to concatenate instead.
+    times = np.tile(_times, n_passes)
+    lla = np.tile(_lla, n_passes, axis=0)
     lon_offsets = np.linspace(-10, 10, num=n_passes)
+    # plt.scatter(self.sat['lon'], self.sat['lat']); plt.axvline(self.imager.meta['lon']); plt.show()
     for i, lon_offset in enumerate(lon_offsets):
-        times[i*_times.shape[0]:(i+1)*_times.shape[0]] += np.timedelta64(i, 'h')
+        times[i*_times.shape[0]:(i+1)*_times.shape[0]] = np.array(
+            [t_i+timedelta(hours=i) for t_i in times[i*_times.shape[0]:(i+1)*_times.shape[0]]]
+            )
         lla[i*_times.shape[0]:(i+1)*_times.shape[0], 1] += lon_offset
+    
+    plt.scatter(lla[:, 1], lla[:, 0]); plt.show()
 
     c = asilib.Conjunction(img, times, lla)
     df = c.find()
