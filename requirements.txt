@@ -1,9 +1,9 @@
-beautifulsoup4==4.9.3
-cdflib==0.3.20
+# Core libraries
+beautifulsoup4==4.12.2
 matplotlib==3.6.3
 numpy==1.24.1
 pandas==1.2.1
-requests==2.25.1
+requests==2.28.2
 scipy==1.10.0
 ffmpeg-python==0.2.0
 pymap3d==2.5.0
@@ -13,6 +13,7 @@ aacgmv2==2.6.0
 # Necessary libraries to load ASI data.
 themis-imager-readfile==1.0.11
 rego-imager-readfile==1.0.2
+cdflib==0.3.20  # TODO: Remove @ version 1.0.0
 h5py==3.8.0  # for LAMP.
 
 # Dev
