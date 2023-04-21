@@ -4,12 +4,14 @@ from typing import Tuple
 import numpy as np
 import matplotlib.pyplot as plt
 
+import asilib.asi.themis
+
 def footprint(center_lon:float, alt:float=110, obit_period:float=95*60, 
     precession_rate:float=10, cadence:float=6, 
     time_range:tuple=(datetime(2015,1,1), datetime(2015,1,2))
     )->Tuple[np.array, np.array]:
     """
-    Get the time stamps, and lat, lon, alt (LLA) coordinates.
+    Create a fake ephemeris for a LEO satellite.
 
     Parameters
     ----------
@@ -47,6 +49,23 @@ def footprint(center_lon:float, alt:float=110, obit_period:float=95*60,
     lla = np.stack((lats,lons,alts)).T
     return times, lla
 
+def visualize_footprint():
+    """
+    Visualize and validate that the footprint lons and lats are correct.
+    """
+    asi = asilib.asi.themis.themis('GILL', time='2015-01-01', load_images=False)
+    times, lla = footprint(asi.meta['lon'])
+
+    fig, ax = plt.subplots(3, 1)
+    ax[0].plot(times, lla[:, 0])
+    ax[1].plot(times, lla[:, 1])
+    ax[2].plot(lla[:, 1], lla[:, 0])
+
+    ax[0].set(xlabel='time', ylabel='lat [deg]')
+    ax[1].set(xlabel='time', ylabel='lon [deg]')
+    ax[2].set(xlabel='lon [deg]', ylabel='lat [deg]')
+    return
+
 if __name__ == '__main__':
-    times, lla = footprint(-100)
-    pass
+    validate_footprint()
+    plt.show()
