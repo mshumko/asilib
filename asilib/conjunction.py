@@ -101,22 +101,16 @@ class Conjunction:
 
         interpolated_lla = {}
 
+        # TODO: Detect when longitudes cross the 180-meridian and
+        # correctly interpolate.
         for key in ['lat', 'lon', 'alt']:
-            if key == 'lon':
-                period = 180  # TODO: Add a test when longitude wraps around.
-            else:
-                period = None
-
             interpolated_lla[key] = np.interp(
                 numeric_imager_times, numeric_sat_times, self.sat.loc[:, key], 
-                period=period, left=np.nan, right=np.nan
+                left=np.nan, right=np.nan
             )
-
-        # TODO: Test script, remove when done.
-        # key = 'lon'
-        # plt.scatter(self.sat.index, self.sat[key], c='k', s=50)
-        # plt.scatter(imager_times, interpolated_lla[key], c='orange')
-        # plt.show()
+        if np.nanmax(np.abs(np.diff(self.sat.loc[:, 'lon']))) > 200:
+            warnings.warn('The asilib.Conjunction.interp_sat() does not yet correctly interpolate'
+                'longitudes across the 180-meridian.', UserWarning)
         self.sat = pd.DataFrame(index=imager_times, data=interpolated_lla)
         return self.sat
 

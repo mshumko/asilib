@@ -145,6 +145,40 @@ def test_plot_interp_sat():
     ax[0].axvline(c.imager.data.times[-1])
     return
 
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_plot_interp_sat_wrap'], tol=10, remove_text=True, extensions=['png']
+)
+def test_plot_interp_sat_wrap():
+    """
+    Test if the satellite LLA is correctly interpolated and aligned to the ASI timestamps
+    when the satellite's longitudes pass through the 180 meridian. 
+
+    The satellite LLA timestamps every 6 seconds, while THEMIS ASI timestamps are every
+    3 seconds.
+    """
+    asi_time_range=(t0, t0+timedelta(minutes=1))
+    # Add 6 seconds so that the footprint interval completely encompasses the
+    # asi time_range.
+    footprint_time_range=(t0, t0+timedelta(minutes=1, seconds=6))
+    asi = asilib.themis(location_code, time_range=asi_time_range, alt=110)
+    times, lla = footprint(-180, time_range=footprint_time_range, precession_rate=20)
+    lla[lla[:, 1] < -180, 1] += 360
+    c = asilib.Conjunction(asi, times, lla)
+
+    with pytest.warns(UserWarning):
+        c.interp_sat()
+
+    fig, ax = plt.subplots(2, 1, sharex=True)
+    ax[0].scatter(times, lla[:, 0], c='k', s=50)
+    ax[0].scatter(c.sat.index, c.sat['lat'], c='orange')
+
+    ax[1].scatter(times, lla[:, 1], c='k', s=50)
+    ax[1].scatter(c.sat.index, c.sat['lon'], c='orange')
+
+    ax[0].axvline(c.imager.data.times[0])
+    ax[0].axvline(c.imager.data.times[-1])
+    return
+
 @pytest.mark.skipif(not irbem_imported, reason='IRBEM is not installed.')
 def test_magnetic_tracing():
     raise AssertionError
