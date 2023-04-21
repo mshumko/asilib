@@ -29,9 +29,9 @@ def test_conjunction_find_none():
     """
     Verifies that no start or end conjunction intervals are identified.
     """
-    img = asilib.themis(location_code, time=t0, load_images=False, alt=110)
-    times, lla = footprint(img.meta['lon']+100)
-    c = asilib.Conjunction(img, times, lla)
+    asi = asilib.themis(location_code, time=t0, load_images=False, alt=110)
+    times, lla = footprint(asi.meta['lon']+100)
+    c = asilib.Conjunction(asi, times, lla)
     df = c.find()
     assert df.shape == (0,4)
     return
@@ -40,10 +40,10 @@ def test_conjunction_find_multiple():
     """
     Verifies that multiple start and end conjunction intervals are identified.
     """
-    img = asilib.themis(location_code, time=t0, load_images=False, alt=110)
-    times, lla = footprint(img.meta['lon'], alt=110)
+    asi = asilib.themis(location_code, time=t0, load_images=False, alt=110)
+    times, lla = footprint(asi.meta['lon'], alt=110)
 
-    c = asilib.Conjunction(img, times, lla)
+    c = asilib.Conjunction(asi, times, lla)
     df = c.find(min_el=20)
     assert df.shape == (18,4)
     assert np.all(
@@ -92,6 +92,57 @@ def test_plot_conjunction_find_multiple():
         xlim=(np.nanmin(c._lon_map)-5, np.nanmax(c._lon_map)+5), 
         ylim=(np.nanmin(c._lat_map)-2, np.nanmax(c._lat_map)+2)
         )
+    return
+
+def test_interp_sat():
+    """
+    Test if the satellite LLA is correctly interpolated and aligned to the ASI timestamps. 
+
+    The satellite LLA timestamps every 6 seconds, while THEMIS ASI timestamps are every
+    3 seconds.
+    """
+    asi_time_range=(t0, t0+timedelta(minutes=1))
+    # Add 6 seconds so that the footprint interval completely encompasses the
+    # asi time_range.
+    footprint_time_range=(t0, t0+timedelta(minutes=1, seconds=6))
+    asi = asilib.themis(location_code, time_range=asi_time_range, alt=110)
+    times, lla = footprint(asi.meta['lon'], time_range=footprint_time_range)
+    c = asilib.Conjunction(asi, times, lla)
+
+    c.interp_sat()
+    assert c.sat.shape == (20, 3)
+    assert np.all(c.sat.index == c.imager.data.times)
+    return
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_plot_interp_sat'], tol=10, remove_text=True, extensions=['png']
+)
+def test_plot_interp_sat():
+    """
+    Test if the satellite LLA is correctly interpolated and aligned to the ASI timestamps. 
+
+    The satellite LLA timestamps every 6 seconds, while THEMIS ASI timestamps are every
+    3 seconds.
+    """
+    asi_time_range=(t0, t0+timedelta(minutes=1))
+    # Add 6 seconds so that the footprint interval completely encompasses the
+    # asi time_range.
+    footprint_time_range=(t0, t0+timedelta(minutes=1, seconds=6))
+    asi = asilib.themis(location_code, time_range=asi_time_range, alt=110)
+    times, lla = footprint(asi.meta['lon'], time_range=footprint_time_range)
+    c = asilib.Conjunction(asi, times, lla)
+
+    c.interp_sat()
+
+    fig, ax = plt.subplots(2, 1, sharex=True)
+    ax[0].scatter(times, lla[:, 0], c='k', s=50)
+    ax[0].scatter(c.sat.index, c.sat['lat'], c='orange')
+
+    ax[1].scatter(times, lla[:, 1], c='k', s=50)
+    ax[1].scatter(c.sat.index, c.sat['lon'], c='orange')
+
+    ax[0].axvline(c.imager.data.times[0])
+    ax[0].axvline(c.imager.data.times[-1])
     return
 
 @pytest.mark.skipif(not irbem_imported, reason='IRBEM is not installed.')

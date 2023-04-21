@@ -82,12 +82,11 @@ class Conjunction:
         )
         return df
 
-    def resample(self):
+    def interp_sat(self):
         """
-        Resample the sat_loc from the satellite to imager time stamps. Useful for
-        one-to-one comparison between the images a satellite trajectory.
+        Interpolate the satellite timestamps and LLA at the imager timestamps.
         """
-        imager_times, _ = self.imager.data(which='time')
+        imager_times, _ = self.imager.data
         numeric_imager_times = date2num(imager_times)
         numeric_sat_times = date2num(self.sat.index)
         if len(imager_times) == 0:
@@ -100,7 +99,7 @@ class Conjunction:
             np.diff(numeric_sat_times) > 0
         ), 'satellite times are not strictly increasing.'
 
-        resampled_lla = {}
+        interpolated_lla = {}
 
         for key in ['lat', 'lon', 'alt']:
             if key == 'lon':
@@ -108,17 +107,18 @@ class Conjunction:
             else:
                 period = None
 
-            resampled_lla[key] = np.interp(
-                numeric_imager_times, numeric_sat_times, self.sat.loc[:, key], period=period
+            interpolated_lla[key] = np.interp(
+                numeric_imager_times, numeric_sat_times, self.sat.loc[:, key], 
+                period=period, left=np.nan, right=np.nan
             )
 
         # TODO: Test script, remove when done.
         # key = 'lon'
         # plt.scatter(self.sat.index, self.sat[key], c='k', s=50)
-        # plt.scatter(imager_times, resampled_lla[key], c='orange')
+        # plt.scatter(imager_times, interpolated_lla[key], c='orange')
         # plt.show()
-        self.sat = pd.DataFrame(index=imager_times, data=resampled_lla)
-        return
+        self.sat = pd.DataFrame(index=imager_times, data=interpolated_lla)
+        return self.sat
 
     def map_lla_footprint(
         self,
@@ -508,22 +508,3 @@ class Conjunction:
         start = np.insert(break_indices + 1, 0, 0)
         end = np.append(break_indices, len(dIntervals))
         return start, end
-
-
-if __name__ == '__main__':
-    import dateutil.parser
-    from datetime import datetime, timedelta
-
-    import asilib
-
-    t0 = dateutil.parser.parse('2014-05-05T04:49:10')
-
-    n_times = 100
-    img = asilib.themis('gill', time='2014-05-05T04:49:10', load_images=False, alt=110)
-    lats = np.linspace(90, 0, num=n_times)
-    lons = img.meta['lon'] * np.ones_like(lats)
-    alts = 110 * np.ones_like(lats)
-    lla = np.array([lats, lons, alts]).T
-    times = np.array([t0 + timedelta(seconds=i * 0.5) for i in range(n_times)])
-    c = asilib.Conjunction(img, times, lla)
-    c.find()
