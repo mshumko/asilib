@@ -67,5 +67,5 @@ def visualize_footprint():
     return
 
 if __name__ == '__main__':
-    validate_footprint()
+    visualize_footprint()
     plt.show()
