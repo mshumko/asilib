@@ -53,7 +53,7 @@ class Conjunction:
         assert 0 < min_el < 90, "The minimum elevation must be between 0 and 90 degrees."
 
         # # Filter the elevation map to values > min_el
-        lon_map, lat_map, _ = self.imager._mask_low_horizon(
+        self._lon_map, self._lat_map, _ = self.imager._mask_low_horizon(
             self.imager.skymap['lon'],
             self.imager.skymap['lat'],
             self.imager.skymap['el'],
@@ -62,30 +62,24 @@ class Conjunction:
 
         # Search LLA for times when it was inside the map box
         conjunction_idx = np.where(
-            (self.sat['lat'] > np.nanmin(lat_map))
-            & (self.sat['lat'] < np.nanmax(lat_map))
-            & (self.sat['lon'] > np.nanmin(lon_map))
-            & (self.sat['lon'] < np.nanmax(lon_map))
+            (self.sat['lat'] > np.nanmin(self._lat_map))
+            & (self.sat['lat'] < np.nanmax(self._lat_map))
+            & (self.sat['lon'] > np.nanmin(self._lon_map))
+            & (self.sat['lon'] < np.nanmax(self._lon_map))
         )[0]
         if conjunction_idx.shape[0] == 0:
-            return pd.DataFrame(columns=['start', 'end'])
+            return pd.DataFrame(columns=['start_time', 'end_time', 'start_index', 'end_index'])
 
         start, end = self._conjunction_intervals(self.sat.index[conjunction_idx], min_dt=time_gap_s)
 
         df = pd.DataFrame(
             data={
-                'start': self.sat.index[conjunction_idx][start],
-                'end': self.sat.index[conjunction_idx][end],
+                'start_time': self.sat.index[conjunction_idx][start],
+                'end_time': self.sat.index[conjunction_idx][end],
+                'start_index':conjunction_idx[start],
+                'end_index':conjunction_idx[end]
             }
         )
-        # # Test script
-        # fig, ax = plt.subplots()
-        # self.imager._pcolormesh_nan(lon_map, lat_map, 1+0*lat_map, ax)
-        # ax.scatter(self.sat['lon'], self.sat['lat'], c='k')
-        # ax.plot(self.sat['lon'][conjunction_idx], self.sat['lat'][conjunction_idx], 'r')
-        # ax.scatter(self.sat['lon'][df['start']], self.sat['lat'][df['start']], c='g', s=100)
-        # ax.scatter(self.sat['lon'][df['end']], self.sat['lat'][df['end']], c='c', s=100)
-        # plt.show()
         return df
 
     def resample(self):
