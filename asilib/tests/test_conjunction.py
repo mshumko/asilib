@@ -17,6 +17,7 @@ except ImportError as err:
     irbem_imported = False
 
 import asilib
+from asilib.tests.mock_footprint import footprint
 
 
 t0 = dateutil.parser.parse('2014-05-05T04:49:10')
@@ -26,57 +27,43 @@ def test_find_none():
     Verifies that no start or end conjunction intervals are identified.
     """
     img = asilib.themis('gill', time=t0, load_images=False, alt=110)
-    times, lla = get_one_time_lla(img, alt=110)
-    lla[:, 1] += 50  # Move the footprint path outside of the ASI FOV. 
+    times, lla = footprint(img.meta['lon']+100)
     c = asilib.Conjunction(img, times, lla)
     df = c.find()
     assert df.shape == (0,2)
     return
 
-def test_find_one():
-    """
-    Verifies that the start and end conjunction intervals are identified.
-    """
-    img = asilib.themis('gill', time=t0, load_images=False, alt=110)
-    times, lla = get_one_time_lla(img, alt=110)
-    c = asilib.Conjunction(img, times, lla)
-    df = c.find()
-    assert df.shape == (1,2)
-    assert np.all(
-        df.to_numpy() == np.array(
-        [['2014-05-05T04:49:44.500000000', '2014-05-05T04:49:49.500000000']], 
-        dtype='datetime64[ns]')
-        )
-    return
-
 def test_find_multiple():
     """
-    Verifies that the start and end conjunction intervals are identified.
+    Verifies that multiple start and end conjunction intervals are identified.
     """
-    n_passes = 5
     img = asilib.themis('gill', time=t0, load_images=False, alt=110)
-    _times, _lla = get_one_time_lla(img, alt=110)
-
-    # TODO: Need to concatenate instead.
-    times = np.tile(_times, n_passes)
-    lla = np.tile(_lla, n_passes, axis=0)
-    lon_offsets = np.linspace(-10, 10, num=n_passes)
-    # plt.scatter(self.sat['lon'], self.sat['lat']); plt.axvline(self.imager.meta['lon']); plt.show()
-    for i, lon_offset in enumerate(lon_offsets):
-        times[i*_times.shape[0]:(i+1)*_times.shape[0]] = np.array(
-            [t_i+timedelta(hours=i) for t_i in times[i*_times.shape[0]:(i+1)*_times.shape[0]]]
-            )
-        lla[i*_times.shape[0]:(i+1)*_times.shape[0], 1] += lon_offset
-    
-    plt.scatter(lla[:, 1], lla[:, 0]); plt.show()
+    times, lla = footprint(img.meta['lon'], alt=110)
 
     c = asilib.Conjunction(img, times, lla)
     df = c.find()
-    assert df.shape == (1,2)
+    assert df.shape == (18,2)
     assert np.all(
-        df.to_numpy() == np.array(
-        [['2014-05-05T04:49:44.500000000', '2014-05-05T04:49:49.500000000']], 
-        dtype='datetime64[ns]')
+        df.to_numpy() == np.array([
+            ['2015-01-01T01:44:48.000000000', '2015-01-01T01:45:42.000000000'],
+            ['2015-01-01T02:11:48.000000000', '2015-01-01T02:12:42.000000000'],
+            ['2015-01-01T03:19:48.000000000', '2015-01-01T03:20:42.000000000'],
+            ['2015-01-01T03:46:48.000000000', '2015-01-01T03:47:42.000000000'],
+            ['2015-01-01T04:54:48.000000000', '2015-01-01T04:55:42.000000000'],
+            ['2015-01-01T05:21:48.000000000', '2015-01-01T05:22:42.000000000'],
+            ['2015-01-01T06:29:48.000000000', '2015-01-01T06:30:42.000000000'],
+            ['2015-01-01T06:56:48.000000000', '2015-01-01T06:57:42.000000000'],
+            ['2015-01-01T08:04:48.000000000', '2015-01-01T08:05:42.000000000'],
+            ['2015-01-01T08:31:48.000000000', '2015-01-01T08:32:42.000000000'],
+            ['2015-01-01T09:39:48.000000000', '2015-01-01T09:40:42.000000000'],
+            ['2015-01-01T10:06:48.000000000', '2015-01-01T10:07:42.000000000'],
+            ['2015-01-01T11:14:48.000000000', '2015-01-01T11:15:42.000000000'],
+            ['2015-01-01T11:41:48.000000000', '2015-01-01T11:42:42.000000000'],
+            ['2015-01-01T12:49:48.000000000', '2015-01-01T12:50:42.000000000'],
+            ['2015-01-01T13:16:48.000000000', '2015-01-01T13:17:42.000000000'],
+            ['2015-01-01T14:24:48.000000000', '2015-01-01T14:25:42.000000000'],
+            ['2015-01-01T14:51:48.000000000', '2015-01-01T14:52:42.000000000'],
+            ], dtype='datetime64[ns]')
         )
     return
 
@@ -84,22 +71,3 @@ def test_find_multiple():
 def test_magnetic_tracing():
     raise AssertionError
     return
-
-def get_one_time_lla(img:asilib.Imager, alt:int=110):
-    """
-    Get the satellite's footprint location at alt without mapping.
-
-    Parameters
-    ----------
-    img: asilib.Imager
-        An Imager instance used to create the path through zenith.
-    alt: int
-        The mapping altitude in km units.
-    """
-    n_times = 200
-    lats = np.linspace(90, 0, num=n_times)
-    lons = img.meta['lon'] * np.ones_like(lats)
-    alts = alt * np.ones_like(lats)
-    lla = np.array([lats, lons, alts]).T
-    times = np.array([t0 + timedelta(seconds=i * 0.5) for i in range(n_times)])
-    return times, lla
