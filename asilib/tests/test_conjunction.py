@@ -74,7 +74,7 @@ def test_conjunction_find_multiple():
 )
 def test_plot_conjunction_find_multiple():
     """
-    
+    Plots the ASI map and superposes the footprint start and end indices.
     """
     asi = asilib.themis(location_code, time=t0, load_images=False, alt=110)
     times, lla = footprint(asi.meta['lon'], alt=110)
