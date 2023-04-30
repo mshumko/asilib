@@ -404,42 +404,42 @@ class Conjunction:
             An array with the same shape as azel, but representing the
             x- and y-axis pixel indices in the ASI image.
         """
-        # az_coords = self.imager.skymap['az'].ravel().copy()
-        # az_coords[np.isnan(az_coords)] = -10000
-        # el_coords = self.imager.skymap['el'].ravel().copy()
-        # el_coords[np.isnan(el_coords)] = -10000
-        # asi_azel_cal = np.stack((az_coords, el_coords), axis=-1)
-
         pixel_index = np.nan * np.ones_like(azel)
 
-
-        for i, (az, el) in enumerate(azel): 
-            el = el*np.ones_like(self.imager.skymap['el'])
-            az = el*np.ones_like(self.imager.skymap['az'])
-            distances = self._haversine_distance(
-                self.imager.skymap['el'], self.imager.skymap['az'], el, az
+        if azel.shape[0] < 1E4:
+            # Fully vectorize
+            skymap_shape = self.imager.skymap['el'].shape
+            # Broadcast the skymaps such that the skymaps are copies along dim 0.
+            # I need to read up on how broadcasting works in numpy, but it should
+            # be very memory efficient.
+            asi_el = np.broadcast_to(self.imager.skymap['el'][np.newaxis,:,:], 
+                (azel.shape[0], skymap_shape[0], skymap_shape[1])
                 )
-            pixel_index[i, :] = np.unravel_index(np.nanargmin(distances), distances.shape)
+            asi_az= np.broadcast_to(self.imager.skymap['az'][np.newaxis,:,:], 
+                (azel.shape[0], skymap_shape[0], skymap_shape[1])
+                )
+            sat_az = azel[:,0]
+            sat_az = np.broadcast_to(sat_az[:, np.newaxis, np.newaxis], asi_el.shape)
+            sat_el = azel[:,1]
+            sat_el = np.broadcast_to(sat_el[:, np.newaxis, np.newaxis], asi_el.shape)
+            distances = self._haversine_distance(asi_el, asi_az, sat_el, sat_az) 
+            # This should be vectorized too, but np.nanargmin() can't find a minimum 
+            # along the 1st and 2nd dims. 
+            for i, distance in enumerate(distances):
+                if np.all(np.isnan(distance)):
+                    continue
+                pixel_index[i, :] = np.unravel_index(np.nanargmin(distance), distance.shape)
             pass
 
-        # # Find the distance between the satellite azel points and
-        # # the asi_azel points. dist_matrix[i,j] is the distance
-        # # between ith asi_azel_cal value and jth azel.
-        # if azel.shape[0] < chunk_size:
-        #     x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, azel)
-        #     pixel_index[:, 0] = x_pixel
-        #     pixel_index[:, 1] = y_pixel
-        # else:
-        #     for i in range(azel.shape[0] // chunk_size):
-        #         sat_azel_chunk = azel[i * chunk_size : (i + 1) * chunk_size, :]
-        #         x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, sat_azel_chunk)
-        #         pixel_index[i * chunk_size : (i + 1) * chunk_size, 0] = x_pixel
-        #         pixel_index[i * chunk_size : (i + 1) * chunk_size, 1] = y_pixel
-        #     # The unchunked remainder
-        #     sat_azel_chunk = azel[(i + 1) * chunk_size :, :]
-        #     x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, sat_azel_chunk)
-        #     pixel_index[(i + 1) * chunk_size :, 0] = x_pixel
-        #     pixel_index[(i + 1) * chunk_size :, 1] = y_pixel
+        else:
+            # Calculate one at a time to save memory.
+            for i, (az, el) in enumerate(azel): 
+                el = el*np.ones_like(self.imager.skymap['el'])
+                az = el*np.ones_like(self.imager.skymap['az'])
+                distances = self._haversine_distance(
+                    self.imager.skymap['el'], self.imager.skymap['az'], el, az
+                    )
+                pixel_index[i, :] = np.unravel_index(np.nanargmin(distances), distances.shape)
         return pixel_index
 
     # def _nearest_pixel(self, asi_azel_cal, sat_azel):
