@@ -211,15 +211,44 @@ def test_azel_multiple_lla():
     """
     location = 'ATHA'
     time = datetime(2020, 1, 1)
-    asi = asilib.themis(location, time=time, load_images=False)
+    asi = asilib.asi.fake_asi.fake_asi(location, time=time)
 
-    sat_lla = np.array([[asi.meta['lat'], asi.meta['lon'], 500]])
-    c = asilib.Conjunction(asi, [time], sat_lla)
+    num = 10
+    lats = np.linspace(asi.meta['lat']-2, asi.meta['lat']+2, num=num)
+    lons = np.linspace(asi.meta['lon']-2, asi.meta['lon']+2, num=num)
+    sat_lla = np.stack((lats, lons, 500*np.ones_like(lons))).T
+    c = asilib.Conjunction(asi, np.repeat(np.array([time]), num), sat_lla)
     azel, pixels = c.map_azel()
 
-    # Test the El values
-    assert round(azel[0, 1]) == 90
+    assert np.all(np.isclose(
+        azel, 
+        np.array([
+            [211.47839446,  60.51190213],
+            [211.16566566,  66.37949079],
+            [210.85158923,  72.72795178],
+            [210.53615933,  79.4686885 ],
+            [210.2193701 ,  86.46258136],
+            [ 29.90121566,  86.4673325 ],
+            [ 29.58169008,  79.51031894],
+            [ 29.26078743,  72.8378054 ],
+            [ 28.93850173,  66.57984562],
+            [ 28.61482701,  60.81521379]]
+            )
+        ))
 
-    # Test that the AzEl indices are witin 5 pixels of zenith.
-    assert np.max(abs(pixels[0] - asi.meta['resolution'][0]/2)) <= 5
+    assert np.all(np.isclose(
+        pixels, 
+        np.array([
+            [146., 364.],
+            [161., 329.],
+            [196., 379.],
+            [197., 295.],
+            [284., 322.],
+            [272., 239.],
+            [316., 193.],
+            [250., 219.],
+            [354., 164.],
+            [279.,  20.]
+            ])
+        ))
     return
