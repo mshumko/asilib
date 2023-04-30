@@ -776,8 +776,10 @@ class Imager:
 
             # Clean up the objects that this method generated.
             if label_obj is not None:
-                ax.texts.remove(label_obj)
-            ax.collections.remove(pcolormesh_obj)
+                # ax.texts.remove(label_obj)
+                label_obj.remove()
+            # ax.collections.remove(pcolormesh_obj)
+            pcolormesh_obj.remove()
 
         self._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
         return
