@@ -201,8 +201,8 @@ def test_azel_single_lla():
     # Test the El values
     assert round(azel[0, 1]) == 90
 
-    # Test that the AzEl indices are witin 5 pixels of zenith.
-    assert np.max(abs(pixels[0] - asi.meta['resolution'][0]/2)) <= 5
+    # Test that the AzEl indices are within a pixel of zenith.
+    assert np.max(abs(pixels[0] - asi.meta['resolution'][0]/2)) <= 1
     return
 
 def test_azel_multiple_lla():

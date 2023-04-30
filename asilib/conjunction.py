@@ -227,10 +227,10 @@ class Conjunction:
             azel[i, :] = [az, el]
 
         # Now find the corresponding x- and y-axis pixel indices.
-        azel_pixels = self._map_azel_to_pixel(azel)
+        azel_pixels = self._nearest_pixel(azel)
 
-        # Mask elevations below min_el as NaN. This is a good idea because
-        # _map_azel_to_pixel will find the nearest pixel even if the delta
+        # Mask elevations below min_el as NaN. This is necessary because
+        # _nearest_pixel will find the nearest pixel even if the delta
         # az and delta el is large.
         invalid_el = np.where(azel[:, 1] < min_el)[0]
         azel[invalid_el, :] = np.nan
@@ -385,15 +385,15 @@ class Conjunction:
         dlon_rads = 2 * np.arcsin(numerator / denominator)
         return np.rad2deg(dlon_rads)
 
-    def _map_azel_to_pixel(self, azel, chunk_size=1000) -> np.ndarray:
+    def _nearest_pixel(self, azel, chunk_size=1000) -> np.ndarray:
         """
         Locate the nearest ASI skymap (x, y) pixel indices.
 
         Parameters
         ----------
         azel: array
-            A 1d or 2d array of satelite azimuth and elevation points.
-            If 2d, the rows correspons to time.
+            A 1d or 2d array of satellite azimuth and elevation points.
+            If 2d, the rows corresponds to time.
         chunk_size: int
             The chunks to calculate the 2d distance array. This is necessary
             to maintain a small memory footprint.
@@ -404,49 +404,88 @@ class Conjunction:
             An array with the same shape as azel, but representing the
             x- and y-axis pixel indices in the ASI image.
         """
-        az_coords = self.imager.skymap['az'].ravel().copy()
-        az_coords[np.isnan(az_coords)] = -10000
-        el_coords = self.imager.skymap['el'].ravel().copy()
-        el_coords[np.isnan(el_coords)] = -10000
-        asi_azel_cal = np.stack((az_coords, el_coords), axis=-1)
+        # az_coords = self.imager.skymap['az'].ravel().copy()
+        # az_coords[np.isnan(az_coords)] = -10000
+        # el_coords = self.imager.skymap['el'].ravel().copy()
+        # el_coords[np.isnan(el_coords)] = -10000
+        # asi_azel_cal = np.stack((az_coords, el_coords), axis=-1)
 
         pixel_index = np.nan * np.ones_like(azel)
 
-        # Find the distance between the satellite azel points and
-        # the asi_azel points. dist_matrix[i,j] is the distance
-        # between ith asi_azel_cal value and jth azel.
-        if azel.shape[0] < chunk_size:
-            x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, azel)
-            pixel_index[:, 0] = x_pixel
-            pixel_index[:, 1] = y_pixel
-        else:
-            for i in range(azel.shape[0] // chunk_size):
-                sat_azel_chunk = azel[i * chunk_size : (i + 1) * chunk_size, :]
-                x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, sat_azel_chunk)
-                pixel_index[i * chunk_size : (i + 1) * chunk_size, 0] = x_pixel
-                pixel_index[i * chunk_size : (i + 1) * chunk_size, 1] = y_pixel
-            # The unchunked remainder
-            sat_azel_chunk = azel[(i + 1) * chunk_size :, :]
-            x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, sat_azel_chunk)
-            pixel_index[(i + 1) * chunk_size :, 0] = x_pixel
-            pixel_index[(i + 1) * chunk_size :, 1] = y_pixel
+
+        for i, (az, el) in enumerate(azel): 
+            el = el*np.ones_like(self.imager.skymap['el'])
+            az = el*np.ones_like(self.imager.skymap['az'])
+            distances = self._haversine_distance(
+                self.imager.skymap['el'], self.imager.skymap['az'], el, az
+                )
+            pixel_index[i, :] = np.unravel_index(np.nanargmin(distances), distances.shape)
+            pass
+
+        # # Find the distance between the satellite azel points and
+        # # the asi_azel points. dist_matrix[i,j] is the distance
+        # # between ith asi_azel_cal value and jth azel.
+        # if azel.shape[0] < chunk_size:
+        #     x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, azel)
+        #     pixel_index[:, 0] = x_pixel
+        #     pixel_index[:, 1] = y_pixel
+        # else:
+        #     for i in range(azel.shape[0] // chunk_size):
+        #         sat_azel_chunk = azel[i * chunk_size : (i + 1) * chunk_size, :]
+        #         x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, sat_azel_chunk)
+        #         pixel_index[i * chunk_size : (i + 1) * chunk_size, 0] = x_pixel
+        #         pixel_index[i * chunk_size : (i + 1) * chunk_size, 1] = y_pixel
+        #     # The unchunked remainder
+        #     sat_azel_chunk = azel[(i + 1) * chunk_size :, :]
+        #     x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, sat_azel_chunk)
+        #     pixel_index[(i + 1) * chunk_size :, 0] = x_pixel
+        #     pixel_index[(i + 1) * chunk_size :, 1] = y_pixel
         return pixel_index
 
-    def _nearest_pixel(self, asi_azel_cal, sat_azel):
-        # TODO: Consider swapping cdist for the haversine function.
-        dist_matrix = scipy.spatial.distance.cdist(asi_azel_cal, sat_azel, metric='euclidean')
-        # Now find the minimum distance for each sat_azel.
-        idx_min_dist = np.argmin(dist_matrix, axis=0)
-        # if idx_min_dist == 0, it is very likely to be a NaN value
-        # because np.argmin returns 0 if a row has a NaN.
-        idx_min_dist = np.array(idx_min_dist, dtype=object)
-        idx_min_dist[idx_min_dist == 0] = np.nan
-        # For use the 1D index for the flattened ASI skymap
-        # to get out the azimuth and elevation pixels.
-        pixel_index = np.nan * np.ones_like(sat_azel)
-        x_pixel = np.remainder(idx_min_dist, self.imager.skymap['az'].shape[1])
-        y_pixel = np.floor_divide(idx_min_dist, self.imager.skymap['az'].shape[1])
-        return x_pixel, y_pixel
+    # def _nearest_pixel(self, asi_azel_cal, sat_azel):
+    #     # TODO: Consider swapping cdist for the haversine function.
+    #     dist_matrix = scipy.spatial.distance.cdist(asi_azel_cal, sat_azel, metric='euclidean')
+    #     # Now find the minimum distance for each sat_azel.
+    #     idx_min_dist = np.argmin(dist_matrix, axis=0)
+    #     # if idx_min_dist == 0, it is very likely to be a NaN value
+    #     # because np.argmin returns 0 if a row has a NaN.
+    #     idx_min_dist = np.array(idx_min_dist, dtype=object)
+    #     idx_min_dist[idx_min_dist == 0] = np.nan
+    #     # For use the 1D index for the flattened ASI skymap
+    #     # to get out the azimuth and elevation pixels.
+    #     pixel_index = np.nan * np.ones_like(sat_azel)
+    #     x_pixel = np.remainder(idx_min_dist, self.imager.skymap['az'].shape[1])
+    #     y_pixel = np.floor_divide(idx_min_dist, self.imager.skymap['az'].shape[1])
+    #     return x_pixel, y_pixel
+    
+    def _haversine_distance(
+            self, lat1:np.array, lon1:np.array, lat2:np.array, lon2:np.array, r:float=1
+            ) -> np.array:
+        """
+        Calculate the distance between two points specified by latitude and longitude. All inputs
+        must be the same shape.
+
+        Parameters
+        ----------
+        lat1, lat2: np.array
+            The latitude of points 1 and 2m in units of degrees. Can be n-dimensional.
+        lon1, lon2: np.array
+            The longitude of points 1 and 2m in units of degrees. Can be n-dimensional.
+        r: float
+            The sphere radius.
+        """
+        assert lat1.shape == lon1.shape == lat2.shape == lon2.shape, ('All input arrays'
+            ' must have the same shape.')
+        lat1_rad = np.deg2rad(lat1)
+        lat2_rad = np.deg2rad(lat2)
+        lon1_rad = np.deg2rad(lon1)
+        lon2_rad = np.deg2rad(lon2)
+        
+        d = 2*r*np.arcsin(np.sqrt(
+            np.sin((lat2_rad-lat1_rad)/2)**2 + 
+            np.cos(lat1_rad)*np.cos(lat2_rad)*np.sin((lon2_rad-lon1_rad)/2)
+        ))
+        return d
 
     def _conjunction_intervals(self, times: np.array, min_dt: float):
         """
