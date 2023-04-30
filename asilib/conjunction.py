@@ -180,7 +180,7 @@ class Conjunction:
         self.sat.loc[:, ['alt', 'lat', 'lon']] = magnetic_footprint
         return
 
-    def sat_azel(self, min_el=0) -> Tuple[np.ndarray, np.ndarray]:
+    def map_azel(self, min_el=0) -> Tuple[np.ndarray, np.ndarray]:
         """
         Maps a satellite's location to the ASI's azimuth and elevation (azel) 
         coordinates and image pixel index.

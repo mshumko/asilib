@@ -194,7 +194,7 @@ def test_azel_single_lla(self):
 
     sat_lla = np.array([asi.meta['lat'], asi.meta['lon'], 500])
     c = asilib.Conjunction(asi, time, sat_lla)
-    azel, pizels = c.sat_azel()
+    azel, pizels = c.map_azel()
 
     # Test the El values
     self.assertEqual(round(azel[1]), 90)
