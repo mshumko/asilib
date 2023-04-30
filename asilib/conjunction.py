@@ -39,6 +39,8 @@ class Conjunction:
         self.sat = pd.DataFrame(
             index=sat_time, data={'lat': sat_loc[:, 0], 'lon': sat_loc[:, 1], 'alt': sat_loc[:, 2]}
         )
+        if np.nanmax(self.sat['lon']) > 180:
+            raise ValueError('Satellite longitude must be in the range -180 to 180 degrees.')
         return
 
     def find(self, min_el=20, time_gap_s=60):
@@ -102,7 +104,7 @@ class Conjunction:
         interpolated_lla = {}
 
         # TODO: Detect when longitudes cross the 180-meridian and
-        # correctly interpolate.
+        # correctly interpolate. Use the FIREBIRD data_processing code.
         for key in ['lat', 'lon', 'alt']:
             interpolated_lla[key] = np.interp(
                 numeric_imager_times, numeric_sat_times, self.sat.loc[:, key], 
@@ -178,13 +180,10 @@ class Conjunction:
         self.sat.loc[:, ['alt', 'lat', 'lon']] = magnetic_footprint
         return
 
-    def map_lla_azel(self, min_el=0) -> Tuple[np.ndarray, np.ndarray]:
+    def sat_azel(self, min_el=0) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Maps, a satellite's latitude, longitude, and altitude (LLA) coordinates
-        to the ASI's azimuth and elevation (azel) coordinates and image pixel index.
-
-        This function is useful to plot a satellite's location in the ASI image using the
-        pixel indices.
+        Maps a satellite's location to the ASI's azimuth and elevation (azel) 
+        coordinates and image pixel index.
 
         Parameters
         ----------
@@ -208,35 +207,12 @@ class Conjunction:
 
         Example
         -------
-        | from datetime import datetime
-        |
-        | import numpy as np
-        | from asilib import lla2azel
-        |
-        | # THEMIS/ATHA's LLA coordinates are (54.72, -113.301, 676 (meters)).
-        | # The LLA is a North-South pass right above ATHA..
-        | n = 50
-        | lats = np.linspace(60, 50, n)
-        | lons = -113.64*np.ones(n)
-        | alts = 500**np.ones(n)
-        | lla = np.array([lats, lons, alts]).T
-        |
-        | time = datetime(2015, 10, 1)  # To load the proper skymap file.
-        |
-        | azel, pixels = lla2azel('REGO', 'ATHA', time, lla)
         """
-        self.sat_azel = np.nan * np.zeros((self.sat.shape[0], 2))
+        azel = np.nan * np.zeros((self.sat.shape[0], 2))
 
-        # TODO: Fix a bug where the path is wrong. (See SAMPEX-GILL conjunction
-        # at 10:59:20-11:01:08, SAMPEX-GILL 2009-03-06 07:33:48-07:35:36)
-
-        # Loop over every set of LLA coordinates and use pymap3d.geodetic2aer
-        # to map to the azimuth and elevation.
         for i, (time, (lat_i, lon_i, alt_km_i)) in enumerate(self.sat.iterrows()):
-            # Check if lat, lon, or alt is nan or -1E31
-            # (the error value in the IRBEM library).
-            any_nan = bool(len(np.where(np.isnan([lat_i, lon_i, alt_km_i]))[0]))
-            any_neg = bool(len(np.where(np.array([lat_i, lon_i, alt_km_i]) == -1e31)[0]))
+            any_nan = np.any(np.isnan([lat_i, lon_i, alt_km_i]))
+            any_neg = np.any([lat_i, lon_i, alt_km_i] == -1e31)  # IRBEM error value.
             if any_nan or any_neg:
                 continue
 
@@ -248,18 +224,18 @@ class Conjunction:
                 self.imager.meta['lon'],
                 1e3 * self.imager.meta['alt'],  # Meters
             )
-            self.sat_azel[i, :] = [az, el]
+            azel[i, :] = [az, el]
 
         # Now find the corresponding x- and y-axis pixel indices.
-        self.asi_pixels = self._map_azel_to_pixel(self.sat_azel)
+        azel_pixels = self._map_azel_to_pixel(azel)
 
         # Mask elevations below min_el as NaN. This is a good idea because
         # _map_azel_to_pixel will find the nearest pixel even if the delta
         # az and delta el is large.
-        invalid_el = np.where(self.sat_azel[:, 1] < min_el)[0]
-        self.sat_azel[invalid_el, :] = np.nan
-        self.asi_pixels[invalid_el, :] = np.nan
-        return self.sat_azel, self.asi_pixels
+        invalid_el = np.where(azel[:, 1] < min_el)[0]
+        azel[invalid_el, :] = np.nan
+        azel_pixels[invalid_el, :] = np.nan
+        return azel, azel_pixels
 
     def equal_area(self, box=(5, 5)):
         """
@@ -409,13 +385,13 @@ class Conjunction:
         dlon_rads = 2 * np.arcsin(numerator / denominator)
         return np.rad2deg(dlon_rads)
 
-    def _map_azel_to_pixel(self, sat_azel, chunk_size=1000) -> np.ndarray:
+    def _map_azel_to_pixel(self, azel, chunk_size=1000) -> np.ndarray:
         """
         Locate the nearest ASI skymap (x, y) pixel indices.
 
         Parameters
         ----------
-        sat_azel: array
+        azel: array
             A 1d or 2d array of satelite azimuth and elevation points.
             If 2d, the rows correspons to time.
         chunk_size: int
@@ -424,8 +400,8 @@ class Conjunction:
 
         Returns
         -------
-        pixel_index: np.ndarray
-            An array with the same shape as sat_azel, but representing the
+        np.ndarray
+            An array with the same shape as azel, but representing the
             x- and y-axis pixel indices in the ASI image.
         """
         az_coords = self.imager.skymap['az'].ravel().copy()
@@ -434,23 +410,23 @@ class Conjunction:
         el_coords[np.isnan(el_coords)] = -10000
         asi_azel_cal = np.stack((az_coords, el_coords), axis=-1)
 
-        pixel_index = np.nan * np.ones_like(sat_azel)
+        pixel_index = np.nan * np.ones_like(azel)
+
         # Find the distance between the satellite azel points and
         # the asi_azel points. dist_matrix[i,j] is the distance
-        # between ith asi_azel_cal value and jth sat_azel.
-
-        if sat_azel.shape[0] < chunk_size:
-            x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, sat_azel)
+        # between ith asi_azel_cal value and jth azel.
+        if azel.shape[0] < chunk_size:
+            x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, azel)
             pixel_index[:, 0] = x_pixel
             pixel_index[:, 1] = y_pixel
         else:
-            for i in range(sat_azel.shape[0] // chunk_size):
-                sat_azel_chunk = sat_azel[i * chunk_size : (i + 1) * chunk_size, :]
+            for i in range(azel.shape[0] // chunk_size):
+                sat_azel_chunk = azel[i * chunk_size : (i + 1) * chunk_size, :]
                 x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, sat_azel_chunk)
                 pixel_index[i * chunk_size : (i + 1) * chunk_size, 0] = x_pixel
                 pixel_index[i * chunk_size : (i + 1) * chunk_size, 1] = y_pixel
             # The unchunked remainder
-            sat_azel_chunk = sat_azel[(i + 1) * chunk_size :, :]
+            sat_azel_chunk = azel[(i + 1) * chunk_size :, :]
             x_pixel, y_pixel = self._nearest_pixel(asi_azel_cal, sat_azel_chunk)
             pixel_index[(i + 1) * chunk_size :, 0] = x_pixel
             pixel_index[(i + 1) * chunk_size :, 1] = y_pixel

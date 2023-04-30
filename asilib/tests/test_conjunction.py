@@ -183,3 +183,22 @@ def test_plot_interp_sat_wrap():
 def test_magnetic_tracing():
     raise AssertionError
     return
+
+def test_azel_single_lla(self):
+    """
+    Tests that the input LLA corresponds above an imager are mapped to the center pixel.
+    """
+    location = 'ATHA'
+    time = datetime(2020, 1, 1)
+    asi = asilib.themis(location, time=time)
+
+    sat_lla = np.array([asi.meta['lat'], asi.meta['lon'], 500])
+    c = asilib.Conjunction(asi, time, sat_lla)
+    azel, pizels = c.sat_azel()
+
+    # Test the El values
+    self.assertEqual(round(azel[1]), 90)
+
+    # Test that the AzEl indices are witin 3 pixels of zenith.
+    self.assertTrue(abs(pizels[0] - 133) < 3)
+    return
