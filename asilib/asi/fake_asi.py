@@ -79,9 +79,9 @@ def get_meta(location_dict):
     meta = {
         'array': 'TEST',
         'location': location_dict.index[0],
-        'lat': location_dict['lat'].to_numpy(),
-        'lon': location_dict['lon'].to_numpy(),
-        'alt': location_dict['alt'].to_numpy() / 1e3,  # km
+        'lat': location_dict['lat'][0],
+        'lon': location_dict['lon'][0],
+        'alt': location_dict['alt'][0] / 1e3,  # km
         'cadence': 10,
         'resolution': (512, 512),
     }

@@ -19,6 +19,7 @@ except ImportError as err:
     irbem_imported = False
 
 import asilib
+import asilib.asi.fake_asi
 from asilib.tests.mock_footprint import footprint
 
 
@@ -186,7 +187,27 @@ def test_magnetic_tracing():
 
 def test_azel_single_lla():
     """
-    Tests that the input LLA corresponds above an imager are mapped to the center pixel.
+    Tests that one LLA input, right above the imager, is mapped 90 degree elevation
+    and near the pixel midpoint (it won't be exactly in the middle).
+    """
+    location = 'ATHA'
+    time = datetime(2020, 1, 1)
+    asi = asilib.asi.fake_asi.fake_asi(location, time=time)
+
+    sat_lla = np.array([[asi.meta['lat'], asi.meta['lon'], 500]])
+    c = asilib.Conjunction(asi, [time], sat_lla)
+    azel, pixels = c.map_azel()
+
+    # Test the El values
+    assert round(azel[0, 1]) == 90
+
+    # Test that the AzEl indices are witin 5 pixels of zenith.
+    assert np.max(abs(pixels[0] - asi.meta['resolution'][0]/2)) <= 5
+    return
+
+def test_azel_multiple_lla():
+    """
+    Tests that multiple LLA inputs, nearby and above the imager, are mapped correctly.
     """
     location = 'ATHA'
     time = datetime(2020, 1, 1)
