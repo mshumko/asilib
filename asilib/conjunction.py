@@ -32,7 +32,7 @@ class Conjunction:
             A (nTime, 3) time series of satellite locations. Columns must map to
             (latitude, longitude, altitude) (LLA) coordinates.
         """
-        assert sat_loc.shape[1] == 3, 'sat_loc must have 3 columns.'
+        assert sat_loc.shape[1] == 3, 'sat_loc must have at least 1 row and 3 columns.'
         assert hasattr(imager, 'skymap'), 'imager does not contain a skymap.'
 
         self.imager = imager

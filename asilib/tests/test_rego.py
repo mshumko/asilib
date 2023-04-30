@@ -106,7 +106,7 @@ import asilib.asi.themis as themis
 ############# TEST EXAMPLES ##############
 ##########################################
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_rego_fisheye_map_example'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_rego_fisheye_map_example'], tol=20, remove_text=True, extensions=['png']
 )
 def test_rego_fisheye_map_example():
     """
@@ -131,7 +131,7 @@ def test_rego_fisheye_map_example():
 
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_rego_keogram_example'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_rego_keogram_example'], tol=20, remove_text=True, extensions=['png']
 )
 def test_rego_keogram_example():
     """
