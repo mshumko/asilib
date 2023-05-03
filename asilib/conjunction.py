@@ -1,5 +1,5 @@
 import importlib
-from typing import Tuple, Union
+from typing import Tuple, Union, Callable
 import warnings
 
 import numpy as np
@@ -126,6 +126,39 @@ class Conjunction:
             }
         )
         return df
+    
+    def auroral_intensity(self, box_size:Tuple[float, float]=None, box_op:Callable=np.nanmean) -> np.ndarray:
+        """
+        Calculate the auroral intensity near the satellite's footprint.
+
+        Parameters
+        ----------
+        box_size: tuple
+            A tuple of two floats that specifies the rectangular area, at the auroral emission
+            altitude, in which to calculate the auroral intensity. The intensities in the box
+            are averaged by default, and can be changed using the ``box_op`` kwarg. If ``box_size=None``, 
+            the auroral intensity will come from the pixel nearest to the footprint. In this case the
+            box_op kwarg is irrelevant.
+        box_op: Callable
+            The function to apply to the auroral intensity in the box surrounding the footprint. Since 
+            it must operate on the mask array that :py:meth:`~asilib.Conjunction.equal_area()` produces, 
+            the ``box_op`` function must correctly handle ``np.nan`` values. 
+
+        Returns
+        -------
+        np.ndarray
+            The auroral intensity near the footprint, calculated either from the nearest pixel 
+            (if ``box_size=None``) or the mean intensity in a rectangular area defined by 
+            ``box_size``.
+
+        .. note::
+            If box_size=None the nearest pixel is calculated using :py:meth:`~asilib.Conjunction.map_azel`, otherwise
+            if ``box_size=(10, 10)`` and ``box_op`` is the default, :py:meth:`~asilib.Conjunction.equal_area()` is 
+            used to calculate the mean intensity in a 10x10 km box. The two different implementations should yield 
+            similar results, but discrepancies may arise if the skymap (az, el) and (lat, lon) mapping arrays are 
+            mismatched. This is the case for some of the THEMIS ASIs right after they were deployed.   
+        """
+        raise NotImplementedError
 
     def interp_sat(self):
         """
