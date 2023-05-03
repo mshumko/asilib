@@ -1,7 +1,7 @@
 # Version 0.15.0
 - Finalizing the `asilib.Conjunction` API
 - Added tests for `asilib.Conjunction`.
-- Added tox to automate testing, formatting, and linting.
+- Added `asilib.Conjunction.auroral_intensity` method.
 # Version 0.14.4
 - Updated GitHub Actions:
   - test the `cartopy` maps,
