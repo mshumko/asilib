@@ -32,7 +32,7 @@ def test_conjunction_find_none():
     """
     asi = asilib.themis(location_code, time=t0, load_images=False, alt=110)
     times, lla = footprint(asi.meta['lon']+100)
-    c = asilib.Conjunction(asi, times, lla)
+    c = asilib.Conjunction(asi, (times, lla))
     df = c.find()
     assert df.shape == (0,4)
     return
@@ -44,7 +44,7 @@ def test_conjunction_find_multiple():
     asi = asilib.themis(location_code, time=t0, load_images=False, alt=110)
     times, lla = footprint(asi.meta['lon'], alt=110)
 
-    c = asilib.Conjunction(asi, times, lla)
+    c = asilib.Conjunction(asi, (times, lla))
     df = c.find(min_el=20)
     assert df.shape == (18,4)
     assert np.all(
@@ -80,7 +80,7 @@ def test_plot_conjunction_find_multiple():
     asi = asilib.themis(location_code, time=t0, load_images=False, alt=110)
     times, lla = footprint(asi.meta['lon'], alt=110)
 
-    c = asilib.Conjunction(asi, times, lla)
+    c = asilib.Conjunction(asi, (times, lla))
     df = c.find(min_el=20)
 
     _, ax = plt.subplots()
@@ -108,7 +108,7 @@ def test_interp_sat():
     footprint_time_range=(t0, t0+timedelta(minutes=1, seconds=6))
     asi = asilib.themis(location_code, time_range=asi_time_range, alt=110)
     times, lla = footprint(asi.meta['lon'], time_range=footprint_time_range)
-    c = asilib.Conjunction(asi, times, lla)
+    c = asilib.Conjunction(asi, (times, lla))
 
     c.interp_sat()
     assert c.sat.shape == (20, 3)
@@ -131,7 +131,7 @@ def test_plot_interp_sat():
     footprint_time_range=(t0, t0+timedelta(minutes=1, seconds=6))
     asi = asilib.themis(location_code, time_range=asi_time_range, alt=110)
     times, lla = footprint(asi.meta['lon'], time_range=footprint_time_range)
-    c = asilib.Conjunction(asi, times, lla)
+    c = asilib.Conjunction(asi, (times, lla))
 
     c.interp_sat()
 
@@ -164,7 +164,7 @@ def test_plot_interp_sat_wrap():
     asi = asilib.themis(location_code, time_range=asi_time_range, alt=110)
     times, lla = footprint(-180, time_range=footprint_time_range, precession_rate=20)
     lla[lla[:, 1] < -180, 1] += 360
-    c = asilib.Conjunction(asi, times, lla)
+    c = asilib.Conjunction(asi, (times, lla))
 
     with pytest.warns(UserWarning):
         c.interp_sat()
@@ -195,7 +195,7 @@ def test_azel_single_lla():
     asi = asilib.asi.fake_asi.fake_asi(location, time=time)
 
     sat_lla = np.array([[asi.meta['lat'], asi.meta['lon'], 500]])
-    c = asilib.Conjunction(asi, [time], sat_lla)
+    c = asilib.Conjunction(asi, ([time], sat_lla))
     azel, pixels = c.map_azel()
 
     # Test the El values
@@ -217,7 +217,8 @@ def test_azel_multiple_lla():
     lats = np.linspace(asi.meta['lat']-2, asi.meta['lat']+2, num=num)
     lons = np.linspace(asi.meta['lon']-2, asi.meta['lon']+2, num=num)
     sat_lla = np.stack((lats, lons, 500*np.ones_like(lons))).T
-    c = asilib.Conjunction(asi, np.repeat(np.array([time]), num), sat_lla)
+    times = np.repeat(np.array([time]), num)
+    c = asilib.Conjunction(asi, (times, sat_lla))
     azel, pixels = c.map_azel()
 
     assert np.all(np.isclose(

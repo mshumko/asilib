@@ -56,7 +56,7 @@ class Conjunction:
                 index=satellite[0], 
                 data={'lat': satellite[1][:, 0], 'lon': satellite[1][:, 1], 'alt': satellite[1][:, 2]}
             )
-        else:  # only pd.Dataframe here.
+        else:  # the pd.Dataframe case.
             self.sat = self._rename_satellite_df_columns(satellite)
         if np.nanmax(self.sat['lon']) > 180:
             raise ValueError('Satellite longitude must be in the range -180 to 180 degrees.')
