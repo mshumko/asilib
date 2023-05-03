@@ -45,12 +45,11 @@ class Conjunction:
         self.imager = imager
         assert hasattr(imager, 'skymap'), 'imager does not contain a skymap.'
 
-        self.satellite = satellite
         assert isinstance(satellite, (tuple, pd.DataFrame)), 'satellite must be a tuple or pd.Dataframe.'
         if isinstance(satellite, tuple):
             assert len(satellite) == 2, 'Satellite tuple must have length of 2'
-            assert isinstance(satellite[0], np.array), 'satellite tuple must contain two np.arrays'
-            assert isinstance(satellite[1], np.array), 'satellite tuple must contain two np.arrays'
+            assert isinstance(satellite[0], np.ndarray), 'satellite tuple must contain two np.arrays'
+            assert isinstance(satellite[1], np.ndarray), 'satellite tuple must contain two np.arrays'
             assert satellite[1].shape[1] == 3, '2nd element in the satellite tuple must have 3 columns.'
             self.sat = pd.DataFrame(
                 index=satellite[0], 
