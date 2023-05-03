@@ -43,7 +43,7 @@ body:
   attributes:
     label: "Runtime information:"
     description: >
-      Output from `import sys, asilib; print(asilib.__version__); print(sys.version)`
+      Output from `import sys, asilib, platform; print(asilib.__version__); print(sys.version); print(platform.platform())`
   validations:
     required: true
 
