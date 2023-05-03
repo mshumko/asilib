@@ -195,7 +195,8 @@ def test_azel_single_lla():
     asi = asilib.asi.fake_asi.fake_asi(location, time=time)
 
     sat_lla = np.array([[asi.meta['lat'], asi.meta['lon'], 500]])
-    c = asilib.Conjunction(asi, ([time], sat_lla))
+    sat_time = np.array([time])
+    c = asilib.Conjunction(asi, (sat_time, sat_lla))
     azel, pixels = c.map_azel()
 
     # Test the El values
