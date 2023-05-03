@@ -87,26 +87,30 @@ def test_plot_keogram():
     asi.plot_keogram()
     return
 
+
 ##########################################
 ############# TEST EXAMPLES ##############
 ##########################################
+
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_plot_fisheye_example'], tol=10, remove_text=True, extensions=['png']
 )
 def test_plot_fisheye_example():
     """
-    Test that asilib.Imager plots a bright auroral arc that was analyzed by 
-    Imajo et al., 2021 "Active auroral arc powered by accelerated electrons 
+    Test that asilib.Imager plots a bright auroral arc that was analyzed by
+    Imajo et al., 2021 "Active auroral arc powered by accelerated electrons
     from very high altitudes"
     """
     from datetime import datetime
     import matplotlib.pyplot as plt
     import asilib
+
     asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
     ax, im = asi.plot_fisheye(cardinal_directions='NE', origin=(0.95, 0.05))
     plt.colorbar(im)
     ax.axis('off')
+
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_plot_map_example'], tol=10, remove_text=True, extensions=['png']
@@ -130,19 +134,20 @@ def test_plot_map_example():
 
 def test_animate_fisheye_example():
     """
-    Test that asilib.Imager.animate_fisheye() method works. Since I have not 
-    found a way to compare animations, lets assume that the plot_fisheye() 
+    Test that asilib.Imager.animate_fisheye() method works. Since I have not
+    found a way to compare animations, lets assume that the plot_fisheye()
     tests in the underlying plotting methods pass, and we just need
     to check that the movie exists with the correct number of underlying plots.
     """
     from datetime import datetime
     import asilib
+
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     asi = asilib.themis('FSMI', time_range=time_range)
     asi.animate_fisheye(cardinal_directions='NE', origin=(0.95, 0.05), overwrite=True)
     print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name}')
 
-    # End of example. 
+    # End of example.
     animation_path = asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name
     image_parent_dir_chunks = asi.animation_name.split('_')
     image_parent_dir = '_'.join(image_parent_dir_chunks[0:2]) + '_'
@@ -156,16 +161,18 @@ def test_animate_fisheye_example():
     assert len(image_paths) == 100
     return
 
+
 def test_animate_map_example():
     """
-    Test that asilib.Imager.animate_map() method works. Since I have not 
-    found a way to compare animations, lets assume that the plot_map() 
+    Test that asilib.Imager.animate_map() method works. Since I have not
+    found a way to compare animations, lets assume that the plot_map()
     tests in the underlying plotting methods pass, and we just need
     to check that the movie exists with the correct number of underlying plots.
     """
     from datetime import datetime
     import matplotlib.pyplot as plt
     import asilib
+
     location = 'FSMI'
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     asi = asilib.themis(location, time_range=time_range)
@@ -186,8 +193,12 @@ def test_animate_map_example():
     assert len(image_paths) == 100
     return
 
+
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_plot_keogram_geographic_example'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_plot_keogram_geographic_example'],
+    tol=10,
+    remove_text=True,
+    extensions=['png'],
 )
 def test_plot_keogram_geographic_example():
     """
@@ -196,18 +207,22 @@ def test_plot_keogram_geographic_example():
     """
     import matplotlib.pyplot as plt
     import asilib
-    
-    time_range=['2008-01-16T10', '2008-01-16T12']
-    
+
+    time_range = ['2008-01-16T10', '2008-01-16T12']
+
     asi = asilib.themis('GILL', time_range=time_range)
     ax, p = asi.plot_keogram(color_map='turbo')
-    
+
     ax.set_ylabel('Geographic Lat [deg]')
     plt.colorbar(p)
     return
 
+
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_plot_keogram_magnetic_example'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_plot_keogram_magnetic_example'],
+    tol=10,
+    remove_text=True,
+    extensions=['png'],
 )
 def test_plot_keogram_magnetic_example():
     """
@@ -216,17 +231,21 @@ def test_plot_keogram_magnetic_example():
     """
     import matplotlib.pyplot as plt
     import asilib
-    
-    time_range=['2008-01-16T10', '2008-01-16T12']
-    
+
+    time_range = ['2008-01-16T10', '2008-01-16T12']
+
     asi = asilib.themis('GILL', time_range=time_range)
     ax, p = asi.plot_keogram(color_map='turbo', aacgm=True, title=False)
     ax.set_ylabel('Magnetic Lat [deg]')
     plt.colorbar(p)
     return
 
+
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_plot_keogram_magnetic_path_example'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_plot_keogram_magnetic_path_example'],
+    tol=10,
+    remove_text=True,
+    extensions=['png'],
 )
 def test_plot_keogram_magnetic_path_example():
     """
@@ -235,9 +254,9 @@ def test_plot_keogram_magnetic_path_example():
     """
     import matplotlib.pyplot as plt
     import asilib
-    
-    time_range=['2008-01-16T10', '2008-01-16T12']
-    
+
+    time_range = ['2008-01-16T10', '2008-01-16T12']
+
     asi = asilib.themis('GILL', time_range=time_range)
 
     latlon = np.column_stack(
@@ -247,60 +266,68 @@ def test_plot_keogram_magnetic_path_example():
         )
     )
     latlon = latlon[np.where(~np.isnan(latlon[:, 0]))[0], :]
-    ax, p = asi.plot_keogram(color_map='turbo', aacgm=True, title=False, 
-        path=latlon)
+    ax, p = asi.plot_keogram(color_map='turbo', aacgm=True, title=False, path=latlon)
     ax.set_ylabel('Magnetic Lat [deg]\nCustom path')
     plt.colorbar(p)
     return
+
 
 def test_getitem():
     """
     Tests the __getitem__() for time slicing.
     """
     import asilib
-    
-    time_range=['2008-01-16T10', '2008-01-16T12']
-    
+
+    time_range = ['2008-01-16T10', '2008-01-16T12']
+
     asi = asilib.themis('GILL', time_range=time_range)
 
     asi_one_time = asi['2008-01-16T11:05:10']
     assert asi_one_time.data.times == datetime(2008, 1, 16, 11, 5, 9, 10571)
-    assert np.all(asi_one_time.data.images[0, :10] == np.array(
-        [3498, 3527, 3459, 3516, 3484, 3505, 3483, 3479, 3499, 3481]
-        ))
+    assert np.all(
+        asi_one_time.data.images[0, :10]
+        == np.array([3498, 3527, 3459, 3516, 3484, 3505, 3483, 3479, 3499, 3481])
+    )
     with pytest.raises(FileNotFoundError):
         # Outside time_range.
         asi['2010-01-16T11:00:00']
         asi['2005-01-16T11:00:00']
-    asi_time_range = asi['2008-01-16T10:30':datetime(2008, 1, 16, 10, 40)]
+    asi_time_range = asi['2008-01-16T10:30' : datetime(2008, 1, 16, 10, 40)]
     assert asi_time_range.data.times.shape[0] == 200
     assert asi_time_range.data.times[0] == datetime(2008, 1, 16, 10, 30, 0, 16380)
     assert asi_time_range.data.times[-1] == datetime(2008, 1, 16, 10, 39, 57, 25495)
     assert asi_time_range.data.images.shape == (200, 256, 256)
     return
 
+
 def test_str():
     """
     Tests the __str__() for printing user-readable information about the imager
     """
     import asilib
-    
-    time_range=['2008-01-16T10', '2008-01-16T12']
-    
+
+    time_range = ['2008-01-16T10', '2008-01-16T12']
+
     asi = asilib.themis('GILL', time_range=time_range)
-    assert str(asi) == ('A THEMIS-GILL Imager. time_range=[datetime.datetime(2008, 1, 16, 10, 0), '
-        'datetime.datetime(2008, 1, 16, 12, 0)]')
+    assert str(asi) == (
+        'A THEMIS-GILL Imager. time_range=[datetime.datetime(2008, 1, 16, 10, 0), '
+        'datetime.datetime(2008, 1, 16, 12, 0)]'
+    )
 
     asi2 = asilib.themis('GILL', time=time_range[0])
     assert str(asi2) == 'A THEMIS-GILL Imager. time=2008-01-16 10:00:00.020162'
     return
 
+
 def test_repr():
     """
     Tests the __repr__() for printing machine-readable information about the imager
-    """    
-    asi = asilib.Imager(data={'data':0}, skymap={'skymap':1}, meta={'meta':2},
-        plot_settings={'plot_settings':3})
-    assert repr(asi) == ("Imager(data={'data': 0}, skymap={'skymap': 1}, meta={'meta': 2},"
-        " plot_settings={'plot_settings': 3})")
+    """
+    asi = asilib.Imager(
+        data={'data': 0}, skymap={'skymap': 1}, meta={'meta': 2}, plot_settings={'plot_settings': 3}
+    )
+    assert repr(asi) == (
+        "Imager(data={'data': 0}, skymap={'skymap': 1}, meta={'meta': 2},"
+        " plot_settings={'plot_settings': 3})"
+    )
     return

@@ -1164,8 +1164,10 @@ class Imager:
                     & (slice_time < np.array(self._data['end_time']))
                 )[0]
                 if len(file_index) != 1:
-                    raise FileNotFoundError(f'{slice_time} out of imager range: '
-                        f'{self._data["start_time"][0]}-{self._data["end_time"][-1]}')
+                    raise FileNotFoundError(
+                        f'{slice_time} out of imager range: '
+                        f'{self._data["start_time"][0]}-{self._data["end_time"][-1]}'
+                    )
                 file_index = file_index[0]
                 file_path = self._data['path'][file_index]
                 file_times, file_images = self._data['loader'](file_path)
@@ -1669,8 +1671,10 @@ class Imager:
         """
         A machine-readable representation of Imager.
         """
-        params = (f'data={self._data}, skymap={self.skymap}, '
-                  f'meta={self.meta}, plot_settings={self.plot_settings}')
+        params = (
+            f'data={self._data}, skymap={self.skymap}, '
+            f'meta={self.meta}, plot_settings={self.plot_settings}'
+        )
         return f'{self.__class__.__qualname__}(' + params + ')'
 
     def _pcolormesh_nan(

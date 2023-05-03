@@ -20,7 +20,7 @@ earth_radius_km = 6371
 
 
 class Conjunction:
-    def __init__(self, imager:asilib.Imager, satellite:Union[tuple, pd.DataFrame]) -> None:
+    def __init__(self, imager: asilib.Imager, satellite: Union[tuple, pd.DataFrame]) -> None:
         """
         Calculates conjunctions between an imager and a satellite.
 
@@ -29,12 +29,12 @@ class Conjunction:
         imager: asilib.Imager
             An instance of the imager class.
         satellite: tuple or pd.Dataframe
-            Satellite time stamps and position in the latitude, longitude, altitude (LLA) coordinates. 
-            
-            If a tuple, the first element must be a np.array of shape (n) filled with 
+            Satellite time stamps and position in the latitude, longitude, altitude (LLA) coordinates.
+
+            If a tuple, the first element must be a np.array of shape (n) filled with
             datetime.datetime() timestamps. The second tuple element must be a np.array
-            of shape (n, 3) with the satellite positions with the columns mapping to 
-            (latitude, longitude, altitude), in that order. This tuple is converted to a 
+            of shape (n, 3) with the satellite positions with the columns mapping to
+            (latitude, longitude, altitude), in that order. This tuple is converted to a
             pd.Dataframe described below.
 
             If a pd.Dataframe, the index must be pd.Timestamp() and the columns correspond to
@@ -45,23 +45,35 @@ class Conjunction:
         self.imager = imager
         assert hasattr(imager, 'skymap'), 'imager does not contain a skymap.'
 
-        assert isinstance(satellite, (tuple, pd.DataFrame)), 'satellite must be a tuple or pd.Dataframe.'
+        assert isinstance(
+            satellite, (tuple, pd.DataFrame)
+        ), 'satellite must be a tuple or pd.Dataframe.'
         if isinstance(satellite, tuple):
             assert len(satellite) == 2, 'Satellite tuple must have length of 2'
-            assert isinstance(satellite[0], np.ndarray), 'satellite tuple must contain two np.arrays'
-            assert isinstance(satellite[1], np.ndarray), 'satellite tuple must contain two np.arrays'
-            assert satellite[1].shape[1] == 3, '2nd element in the satellite tuple must have 3 columns.'
+            assert isinstance(
+                satellite[0], np.ndarray
+            ), 'satellite tuple must contain two np.arrays'
+            assert isinstance(
+                satellite[1], np.ndarray
+            ), 'satellite tuple must contain two np.arrays'
+            assert (
+                satellite[1].shape[1] == 3
+            ), '2nd element in the satellite tuple must have 3 columns.'
             self.sat = pd.DataFrame(
-                index=satellite[0], 
-                data={'lat': satellite[1][:, 0], 'lon': satellite[1][:, 1], 'alt': satellite[1][:, 2]}
+                index=satellite[0],
+                data={
+                    'lat': satellite[1][:, 0],
+                    'lon': satellite[1][:, 1],
+                    'alt': satellite[1][:, 2],
+                },
             )
         else:  # the pd.Dataframe case.
             self.sat = self._rename_satellite_df_columns(satellite)
         if np.nanmax(self.sat['lon']) > 180:
             raise ValueError('Satellite longitude must be in the range -180 to 180 degrees.')
         return
-    
-    def _rename_satellite_df_columns(self, df:pd.DataFrame):
+
+    def _rename_satellite_df_columns(self, df: pd.DataFrame):
         """
         Detect and rename the satellite df columns to lat, lon, and alt.
         """
@@ -71,7 +83,7 @@ class Conjunction:
         assert len(lon_keys) == 1, f'{len(lon_keys)} longitude columns found from {df.columns}.'
         assert len(lat_keys) == 1, f'{len(lat_keys)} latitude columns found from {df.columns}.'
         assert len(alt_keys) == 1, f'{len(alt_keys)} altitude columns found from {df.columns}.'
-        df = df.rename(columns={lon_keys[0]:'lon', lat_keys[0]:'lat', alt_keys[0]:'alt'})
+        df = df.rename(columns={lon_keys[0]: 'lon', lat_keys[0]: 'lat', alt_keys[0]: 'alt'})
         return df
 
     def find(self, min_el=20, time_gap_s=60):
@@ -109,8 +121,8 @@ class Conjunction:
             data={
                 'start_time': self.sat.index[conjunction_idx][start],
                 'end_time': self.sat.index[conjunction_idx][end],
-                'start_index':conjunction_idx[start],
-                'end_index':conjunction_idx[end]
+                'start_index': conjunction_idx[start],
+                'end_index': conjunction_idx[end],
             }
         )
         return df
@@ -138,12 +150,18 @@ class Conjunction:
         # correctly interpolate. Use the FIREBIRD data_processing code.
         for key in ['lat', 'lon', 'alt']:
             interpolated_lla[key] = np.interp(
-                numeric_imager_times, numeric_sat_times, self.sat.loc[:, key], 
-                left=np.nan, right=np.nan
+                numeric_imager_times,
+                numeric_sat_times,
+                self.sat.loc[:, key],
+                left=np.nan,
+                right=np.nan,
             )
         if np.nanmax(np.abs(np.diff(self.sat.loc[:, 'lon']))) > 200:
-            warnings.warn('The asilib.Conjunction.interp_sat() does not yet correctly interpolate'
-                'longitudes across the 180-meridian.', UserWarning)
+            warnings.warn(
+                'The asilib.Conjunction.interp_sat() does not yet correctly interpolate'
+                'longitudes across the 180-meridian.',
+                UserWarning,
+            )
         self.sat = pd.DataFrame(index=imager_times, data=interpolated_lla)
         return self.sat
 
@@ -213,7 +231,7 @@ class Conjunction:
 
     def map_azel(self, min_el=0) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Maps a satellite's location to the ASI's azimuth and elevation (azel) 
+        Maps a satellite's location to the ASI's azimuth and elevation (azel)
         coordinates and image pixel index.
 
         Parameters
@@ -427,7 +445,7 @@ class Conjunction:
             If 2d, the rows corresponds to time.
         n_max_vectorize: int
             The maximum number of azel values before switching from the vectorized
-            mode to the for-loop mode. 
+            mode to the for-loop mode.
 
         Returns
         -------
@@ -442,37 +460,39 @@ class Conjunction:
             # Broadcast the skymaps such that the skymaps are copies along dim 0.
             # I need to read up on how broadcasting works in numpy, but it should
             # be very memory efficient.
-            asi_el = np.broadcast_to(self.imager.skymap['el'][np.newaxis,:,:], 
-                (azel.shape[0], skymap_shape[0], skymap_shape[1])
-                )
-            asi_az= np.broadcast_to(self.imager.skymap['az'][np.newaxis,:,:], 
-                (azel.shape[0], skymap_shape[0], skymap_shape[1])
-                )
-            sat_az = azel[:,0]
+            asi_el = np.broadcast_to(
+                self.imager.skymap['el'][np.newaxis, :, :],
+                (azel.shape[0], skymap_shape[0], skymap_shape[1]),
+            )
+            asi_az = np.broadcast_to(
+                self.imager.skymap['az'][np.newaxis, :, :],
+                (azel.shape[0], skymap_shape[0], skymap_shape[1]),
+            )
+            sat_az = azel[:, 0]
             sat_az = np.broadcast_to(sat_az[:, np.newaxis, np.newaxis], asi_el.shape)
-            sat_el = azel[:,1]
+            sat_el = azel[:, 1]
             sat_el = np.broadcast_to(sat_el[:, np.newaxis, np.newaxis], asi_el.shape)
-            distances = self._haversine_distance(asi_el, asi_az, sat_el, sat_az) 
-            # This should be vectorized too, but np.nanargmin() can't find a minimum 
-            # along the 1st and 2nd dims. 
+            distances = self._haversine_distance(asi_el, asi_az, sat_el, sat_az)
+            # This should be vectorized too, but np.nanargmin() can't find a minimum
+            # along the 1st and 2nd dims.
             for i, distance in enumerate(distances):
                 if np.all(np.isnan(distance)):
                     continue
                 pixel_index[i, :] = np.unravel_index(np.nanargmin(distance), distance.shape)
         else:
             # Calculate one at a time to save memory.
-            for i, (az, el) in enumerate(azel): 
-                el = el*np.ones_like(self.imager.skymap['el'])
-                az = el*np.ones_like(self.imager.skymap['az'])
+            for i, (az, el) in enumerate(azel):
+                el = el * np.ones_like(self.imager.skymap['el'])
+                az = el * np.ones_like(self.imager.skymap['az'])
                 distances = self._haversine_distance(
                     self.imager.skymap['el'], self.imager.skymap['az'], el, az
-                    )
+                )
                 pixel_index[i, :] = np.unravel_index(np.nanargmin(distances), distances.shape)
         return pixel_index
-    
+
     def _haversine_distance(
-            self, lat1:np.array, lon1:np.array, lat2:np.array, lon2:np.array, r:float=1
-            ) -> np.array:
+        self, lat1: np.array, lon1: np.array, lat2: np.array, lon2: np.array, r: float = 1
+    ) -> np.array:
         """
         Calculate the distance between two points specified by latitude and longitude. All inputs
         must be the same shape.
@@ -486,17 +506,24 @@ class Conjunction:
         r: float
             The sphere radius.
         """
-        assert lat1.shape == lon1.shape == lat2.shape == lon2.shape, ('All input arrays'
-            ' must have the same shape.')
+        assert lat1.shape == lon1.shape == lat2.shape == lon2.shape, (
+            'All input arrays' ' must have the same shape.'
+        )
         lat1_rad = np.deg2rad(lat1)
         lat2_rad = np.deg2rad(lat2)
         lon1_rad = np.deg2rad(lon1)
         lon2_rad = np.deg2rad(lon2)
-        
-        d = 2*r*np.arcsin(np.sqrt(
-            np.sin((lat2_rad-lat1_rad)/2)**2 + 
-            np.cos(lat1_rad)*np.cos(lat2_rad)*np.sin((lon2_rad-lon1_rad)/2)
-        ))
+
+        d = (
+            2
+            * r
+            * np.arcsin(
+                np.sqrt(
+                    np.sin((lat2_rad - lat1_rad) / 2) ** 2
+                    + np.cos(lat1_rad) * np.cos(lat2_rad) * np.sin((lon2_rad - lon1_rad) / 2)
+                )
+            )
+        )
         return d
 
     def _conjunction_intervals(self, times: np.array, min_dt: float):

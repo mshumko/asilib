@@ -116,13 +116,15 @@ def test_rego_fisheye_map_example():
     import matplotlib.pyplot as plt
     import asilib.asi.rego
     import asilib.map
-    
+
     location_code = 'RANK'
     time = datetime(2017, 9, 15, 2, 34, 0)
     alt_km = 110
     fig = plt.figure(figsize=(10, 4))
     ax = fig.add_subplot(121)
-    bx = asilib.map.create_simple_map(fig_ax=(fig, 122), lon_bounds = (-102, -82), lat_bounds = (58, 68))
+    bx = asilib.map.create_simple_map(
+        fig_ax=(fig, 122), lon_bounds=(-102, -82), lat_bounds=(58, 68)
+    )
     asi = asilib.asi.rego.rego(location_code, time=time, alt=alt_km)
     asi.plot_fisheye(ax=ax)
     asi.plot_map(ax=bx)

@@ -168,7 +168,7 @@ def rego(
         'resolution': (512, 512),
     }
     plot_settings = {
-        'color_map':matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
+        'color_map': matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
     }
     return imager(data, meta, skymap, plot_settings=plot_settings)
 
