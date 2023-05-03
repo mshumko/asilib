@@ -1,5 +1,5 @@
 import importlib
-from typing import Tuple
+from typing import Tuple, Union
 import warnings
 
 import numpy as np
@@ -14,11 +14,13 @@ try:
 except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.lla2footprint()
 
+import asilib
+
 earth_radius_km = 6371
 
 
 class Conjunction:
-    def __init__(self, imager, sat_time, sat_loc) -> None:
+    def __init__(self, imager:asilib.Imager, satellite:Union[tuple, pd.DataFrame]) -> None:
         """
         Calculates conjunctions between an imager and a satellite.
 
@@ -26,22 +28,52 @@ class Conjunction:
         ----------
         imager: asilib.Imager
             An instance of the imager class.
-        sat_time: list or np.array
-            An array of satellite time stamps.
-        sat_loc: list or np.array
-            A (nTime, 3) time series of satellite locations. Columns must map to
-            (latitude, longitude, altitude) (LLA) coordinates.
+        satellite: tuple or pd.Dataframe
+            Satellite time stamps and position in the latitude, longitude, altitude (LLA) coordinates. 
+            
+            If a tuple, the first element must be a np.array of shape (n) filled with 
+            datetime.datetime() timestamps. The second tuple element must be a np.array
+            of shape (n, 3) with the satellite positions with the columns mapping to 
+            (latitude, longitude, altitude), in that order. This tuple is converted to a 
+            pd.Dataframe described below.
+
+            If a pd.Dataframe, the index must be pd.Timestamp() and the columns correspond to
+            (latitude, longitude, altitude). The columns do not need to be in that order, but are
+            automatically distinguished by searching for columns that match "lat", "lon", and "alt"
+            (case insensitive).
         """
-        assert sat_loc.shape[1] == 3, 'sat_loc must have at least 1 row and 3 columns.'
+        self.imager = imager
         assert hasattr(imager, 'skymap'), 'imager does not contain a skymap.'
 
-        self.imager = imager
-        self.sat = pd.DataFrame(
-            index=sat_time, data={'lat': sat_loc[:, 0], 'lon': sat_loc[:, 1], 'alt': sat_loc[:, 2]}
-        )
+        self.satellite = satellite
+        assert isinstance(satellite, (tuple, pd.DataFrame)), 'satellite must be a tuple or pd.Dataframe.'
+        if isinstance(satellite, tuple):
+            assert len(satellite) == 2, 'Satellite tuple must have length of 2'
+            assert isinstance(satellite[0], np.array), 'satellite tuple must contain two np.arrays'
+            assert isinstance(satellite[1], np.array), 'satellite tuple must contain two np.arrays'
+            assert satellite[1].shape[1] == 3, '2nd element in the satellite tuple must have 3 columns.'
+            self.sat = pd.DataFrame(
+                index=satellite[0], 
+                data={'lat': satellite[1][:, 0], 'lon': satellite[1][:, 1], 'alt': satellite[1][:, 2]}
+            )
+        else:  # only pd.Dataframe here.
+            self.sat = self._rename_satellite_df_columns(satellite)
         if np.nanmax(self.sat['lon']) > 180:
             raise ValueError('Satellite longitude must be in the range -180 to 180 degrees.')
         return
+    
+    def _rename_satellite_df_columns(self, df:pd.DataFrame):
+        """
+        Detect and rename the satellite df columns to lat, lon, and alt.
+        """
+        lon_keys = [key for key in df.columns if 'lon' in key.lower()]
+        lat_keys = [key for key in df.columns if 'lat' in key.lower()]
+        alt_keys = [key for key in df.columns if 'alt' in key.lower()]
+        assert len(lon_keys) == 1, f'{len(lon_keys)} longitude columns found from {df.columns}.'
+        assert len(lat_keys) == 1, f'{len(lat_keys)} latitude columns found from {df.columns}.'
+        assert len(alt_keys) == 1, f'{len(alt_keys)} altitude columns found from {df.columns}.'
+        df = df.rename(columns={lon_keys[0]:'lon', lat_keys[0]:'lat', alt_keys[0]:'alt'})
+        return df
 
     def find(self, min_el=20, time_gap_s=60):
         """
