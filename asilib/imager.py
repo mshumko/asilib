@@ -843,12 +843,14 @@ class Imager:
         True
         """
         self._keogram_time = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
+        #TODO: Refactor so that _keogram is not created twice.
         self._keogram = np.nan * np.zeros((self._estimate_n_times(), self.meta['resolution'][0]))
 
         # Determine what pixels to slice
         self._keogram_pixels(path, minimum_elevation)
         # Not all of the pixels are valid (e.g. below the horizon)
         self._keogram = self._keogram[:, : self._pixels.shape[0]]
+        self._keogram = np.nan * np.zeros((self._estimate_n_times(), self._pixels.shape[0]))
         self._geogram_lat = self._keogram_latitude(aacgm)
 
         # TODO: Add a test to trigger this behavior.
@@ -1044,6 +1046,7 @@ class Imager:
         nearest_pixels = np.nan * np.zeros_like(path)
 
         for i, (lat, lon) in enumerate(path):
+            # TODO:  Haversine
             distances = np.sqrt((self.skymap['lat'] - lat) ** 2 + (self.skymap['lon'] - lon) ** 2)
             idx = np.where(distances == np.nanmin(distances))
 
