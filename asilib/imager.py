@@ -1046,7 +1046,12 @@ class Imager:
         nearest_pixels = np.nan * np.zeros_like(path)
 
         for i, (lat, lon) in enumerate(path):
-            distances = haversine(self.skymap['lat'], self.skymap['lon'], lat, lon)
+            distances = haversine(
+                self.skymap['lat'], 
+                self.skymap['lon'], 
+                lat*np.ones_like(self.skymap['lon']), 
+                lon*np.ones_like(self.skymap['lon']),
+                )
             idx = np.where(distances == np.nanmin(distances))
 
             if distances[idx][0] > threshold:
