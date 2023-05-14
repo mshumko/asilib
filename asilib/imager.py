@@ -1011,7 +1011,6 @@ class Imager:
         # on the lat/lon skymap.
         else:
             self._pixels = self._path_to_pixels(path)
-            # TODO: Check if _pixels need to be sorted by latitude?
 
         above_elevation = np.where(
             (self.skymap['el'][self._pixels[:, 0], self._pixels[:, 1]] >= minimum_elevation)
