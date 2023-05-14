@@ -15,6 +15,7 @@ except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.lla2footprint()
 
 import asilib
+from asilib.imager import haversine
 
 earth_radius_km = 6371
 
@@ -505,7 +506,7 @@ class Conjunction:
             sat_az = np.broadcast_to(sat_az[:, np.newaxis, np.newaxis], asi_el.shape)
             sat_el = azel[:, 1]
             sat_el = np.broadcast_to(sat_el[:, np.newaxis, np.newaxis], asi_el.shape)
-            distances = self._haversine_distance(asi_el, asi_az, sat_el, sat_az)
+            distances = haversine(asi_el, asi_az, sat_el, sat_az)
             # This should be vectorized too, but np.nanargmin() can't find a minimum
             # along the 1st and 2nd dims.
             for i, distance in enumerate(distances):
@@ -517,47 +518,11 @@ class Conjunction:
             for i, (az, el) in enumerate(azel):
                 el = el * np.ones_like(self.imager.skymap['el'])
                 az = el * np.ones_like(self.imager.skymap['az'])
-                distances = self._haversine_distance(
+                distances = haversine(
                     self.imager.skymap['el'], self.imager.skymap['az'], el, az
                 )
                 pixel_index[i, :] = np.unravel_index(np.nanargmin(distances), distances.shape)
         return pixel_index
-
-    def _haversine_distance(
-        self, lat1: np.array, lon1: np.array, lat2: np.array, lon2: np.array, r: float = 1
-    ) -> np.array:
-        """
-        Calculate the distance between two points specified by latitude and longitude. All inputs
-        must be the same shape.
-
-        Parameters
-        ----------
-        lat1, lat2: np.array
-            The latitude of points 1 and 2m in units of degrees. Can be n-dimensional.
-        lon1, lon2: np.array
-            The longitude of points 1 and 2m in units of degrees. Can be n-dimensional.
-        r: float
-            The sphere radius.
-        """
-        assert lat1.shape == lon1.shape == lat2.shape == lon2.shape, (
-            'All input arrays' ' must have the same shape.'
-        )
-        lat1_rad = np.deg2rad(lat1)
-        lat2_rad = np.deg2rad(lat2)
-        lon1_rad = np.deg2rad(lon1)
-        lon2_rad = np.deg2rad(lon2)
-
-        d = (
-            2
-            * r
-            * np.arcsin(
-                np.sqrt(
-                    np.sin((lat2_rad - lat1_rad) / 2) ** 2
-                    + np.cos(lat1_rad) * np.cos(lat2_rad) * np.sin((lon2_rad - lon1_rad) / 2)
-                )
-            )
-        )
-        return d
 
     def _conjunction_intervals(self, times: np.array, min_dt: float):
         """

@@ -1046,8 +1046,7 @@ class Imager:
         nearest_pixels = np.nan * np.zeros_like(path)
 
         for i, (lat, lon) in enumerate(path):
-            # TODO:  Haversine
-            distances = np.sqrt((self.skymap['lat'] - lat) ** 2 + (self.skymap['lon'] - lon) ** 2)
+            distances = haversine(self.skymap['lat'], self.skymap['lon'], lat, lon)
             idx = np.where(distances == np.nanmin(distances))
 
             if distances[idx][0] > threshold:
@@ -1750,3 +1749,39 @@ class Imager:
             **pcolormesh_kwargs,
         )
         return p
+
+def haversine(
+    lat1: np.array, lon1: np.array, lat2: np.array, lon2: np.array, r: float = 1
+) -> np.array:
+    """
+    Calculate the distance between two points specified by latitude and longitude. All inputs
+    must be the same shape.
+
+    Parameters
+    ----------
+    lat1, lat2: np.array
+        The latitude of points 1 and 2m in units of degrees. Can be n-dimensional.
+    lon1, lon2: np.array
+        The longitude of points 1 and 2m in units of degrees. Can be n-dimensional.
+    r: float
+        The sphere radius.
+    """
+    assert lat1.shape == lon1.shape == lat2.shape == lon2.shape, (
+        'All input arrays' ' must have the same shape.'
+    )
+    lat1_rad = np.deg2rad(lat1)
+    lat2_rad = np.deg2rad(lat2)
+    lon1_rad = np.deg2rad(lon1)
+    lon2_rad = np.deg2rad(lon2)
+
+    d = (
+        2
+        * r
+        * np.arcsin(
+            np.sqrt(
+                np.sin((lat2_rad - lat1_rad) / 2) ** 2
+                + np.cos(lat1_rad) * np.cos(lat2_rad) * np.sin((lon2_rad - lon1_rad) / 2)
+            )
+        )
+    )
+    return d
