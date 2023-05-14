@@ -64,6 +64,7 @@ for i, (time, image, _, im) in enumerate(gen):
     if 'vline1' in locals():
         vline1.remove()  # We want the old guide line to be removed.
         vline2.remove()
+        text_obj.remove()
     vline1 = ax[1].axvline(time, c='b')
     vline2 = ax[2].axvline(time, c='b')
 
@@ -74,7 +75,7 @@ for i, (time, image, _, im) in enumerate(gen):
         f'{asi.meta["lon"]:.2f}, {asi.meta["alt"]:.2f})'
     )
     satellite_str = f'Satellite LLA=({sat_lla[i, 0]:.2f}, {sat_lla[i, 1]:.2f}, {sat_lla[i, 2]:.2f})'
-    ax[0].text(
+    text_obj = ax[0].text(
         0,
         1,
         location_code_str + '\n' + satellite_str,
