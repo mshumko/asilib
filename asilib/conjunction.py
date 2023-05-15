@@ -166,7 +166,7 @@ class Conjunction:
                 if np.any(np.isnan(pixels)):
                     continue
                 # The ::-1 b/c pixels are in plotting (not indexing) order.
-                _intensity[i] =  image[*pixels[::-1].astype(int)]
+                _intensity[i] =  image[int(pixels[1]), int(pixels[0])]
         else:  # Area around footprint
             # equal_area_gen() is slower than using equal_area(), but this plays nice with memory.
             gen = self.equal_area_gen(box=box)
