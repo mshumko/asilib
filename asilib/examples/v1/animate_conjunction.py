@@ -31,7 +31,7 @@ sat_lla = np.array([lats, lons, alts]).T
 # Normally the satellite time stamps are not the same as the ASI. 
 # You may need to call Conjunction.interp_sat() to find the LLA coordinates
 # at the ASI timestamps.
-sat_time = asi.data.time
+sat_time = asi.data.times
 
 conjunction_obj = asilib.Conjunction(asi, (sat_time, sat_lla))
 

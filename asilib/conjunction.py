@@ -163,7 +163,9 @@ class Conjunction:
         if box is None:  # Nearest pixel to footprint
             _, azel_pixels = self.map_azel()
             for i, ((_, image), pixels) in enumerate(zip(self.imager, azel_pixels)):
-                _intensity[i] =  image[pixels]
+                if np.any(np.isnan(pixels)):
+                    continue
+                _intensity[i] =  image[*pixels.astype(int)]
         else:  # Area around footprint
             # equal_area_gen() is slower than using equal_area(), but this plays nice with memory.
             gen = self.equal_area_gen(box=box)
