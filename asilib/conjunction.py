@@ -15,7 +15,7 @@ except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.lla2footprint()
 
 import asilib
-from asilib.imager import haversine
+from asilib.imager import spherical_dist
 
 earth_radius_km = 6371
 
@@ -165,7 +165,8 @@ class Conjunction:
             for i, ((_, image), pixels) in enumerate(zip(self.imager, azel_pixels)):
                 if np.any(np.isnan(pixels)):
                     continue
-                _intensity[i] =  image[*pixels.astype(int)]
+                # The ::-1 b/c pixels are in plotting (not indexing) order.
+                _intensity[i] =  image[*pixels[::-1].astype(int)]
         else:  # Area around footprint
             # equal_area_gen() is slower than using equal_area(), but this plays nice with memory.
             gen = self.equal_area_gen(box=box)
@@ -295,7 +296,17 @@ class Conjunction:
             elevation coordinates.
         np.ndarray
             An array with shape (nPosition, 2) of the x- and y-axis pixel
-            indices for the ASI image.
+            indices for the ASI image. 
+        
+        .. note::
+            The azel pixel columns are ordered for plotting on an image:
+            
+            plt.imshow(image)
+            plt.plot(azel_pixels[:, 0], azel_pixels[:, 1])
+
+            However, the column order must be flipped for indexing:
+
+            image[azel_pixels[:, 1], azel_pixels[:, 0]]
 
         Raises
         ------
@@ -520,22 +531,26 @@ class Conjunction:
             sat_az = np.broadcast_to(sat_az[:, np.newaxis, np.newaxis], asi_el.shape)
             sat_el = azel[:, 1]
             sat_el = np.broadcast_to(sat_el[:, np.newaxis, np.newaxis], asi_el.shape)
-            distances = haversine(asi_el, asi_az, sat_el, sat_az)
+            distances = spherical_dist(asi_el, asi_az, sat_el, sat_az)
             # This should be vectorized too, but np.nanargmin() can't find a minimum
             # along the 1st and 2nd dims.
             for i, distance in enumerate(distances):
                 if np.all(np.isnan(distance)):
                     continue
                 pixel_index[i, :] = np.unravel_index(np.nanargmin(distance), distance.shape)
+                pass
         else:
             # Calculate one at a time to save memory.
             for i, (az, el) in enumerate(azel):
                 el = el * np.ones_like(self.imager.skymap['el'])
                 az = el * np.ones_like(self.imager.skymap['az'])
-                distances = haversine(
+                distances = spherical_dist(
                     self.imager.skymap['el'], self.imager.skymap['az'], el, az
                 )
                 pixel_index[i, :] = np.unravel_index(np.nanargmin(distances), distances.shape)
+        # Before, pixel_index columns corresponded to (row, column) = (y-pixel, x-pixel), but for plotting
+        # we need to flip them to be (column, row) = (x-pixel, y-pixel).
+        pixel_index[:,[1,0]] = pixel_index[:,[0,1]]
         return pixel_index
 
     def _conjunction_intervals(self, times: np.array, min_dt: float):
