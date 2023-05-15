@@ -59,9 +59,9 @@ for i, (time, image, _, im) in enumerate(gen):
     ax[0].contour(area_mask[i, :, :], levels=[0.99], colors=['yellow'])
 
     if 'vline1' in locals():
-        vline1.remove()  # We want the old guide line to be removed.
-        vline2.remove()
-        text_obj.remove()
+        vline1.remove()  # noqa: F821
+        vline2.remove()  # noqa: F821
+        text_obj.remove()  # noqa: F821
     else:
         # Plot the ASI intensity along the satellite path
         ax[1].plot(sat_time, nearest_pixel_intensity)
