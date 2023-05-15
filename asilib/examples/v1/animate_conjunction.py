@@ -58,13 +58,14 @@ for i, (time, image, _, im) in enumerate(gen):
     ax[0].scatter(sat_azel_pixels[i, 0], sat_azel_pixels[i, 1], c='red', marker='o', s=50)
     ax[0].contour(area_mask[i, :, :], levels=[0.99], colors=['yellow'])
 
-    # Plot the ASI intensity along the satellite path
-    ax[1].plot(sat_time, nearest_pixel_intensity)
-    ax[2].plot(sat_time, area_intensity)
     if 'vline1' in locals():
         vline1.remove()  # We want the old guide line to be removed.
         vline2.remove()
         text_obj.remove()
+    else:
+        # Plot the ASI intensity along the satellite path
+        ax[1].plot(sat_time, nearest_pixel_intensity)
+        ax[2].plot(sat_time, area_intensity)
     vline1 = ax[1].axvline(time, c='b')
     vline2 = ax[2].axvline(time, c='b')
 
