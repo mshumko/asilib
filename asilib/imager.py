@@ -843,12 +843,14 @@ class Imager:
         True
         """
         self._keogram_time = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
+        #TODO: Refactor so that _keogram is not created twice.
         self._keogram = np.nan * np.zeros((self._estimate_n_times(), self.meta['resolution'][0]))
 
         # Determine what pixels to slice
         self._keogram_pixels(path, minimum_elevation)
         # Not all of the pixels are valid (e.g. below the horizon)
         self._keogram = self._keogram[:, : self._pixels.shape[0]]
+        self._keogram = np.nan * np.zeros((self._estimate_n_times(), self._pixels.shape[0]))
         self._geogram_lat = self._keogram_latitude(aacgm)
 
         # TODO: Add a test to trigger this behavior.
@@ -1044,7 +1046,12 @@ class Imager:
         nearest_pixels = np.nan * np.zeros_like(path)
 
         for i, (lat, lon) in enumerate(path):
-            distances = np.sqrt((self.skymap['lat'] - lat) ** 2 + (self.skymap['lon'] - lon) ** 2)
+            distances = haversine(
+                self.skymap['lat'], 
+                self.skymap['lon'], 
+                lat*np.ones_like(self.skymap['lon']), 
+                lon*np.ones_like(self.skymap['lon']),
+                )
             idx = np.where(distances == np.nanmin(distances))
 
             if distances[idx][0] > threshold:
@@ -1747,3 +1754,32 @@ class Imager:
             **pcolormesh_kwargs,
         )
         return p
+
+def haversine(
+    lat1: np.array, lon1: np.array, lat2: np.array, lon2: np.array, r: float = 1
+) -> np.array:
+    """
+    Haversine distance equation.
+    
+    Parameters
+    ----------
+    lat1, lat2: np.array
+        The latitude of points 1 and 2 in units of degrees. Can be n-dimensional.
+    lon1, lon2: np.array
+        The longitude of points 1 and 2 in units of degrees. Can be n-dimensional.
+    r: float
+        The sphere radius.
+    """
+    assert lat1.shape == lon1.shape == lat2.shape == lon2.shape, (
+        'All input arrays' ' must have the same shape.'
+    )
+    lat1_rad = np.deg2rad(lat1)
+    lat2_rad = np.deg2rad(lat2)
+    lon1_rad = np.deg2rad(lon1)
+    lon2_rad = np.deg2rad(lon2)
+
+    d=2*r*np.arcsin(np.sqrt(
+        np.sin((lat1_rad-lat2_rad)/2)**2 + 
+        np.cos(lat1_rad)*np.cos(lat2_rad)*np.sin((lon2_rad-lon1_rad)/2)**2
+    ))
+    return d

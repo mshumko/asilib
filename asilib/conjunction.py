@@ -1,5 +1,5 @@
 import importlib
-from typing import Tuple, Union
+from typing import Tuple, Union, Callable
 import warnings
 
 import numpy as np
@@ -15,6 +15,7 @@ except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.lla2footprint()
 
 import asilib
+from asilib.imager import haversine
 
 earth_radius_km = 6371
 
@@ -46,7 +47,7 @@ class Conjunction:
         assert hasattr(imager, 'skymap'), 'imager does not contain a skymap.'
 
         assert isinstance(
-            satellite, (tuple, pd.DataFrame)
+            satellite, (tuple, pd.DataFrame)  # TODO: Add support for pyaurorax ephemeris.
         ), 'satellite must be a tuple or pd.Dataframe.'
         if isinstance(satellite, tuple):
             assert len(satellite) == 2, 'Satellite tuple must have length of 2'
@@ -126,6 +127,52 @@ class Conjunction:
             }
         )
         return df
+    
+    def intensity(self, box:Tuple[float, float]=None, box_op:Callable=np.nanmean) -> np.ndarray:
+        """
+        Calculate the auroral intensity near the satellite's footprint.
+
+        Parameters
+        ----------
+        box: Tuple[float, float]
+            A tuple of two floats that specifies the rectangular area, at the auroral emission
+            altitude, in which to calculate the auroral intensity. The intensities in the box
+            are averaged by default, and can be changed using the ``box_op`` kwarg. If ``box_size=None``, 
+            the auroral intensity will come from the pixel nearest to the footprint. In this case the
+            box_op kwarg is irrelevant.
+        box_op: Callable
+            The function to apply to the auroral intensity in the box surrounding the footprint. Since 
+            it must operate on the mask array that :py:meth:`~asilib.Conjunction.equal_area()` produces, 
+            the ``box_op`` function must work with (i.e., ignore) ``np.nan`` values. 
+
+        Returns
+        -------
+        np.ndarray
+            The auroral intensity near the footprint, calculated either from the nearest pixel 
+            (if ``box_size=None``) or the mean intensity in a rectangular area defined by 
+            ``box_size``.
+
+        .. note::
+            If box_size=None the nearest pixel is calculated using :py:meth:`~asilib.Conjunction.map_azel`, otherwise
+            if ``box_size=(10, 10)`` and ``box_op`` is the default, :py:meth:`~asilib.Conjunction.equal_area()` is 
+            used to calculate the mean intensity in a 10x10 km box. The two different implementations should yield 
+            similar results, but discrepancies may arise if the skymap (az, el) and (lat, lon) mapping arrays are 
+            mismatched. This is the case for some of the THEMIS ASIs right after they were deployed.   
+        """
+        _intensity = np.nan*np.zeros(self.sat.shape[0], dtype=float)
+        if box is None:  # Nearest pixel to footprint
+            _, azel_pixels = self.map_azel()
+            for i, ((_, image), pixels) in enumerate(zip(self.imager, azel_pixels)):
+                if np.any(np.isnan(pixels)):
+                    continue
+                # The ::-1 b/c pixels are in plotting (not indexing) order.
+                _intensity[i] =  image[int(pixels[1]), int(pixels[0])]
+        else:  # Area around footprint
+            # equal_area_gen() is slower than using equal_area(), but this plays nice with memory.
+            gen = self.equal_area_gen(box=box)
+            for i, ((_, image), mask) in enumerate(zip(self.imager, gen)):
+                _intensity[i] = box_op(image*mask)
+        return _intensity
 
     def interp_sat(self):
         """
@@ -165,16 +212,16 @@ class Conjunction:
         self.sat = pd.DataFrame(index=imager_times, data=interpolated_lla)
         return self.sat
 
-    def map_lla_footprint(
+    def lla_footprint(
         self,
-        map_alt: float,
+        alt: float,
         b_model: str = 'OPQ77',
         maginput: dict = None,
         hemisphere: int = 0,
     ) -> np.ndarray:
         """
-        Map the spacecraft's position to ``map_alt`` along the magnetic field line.
-        The mapping is implemeneted in ``IRBEM`` and by default it maps to the same
+        Map the spacecraft's position to ``alt`` along the magnetic field line.
+        The mapping is implemented in ``IRBEM`` and by default it maps to the same
         hemisphere.
 
         Parameters
@@ -186,7 +233,7 @@ class Conjunction:
             1974. This parameter is passed directly into IRBEM.MagFields as the
             'kext' parameter.
         maginput: dict
-            If you use a differnet b_model that requires time-dependent parameters,
+            If you use a different b_model that requires time-dependent parameters,
             supply the appropriate values to the maginput dictionary. It is directly
             passed into IRBEM.MagFields so refer to IRBEM on the proper format.
         hemisphere: int
@@ -208,6 +255,7 @@ class Conjunction:
         ImportError
             If IRBEM can't be imported.
         """
+        # TODO: Add tests
         if importlib.util.find_spec('IRBEM') is None:
             raise ImportError(
                 "IRBEM can't be imported. This is a required dependency for asilib.lla2footprint()"
@@ -217,12 +265,13 @@ class Conjunction:
 
         magnetic_footprint = np.nan * np.zeros((self.sat.shape[0], 3))
 
+        # TODO: Do a trade study with geopack (https://pypi.org/project/geopack/)
         m = IRBEM.MagFields(kext=b_model)  # Initialize the IRBEM model.
 
         # Loop over every set of satellite coordinates.
         for i, (time, (lat, lon, alt)) in enumerate(self.sat.iterrows()):
             X = {'datetime': time, 'x1': alt, 'x2': lat, 'x3': lon}
-            m_output = m.find_foot_point(X, maginput, map_alt, hemisphere)
+            m_output = m.find_foot_point(X, maginput, alt, hemisphere)
             magnetic_footprint[i, :] = m_output['XFOOT']
         # Map from IRBEM's (alt, lat, lon) -> (lat, lon, alt)
         # magnetic_footprint[:, [2, 0, 1]] = magnetic_footprint[:, [0, 1, 2]]
@@ -247,7 +296,17 @@ class Conjunction:
             elevation coordinates.
         np.ndarray
             An array with shape (nPosition, 2) of the x- and y-axis pixel
-            indices for the ASI image.
+            indices for the ASI image. 
+        
+        .. note::
+            The azel pixel columns are ordered for plotting on an image:
+            
+            plt.imshow(image)
+            plt.plot(azel_pixels[:, 0], azel_pixels[:, 1])
+
+            However, the column order must be flipped for indexing:
+
+            image[azel_pixels[:, 1], azel_pixels[:, 0]]
 
         Raises
         ------
@@ -259,7 +318,7 @@ class Conjunction:
         """
         azel = np.nan * np.zeros((self.sat.shape[0], 2))
 
-        for i, (time, (lat_i, lon_i, alt_km_i)) in enumerate(self.sat.iterrows()):
+        for i, (_, (lat_i, lon_i, alt_km_i)) in enumerate(self.sat.iterrows()):
             any_nan = np.any(np.isnan([lat_i, lon_i, alt_km_i]))
             any_neg = np.any([lat_i, lon_i, alt_km_i] == -1e31)  # IRBEM error value.
             if any_nan or any_neg:
@@ -286,54 +345,54 @@ class Conjunction:
         azel_pixels[invalid_el, :] = np.nan
         return azel, azel_pixels
 
-    def equal_area(self, box=(5, 5)):
+    def equal_area(self, box:Tuple[float, float]=(5, 5)) -> np.ndarray:
         """
-        Calculate a ``box_km`` area mask at the aurora emission altitude.
+        Find all pixels around the footprint within a rectangular area
+        defined by box.
 
         Parameters
         ----------
-        box: tuple
-            Bounds the emission box dimensions in longitude and latitude.
+        box: Tuple[float, float]
+            Bounds the emission area box dimensions in longitude and latitude.
             Units are kilometers.
 
         Returns
         -------
-        pixel_mask: np.ndarray
-            An array with (n_time, n_x_pixels, n_y_pixels) dimensions with
+        np.ndarray
+            An array with dimensions (n_time, n_x_pixels, n_y_pixels) with
             dimensions n_x_pixels and n_y_pixels dimensions the size of each
             image. Values inside the area are 1 and outside are np.nan.
+
+        See Also
+        --------
+        Conjunction.equal_area_gen : A memory-friendly way to calculate equal areas.
+        
         """
-        n_max = 5000
-        if self.sat.shape[0] > n_max:
-            warnings.warn(
-                f'The {self.sat.shape[0]} footprints is larger than {n_max}. '
-                f'Use the equal_area_gen() method instead.'
-            )
         assert len(box) == 2, 'The box_km parameter must have a length of 2.'
 
-        pixel_mask = np.nan * np.zeros((self.sat.shape[0], *self.imager.meta['resolution']))
+        self.area_mask = np.nan * np.zeros((self.sat.shape[0], *self.imager.meta['resolution']))
 
         gen = self.equal_area_gen(box=box)
 
         for i, mask in enumerate(gen):
             # Check that the lat/lon values are inside the skymap coordinates.
-            pixel_mask[i, :, :] = mask
-        return pixel_mask
+            self.area_mask[i, :, :] = mask
+        return self.area_mask
 
-    def equal_area_gen(self, box=(5, 5)):
+    def equal_area_gen(self, box:Tuple[float, float]=(5, 5)) -> np.ndarray:
         """
-        A generator function to calculate a ``box_km`` area mask at the
-        aurora emission altitude for a large number of footprints.
+        Generator to find all pixels around the footprint within a rectangular area
+        defined by box.
 
         Parameters
         ----------
-        box: tuple
+        box: Tuple[float, float]
             Bounds the emission box dimensions in longitude and latitude.
             Units are kilometers.
 
         Returns
         -------
-        pixel_mask: np.ndarray
+        np.ndarray
             An array with (n_time, n_x_pixels, n_y_pixels) dimensions with
             dimensions n_x_pixels and n_y_pixels dimensions the size of each
             image. Values inside the area are 1 and outside are np.nan.
@@ -472,59 +531,27 @@ class Conjunction:
             sat_az = np.broadcast_to(sat_az[:, np.newaxis, np.newaxis], asi_el.shape)
             sat_el = azel[:, 1]
             sat_el = np.broadcast_to(sat_el[:, np.newaxis, np.newaxis], asi_el.shape)
-            distances = self._haversine_distance(asi_el, asi_az, sat_el, sat_az)
+            distances = haversine(asi_el, asi_az, sat_el, sat_az)
             # This should be vectorized too, but np.nanargmin() can't find a minimum
             # along the 1st and 2nd dims.
             for i, distance in enumerate(distances):
                 if np.all(np.isnan(distance)):
                     continue
                 pixel_index[i, :] = np.unravel_index(np.nanargmin(distance), distance.shape)
+                pass
         else:
             # Calculate one at a time to save memory.
             for i, (az, el) in enumerate(azel):
                 el = el * np.ones_like(self.imager.skymap['el'])
                 az = el * np.ones_like(self.imager.skymap['az'])
-                distances = self._haversine_distance(
+                distances = haversine(
                     self.imager.skymap['el'], self.imager.skymap['az'], el, az
                 )
                 pixel_index[i, :] = np.unravel_index(np.nanargmin(distances), distances.shape)
+        # Before, pixel_index columns corresponded to (row, column) = (y-pixel, x-pixel), but for plotting
+        # we need to flip them to be (column, row) = (x-pixel, y-pixel).
+        pixel_index[:,[1,0]] = pixel_index[:,[0,1]]
         return pixel_index
-
-    def _haversine_distance(
-        self, lat1: np.array, lon1: np.array, lat2: np.array, lon2: np.array, r: float = 1
-    ) -> np.array:
-        """
-        Calculate the distance between two points specified by latitude and longitude. All inputs
-        must be the same shape.
-
-        Parameters
-        ----------
-        lat1, lat2: np.array
-            The latitude of points 1 and 2m in units of degrees. Can be n-dimensional.
-        lon1, lon2: np.array
-            The longitude of points 1 and 2m in units of degrees. Can be n-dimensional.
-        r: float
-            The sphere radius.
-        """
-        assert lat1.shape == lon1.shape == lat2.shape == lon2.shape, (
-            'All input arrays' ' must have the same shape.'
-        )
-        lat1_rad = np.deg2rad(lat1)
-        lat2_rad = np.deg2rad(lat2)
-        lon1_rad = np.deg2rad(lon1)
-        lon2_rad = np.deg2rad(lon2)
-
-        d = (
-            2
-            * r
-            * np.arcsin(
-                np.sqrt(
-                    np.sin((lat2_rad - lat1_rad) / 2) ** 2
-                    + np.cos(lat1_rad) * np.cos(lat2_rad) * np.sin((lon2_rad - lon1_rad) / 2)
-                )
-            )
-        )
-        return d
 
     def _conjunction_intervals(self, times: np.array, min_dt: float):
         """

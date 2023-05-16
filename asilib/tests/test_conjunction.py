@@ -307,10 +307,10 @@ def test_azel_single_lla():
     azel, pixels = c.map_azel()
 
     # Test the El values
-    assert round(azel[0, 1]) == 90
+    assert azel[0, 1] == 90
 
     # Test that the AzEl indices are within a pixel of zenith.
-    assert np.max(abs(pixels[0] - asi.meta['resolution'][0] / 2)) <= 1
+    assert np.max(abs(pixels[0, :] - asi.meta['resolution'][0] / 2)) <= 1
     return
 
 
@@ -353,20 +353,107 @@ def test_azel_multiple_lla():
     assert np.all(
         np.isclose(
             pixels,
-            np.array(
-                [
-                    [146.0, 364.0],
-                    [161.0, 329.0],
-                    [196.0, 379.0],
-                    [197.0, 295.0],
-                    [284.0, 322.0],
-                    [272.0, 239.0],
-                    [316.0, 193.0],
-                    [250.0, 219.0],
-                    [354.0, 164.0],
-                    [279.0, 20.0],
-                ]
-            ),
+            np.array([
+                [310., 167.],
+                [303., 178.],
+                [295., 190.],
+                [285., 205.],
+                [273., 227.],
+                [239., 285.],
+                [226., 306.],
+                [218., 322.],
+                [212., 335.],
+                [206., 346.]
+            ])
         )
     )
+    return
+
+def test_intensity_closest_pixel():
+    """
+    Test the auroral intensity from the nearest pixel.
+    """
+    location_code = 'RANK'
+    alt=110  # km
+    time_range = (datetime(2017, 9, 15, 2, 32, 0), datetime(2017, 9, 15, 2, 35, 0))
+
+    asi = asilib.themis(location_code, time_range=time_range, alt=alt)
+
+    # Create the fake satellite track coordinates: latitude, longitude, altitude (LLA).
+    # This is a north-south satellite track oriented to the east of the THEMIS/RANK
+    # imager.
+    n = int((time_range[1] - time_range[0]).total_seconds() / 3)  # 3 second cadence.
+    lats = np.linspace(asi.meta["lat"] + 5, asi.meta["lat"] - 5, n)
+    lons = (asi.meta["lon"] - 0.5) * np.ones(n)
+    alts = alt * np.ones(n)  # Altitude needs to be the same as the skymap.
+    sat_lla = np.array([lats, lons, alts]).T
+    # Normally the satellite time stamps are not the same as the ASI. 
+    # You may need to call Conjunction.interp_sat() to find the LLA coordinates
+    # at the ASI timestamps.
+    sat_time = asi.data.times
+
+    conjunction_obj = asilib.Conjunction(asi, (sat_time, sat_lla))
+    nearest_pixel_intensity = conjunction_obj.intensity(box=None)
+    assert np.all(np.isclose(
+        nearest_pixel_intensity, 
+        np.array(
+            [ 4328.,  4298.,  4258.,  4252.,  4288.,  4211.,  4118.,  4120.,
+            4089.,  4004.,  4060.,  4005.,  3991.,  3908.,  3890.,  3887.,
+            3824.,  3757.,  3678.,  3643.,  3644.,  3658.,  3643.,  3548.,
+            3574.,  3565.,  3526.,  3534.,  3480.,  3494.,  3933., 12374.,
+            16140.,  5523.,  7557., 12812.,  5121.,  4202.,  4051.,  4101.,
+            4015.,  4198.,  4136.,  4331.,  4306.,  4368.,  4164.,  4462.,
+            4541.,  4515.,  4612.,  4705.,  4861.,  4960.,  4959.,  5036.,
+            5098.,  5092.,  5158.,  5295.]
+            )
+        ))
+    return
+
+def test_intensity_area():
+    """
+    Test the mean auroral intensity in a 10x10 km box.
+    """
+    # ASI parameters
+    location_code = 'RANK'
+    alt=110  # km
+    time_range = (datetime(2017, 9, 15, 2, 32, 0), datetime(2017, 9, 15, 2, 35, 0))
+
+    asi = asilib.themis(location_code, time_range=time_range, alt=alt)
+
+    # Create the fake satellite track coordinates: latitude, longitude, altitude (LLA).
+    # This is a north-south satellite track oriented to the east of the THEMIS/RANK
+    # imager.
+    n = int((time_range[1] - time_range[0]).total_seconds() / 3)  # 3 second cadence.
+    lats = np.linspace(asi.meta["lat"] + 5, asi.meta["lat"] - 5, n)
+    lons = (asi.meta["lon"] - 0.5) * np.ones(n)
+    alts = alt * np.ones(n)  # Altitude needs to be the same as the skymap.
+    sat_lla = np.array([lats, lons, alts]).T
+    # Normally the satellite time stamps are not the same as the ASI. 
+    # You may need to call Conjunction.interp_sat() to find the LLA coordinates
+    # at the ASI timestamps.
+    sat_time = asi.data.times
+
+    conjunction_obj = asilib.Conjunction(asi, (sat_time, sat_lla))
+    area_intensity = conjunction_obj.intensity(box=(10, 10))
+
+    assert np.all(np.isclose(
+        area_intensity, 
+        np.array(
+            [4429.5      ,  4307.        ,  4359.        ,  4258.        ,
+            4277.        ,  4307.        ,  4142.66666667,  4129.        ,
+            4092.        ,  4002.        ,  3991.66666667,  3990.        ,
+            3987.        ,  3906.66666667,  3895.33333333,  3909.        ,
+            3829.75      ,  3774.        ,  3741.75      ,  3699.8       ,
+            3685.88888889,  3616.9       ,  3615.3125    ,  3585.3125    ,
+            3548.33333333,  3532.23076923,  3501.77142857,  3496.58536585,
+            3485.09803922,  3532.40740741,  3904.        , 11476.43137255,
+            15238.31818182,  5658.125     ,  7793.53571429, 12330.76190476,
+            5629.        ,  4244.69230769,  4105.81818182,  4064.2       ,
+            4055.14285714,  4131.33333333,  4180.16666667,  4236.4       ,
+            4297.33333333,  4354.66666667,  4291.        ,  4386.        ,
+            4530.5       ,  4537.        ,  4605.5       ,  4627.        ,
+            4711.        ,  4799.5       ,  4959.        ,  5078.        ,
+            5014.        ,  5007.5       ,  5070.        ,  5156.        ]
+            )
+    ))
     return
