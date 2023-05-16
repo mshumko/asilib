@@ -1,7 +1,9 @@
 # Version 0.15.0
 - Finalizing the `asilib.Conjunction` API
-- Added tests for `asilib.Conjunction`.
-- Added `asilib.Conjunction.auroral_intensity` method.
+- Added `asilib.Conjunction.intensity` method. Depending on if the `box` argument is specified or not, this method will calculate either the auoral intensity for the nearest pixel to the footprint (`box=None`) or in a rectangular area around the footprint otherwise (e.g., `box=(10x10)`).
+- Added tests for `asilib.Conjunction.map_azel()`.
+- Angular distances in `asilib.Conjunction.map_azel()` (and elsewhere) are now calculated using the Haversine equation.
+- Moved original examples to `examples/v0/` folder and started writing the examples using `Imager()` and  `Conjunction()` to the `examples/v1/` folder.
 # Version 0.14.4
 - Updated GitHub Actions:
   - test the `cartopy` maps,
