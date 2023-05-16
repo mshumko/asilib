@@ -1046,7 +1046,7 @@ class Imager:
         nearest_pixels = np.nan * np.zeros_like(path)
 
         for i, (lat, lon) in enumerate(path):
-            distances = spherical_dist(
+            distances = haversine(
                 self.skymap['lat'], 
                 self.skymap['lon'], 
                 lat*np.ones_like(self.skymap['lon']), 
@@ -1755,15 +1755,12 @@ class Imager:
         )
         return p
 
-def spherical_dist(
+def haversine(
     lat1: np.array, lon1: np.array, lat2: np.array, lon2: np.array, r: float = 1
 ) -> np.array:
     """
-    Calculate the distance between two vectors in sperical coordinates. All inputs
-    must be the same shape.
-
-    Source: https://math.stackexchange.com/a/833110
-
+    Haversine distance equation.
+    
     Parameters
     ----------
     lat1, lat2: np.array
@@ -1781,10 +1778,8 @@ def spherical_dist(
     lon1_rad = np.deg2rad(lon1)
     lon2_rad = np.deg2rad(lon2)
 
-    d = np.sqrt(
-        2*r**2 - 2*r**2*(
-            np.sin(lat1_rad)*np.sin(lat2_rad)*np.cos(lon1_rad-lon2_rad) + 
-            np.cos(lat1_rad)*np.cos(lat2_rad)
-        )
-    )
+    d=2*r*np.arcsin(np.sqrt(
+        np.sin((lat1_rad-lat2_rad)/2)**2 + 
+        np.cos(lat1_rad)*np.cos(lat2_rad)*np.sin((lon2_rad-lon1_rad)/2)**2
+    ))
     return d

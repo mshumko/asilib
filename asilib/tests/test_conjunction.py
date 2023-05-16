@@ -307,10 +307,10 @@ def test_azel_single_lla():
     azel, pixels = c.map_azel()
 
     # Test the El values
-    assert round(azel[0, 1]) == 90
+    assert azel[0, 1] == 90
 
     # Test that the AzEl indices are within a pixel of zenith.
-    assert np.max(abs(pixels[0] - asi.meta['resolution'][0] / 2)) <= 1
+    assert np.max(abs(pixels[0, :] - asi.meta['resolution'][0] / 2)) <= 1
     return
 
 
@@ -355,16 +355,16 @@ def test_azel_multiple_lla():
             pixels,
             np.array(
                 [
-                    [146.0, 364.0],
-                    [161.0, 329.0],
-                    [196.0, 379.0],
-                    [197.0, 295.0],
-                    [284.0, 322.0],
-                    [272.0, 239.0],
-                    [316.0, 193.0],
-                    [250.0, 219.0],
-                    [354.0, 164.0],
-                    [279.0, 20.0],
+                    [364.0, 146.0],
+                    [329.0, 161.0],
+                    [379.0, 196.0],
+                    [295.0, 197.0],
+                    [322.0, 284.0],
+                    [239.0, 272.0],
+                    [193.0, 316.0],
+                    [219.0, 250.0],
+                    [164.0, 354.0],
+                    [20.0, 279.0],
                 ]
             ),
         )

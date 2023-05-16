@@ -46,6 +46,9 @@ nearest_pixel_intensity = conjunction_obj.intensity(box=None)
 area_intensity = conjunction_obj.intensity(box=(10, 10))
 area_mask = conjunction_obj.equal_area(box=(10,10))
 
+# Need to change masked NaNs to 0s so we can plot the rectangular area contours.
+area_mask[np.where(np.isnan(area_mask))] = 0
+
 # Initiate the animation generator function.
 gen = asi.animate_fisheye_gen(
     ax=ax[0], azel_contours=True, overwrite=True, cardinal_directions='NE'
@@ -84,7 +87,7 @@ for i, (time, image, _, im) in enumerate(gen):
         transform=ax[0].transAxes,
         color='red',
     )
-    ax[1].set(ylabel='ASI intensity | nearest pixel [counts]')
-    ax[1].set(xlabel='Time', ylabel='ASI intensity | 10x10 km area [counts]')
+    ax[1].set(ylabel='ASI intensity\nnearest pixel [counts]')
+    ax[2].set(xlabel='Time', ylabel='ASI intensity\n10x10 km area [counts]')
 
 print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name}')
