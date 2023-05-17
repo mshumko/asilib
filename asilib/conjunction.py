@@ -299,19 +299,10 @@ class Conjunction:
             indices for the ASI image. 
         
         .. note::
-            The azel pixel columns are ordered for plotting on an image:
-            
-            plt.imshow(image)
-            plt.plot(azel_pixels[:, 0], azel_pixels[:, 1])
-
-            However, the column order must be flipped for indexing:
-
+            The azel pixel columns are ordered for plotting with an image:
+            plt.plot(azel_pixels[:, 0], azel_pixels[:, 1]). However, the 
+            column order must be flipped for indexing. For example:
             image[azel_pixels[:, 1], azel_pixels[:, 0]]
-
-        Raises
-        ------
-        AssertionError
-            If the sat_lla argument does not have exactly 3 columns (1st dimension).
 
         Example
         -------
