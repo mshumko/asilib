@@ -89,6 +89,11 @@ def rego(
     >>> asi.plot_map(ax=bx)
     >>> plt.tight_layout()
     >>> plt.show()
+
+    Returns
+    -------
+    :py:meth:`~asilib.imager.Imager`
+        A REGO ASI instance with the time stamps, images, skymaps, and metadata.
     """
     if time is not None:
         time = utils.validate_time(time)

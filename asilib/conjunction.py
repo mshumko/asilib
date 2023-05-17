@@ -15,7 +15,7 @@ except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.lla2footprint()
 
 import asilib
-from asilib.imager import haversine
+from asilib.imager import _haversine
 
 earth_radius_km = 6371
 
@@ -531,7 +531,7 @@ class Conjunction:
             sat_az = np.broadcast_to(sat_az[:, np.newaxis, np.newaxis], asi_el.shape)
             sat_el = azel[:, 1]
             sat_el = np.broadcast_to(sat_el[:, np.newaxis, np.newaxis], asi_el.shape)
-            distances = haversine(asi_el, asi_az, sat_el, sat_az)
+            distances = _haversine(asi_el, asi_az, sat_el, sat_az)
             # This should be vectorized too, but np.nanargmin() can't find a minimum
             # along the 1st and 2nd dims.
             for i, distance in enumerate(distances):
@@ -544,7 +544,7 @@ class Conjunction:
             for i, (az, el) in enumerate(azel):
                 el = el * np.ones_like(self.imager.skymap['el'])
                 az = el * np.ones_like(self.imager.skymap['az'])
-                distances = haversine(
+                distances = _haversine(
                     self.imager.skymap['el'], self.imager.skymap['az'], el, az
                 )
                 pixel_index[i, :] = np.unravel_index(np.nanargmin(distances), distances.shape)

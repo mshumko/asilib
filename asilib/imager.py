@@ -1046,7 +1046,7 @@ class Imager:
         nearest_pixels = np.nan * np.zeros_like(path)
 
         for i, (lat, lon) in enumerate(path):
-            distances = haversine(
+            distances = _haversine(
                 self.skymap['lat'], 
                 self.skymap['lon'], 
                 lat*np.ones_like(self.skymap['lon']), 
@@ -1755,11 +1755,11 @@ class Imager:
         )
         return p
 
-def haversine(
+def _haversine(
     lat1: np.array, lon1: np.array, lat2: np.array, lon2: np.array, r: float = 1
 ) -> np.array:
     """
-    Haversine distance equation.
+    _haversine distance equation.
     
     Parameters
     ----------

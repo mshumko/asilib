@@ -69,7 +69,7 @@ def themis(
     Returns
     -------
     :py:meth:`~asilib.imager.Imager`
-        The THEMIS Imager instance.
+        A THEMIS ASI instance with the time stamps, images, skymaps, and metadata.
     """
 
     if time is not None:

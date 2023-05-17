@@ -21,35 +21,8 @@ By default this directory is set to `~/asilib-data/`, but you can configure the 
 .. note::
     The longitude units are converted from [0, 360] to [-180, 180] degrees in the skymap calibration files.
 
-Summary
-=======
-
-.. autosummary::
-   :nosignatures:
-
-   asilib.imager.Imager
-   asilib.conjunction.Conjunction
-   asilib.map
-   asilib.asi.themis.themis
-   asilib.asi.lamp_emccd.lamp
-   asilib.asi.lamp_phantom.lamp
-
-
-Imager
-======
-
-.. automodule:: asilib.imager
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: asilib.conjunction
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Supported ASI systems (arrays)
-==============================
+ASI arrays
+==========
 
 THEMIS
 ^^^^^^
@@ -58,19 +31,28 @@ THEMIS
    :undoc-members:
    :show-inheritance:
 
-LAMP
+REGO
 ^^^^
-
-.. automodule:: asilib.asi.lamp_emccd
+.. automodule:: asilib.asi.rego
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: asilib.asi.lamp_phantom
+ASI Interface
+=============
+
+.. automodule:: asilib.imager
    :members:
    :undoc-members:
    :show-inheritance:
 
+
+Conjunctions with Satellites
+============================
+.. automodule:: asilib.conjunction
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Geographic Maps
 ===============
