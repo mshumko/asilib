@@ -38,6 +38,13 @@ REGO
    :undoc-members:
    :show-inheritance:
 
+TREx
+^^^^
+.. automodule:: asilib.asi.trex
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ASI Interface
 =============
 
