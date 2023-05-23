@@ -4,7 +4,10 @@
 ### Added
 - TREx-NIR loader
 - TREx-NIR API documentation with examples
-- TREx-NIR example tests 
+- TREx-NIR tests 
+
+### Fixed
+- A bug in `asilib.Imager.keogram()`. If the data was already loaded (via the `.data` method), any subsequent calls to `asilib.Imager.keogram()` or `asilib.Imager.plot_keogram()` crashed.
 
 ## Version 0.15.0
 - Finalizing the `asilib.Conjunction` API
