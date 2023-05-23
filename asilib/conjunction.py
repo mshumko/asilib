@@ -303,9 +303,6 @@ class Conjunction:
             plt.plot(azel_pixels[:, 0], azel_pixels[:, 1]). However, the 
             column order must be flipped for indexing. For example:
             image[azel_pixels[:, 1], azel_pixels[:, 0]]
-
-        Example
-        -------
         """
         azel = np.nan * np.zeros((self.sat.shape[0], 2))
 
