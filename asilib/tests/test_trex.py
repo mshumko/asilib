@@ -14,50 +14,41 @@ import asilib.asi
 ##########################################
 
 
-# def test_trex_nir_time():
-#     """
-#     Tests that one file is loaded and themis() returns the correct file.
-#     """
-#     # Calls the download function
-#     img = themis.themis('gill', time='2014-05-05T04:49:10', redownload=True)
-#     # _data should not be accessed by the user.
-#     assert img._data['time'] == datetime(2014, 5, 5, 4, 49, 9, 37070)
-#     # And data() should be
-#     assert img.data.times == datetime(2014, 5, 5, 4, 49, 9, 37070)
-#     assert img.data[0] == datetime(2014, 5, 5, 4, 49, 9, 37070)
-#     assert img.data.images[0, 0] == 3464
-#     assert img.data[1][0, 0] == 3464
-#     assert img.data.images[-1, -1] == 3477
-#     assert img.skymap['path'].name == 'themis_skymap_gill_20130103-%2B_vXX.sav'
-#     # Does not call the download function
-#     img2 = themis.themis('gill', time='2014-05-05T04:49:10', redownload=False)
-#     assert img2._data['time'] == datetime(2014, 5, 5, 4, 49, 9, 37070)
-#     return
+def test_trex_nir_time():
+    """
+    Tests that one file is loaded and themis() returns the correct file.
+    """
+    # Calls the download function
+    asi = asilib.asi.trex_nir('rabb', time='2022-03-25T08:40', redownload=True)
+    assert asi.data.times == datetime(2022, 3, 25, 8, 40)
+    assert asi.data.images[0, 0] == 324
+    assert asi.skymap['path'].name == 'nir_skymap_rabb_20220301-%2B_v01.sav'
+    return
 
 
-# def test_trex_nir_time_range():
-#     """
-#     Tests that multiple files are loaded using themis()'s time_range kwarg.
-#     """
-#     img = themis.themis('gill', time_range=['2014-05-05T05:10', '2014-05-05T05:12'])
-#     assert img._data['path'][0].name == '20140505_0510_gill_themis19_full.pgm.gz'
-#     assert img._data['path'][1].name == '20140505_0511_gill_themis19_full.pgm.gz'
+def test_trex_nir_time_range():
+    """
+    Tests that multiple files are loaded using themis()'s time_range kwarg.
+    """
+    time_range = ('2020-03-21T05:00', '2020-03-21T05:10')
+    asi = asilib.asi.trex_nir('gill', time_range=time_range)
+    assert asi._data['path'][0].name == '20200321_0500_gill_nir-219_8446.pgm.gz'
+    assert asi._data['path'][-1].name == '20200321_0509_gill_nir-219_8446.pgm.gz'
+    asi.data
+    assert asi.data.times[0] == datetime(2020, 3, 21, 5, 0, 6)
+    assert asi.data.times[-1] == datetime(2020, 3, 21, 5, 9, 54)
+    assert asi.data.times.shape == (99,)
+    assert asi.data.images.shape == (99, 256, 256)
+    return
 
-#     assert img.data.times[0] == datetime(2014, 5, 5, 5, 10, 0, 30996)
-#     assert img.data.times[-1] == datetime(2014, 5, 5, 5, 11, 57, 23046)
-#     assert img.data.times.shape == (40,)
-#     assert img.data.images.shape == (40, 256, 256)
-#     return
-
-
-# def test_trex_nir_no_file():
-#     """
-#     Tests that themis() returns a FileNotFound error when we try to download
-#     non-existant data.
-#     """
-#     with pytest.raises(requests.exceptions.HTTPError):
-#         themis.themis('pina', time='2011/07/07T02:00')
-#     return
+def test_trex_nir_no_file():
+    """
+    Tests that trex_nir() returns a FileNotFound error when we try to download
+    non-existent data.
+    """
+    with pytest.raises(requests.exceptions.HTTPError):
+        asilib.asi.trex_nir('gill', time='2011/07/07T02:00')
+    return
 
 
 # def test_trex_nir_partial_files():
