@@ -853,12 +853,12 @@ class Imager:
         self._keogram = np.nan * np.zeros((self._estimate_n_times(), self._pixels.shape[0]))
         self._geogram_lat = self._keogram_latitude(aacgm)
 
-        # TODO: Add a test to trigger this behavior.
         if (hasattr(self, '_times')) and (hasattr(self, '_images')):
             # if self.data() was already called
             self._keogram[0 : self._images.shape[0]] = self._images[
                 :, self._pixels[:, 0], self._pixels[:, 1]
             ]
+            self._keogram_time = self._times
         else:
             # Otherwise load the data, one file at a time.
             start_time_index = 0

@@ -25,7 +25,7 @@ import pandas as pd
 import scipy.io
 
 import asilib
-import asilib.asi.themis as themis
+from asilib.asi.themis import _get_pgm_files
 import asilib.utils as utils
 import asilib.io.download as download
 
@@ -81,24 +81,28 @@ def trex_nir(
 
     Examples
     --------
-    >>> # Plot a single image.
-    >>> import matplotlib.pyplot as plt
     >>> import asilib
     >>> import asilib.map
-
+    >>> import asilib.asi
+    >>> import matplotlib.pyplot as plt
+    >>> 
     >>> fig = plt.figure(figsize=(10, 6))
     >>> ax = fig.add_subplot(121)
-    >>> bx = asilib.map.create_map(ax=(fig, 122), lon_bounds=(-102, -86), lat_bounds=(51, 61))
-    >>> asi = asilib.trex_nir('gill', time='2020-03-21T06:00')
+    >>> bx = asilib.map.create_map(fig_ax=(fig, 122), lon_bounds=(-102, -86), lat_bounds=(51, 61))
+    >>> asi = asilib.asi.trex_nir('gill', time='2020-03-21T06:00')
     >>> asi.plot_fisheye(ax=ax)
     >>> asi.plot_map(ax=bx)
     >>> plt.tight_layout()
     >>> plt.show()
 
+    >>> import asilib
+    >>> import asilib.map
+    >>> import asilib.asi
+    >>> import matplotlib.pyplot as plt
+    >>> 
     >>> time_range = ('2020-03-21T05:00', '2020-03-21T07:00')
     >>> fig, ax = plt.subplots(2, sharex=True)
-    >>> asi = asilib.trex_nir('gill', time_range=time_range)
-    >>> # asi.data
+    >>> asi = asilib.asi.trex_nir('gill', time_range=time_range)
     >>> asi.plot_keogram(ax=ax[0])
     >>> asi.plot_keogram(ax=ax[1], aacgm=True)
     >>> ax[0].set_title(f'TREX_NIR GILL keogram | {time_range}')
@@ -106,10 +110,6 @@ def trex_nir(
     >>> ax[1].set_ylabel('Mag Lat')
     >>> ax[1].set_xlabel('Time')
     >>> plt.show()
-
-    >>> # Animate fisheye
-    >>> asi.animate_fisheye()
-    >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name}')
     """
     if time is not None:
         time = utils.validate_time(time)
@@ -120,8 +120,8 @@ def trex_nir(
 
     if load_images:
         # Download and find image data
-        file_paths = themis._get_pgm_files(
-            'trex',
+        file_paths = _get_pgm_files(
+            'nir',
             location_code,
             time,
             time_range,
