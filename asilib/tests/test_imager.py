@@ -104,9 +104,8 @@ def test_plot_fisheye_example():
     """
     from datetime import datetime
     import matplotlib.pyplot as plt
-    import asilib
-
-    asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
+    import asilib.asi
+    asi = asilib.asi.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
     ax, im = asi.plot_fisheye(cardinal_directions='NE', origin=(0.95, 0.05))
     plt.colorbar(im)
     ax.axis('off')

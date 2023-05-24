@@ -21,6 +21,7 @@ except ImportError as err:
 
 import asilib
 import asilib.asi.fake_asi
+import asilib.asi
 from asilib.tests.mock_footprint import footprint
 
 
@@ -32,7 +33,7 @@ def test_conjunction_find_none():
     """
     Verifies that no start or end conjunction intervals are identified.
     """
-    asi = asilib.themis(location_code, time=t0, load_images=False, alt=110)
+    asi = asilib.asi.themis(location_code, time=t0, load_images=False, alt=110)
     times, lla = footprint(asi.meta['lon'] + 100)
     c = asilib.Conjunction(asi, (times, lla))
     df = c.find()
@@ -44,7 +45,7 @@ def test_conjunction_find_multiple():
     """
     Verifies that multiple start and end conjunction intervals are identified.
     """
-    asi = asilib.themis(location_code, time=t0, load_images=False, alt=110)
+    asi = asilib.asi.themis(location_code, time=t0, load_images=False, alt=110)
     times, lla = footprint(asi.meta['lon'], alt=110)
 
     c = asilib.Conjunction(asi, (times, lla))
@@ -179,7 +180,7 @@ def test_plot_conjunction_find_multiple():
     """
     Plots the ASI map and superposes the footprint start and end indices.
     """
-    asi = asilib.themis(location_code, time=t0, load_images=False, alt=110)
+    asi = asilib.asi.themis(location_code, time=t0, load_images=False, alt=110)
     times, lla = footprint(asi.meta['lon'], alt=110)
 
     c = asilib.Conjunction(asi, (times, lla))
@@ -209,7 +210,7 @@ def test_interp_sat():
     # Add 6 seconds so that the footprint interval completely encompasses the
     # asi time_range.
     footprint_time_range = (t0, t0 + timedelta(minutes=1, seconds=6))
-    asi = asilib.themis(location_code, time_range=asi_time_range, alt=110)
+    asi = asilib.asi.themis(location_code, time_range=asi_time_range, alt=110)
     times, lla = footprint(asi.meta['lon'], time_range=footprint_time_range)
     c = asilib.Conjunction(asi, (times, lla))
 
@@ -233,7 +234,7 @@ def test_plot_interp_sat():
     # Add 6 seconds so that the footprint interval completely encompasses the
     # asi time_range.
     footprint_time_range = (t0, t0 + timedelta(minutes=1, seconds=6))
-    asi = asilib.themis(location_code, time_range=asi_time_range, alt=110)
+    asi = asilib.asi.themis(location_code, time_range=asi_time_range, alt=110)
     times, lla = footprint(asi.meta['lon'], time_range=footprint_time_range)
     c = asilib.Conjunction(asi, (times, lla))
 
@@ -266,7 +267,7 @@ def test_plot_interp_sat_wrap():
     # Add 6 seconds so that the footprint interval completely encompasses the
     # asi time_range.
     footprint_time_range = (t0, t0 + timedelta(minutes=1, seconds=6))
-    asi = asilib.themis(location_code, time_range=asi_time_range, alt=110)
+    asi = asilib.asi.themis(location_code, time_range=asi_time_range, alt=110)
     times, lla = footprint(-180, time_range=footprint_time_range, precession_rate=20)
     lla[lla[:, 1] < -180, 1] += 360
     c = asilib.Conjunction(asi, (times, lla))
@@ -377,7 +378,7 @@ def test_intensity_closest_pixel():
     alt=110  # km
     time_range = (datetime(2017, 9, 15, 2, 32, 0), datetime(2017, 9, 15, 2, 35, 0))
 
-    asi = asilib.themis(location_code, time_range=time_range, alt=alt)
+    asi = asilib.asi.themis(location_code, time_range=time_range, alt=alt)
 
     # Create the fake satellite track coordinates: latitude, longitude, altitude (LLA).
     # This is a north-south satellite track oriented to the east of the THEMIS/RANK
@@ -418,7 +419,7 @@ def test_intensity_area():
     alt=110  # km
     time_range = (datetime(2017, 9, 15, 2, 32, 0), datetime(2017, 9, 15, 2, 35, 0))
 
-    asi = asilib.themis(location_code, time_range=time_range, alt=alt)
+    asi = asilib.asi.themis(location_code, time_range=time_range, alt=alt)
 
     # Create the fake satellite track coordinates: latitude, longitude, altitude (LLA).
     # This is a north-south satellite track oriented to the east of the THEMIS/RANK

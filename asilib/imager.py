@@ -156,8 +156,8 @@ class Imager:
         >>> # auroral arc powered by accelerated electrons from very high altitudes"
         >>> from datetime import datetime
         >>> import matplotlib.pyplot as plt
-        >>> import asilib
-        >>> asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
+        >>> import asilib.asi
+        >>> asi = asilib.asi.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
         >>> ax, im = asi.plot_fisheye(cardinal_directions='NE', origin=(0.95, 0.05))
         >>> plt.colorbar(im)
         >>> ax.axis('off')
@@ -240,9 +240,9 @@ class Imager:
         Example
         -------
         >>> from datetime import datetime
-        >>> import asilib
+        >>> import asilib.asi
         >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-        >>> imager = asilib.themis('FSMI', time_range=time_range)
+        >>> imager = asilib.asi.themis('FSMI', time_range=time_range)
         >>> imager.animate_fisheye(cardinal_directions='NE', origin=(0.95, 0.05), overwrite=True)
         >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
         """
@@ -338,9 +338,11 @@ class Imager:
         Example
         -------
         >>> from datetime import datetime
+        >>> import asilib.asi
         >>> import asilib
+        >>>
         >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-        >>> imager = asilib.themis('FSMI', time_range=time_range)
+        >>> imager = asilib.asi.themis('FSMI', time_range=time_range)
         >>> gen = imager.animate_fisheye_gen(cardinal_directions='NE', origin=(0.95, 0.05), overwrite=True)
         >>> for image_time, image, ax, im in gen:
         ...         # Add your code that modifies each image here.
@@ -473,8 +475,8 @@ class Imager:
         >>> from datetime import datetime
         >>> import numpy as np
         >>> import matplotlib.pyplot as plt
-        >>> import asilib
-        >>> imager = asilib.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
+        >>> import asilib.asi
+        >>> imager = asilib.asi.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
         >>> imager.plot_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
         >>> plt.tight_layout()
         >>> plt.show()
@@ -593,11 +595,12 @@ class Imager:
 
             >>> from datetime import datetime
             >>> import matplotlib.pyplot as plt
+            >>> import asilib.asi
             >>> import asilib
             >>>
             >>> location = 'FSMI'
             >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-            >>> asi = asilib.themis(location, time_range=time_range)
+            >>> asi = asilib.asi.themis(location, time_range=time_range)
             >>> asi.animate_map(overwrite=True)
             >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name}')
 
@@ -701,10 +704,11 @@ class Imager:
             >>> from datetime import datetime
             >>> import matplotlib.pyplot as plt
             >>> import asilib
+            >>> import asilib.asi
             >>>
             >>> location = 'FSMI'
             >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-            >>> imager = asilib.themis(location, time_range=time_range)
+            >>> imager = asilib.asi.themis(location, time_range=time_range)
             >>> ax = asilib.map.create_map(lon_bounds=(-120, -100), lat_bounds=(55, 65))
             >>> plt.tight_layout()
             >>>
@@ -819,11 +823,11 @@ class Imager:
         >>> # Imager.plot_keogram() on how to plot a keogram.
         >>> # Event from https://doi.org/10.1029/2021GL094696
         >>> import numpy as np
-        >>> import asilib
+        >>> import asilib.asi
         >>>
         >>> time_range=['2008-01-16T10', '2008-01-16T12']
         >>>
-        >>> asi = asilib.themis('GILL', time_range=time_range)
+        >>> asi = asilib.asi.themis('GILL', time_range=time_range)
         >>> time, geo_lat, geo_keogram = asi.keogram()  # geographic latitude
         >>> time, mag_lat, mag_keogram = asi.keogram(aacgm=True)  # magnetic latitude
         >>> time
@@ -944,12 +948,12 @@ class Imager:
         >>> # Plot a keogram in geographic and magnetic latitude coordinates.
         >>> # Event from https://doi.org/10.1029/2021GL094696
         >>> import matplotlib.pyplot as plt
-        >>> import asilib
+        >>> import asilib.asi
         >>>
         >>> time_range=['2008-01-16T10', '2008-01-16T12']
         >>> fig, ax = plt.subplots(2, sharex=True, figsize=(10, 6))
         >>>
-        >>> asi = asilib.themis('GILL', time_range=time_range)
+        >>> asi = asilib.asi.themis('GILL', time_range=time_range)
         >>> _, p = asi.plot_keogram(ax=ax[0], color_map='turbo')
         >>> asi.plot_keogram(ax=ax[1], color_map='turbo', aacgm=True, title=False)
         >>>
@@ -1261,9 +1265,9 @@ class Imager:
         Loop over ~5 minutes of data, starting in the middle of one file.
             .. code-block:: python
 
-                >>> import asilib
+                >>> import asilib.asi
                 >>> time_range=['2008-01-16T10:00:30', '2008-01-16T10:05']
-                >>> asi = asilib.themis('GILL', time_range=time_range)
+                >>> asi = asilib.asi.themis('GILL', time_range=time_range)
                 >>> for file_times, file_images in asi.iter_files():
                 ...     print(file_times[0], file_times[-1], file_images.shape)
                 ...
