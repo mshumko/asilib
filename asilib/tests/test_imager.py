@@ -126,7 +126,6 @@ def test_plot_map_example():
     asi = asilib.asi.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
     asi.plot_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
     plt.tight_layout()
-    plt.show()
     return
 
 
