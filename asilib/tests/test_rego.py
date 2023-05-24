@@ -7,8 +7,6 @@ import requests
 import pytest
 import matplotlib.testing.decorators
 
-import asilib.asi.themis as themis
-
 ##########################################
 ############# TEST LOADERS ###############
 ##########################################
@@ -114,7 +112,7 @@ def test_rego_fisheye_map_example():
     """
     from datetime import datetime
     import matplotlib.pyplot as plt
-    import asilib.asi.rego
+    import asilib.asi
     import asilib.map
 
     location_code = 'RANK'
@@ -125,7 +123,7 @@ def test_rego_fisheye_map_example():
     bx = asilib.map.create_simple_map(
         fig_ax=(fig, 122), lon_bounds=(-102, -82), lat_bounds=(58, 68)
     )
-    asi = asilib.asi.rego.rego(location_code, time=time, alt=alt_km)
+    asi = asilib.asi.rego(location_code, time=time, alt=alt_km)
     asi.plot_fisheye(ax=ax)
     asi.plot_map(ax=bx)
     plt.tight_layout()
@@ -141,9 +139,9 @@ def test_rego_keogram_example():
     """
     from datetime import datetime
     import matplotlib.pyplot as plt
-    import asilib.asi.rego
+    import asilib.asi
 
-    asi = asilib.asi.rego.rego(
+    asi = asilib.asi.rego(
         'RANK', time_range=(datetime(2017, 9, 15, 2, 30, 0), datetime(2017, 9, 15, 2, 35, 0))
     )
     ax, im = asi.plot_keogram()
