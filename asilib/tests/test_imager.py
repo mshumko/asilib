@@ -122,9 +122,11 @@ def test_plot_map_example():
     from datetime import datetime
     import matplotlib.pyplot as plt
     import asilib.asi
+    import asilib.map
 
     asi = asilib.asi.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
-    asi.plot_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
+    ax = asilib.map.create_simple_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
+    asi.plot_map(ax=ax)
     plt.tight_layout()
     return
 
@@ -206,12 +208,10 @@ def test_plot_keogram_geographic_example():
     import asilib.asi
 
     time_range=['2008-01-16T10', '2008-01-16T12']
-    fig, ax = plt.subplots(2, sharex=True, figsize=(10, 6))
     asi = asilib.asi.themis('GILL', time_range=time_range)
-    _, p = asi.plot_keogram(ax=ax[0], color_map='turbo')
-    fig.subplots_adjust(right=0.8)
-    cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
-    fig.colorbar(p, cax=cbar_ax)
+    ax, p = asi.plot_keogram(color_map='turbo')
+    ax.set_ylabel('Geographic Lat [deg]')
+    plt.colorbar(p)
     return
 
 
