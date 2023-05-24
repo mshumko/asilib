@@ -157,6 +157,7 @@ class Imager:
         >>> from datetime import datetime
         >>> import matplotlib.pyplot as plt
         >>> import asilib.asi
+        >>>
         >>> asi = asilib.asi.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
         >>> ax, im = asi.plot_fisheye(cardinal_directions='NE', origin=(0.95, 0.05))
         >>> plt.colorbar(im)
@@ -241,10 +242,11 @@ class Imager:
         -------
         >>> from datetime import datetime
         >>> import asilib.asi
+        >>>
         >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-        >>> imager = asilib.asi.themis('FSMI', time_range=time_range)
-        >>> imager.animate_fisheye(cardinal_directions='NE', origin=(0.95, 0.05), overwrite=True)
-        >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
+        >>> asi = asilib.asi.themis('FSMI', time_range=time_range)
+        >>> asi.animate_fisheye(cardinal_directions='NE', origin=(0.95, 0.05), overwrite=True)
+        >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name}')
         """
         movie_generator = self.animate_fisheye_gen(**kwargs)
 
@@ -342,13 +344,13 @@ class Imager:
         >>> import asilib
         >>>
         >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-        >>> imager = asilib.asi.themis('FSMI', time_range=time_range)
-        >>> gen = imager.animate_fisheye_gen(cardinal_directions='NE', origin=(0.95, 0.05), overwrite=True)
+        >>> asi = asilib.asi.themis('FSMI', time_range=time_range)
+        >>> gen = asi.animate_fisheye_gen(cardinal_directions='NE', origin=(0.95, 0.05), overwrite=True)
         >>> for image_time, image, ax, im in gen:
         ...         # Add your code that modifies each image here.
         ...         pass
         ...
-        >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
+        >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name}')
         """
         if ax is None:
             _, ax = plt.subplots()
@@ -476,8 +478,9 @@ class Imager:
         >>> import numpy as np
         >>> import matplotlib.pyplot as plt
         >>> import asilib.asi
-        >>> imager = asilib.asi.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
-        >>> imager.plot_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
+        >>>
+        >>> asi = asilib.asi.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
+        >>> asi.plot_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
         >>> plt.tight_layout()
         >>> plt.show()
         """
@@ -708,11 +711,11 @@ class Imager:
             >>>
             >>> location = 'FSMI'
             >>> time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-            >>> imager = asilib.asi.themis(location, time_range=time_range)
+            >>> asi = asilib.asi.themis(location, time_range=time_range)
             >>> ax = asilib.map.create_map(lon_bounds=(-120, -100), lat_bounds=(55, 65))
             >>> plt.tight_layout()
             >>>
-            >>> gen = imager.animate_map_gen(overwrite=True, ax=ax)
+            >>> gen = asi.animate_map_gen(overwrite=True, ax=ax)
             >>>
             >>> for image_time, image, ax, im in gen:
             >>>     # Add your code that modifies each image here...
@@ -724,7 +727,7 @@ class Imager:
             >>>     text_obj = ax.text(0, 0.9, f'THEMIS-{location} at {image_time:%F %T}',
             >>>             transform=ax.transAxes, color='white', fontsize=15)
             >>>
-            >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / imager.animation_name}')
+            >>> print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name}')
         """
         if ax is None:
             ax = asilib.map.create_map(

@@ -118,16 +118,16 @@ def test_plot_map_example():
     """
     Test a mapped image of STEVE.
     """
+    # Project an image of STEVE onto a map.
     from datetime import datetime
     import numpy as np
     import matplotlib.pyplot as plt
-    import asilib
-    import asilib.map
+    import asilib.asi
 
-    ax = asilib.map.create_simple_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
-    asi = asilib.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
-    asi.plot_map(ax=ax)
+    asi = asilib.asi.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0))
+    asi.plot_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
     plt.tight_layout()
+    plt.show()
     return
 
 
