@@ -6,7 +6,6 @@ __pycache__/
 *.pgm.gz
 *.cdf
 *.png
-# *.mp4
 *.sav
 de421.bsp
 movies/
@@ -19,3 +18,4 @@ asilib/tests/.coverage
 .vscode/launch.json
 docs/reference/api/*
 asilib/tests/result_images/*
+*.~vsdx
