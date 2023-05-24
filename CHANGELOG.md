@@ -1,5 +1,5 @@
 # Changelog
-## [unreleased]
+## [0.16.0] - 2023-05-24
 
 ### Added
 - TREx-NIR loader
@@ -9,6 +9,20 @@
 ### Fixed
 - A bug in `asilib.Imager.keogram()`. If the data was already loaded (via the `.data` method), any subsequent calls to `asilib.Imager.keogram()` or `asilib.Imager.plot_keogram()` crashed.
 
+### Changed
+- ASI loader functions for `asilib.Imager()` should now be imported as:
+```python
+import asilib.asi
+
+asi = asilib.asi.themis(...)
+```
+
+(old version is)
+```python
+import asilib
+
+asi = asilib.themis(...)
+```
 ## Version 0.15.0
 - Finalizing the `asilib.Conjunction` API
 - Added `asilib.Conjunction.intensity` method. Depending on if the `box` argument is specified or not, this method will calculate either the auoral intensity for the nearest pixel to the footprint (`box=None`) or in a rectangular area around the footprint otherwise (e.g., `box=(10x10)`).
