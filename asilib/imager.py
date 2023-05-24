@@ -475,7 +475,6 @@ class Imager:
         --------
         >>> # Project an image of STEVE onto a map.
         >>> from datetime import datetime
-        >>> import numpy as np
         >>> import matplotlib.pyplot as plt
         >>> import asilib.asi
         >>>
@@ -597,7 +596,6 @@ class Imager:
         .. code-block:: python
 
             >>> from datetime import datetime
-            >>> import matplotlib.pyplot as plt
             >>> import asilib.asi
             >>> import asilib
             >>>

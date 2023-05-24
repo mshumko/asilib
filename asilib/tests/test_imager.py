@@ -120,7 +120,6 @@ def test_plot_map_example():
     """
     # Project an image of STEVE onto a map.
     from datetime import datetime
-    import numpy as np
     import matplotlib.pyplot as plt
     import asilib.asi
 
@@ -139,10 +138,10 @@ def test_animate_fisheye_example():
     to check that the movie exists with the correct number of underlying plots.
     """
     from datetime import datetime
-    import asilib
+    import asilib.asi
 
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    asi = asilib.themis('FSMI', time_range=time_range)
+    asi = asilib.asi.themis('FSMI', time_range=time_range)
     asi.animate_fisheye(cardinal_directions='NE', origin=(0.95, 0.05), overwrite=True)
     print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name}')
 
@@ -169,12 +168,12 @@ def test_animate_map_example():
     to check that the movie exists with the correct number of underlying plots.
     """
     from datetime import datetime
-    import matplotlib.pyplot as plt
+    import asilib.asi
     import asilib
 
     location = 'FSMI'
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
-    asi = asilib.themis(location, time_range=time_range)
+    asi = asilib.asi.themis(location, time_range=time_range)
     asi.animate_map(overwrite=True)
     print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name}')
 
@@ -205,15 +204,15 @@ def test_plot_keogram_geographic_example():
     Event from https://doi.org/10.1029/2021GL094696
     """
     import matplotlib.pyplot as plt
-    import asilib
+    import asilib.asi
 
-    time_range = ['2008-01-16T10', '2008-01-16T12']
-
-    asi = asilib.themis('GILL', time_range=time_range)
-    ax, p = asi.plot_keogram(color_map='turbo')
-
-    ax.set_ylabel('Geographic Lat [deg]')
-    plt.colorbar(p)
+    time_range=['2008-01-16T10', '2008-01-16T12']
+    fig, ax = plt.subplots(2, sharex=True, figsize=(10, 6))
+    asi = asilib.asi.themis('GILL', time_range=time_range)
+    _, p = asi.plot_keogram(ax=ax[0], color_map='turbo')
+    fig.subplots_adjust(right=0.8)
+    cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
+    fig.colorbar(p, cax=cbar_ax)
     return
 
 
@@ -229,11 +228,11 @@ def test_plot_keogram_magnetic_example():
     Event from https://doi.org/10.1029/2021GL094696
     """
     import matplotlib.pyplot as plt
-    import asilib
+    import asilib.asi
 
     time_range = ['2008-01-16T10', '2008-01-16T12']
 
-    asi = asilib.themis('GILL', time_range=time_range)
+    asi = asilib.asi.themis('GILL', time_range=time_range)
     ax, p = asi.plot_keogram(color_map='turbo', aacgm=True, title=False)
     ax.set_ylabel('Magnetic Lat [deg]')
     plt.colorbar(p)
@@ -252,11 +251,11 @@ def test_plot_keogram_magnetic_path_example():
     Event from https://doi.org/10.1029/2021GL094696
     """
     import matplotlib.pyplot as plt
-    import asilib
+    import asilib.asi
 
     time_range = ['2008-01-16T10', '2008-01-16T12']
 
-    asi = asilib.themis('GILL', time_range=time_range)
+    asi = asilib.asi.themis('GILL', time_range=time_range)
 
     latlon = np.column_stack(
         (
@@ -275,11 +274,11 @@ def test_getitem():
     """
     Tests the __getitem__() for time slicing.
     """
-    import asilib
+    import asilib.asi
 
     time_range = ['2008-01-16T10', '2008-01-16T12']
 
-    asi = asilib.themis('GILL', time_range=time_range)
+    asi = asilib.asi.themis('GILL', time_range=time_range)
 
     asi_one_time = asi['2008-01-16T11:05:10']
     assert asi_one_time.data.times == datetime(2008, 1, 16, 11, 5, 9, 10571)
@@ -303,17 +302,17 @@ def test_str():
     """
     Tests the __str__() for printing user-readable information about the imager
     """
-    import asilib
+    import asilib.asi
 
     time_range = ['2008-01-16T10', '2008-01-16T12']
 
-    asi = asilib.themis('GILL', time_range=time_range)
+    asi = asilib.asi.themis('GILL', time_range=time_range)
     assert str(asi) == (
         'A THEMIS-GILL Imager. time_range=[datetime.datetime(2008, 1, 16, 10, 0), '
         'datetime.datetime(2008, 1, 16, 12, 0)]'
     )
 
-    asi2 = asilib.themis('GILL', time=time_range[0])
+    asi2 = asilib.asi.themis('GILL', time=time_range[0])
     assert str(asi2) == 'A THEMIS-GILL Imager. time=2008-01-16 10:00:00.020162'
     return
 
