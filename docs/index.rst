@@ -9,10 +9,7 @@
 Your one stop to working with the world's extensive arrays of auroral all-sky imagers (ASI).
 
 Supported ASI arrays
---------------------
-.. 
-   TODO: Add links to the ASI arrays
-   
+--------------------   
 - :ref:`rego_asi`,
 - :ref:`themis_asi`,
 - :ref:`trex_asi`

@@ -2,8 +2,8 @@
 Get Started
 =========== 
 
-Installation
-------------
+Install
+-------
 
 Installing aurora-asi-lib is as simple as:
 
@@ -27,18 +27,18 @@ Dependencies
 ^^^^^^^^^^^^
 There are three optional dependencies that you may want to install if you want to use certain `asilib` functions. See the dependency table below, followed by limited instructions on how to install these dependencies. Finally, see their official documentation for the comprehensive installation instructions.
 
-+----------------+--------------------------------------+
-| **Dependency** | **asilib methods**                   |
-+----------------+--------------------------------------+
-| ffmpeg         | | asilib.Imager.animate_fisheye()    |
-|                | | asilib.Imager.animate_map()        |
-|                | | asilib.Imager.animate_fisheye_gen()|
-|                | | asilib.Imager.animate_map_gen()    |
-+----------------+--------------------------------------+
-| IRBEM          | asilib.Conjunction.lla_footprint()   |
-+----------------+--------------------------------------+
-| cartopy        | asilib.map.create_map()*             |
-+----------------+--------------------------------------+
++----------------+------------------------------+--------------------------------------+
+| **Dependency** | Purpose                      | **asilib methods**                   |
++----------------+---------+--------------------+--------------------------------------+
+| ffmpeg         | Animating Images             | | asilib.Imager.animate_fisheye()    |
+|                |                              | | asilib.Imager.animate_map()        |
+|                |                              | | asilib.Imager.animate_fisheye_gen()|
+|                |                              | | asilib.Imager.animate_map_gen()    |
++----------------+------------------------------+--------------------------------------+
+| IRBEM          | Magnetic field footprint     | asilib.Conjunction.lla_footprint()   |
++----------------+------------------------------+--------------------------------------+
+| cartopy        | Projecting images onto a map | asilib.map.create_map()*             |
++----------------+------------------------------+--------------------------------------+
 
 *\*create_map() will fallback to a simple map function if cartopy is not installed.*
 
@@ -61,6 +61,22 @@ Configuration
 -------------
 aurora-asi-lib writes the data and movie files to the `asilib.config['ASI_DATA_DIR']` directory. By default `ASI_DATA_DIR` is pointed at `~/asilib-data` and it is configurable. To configure `ASI_DATA_DIR`, and other asilib settings, run `python3 -m asilib config` and answer the prompts. The prompt answer in [brackets] is the default if you don't enter anything.
 
-asilib Internals
-----------------
-TODO: Describe how asilib works.
+Core Concepts
+-------------
+The core of the user interface is the asilib.Imager() class. It is invoked using an entry function such as asilib.asi.themis(), asilib.asi.rego(), or asilib.asi.trex_nir().
+
+The entry function downloads the necessary image and skymap files, and passes the skymap arrays and image file paths to asilib.Imager(). The entry function also specifies a loader function that loads one file given it's path. asilib.Imager() uses these paths to load data as needed---also refered to as the "lazy mode"---to maintain a low money usage (necessary if working with high speed ASIs or simulatenously with multiple ASIs. If memory is not an issue, you can load all of the ASI data at once---also refered to as the "greedy mode".
+
+Once initiated, asilib.Imager() exposes an intuitive user API to load, plot, animate, and analyze ASI data.
+
+The architecture described so far is illustrated in the flowchart below.
+
+asilib also implements two classes to extend asilib.Imager(). First, asilib.Conjunction() finds and calculates auroral intensity near a satellite's footprint. Second, asilib.Imagers() plots and animates images from multiple asilib.Imager() instances, useful for example, for creating mosaics.
+
+asilib.Conjunction(): Often ASI observations need to be combined with in-situ measurements such as low Earth orbiting satellites.
+
+Examples
+--------
+
+Tutorial
+--------
