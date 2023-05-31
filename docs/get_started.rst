@@ -1,6 +1,10 @@
-============
+===========
+Get Started
+=========== 
+
 Installation
-============
+------------
+
 Installing aurora-asi-lib is as simple as:
 
 .. code-block:: shell
@@ -23,14 +27,20 @@ Dependencies
 ^^^^^^^^^^^^
 There are three optional dependencies that you may want to install if you want to use certain `asilib` functions. See the dependency table below, followed by limited instructions on how to install these dependencies. Finally, see their official documentation for the comprehensive installation instructions.
 
-+----------------+--------------------------------+
-| **Dependency** | **asilib functions**           |
-+----------------+--------------------------------+
-| ffmpeg         | | asilib.make_movie()          |
-|                | | asilib.make_movie_generator()|
-+----------------+--------------------------------+
-| IRBEM          | asilib.lla2footprint()         |
-+----------------+--------------------------------+
++----------------+--------------------------------------+
+| **Dependency** | **asilib methods**                   |
++----------------+--------------------------------------+
+| ffmpeg         | | asilib.Imager.animate_fisheye()    |
+|                | | asilib.Imager.animate_map()        |
+|                | | asilib.Imager.animate_fisheye_gen()|
+|                | | asilib.Imager.animate_map_gen()    |
++----------------+--------------------------------------+
+| IRBEM          | asilib.Conjunction.lla_footprint()   |
++----------------+--------------------------------------+
+| cartopy        | asilib.map.create_map()*             |
++----------------+--------------------------------------+
+
+*\*create_map() will fallback to a simple map function if cartopy is not installed.*
 
 ffmpeg
 ======
@@ -39,29 +49,18 @@ To make movies.
 - **Linux**: ```apt install ffmpeg```
 - **Mac**: ```brew install ffmpeg```
 
-See their `main page`_ for further instructions.
-
-.. _main page: https://ffmpeg.org/download.html
+See their `main page <https://ffmpeg.org/download.html>`_ for further instructions.
 
 IRBEM
 =====
-Necessary to map along magnetic field lines. You'll need to download (or clone) the library `source code`_, and then execute these two steps:
+Necessary to map along magnetic field lines. You'll need to download (or clone) the library `source code <https://github.com/PRBEM/IRBEM>`_, and then execute these two steps:
 - Compile the fortran code (`make...all` and `make...install` commands)
 - `cd` into the python directory and execute `python3 -m pip install .`
 
-.. _source code: https://github.com/PRBEM/IRBEM
-
 Configuration
-^^^^^^^^^^^^^
+-------------
 aurora-asi-lib writes the data and movie files to the `asilib.config['ASI_DATA_DIR']` directory. By default `ASI_DATA_DIR` is pointed at `~/asilib-data` and it is configurable. To configure `ASI_DATA_DIR`, and other asilib settings, run `python3 -m asilib config` and answer the prompts. The prompt answer in [brackets] is the default if you don't enter anything.
 
-As you probably figured out, the asilib configuration data is contained in the `asilib.config` dictionary that currently contains:
-
-=============    ===========
-Parameter        Description
-=============    ===========
-ASILIB_DIR       asilib code directory (mainly used for testing)
-ASI_DATA_DIR     asilib data directory
-=============    ===========
-
-.. _IRBEM-lib: https://github.com/PRBEM/IRBEM
+asilib Internals
+----------------
+TODO: Describe how asilib works.

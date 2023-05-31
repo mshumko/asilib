@@ -1,7 +1,7 @@
 ![Test python package](https://github.com/mshumko/aurora-asi-lib/workflows/Test%20python%20package/badge.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4746447.svg)](https://doi.org/10.5281/zenodo.4746446)
 
 # aurora-asi-lib
-Easily download, plot, animate, and analyze aurora all sky imager (ASI) data. Currently the two supported camera systems (arrays) are: 
+Your one stop to working with the world's extensive arrays of auroral all-sky imagers (ASI). Currently the two supported camera systems (arrays) are: 
 * Red-line Emission Geospace Observatory (REGO)
 * Time History of Events and Macroscale Interactions during Substorms (THEMIS).
 

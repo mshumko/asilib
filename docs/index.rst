@@ -6,15 +6,16 @@
 .. _github: https://github.com/mshumko/aurora-asi-lib
 .. _zenodo: https://doi.org/10.5281/zenodo.4746446
 
-Easily download, plot, animate, and analyze auroral all sky imager (ASI) data.
+Your one stop to working with the world's extensive arrays of auroral all-sky imagers (ASI).
 
 Supported ASI arrays
 --------------------
 .. 
    TODO: Add links to the ASI arrays
    
-- Red-line Emission Geospace Observatory (REGO)
-- Time History of Events and Macroscale Interactions during Substorms (THEMIS).
+- :ref:`rego_asi`,
+- :ref:`themis_asi`,
+- :ref:`trex_asi`
 
 .. note::
    While this package is named `aurora-asi-lib`, import it using the name `asilib`.
@@ -31,17 +32,12 @@ If asilib significantly contributed to your research, and you would like to ackn
    :maxdepth: 2
    :caption: asilib:
 
-   installation
+   get_started
    examples
    tutorial
    function_api
    imager_api
-
-.. toctree::
-   :maxdepth: 2
-   :caption: DEVELOPMENT:
-
-   developer_installation
+   contribute
 
 ..
    This is a comment block

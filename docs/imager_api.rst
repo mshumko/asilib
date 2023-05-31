@@ -24,29 +24,35 @@ By default this directory is set to `~/asilib-data/`, but you can configure the 
 ASI arrays
 ==========
 
-THEMIS
-^^^^^^
+.. _themis_asi:
+
+Time History of Events and Macroscale Interactions during Substorms (THEMIS)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automodule:: asilib.asi.themis
    :members:
    :undoc-members:
    :show-inheritance:
 
-REGO
-^^^^
+.. _rego_asi:
+
+Red-line Emission Geospace Observatory (REGO)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automodule:: asilib.asi.rego
    :members:
    :undoc-members:
    :show-inheritance:
 
-TREx
-^^^^
+.. _trex_asi:
+
+Transition Region Explorer (TREx)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automodule:: asilib.asi.trex
    :members:
    :undoc-members:
    :show-inheritance:
 
-ASI Interface
-=============
+Imager Interface
+================
 
 .. automodule:: asilib.imager
    :members:
