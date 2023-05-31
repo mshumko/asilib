@@ -2,11 +2,16 @@
 
 ## [Unreleased]
 
+## [0.16.1] - 2023-05-31
+
 ### Fixed
-- 
+- The example in `examples/v1/animate_conjunction.py`.
 
 ### Changed
-- 
+- Bumped the Calgary dependencies to avoid the freeze support multiprocessing bug for windows users
+  - rego-imager-readfile>=1.2.0
+  - themis-imager-readfile>=1.2.1
+  - trex-imager-readfile>=1.4.0
 
 ## [0.16.0] - 2023-05-24
 
