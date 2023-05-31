@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import asilib
+import asilib.asi
 
 
 # ASI parameters
@@ -18,7 +19,7 @@ fig, ax = plt.subplots(
     3, 1, figsize=(7, 10), gridspec_kw={'height_ratios': [4, 1, 1]}, constrained_layout=True
 )
 
-asi = asilib.themis(location_code, time_range=time_range, alt=alt)
+asi = asilib.asi.themis(location_code, time_range=time_range, alt=alt)
 
 # Create the fake satellite track coordinates: latitude, longitude, altitude (LLA).
 # This is a north-south satellite track oriented to the east of the THEMIS/RANK
