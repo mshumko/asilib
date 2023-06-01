@@ -25,10 +25,10 @@ Anaconda
 
 Dependencies
 ^^^^^^^^^^^^
-There are three optional dependencies that you may want to install if you want to use certain `asilib` functions. See the dependency table below, followed by limited instructions on how to install these dependencies. Finally, see their official documentation for the comprehensive installation instructions.
+There are three optional dependencies that you may want to install if you want to use certain `asilib` functions.
 
 +----------------+------------------------------+--------------------------------------+
-| **Dependency** | Purpose                      | **asilib methods**                   |
+| **Dependency** | **Purpose**                  | **asilib methods**                   |
 +----------------+---------+--------------------+--------------------------------------+
 | ffmpeg         | Animating Images             | | asilib.Imager.animate_fisheye()    |
 |                |                              | | asilib.Imager.animate_map()        |
@@ -42,38 +42,26 @@ There are three optional dependencies that you may want to install if you want t
 
 *\*create_map() will fallback to a simple map function if cartopy is not installed.*
 
-ffmpeg
-======
-To make movies.
-
-- **Linux**: ```apt install ffmpeg```
-- **Mac**: ```brew install ffmpeg```
-
-See their `main page <https://ffmpeg.org/download.html>`_ for further instructions.
-
-IRBEM
-=====
-Necessary to map along magnetic field lines. You'll need to download (or clone) the library `source code <https://github.com/PRBEM/IRBEM>`_, and then execute these two steps:
-- Compile the fortran code (`make...all` and `make...install` commands)
-- `cd` into the python directory and execute `python3 -m pip install .`
-
 Configuration
--------------
+^^^^^^^^^^^^^
 aurora-asi-lib writes the data and movie files to the `asilib.config['ASI_DATA_DIR']` directory. By default `ASI_DATA_DIR` is pointed at `~/asilib-data` and it is configurable. To configure `ASI_DATA_DIR`, and other asilib settings, run `python3 -m asilib config` and answer the prompts. The prompt answer in [brackets] is the default if you don't enter anything.
 
 Core Concepts
 -------------
-The core of the user interface is the asilib.Imager() class. It is invoked using an entry function such as asilib.asi.themis(), asilib.asi.rego(), or asilib.asi.trex_nir().
+The core of the user interface is the :py:meth:`~asilib.imager.Imager` class. It is invoked using an *entry function* such as :py:meth:`asilib.asi.themis`, :py:meth:`asilib.asi.rego`, or :py:meth:`asilib.asi.trex.trex_nir`.
 
-The entry function downloads the necessary image and skymap files, and passes the skymap arrays and image file paths to asilib.Imager(). The entry function also specifies a loader function that loads one file given it's path. asilib.Imager() uses these paths to load data as needed---also refered to as the "lazy mode"---to maintain a low money usage (necessary if working with high speed ASIs or simulatenously with multiple ASIs. If memory is not an issue, you can load all of the ASI data at once---also refered to as the "greedy mode".
+The entry function downloads the necessary image and skymap files, and passes the skymap arrays and image file paths to :py:meth:`~asilib.imager.Imager`. The entry function also specifies a loader function that loads one file given it's path. :py:meth:`~asilib.imager.Imager` uses these paths to load data as needed---also referred to as the "lazy mode"---to maintain a low money usage (necessary if working with high speed ASIs or simultaneously with multiple ASIs). If memory is not an issue, you can load all of the ASI data at once---also referred to as the "greedy mode".
 
-Once initiated, asilib.Imager() exposes an intuitive user API to load, plot, animate, and analyze ASI data.
+Once initiated, :py:meth:`~asilib.imager.Imager` exposes an intuitive user API to load, plot, animate, and analyze ASI data.
 
 The architecture described so far is illustrated in the flowchart below.
 
-asilib also implements two classes to extend asilib.Imager(). First, asilib.Conjunction() finds and calculates auroral intensity near a satellite's footprint. Second, asilib.Imagers() plots and animates images from multiple asilib.Imager() instances, useful for example, for creating mosaics.
+.. figure:: ./_static/imager_flowchart.png
+    :alt: asilib Imager architecture.
 
-asilib.Conjunction(): Often ASI observations need to be combined with in-situ measurements such as low Earth orbiting satellites.
+asilib also implements two classes to extend :py:meth:`~asilib.imager.Imager`. First, :py:meth:`~asilib.conjunction.Conjunction` finds and calculates auroral intensity near a satellite's footprint. Second, asilib.Imagers() plots and animates images from multiple asilib.Imager() instances, useful for example, for creating mosaics.
+
+:py:meth:`~asilib.conjunction.Conjunction`: Often ASI observations need to be combined with in-situ measurements such as low Earth orbiting satellites.
 
 Examples
 --------
