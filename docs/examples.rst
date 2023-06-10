@@ -62,64 +62,129 @@ A bright auroral arc that was analyzed by Imajo et al. 2021 "Active auroral arc 
             ax.axis('off')
             plt.show()
 
+
 STEVE projected onto a map
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+Maps an image of STEVE (the thin band). Reproduced from http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
 
-.. figure:: ./_static/map_steve.png
-    :alt: STEVE mapped onto a map.
-    :width: 75%
+.. tab-set::
 
-    Maps an image of STEVE (the thin band). Reproduced from http://themis.igpp.ucla.edu/nuggets/nuggets_2018/Gallardo-Lacourt/fig2.jpg
+    .. tab-item:: Current Interface
+        :sync: key1
 
-.. code:: python
+        .. figure:: ./_static/v1/map_steve.png
+            :alt: STEVE mapped onto a map.
+            :width: 75%
 
-    from datetime import datetime
+        .. code:: python
 
-    import matplotlib.pyplot as plt
+            from datetime import datetime
 
-    import asilib
+            import matplotlib.pyplot as plt
 
-    ax = asilib.make_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
+            import asilib.asi
+            import asilib.map
 
-    image_time, image, skymap, ax, p = asilib.plot_map(
-        'THEMIS', 'ATHA', datetime(2010, 4, 5, 6, 7, 0), 110, ax=ax
-    )
-    plt.tight_layout()
-    plt.show()
+            ax = asilib.map.create_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
+
+            asi = asilib.asi.themis('ATHA', time=datetime(2010, 4, 5, 6, 7, 0), alt=110)
+            asi.plot_map(ax=ax)
+            plt.tight_layout()
+            plt.show()
+
+
+    .. tab-item:: Legacy Interface
+        :sync: key2
+
+        .. figure:: ./_static/map_steve.png
+            :alt: STEVE mapped onto a map.
+            :width: 75%
+
+        .. code:: python
+
+            from datetime import datetime
+
+            import matplotlib.pyplot as plt
+
+            import asilib
+
+            ax = asilib.make_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
+
+            image_time, image, skymap, ax, p = asilib.plot_map(
+                'THEMIS', 'ATHA', datetime(2010, 4, 5, 6, 7, 0), 110, ax=ax
+            )
+            plt.tight_layout()
+            plt.show()
 
 
 Auroral arc projected onto a map
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. figure:: ./_static/map_arc.png
-    :alt: A breakup of an auroral arc projected onto a map of North America.
-    :width: 75%
+The first breakup of an auroral arc during a substorm analyzed by Donovan et al. 2008 "Simultaneous THEMIS in situ and auroral observations of a small substorm"
 
-    The first breakup of an auroral arc during a substorm analyzed by Donovan et al. 2008 "Simultaneous THEMIS in situ and auroral observations of a small
-    substorm"
+.. tab-set::
 
-.. code:: python
+    .. tab-item:: Current Interface
+        :sync: key1
 
-    from datetime import datetime
+        .. figure:: ./_static/v1/map_arc.png
+            :alt: A breakup of an auroral arc projected onto a map of North America.
+            :width: 75%
 
-    import matplotlib.pyplot as plt
+        .. code:: python
 
-    import asilib
+            from datetime import datetime
 
-    time = datetime(2007, 3, 13, 5, 8, 45)
-    asi_array_code = 'THEMIS'
-    location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
-    map_alt = 110
-    min_elevation = 2
+            import matplotlib.pyplot as plt
 
-    ax = asilib.make_map(lon_bounds=(-160, -52), lat_bounds=(40, 82))
+            import asilib
+            import asilib.map
+            import asilib.asi
 
-    for location_code in location_codes:
-        asilib.plot_map(
-            asi_array_code, location_code, time, map_alt, ax=ax, min_elevation=min_elevation
-        )
+            time = datetime(2007, 3, 13, 5, 8, 45)
+            location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+            map_alt = 110
+            min_elevation = 2
 
-    ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
-    plt.show()
+            ax = asilib.map.create_map(lon_bounds=(-140, -60), lat_bounds=(40, 82))
+
+            for location_code in location_codes:
+                asi = asilib.asi.themis(location_code, time=time, alt=map_alt)
+                asi.plot_map(ax=ax, min_elevation=min_elevation)
+
+            ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
+            plt.show()
+
+
+    .. tab-item:: Legacy Interface
+        :sync: key2
+
+        .. figure:: ./_static/map_arc.png
+            :alt: A breakup of an auroral arc projected onto a map of North America.
+            :width: 75%
+
+        .. code:: python
+
+            from datetime import datetime
+
+            import matplotlib.pyplot as plt
+
+            import asilib
+
+            time = datetime(2007, 3, 13, 5, 8, 45)
+            asi_array_code = 'THEMIS'
+            location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+            map_alt = 110
+            min_elevation = 2
+
+            ax = asilib.make_map(lon_bounds=(-160, -52), lat_bounds=(40, 82))
+
+            for location_code in location_codes:
+                asilib.plot_map(
+                    asi_array_code, location_code, time, map_alt, ax=ax, min_elevation=min_elevation
+                )
+
+            ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
+            plt.show()
 
 
 Example 3: A keogram of STEVE
