@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.16.2] - 2023-06-10
+
+### Added
+- Refactored all examples from `examples/v0/` and saved them in `examples/v1/`.
+- Added the v1 examples to the Examples documentation tab. During the v0->v1 transition, users can see the examples in both the v0 and v1 interfaces.
+- Removed experimental warning from Imager API Reference and moved it to the Legacy API Reference. 
+
 ## [0.16.1] - 2023-05-31
 
 ### Fixed
