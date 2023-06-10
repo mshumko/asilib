@@ -32,16 +32,6 @@ If asilib significantly contributed to your research, and you would like to ackn
    get_started
    examples
    tutorial
-   function_api
    imager_api
+   function_api
    contribute
-
-..
-   This is a comment block
-
-   Indices and tables
-   ==================
-
-   * :ref:`genindex`
-   * :ref:`modindex`
-   * :ref:`search`

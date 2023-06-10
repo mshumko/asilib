@@ -2,9 +2,6 @@
 Imager API Reference
 ====================
 
-.. warning::
-   The Imager API is under active development. 
-
 `asilib` saves all of the ASI image files, skymap calibration files, and movies to 
 
 .. code-block:: python
