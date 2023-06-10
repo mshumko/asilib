@@ -187,96 +187,184 @@ The first breakup of an auroral arc during a substorm analyzed by Donovan et al.
             plt.show()
 
 
-Example 3: A keogram of STEVE
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. figure:: ./_static/keogram_steve.png
-    :alt: A keogram of STEVE.
-    :width: 75%
+A keogram of STEVE
+^^^^^^^^^^^^^^^^^^
 
-    A keogram with a STEVE event that moved towards the equator. This event was analyzed in Gallardo-Lacourt et al. 2018 "A statistical analysis of STEVE"
+A keogram with a STEVE event that moved towards the equator. This event was analyzed in Gallardo-Lacourt et al. 2018 "A statistical analysis of STEVE"
 
-.. code:: python
+.. tab-set::
 
-    import matplotlib.pyplot as plt
+    .. tab-item:: Current Interface
+        :sync: key1
 
-    import asilib
+        .. figure:: ./_static/v1/keogram_steve.png
+            :alt: A keogram of STEVE.
+            :width: 75%
 
-    asi_array_code = 'REGO'
-    location_code = 'LUCK'
-    time_range = ['2017-09-27T07', '2017-09-27T09']
-    map_alt_km = 230
+        .. code:: python
 
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax, im = asilib.plot_keogram(
-        asi_array_code,
-        location_code,
-        time_range,
-        ax=ax,
-        map_alt=map_alt_km,
-        color_bounds=(300, 800),
-    )
-    plt.colorbar(im, label='Intensity')
-    ax.set_xlabel('UTC')
-    ax.set_ylabel(f'Emission Latitude [deg] at {map_alt_km} km')
-    plt.tight_layout()
-    plt.show()
+            import matplotlib.pyplot as plt
+
+            import asilib.asi
+
+            location_code = 'LUCK'
+            time_range = ['2017-09-27T07', '2017-09-27T09']
+            map_alt_km = 230
+
+            fig, ax = plt.subplots(figsize=(8, 6))
+            asi = asilib.asi.rego(location_code, time_range=time_range, alt=map_alt_km)
+            ax, p = asi.plot_keogram(ax=ax, color_bounds=(300, 800), aacgm=True)
+            plt.colorbar(p, label='Intensity')
+            ax.set_xlabel('UTC')
+            ax.set_ylabel(f'Magnetic Latitude [deg]\nEmission altitude={map_alt_km} km')
+            plt.tight_layout()
+            plt.show()
+
+    .. tab-item:: Legacy Interface
+        :sync: key2
+
+        .. figure:: ./_static/keogram_steve.png
+            :alt: A keogram of STEVE.
+            :width: 75%
+
+        .. code:: python
+
+            import matplotlib.pyplot as plt
+
+            import asilib
+
+            asi_array_code = 'REGO'
+            location_code = 'LUCK'
+            time_range = ['2017-09-27T07', '2017-09-27T09']
+            map_alt_km = 230
+
+            fig, ax = plt.subplots(figsize=(8, 6))
+            ax, im = asilib.plot_keogram(
+                asi_array_code,
+                location_code,
+                time_range,
+                ax=ax,
+                map_alt=map_alt_km,
+                color_bounds=(300, 800),
+            )
+            plt.colorbar(im, label='Intensity')
+            ax.set_xlabel('UTC')
+            ax.set_ylabel(f'Emission Latitude [deg] at {map_alt_km} km')
+            plt.tight_layout()
+            plt.show()
 
 Keogram of a field line resonance
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. figure:: ./_static/keogram_flr.png
-    :alt: A keogram of a field line resonance.
-    :width: 75%
+A field line resonance studied in: Gillies, D. M., Knudsen, D., Rankin, R., Milan, S., & Donovan, E. (2018). A statistical survey of the 630.0-nm optical signature of periodic auroral arcs resulting from magnetospheric field line resonances. Geophysical Research Letters, 45(10), 4648-4655.
 
-    A field line resonance studied in: Gillies, D. M., Knudsen, D., Rankin, R., Milan, S., & Donovan, E. (2018). A statistical survey of the 630.0‐nm optical signature of periodic auroral arcs resulting from magnetospheric field line resonances. Geophysical Research Letters, 45(10), 4648-4655.
+.. tab-set::
 
-.. code:: python
+    .. tab-item:: Current Interface
+        :sync: key1
 
-    import matplotlib.pyplot as plt
+        .. figure:: ./_static/v1/keogram_flr.png
+            :alt: A keogram of a field line resonance.
+            :width: 75%
 
-    import asilib
+        .. code:: python
 
-    asi_array_code = 'REGO'
-    location_code = 'GILL'
-    time_range = ['2015-02-02T10', '2015-02-02T11']
+            import matplotlib.pyplot as plt
 
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax, im = asilib.plot_keogram(
-        asi_array_code,
-        location_code,
-        time_range,
-        ax=ax,
-        map_alt=230,
-        pcolormesh_kwargs={'cmap': 'Greys_r'},
-    )
-    plt.xlabel('Time')
-    plt.ylabel('Geographic Latitude [deg]')
-    plt.colorbar(im)
-    plt.tight_layout()
-    plt.show()
+            import asilib.asi
+
+            location_code = 'GILL'
+            time_range = ['2015-02-02T10', '2015-02-02T11']
+
+            asi = asilib.asi.rego(location_code, time_range=time_range, alt=230)
+            ax, p = asi.plot_keogram(color_map='Greys_r')
+            plt.xlabel('Time')
+            plt.ylabel('Geographic Latitude [deg]')
+            plt.colorbar(p)
+            plt.tight_layout()
+            plt.show()
+
+    .. tab-item:: Legacy Interface
+        :sync: key2
+
+        .. figure:: ./_static/keogram_flr.png
+            :alt: A keogram of a field line resonance.
+            :width: 75%
+
+        .. code:: python
+
+            import matplotlib.pyplot as plt
+
+            import asilib
+
+            asi_array_code = 'REGO'
+            location_code = 'GILL'
+            time_range = ['2015-02-02T10', '2015-02-02T11']
+
+            fig, ax = plt.subplots(figsize=(8, 6))
+            ax, im = asilib.plot_keogram(
+                asi_array_code,
+                location_code,
+                time_range,
+                ax=ax,
+                map_alt=230,
+                pcolormesh_kwargs={'cmap': 'Greys_r'},
+            )
+            plt.xlabel('Time')
+            plt.ylabel('Geographic Latitude [deg]')
+            plt.colorbar(im)
+            plt.tight_layout()
+            plt.show()
 
 
 Fisheye Movie
 ^^^^^^^^^^^^^
 
-.. raw:: html
+.. tab-set::
 
-    <iframe width="75%" height="500"
-    src="_static/20150326_060700_062957_themis_fsmi.mp4"; frameborder="0"
-    allowfullscreen></iframe>
+    .. tab-item:: Current Interface
+        :sync: key1
 
-.. code:: python
+        .. raw:: html
 
-    from datetime import datetime
+            <iframe width="75%" height="500"
+            src="_static/v1/20150326_060700_063000_themis_fsmi_fisheye.mp4"; frameborder="0"
+            allowfullscreen></iframe>
 
-    import asilib
+        .. code:: python
 
-    asi_array_code = 'THEMIS'
-    location_code = 'FSMI'
-    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 30))
+            from datetime import datetime
 
-    asilib.animate_fisheye(asi_array_code, location_code, time_range, overwrite=True)
-    print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')
+            import asilib.asi
+
+            location_code = 'FSMI'
+            time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 30))
+            asi = asilib.asi.themis(location_code, time_range=time_range)
+            asi.animate_fisheye()
+
+            print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name}')
+
+    .. tab-item:: Legacy Interface
+        :sync: key2
+
+        .. raw:: html
+
+            <iframe width="75%" height="500"
+            src="_static/20150326_060700_062957_themis_fsmi.mp4"; frameborder="0"
+            allowfullscreen></iframe>
+
+        .. code:: python
+
+            from datetime import datetime
+
+            import asilib
+
+            asi_array_code = 'THEMIS'
+            location_code = 'FSMI'
+            time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 30))
+
+            asilib.animate_fisheye(asi_array_code, location_code, time_range, overwrite=True)
+            print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')
 
 
 Map movie
