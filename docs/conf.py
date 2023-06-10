@@ -37,7 +37,8 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.linkcode',
     'sphinx_copybutton',
-    'nbsphinx'
+    'nbsphinx',
+    "sphinx_design"
 ]
 
 copybutton_prompt_text = ">>> "

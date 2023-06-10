@@ -6,34 +6,61 @@ This example gallery using the best practices and illustrates functionality thro
 
 Fisheye Lens View of an Arc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+A bright auroral arc that was analyzed by Imajo et al. 2021 "Active auroral arc powered by accelerated electrons from very high altitudes"
 
-.. figure:: ./_static/fisheye_image_arc.png
-    :alt: A fisheye lens view of an auroral arc.
-    :width: 75%
+.. tab-set::
 
-    A bright auroral arc that was analyzed by Imajo et al. 2021 "Active auroral arc powered by accelerated electrons from very high altitudes"
+    .. tab-item:: Current Interface
+        :sync: key1
 
-.. code:: python
+        .. figure:: ./_static/v1/fisheye_image_arc.png
+            :alt: A fisheye lens view of an auroral arc.
+            :width: 75%
 
-    from datetime import datetime
+        .. code:: python
 
-    import matplotlib.pyplot as plt
+            from datetime import datetime
 
-    import asilib
+            import matplotlib.pyplot as plt
 
-    asi_array_code = 'THEMIS'
-    location_code = 'RANK'
-    time = datetime(2017, 9, 15, 2, 34, 0)
+            import asilib.asi
 
-    # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active
-    # auroral arc powered by accelerated electrons from very high altitudes"
-    image_time, image, ax, im = asilib.plot_fisheye(
-        asi_array_code, location_code, time, color_norm='log', redownload=False
-    )
-    plt.colorbar(im)
-    ax.axis('off')
-    plt.show()
+            location_code = 'RANK'
+            time = datetime(2017, 9, 15, 2, 34, 0)
 
+            asi = asilib.asi.themis(location_code, time=time)
+            ax, im = asi.plot_fisheye()
+            plt.colorbar(im)
+            ax.axis('off')
+            plt.show()
+
+    .. tab-item:: Legacy Interface
+        :sync: key2
+
+        .. figure:: ./_static/fisheye_image_arc.png
+            :alt: A fisheye lens view of an auroral arc.
+            :width: 75%
+
+        .. code:: python
+
+            from datetime import datetime
+
+            import matplotlib.pyplot as plt
+
+            import asilib
+
+            asi_array_code = 'THEMIS'
+            location_code = 'RANK'
+            time = datetime(2017, 9, 15, 2, 34, 0)
+
+            # A bright auroral arc that was analyzed by Imajo et al., 2021 "Active
+            # auroral arc powered by accelerated electrons from very high altitudes"
+            image_time, image, ax, im = asilib.plot_fisheye(
+                asi_array_code, location_code, time, color_norm='log', redownload=False
+            )
+            plt.colorbar(im)
+            ax.axis('off')
+            plt.show()
 
 STEVE projected onto a map
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
