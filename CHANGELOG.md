@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+- A tutorial using `asilib.Imager()`.
+
+
 ## [0.16.2] - 2023-06-10
 
 ### Added
