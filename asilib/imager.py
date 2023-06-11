@@ -1673,7 +1673,7 @@ class Imager:
                 framerate=_ffmpeg_params.pop('framerate'),
             )
             movie_obj.output(str(movie_save_path), **_ffmpeg_params).run(overwrite_output=overwrite)
-            print(f'Aanimation saved to {movie_save_path}')
+            print(f'Animation saved to {movie_save_path}')
         except FileNotFoundError as err:
             if '[WinError 2] The system cannot find the file specified' in str(err):
                 raise FileNotFoundError("Windows doesn't have ffmpeg installed.") from err
