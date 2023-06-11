@@ -31,7 +31,7 @@ If asilib significantly contributed to your research, and you would like to ackn
 
    get_started
    examples
-   tutorial
+   tutorials
    imager_api
    function_api
    contribute
