@@ -84,7 +84,6 @@ class Imager:
 
     def plot_fisheye(
         self,
-        time: utils._time_type = None,
         ax: plt.Axes = None,
         label: bool = True,
         color_map: str = None,
@@ -100,9 +99,6 @@ class Imager:
 
         Parameters
         ----------
-        time: datetime.datetime or str
-            The date and time to download of the data. If str, ``time`` must be in the
-            ISO 8601 standard.
         ax: plt.Axes
             The subplot to plot the image on. If None this method will create one.
         label: bool
@@ -160,13 +156,8 @@ class Imager:
         if ax is None:
             _, ax = plt.subplots()
 
-        if time is not None:
-            self_copy = self.__getitem__(time)
-            time, image = self_copy.data
-        elif 'time' in self._data.keys():
-            time, image = self.data
-        else:
-            raise ValueError("The asilib.Imager instance wasn't specified with a time to plot.")
+        self_copy = self.__getitem__(self._data['time'])
+        time, image = self_copy.data
 
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
@@ -493,7 +484,8 @@ class Imager:
                 ocean_color=ocean_color,
             )
 
-        image = self._data['image']
+        self_copy = self.__getitem__(self._data['time'])
+        _, image = self_copy.data
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
         ax, p, _ = self._plot_mapped_image(
@@ -1367,7 +1359,8 @@ class Imager:
             return _img_data_type(self._times, self._images)
 
         elif 'time' in self._data.keys():
-            return _img_data_type(self._data['time'], self._data['image'])
+            # TODO: refactor_interface do not load self._data['image'], rather call self._get_image().
+            return _img_data_type(self._load_image(self._data['time']))
 
         else:
             raise ValueError(
@@ -1375,6 +1368,37 @@ class Imager:
                 f'"time" or "time_range" data variables. The data '
                 f'variables are {self._data.keys()}.'
             )
+        
+    def _load_image(self, time):
+        """
+        Load a single image and time stamp nearest to time.
+
+        Parameters
+        ----------
+        time: datetime.datetime
+            The requested image time.
+
+        Returns
+        -------
+        datetime.datetime
+            Image timestamp
+        np.array
+            Image.
+
+        Raises
+        ------
+        IndexError
+            If the nearest image timestamp is more than self._data['cadence'] away
+            from time.
+        """
+        _times, _images = self._data['loader'](self._data['path'][0])
+        image_index = np.argmin(np.abs([(time - t_i).total_seconds() for t_i in _times]))
+        if np.abs((time - _times[image_index]).total_seconds()) > self._data['cadence']:
+            raise IndexError(
+                f'Cannot find a time stamp within {self._data["cadence"]} seconds of '
+                f'{time}. Closest time stamp is {_times[image_index]}.'
+            )
+        return _times[image_index], _images[image_index]
 
     def __str__(self) -> str:
         if ('time' in self._data.keys()) and (self._data['time'] is not None):
