@@ -69,7 +69,7 @@ The `meta` dictionary provides information about the ASI. See the code snippet b
         'lat': float,  # Latitude in units of degrees.
         'lon': float, # Longitude in units of degrees. In the (-180->180) degree range.
         'alt': float,  # Imager altitude in units of km.
-        'cadence': 3,  # Imager cadence in units of seconds.
+        'cadence': float,  # Imager cadence in units of seconds.
         'resolution': (int, int),  # Imager pixel resolution.
     }
 
