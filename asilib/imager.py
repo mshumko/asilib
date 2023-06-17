@@ -467,8 +467,8 @@ class Imager:
         >>> plt.tight_layout()
         >>> plt.show()
         """
-        assert 'image' in self._data.keys(), (
-            f'The "image" key not in ' f'Imager._data: got {self._data.keys()}'
+        assert 'time' in self._data.keys(), (
+            f'Need to specify an image time.'
         )
         for _skymap_key in ['lat', 'lon', 'el']:
             assert _skymap_key in self.skymap.keys(), (
@@ -1125,10 +1125,6 @@ class Imager:
             if _slice.step is not None:
                 raise NotImplementedError
 
-            # TODO: Fix what files are loaded.
-            # start_file_i = np.where(start_time >= np.array(self._data['start_time']))[0][-1]
-            # end_file_i = np.where(end_time <= np.array(self._data['end_time']))[0][0]
-
             new_data = copy.copy(self._data)
             new_data['time_range'] = [start_time, end_time]
             # new_data['start_time'] = new_data['start_time'][start_file_i:end_file_i]
@@ -1155,46 +1151,24 @@ class Imager:
             else:
                 slice_time = _slice
 
-            if 'start_time' in self._data.keys():  # First find the correct file
-                file_index = np.where(
-                    (slice_time >= np.array(self._data['start_time']))
-                    & (slice_time < np.array(self._data['end_time']))
-                )[0]
-                if len(file_index) != 1:
-                    raise FileNotFoundError(
-                        f'{slice_time} out of imager range: '
-                        f'{self._data["start_time"][0]}-{self._data["end_time"][-1]}'
-                    )
-                file_index = file_index[0]
-                file_path = self._data['path'][file_index]
-                file_times, file_images = self._data['loader'](file_path)
-
-                # Then find the correct time stamp
-                image_index = np.argmin(
-                    np.abs([(slice_time - t_i).total_seconds() for t_i in file_times])
+            file_index = np.where(
+                (slice_time >= np.array(self._data['start_time']))
+                & (slice_time < np.array(self._data['end_time']))
+            )[0]
+            if len(file_index) != 1:
+                raise FileNotFoundError(
+                    f'{slice_time} out of imager range: '
+                    f'{self._data["start_time"][0]}-{self._data["end_time"][-1]}'
                 )
-                if (
-                    np.abs((slice_time - file_times[image_index]).total_seconds())
-                    > self.meta['cadence']
-                ):
-                    raise IndexError(
-                        f'Cannot find a time stamp within of {self.meta["cadence"]} s of '
-                        f'{slice_time}. Closest time stamp is {file_times[image_index]}.'
-                    )
-                new_data = {
-                    'time': file_times[image_index],
-                    'image': file_images[
-                        image_index, ...
-                    ],  # Ellipsis to return all other dimensions.
-                }
-            # Edge case when [time] is within the imager cadence of self._image['time']
-            elif 'time' in self._data.keys():
-                if np.abs((slice_time - self._data['time']).total_seconds()) > self.meta['cadence']:
-                    raise ValueError(
-                        f'Imager contains only one image at time={self._data["time"]} '
-                        f'but was sliced with time={slice_time}.'
-                    )
-                new_data = copy.copy(self._data)
+            file_index = file_index[0]
+
+            new_data = {
+                'time':slice_time,
+                'path':[self._data['path'][file_index]],
+                'start_time': [self._data['start_time'][file_index]],
+                'end_time': [self._data['end_time'][file_index]],
+                'loader':self._data['loader']
+            }
 
             new_meta = copy.copy(self.meta)
             new_skymap = copy.copy(self.skymap)
@@ -1292,30 +1266,30 @@ class Imager:
                     yield time_chunk[idt], image_chunk[idt]
         return
 
-    def iter_chunks(self, chunk_size: int) -> Union[np.array, np.array]:
-        """
-        Chunk and iterate over the ASI data. The output data is
-        clipped by time_range.
+    # def iter_chunks(self, chunk_size: int) -> Union[np.array, np.array]:
+    #     """
+    #     Chunk and iterate over the ASI data. The output data is
+    #     clipped by time_range.
 
-        Parameters
-        ----------
-        chunk_size: int
-            The number of time stamps and images to return.
+    #     Parameters
+    #     ----------
+    #     chunk_size: int
+    #         The number of time stamps and images to return.
 
-        Yields
-        ------
-        np.array:
-            ASI timestamps in datetine.datetime() or numpy.datetime64() format.
-        np.array:
-            ASI images.
+    #     Yields
+    #     ------
+    #     np.array:
+    #         ASI timestamps in datetine.datetime() or numpy.datetime64() format.
+    #     np.array:
+    #         ASI images.
 
-        Example
-        -------
-        TODO: Add
-        """
-        raise NotImplementedError
+    #     Example
+    #     -------
+    #     TODO: Add
+    #     """
+    #     raise NotImplementedError
 
-        yield
+    #     yield
 
     def _estimate_n_times(self):
         """
@@ -1359,7 +1333,6 @@ class Imager:
             return _img_data_type(self._times, self._images)
 
         elif 'time' in self._data.keys():
-            # TODO: refactor_interface do not load self._data['image'], rather call self._get_image().
             return _img_data_type(self._load_image(self._data['time']))
 
         else:
@@ -1398,7 +1371,7 @@ class Imager:
                 f'Cannot find a time stamp within {self._data["cadence"]} seconds of '
                 f'{time}. Closest time stamp is {_times[image_index]}.'
             )
-        return _times[image_index], _images[image_index]
+        return _times[image_index], _images[image_index, ...]  # Ellipses to load all other dimenstions.
 
     def __str__(self) -> str:
         if ('time' in self._data.keys()) and (self._data['time'] is not None):
@@ -1793,7 +1766,7 @@ def _haversine(
         The sphere radius.
     """
     assert lat1.shape == lon1.shape == lat2.shape == lon2.shape, (
-        'All input arrays' ' must have the same shape.'
+        'All input arrays must have the same shape.'
     )
     lat1_rad = np.deg2rad(lat1)
     lat2_rad = np.deg2rad(lat2)
