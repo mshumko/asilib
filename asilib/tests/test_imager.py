@@ -16,12 +16,12 @@ def test_time():
     Test if the fake_asi timestamp is correctly accessed.
     """
     asi = fake_asi('GILL', time='2015-01-01T15:14:00.17')
-    assert asi.data.times == datetime(2015, 1, 1, 15, 14)
-    assert asi.data.images.shape == (512, 512)
-    assert np.isclose(asi.data.images.mean(), 14.4014892578125)
+    assert asi.data.time == datetime(2015, 1, 1, 15, 14)
+    assert asi.data.image.shape == (512, 512)
+    assert np.isclose(asi.data.image.mean(), 14.4014892578125)
     # See https://numpy.org/doc/stable/reference/generated/numpy.argmax.html for the
     # unravel_index example to get the maximum index for a N-d array.
-    ind = np.unravel_index(np.argmax(asi.data.images, axis=None), asi.data.images.shape)
+    ind = np.unravel_index(np.argmax(asi.data.image, axis=None), asi.data.image.shape)
     assert ind == (318, 0)
     return
 
@@ -31,9 +31,9 @@ def test_time_range():
     Test if fake_asi timestamps are correctly accessed.
     """
     asi = fake_asi('GILL', time_range=('2015-01-01T15:00:15.17', '2015-01-01T20:00'))
-    assert asi.data.times.shape == (1798,)
-    assert asi.data.images.shape == (1798, 512, 512)
-    assert np.isclose(asi.data.images.mean(), 14.048684923216552)
+    assert asi.data.time.shape == (1798,)
+    assert asi.data.image.shape == (1798, 512, 512)
+    assert np.isclose(asi.data.image.mean(), 14.048684923216552)
     assert asi._data['path'] == [
         '20150101_150000_GILL_fake_asi.images',
         '20150101_160000_GILL_fake_asi.images',
@@ -280,9 +280,9 @@ def test_getitem():
     asi = asilib.asi.themis('GILL', time_range=time_range)
 
     asi_one_time = asi['2008-01-16T11:05:10']
-    assert asi_one_time.data.times == datetime(2008, 1, 16, 11, 5, 9, 10571)
+    assert asi_one_time.data.time == datetime(2008, 1, 16, 11, 5, 9, 10571)
     assert np.all(
-        asi_one_time.data.images[0, :10]
+        asi_one_time.data.image[0, :10]
         == np.array([3498, 3527, 3459, 3516, 3484, 3505, 3483, 3479, 3499, 3481])
     )
     with pytest.raises(FileNotFoundError):
@@ -290,10 +290,10 @@ def test_getitem():
         asi['2010-01-16T11:00:00']
         asi['2005-01-16T11:00:00']
     asi_time_range = asi['2008-01-16T10:30' : datetime(2008, 1, 16, 10, 40)]
-    assert asi_time_range.data.times.shape[0] == 200
-    assert asi_time_range.data.times[0] == datetime(2008, 1, 16, 10, 30, 0, 16380)
-    assert asi_time_range.data.times[-1] == datetime(2008, 1, 16, 10, 39, 57, 25495)
-    assert asi_time_range.data.images.shape == (200, 256, 256)
+    assert asi_time_range.data.time.shape[0] == 200
+    assert asi_time_range.data.time[0] == datetime(2008, 1, 16, 10, 30, 0, 16380)
+    assert asi_time_range.data.time[-1] == datetime(2008, 1, 16, 10, 39, 57, 25495)
+    assert asi_time_range.data.image.shape == (200, 256, 256)
     return
 
 

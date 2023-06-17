@@ -480,7 +480,7 @@ A comprehensive example that maps a hypothetical satellite track to an image and
             # Normally the satellite time stamps are not the same as the ASI. 
             # You may need to call Conjunction.interp_sat() to find the LLA coordinates
             # at the ASI timestamps.
-            sat_time = asi.data.times
+            sat_time = asi.data.time
 
             conjunction_obj = asilib.Conjunction(asi, (sat_time, sat_lla))
 

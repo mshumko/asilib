@@ -1337,7 +1337,7 @@ class Imager:
             A named tuple containing (times, images). Members can be accessed using either
             index notation, or dot notation.
         """
-        _img_data_type = namedtuple('data', ['times', 'images'])
+        _img_data_type = namedtuple('data', ['time', 'image'])
 
         if 'time_range' in self._data.keys():
             # If already run.

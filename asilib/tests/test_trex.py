@@ -20,8 +20,8 @@ def test_trex_nir_time():
     """
     # Calls the download function
     asi = asilib.asi.trex_nir('rabb', time='2022-03-25T08:40', redownload=True)
-    assert asi.data.times == datetime(2022, 3, 25, 8, 40)
-    assert asi.data.images[0, 0] == 324
+    assert asi.data.time == datetime(2022, 3, 25, 8, 40)
+    assert asi.data.image[0, 0] == 324
     assert asi.skymap['path'].name == 'nir_skymap_rabb_20220301-%2B_v01.sav'
     return
 
@@ -35,10 +35,10 @@ def test_trex_nir_time_range():
     assert asi._data['path'][0].name == '20200321_0500_gill_nir-219_8446.pgm.gz'
     assert asi._data['path'][-1].name == '20200321_0509_gill_nir-219_8446.pgm.gz'
     asi.data
-    assert asi.data.times[0] == datetime(2020, 3, 21, 5, 0, 6)
-    assert asi.data.times[-1] == datetime(2020, 3, 21, 5, 9, 54)
-    assert asi.data.times.shape == (99,)
-    assert asi.data.images.shape == (99, 256, 256)
+    assert asi.data.time[0] == datetime(2020, 3, 21, 5, 0, 6)
+    assert asi.data.time[-1] == datetime(2020, 3, 21, 5, 9, 54)
+    assert asi.data.time.shape == (99,)
+    assert asi.data.image.shape == (99, 256, 256)
     return
 
 def test_trex_nir_no_file():

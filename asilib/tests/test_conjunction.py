@@ -216,7 +216,7 @@ def test_interp_sat():
 
     c.interp_sat()
     assert c.sat.shape == (20, 3)
-    assert np.all(c.sat.index == c.imager.data.times)
+    assert np.all(c.sat.index == c.imager.data.time)
     return
 
 
@@ -247,8 +247,8 @@ def test_plot_interp_sat():
     ax[1].scatter(times, lla[:, 1], c='k', s=50)
     ax[1].scatter(c.sat.index, c.sat['lon'], c='orange')
 
-    ax[0].axvline(c.imager.data.times[0])
-    ax[0].axvline(c.imager.data.times[-1])
+    ax[0].axvline(c.imager.data.time[0])
+    ax[0].axvline(c.imager.data.time[-1])
     return
 
 
@@ -282,8 +282,8 @@ def test_plot_interp_sat_wrap():
     ax[1].scatter(times, lla[:, 1], c='k', s=50)
     ax[1].scatter(c.sat.index, c.sat['lon'], c='orange')
 
-    ax[0].axvline(c.imager.data.times[0])
-    ax[0].axvline(c.imager.data.times[-1])
+    ax[0].axvline(c.imager.data.time[0])
+    ax[0].axvline(c.imager.data.time[-1])
     return
 
 
@@ -391,7 +391,7 @@ def test_intensity_closest_pixel():
     # Normally the satellite time stamps are not the same as the ASI. 
     # You may need to call Conjunction.interp_sat() to find the LLA coordinates
     # at the ASI timestamps.
-    sat_time = asi.data.times
+    sat_time = asi.data.time
 
     conjunction_obj = asilib.Conjunction(asi, (sat_time, sat_lla))
     nearest_pixel_intensity = conjunction_obj.intensity(box=None)
@@ -432,7 +432,7 @@ def test_intensity_area():
     # Normally the satellite time stamps are not the same as the ASI. 
     # You may need to call Conjunction.interp_sat() to find the LLA coordinates
     # at the ASI timestamps.
-    sat_time = asi.data.times
+    sat_time = asi.data.time
 
     conjunction_obj = asilib.Conjunction(asi, (sat_time, sat_lla))
     area_intensity = conjunction_obj.intensity(box=(10, 10))
