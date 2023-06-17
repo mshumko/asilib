@@ -24,16 +24,36 @@ To develop the docs, you must install Sphinx to your operating system. For linux
 
     apt-get install python3-sphinx
 
-Adding an ASI array
--------------------
+Adding a new ASI
+----------------
+You can add a new ASI to `asilib` by writing a `wrapper` function that creates and returns an `asilib.Imager` instance. As you read the following interface descriptions, you're welcome to see an example in the `asilib/asi/fake_asi.py` module that contains a `fake_asi()` wrapper function. 
 
-Three dictionaries must be passed into asilib.Imager:
-1. data,
-2. skymap, and
-3. meta.
+The `asilib.Imager` interface consists of three dictionaries:
+1. `data`,
+2. `skymap`, and
+3. `meta`.
 
-These dictionaries are described below.
-TODO: Describe how the Imager API works.
+The `data` dictionary provides information on when and how to load ASI images. The four required keys are: 
+- `path`---list of image file paths represented as `pathlib.Path`, that `asilib.Imager` will load. 
+- `start_time`---list specifying the time of the first image in each file in `path`,
+- `end_time`---list specifying the time of the last image in each file in `path`,
+- `loader`---function with a `path` argument that returns time stamps represented as `datetime.datetime` and images represented as a `np.array`. `asilib.Imager` will call the `loader` when it needs to load one or more images.
+
+Lastly, `data` must contain either a `time` or `time_range` keys. These tell `asilib.Imager` what image to load, or what time range the user requested (in general, the `time_range` will not correspond to `start_time[0]` and `end_time[-1]`).
+
+The `skymap` dictionary provides information on how to orient and map images onto a geographic map.
+
+The `meta` dictionary provides information about the ASI. 
+
+meta = {
+        'array': 'TEST',
+        'location': location_dict.index[0],
+        'lat': location_dict['lat'][0],
+        'lon': location_dict['lon'][0],
+        'alt': location_dict['alt'][0] / 1e3,  # km
+        'cadence': 10,
+        'resolution': (512, 512),
+    }
 
 Tests
 -----
