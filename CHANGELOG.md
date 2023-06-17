@@ -7,6 +7,8 @@
 - Documentation describing the `asilib.Imager()` interface.
 
 ### Changed
+- Refactored how `asilib.Imager()` deals with single- and multi-image instances. Now, each ASI `wrapper` function does not need to load a single image if `time` is specified, `asilib.Imager()` does this instead.
+- Due to this change, the `asilib.Imager.__getitem__()` method significantly simplified. 
 
 ## [0.16.2] - 2023-06-10
 

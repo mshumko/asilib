@@ -20,9 +20,9 @@ def test_themis_time():
     """
     # Calls the download function
     asi = asilib.asi.themis('gill', time='2014-05-05T04:49:10', redownload=True)
-    # _data should not be accessed by the user.
-    assert asi._data['time'] == datetime(2014, 5, 5, 4, 49, 9, 37070)
-    # And data() should be
+    # asi._data should not be accessed by the user.
+    assert asi._data['time'] == datetime(2014, 5, 5, 4, 49, 10)
+    # But asi.data should be
     assert asi.data.time == datetime(2014, 5, 5, 4, 49, 9, 37070)
     assert asi.data[0] == datetime(2014, 5, 5, 4, 49, 9, 37070)
     assert asi.data.image[0, 0] == 3464
@@ -30,8 +30,8 @@ def test_themis_time():
     assert asi.data.image[-1, -1] == 3477
     assert asi.skymap['path'].name == 'themis_skymap_gill_20130103-%2B_vXX.sav'
     # Does not call the download function
-    img2 = asilib.asi.themis('gill', time='2014-05-05T04:49:10', redownload=False)
-    assert img2._data['time'] == datetime(2014, 5, 5, 4, 49, 9, 37070)
+    asi2 = asilib.asi.themis('gill', time='2014-05-05T04:49:10', redownload=False)
+    assert asi2._data['time'] == datetime(2014, 5, 5, 4, 49, 10)
     return
 
 
@@ -72,7 +72,7 @@ def test_themis_partial_files():
         'pina',
         time_range=['2011/07/07T04:15', '2011/07/07T04:23:30'],
         missing_ok=True,
-        redownload=True,
+        redownload=False,
     )
     assert img._data['path'][0].name == '20110707_0421_pina_themis18_full.pgm.gz'
     assert img._data['path'][1].name == '20110707_0422_pina_themis18_full.pgm.gz'

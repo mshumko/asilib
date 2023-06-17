@@ -1333,7 +1333,7 @@ class Imager:
             return _img_data_type(self._times, self._images)
 
         elif 'time' in self._data.keys():
-            return _img_data_type(self._load_image(self._data['time']))
+            return _img_data_type(*self._load_image(self._data['time']))
 
         else:
             raise ValueError(
@@ -1361,14 +1361,14 @@ class Imager:
         Raises
         ------
         IndexError
-            If the nearest image timestamp is more than self._data['cadence'] away
+            If the nearest image timestamp is more than self.meta['cadence'] away
             from time.
         """
         _times, _images = self._data['loader'](self._data['path'][0])
         image_index = np.argmin(np.abs([(time - t_i).total_seconds() for t_i in _times]))
-        if np.abs((time - _times[image_index]).total_seconds()) > self._data['cadence']:
+        if np.abs((time - _times[image_index]).total_seconds()) > self.meta['cadence']:
             raise IndexError(
-                f'Cannot find a time stamp within {self._data["cadence"]} seconds of '
+                f'Cannot find a time stamp within {self.meta["cadence"]} seconds of '
                 f'{time}. Closest time stamp is {_times[image_index]}.'
             )
         return _times[image_index], _images[image_index, ...]  # Ellipses to load all other dimenstions.
