@@ -171,6 +171,7 @@ def get_data(
     if (time is None) and (time_range is None):
         raise ValueError("Either time or time_range must be specified.")
 
+    # TODO: refactor_interface
     if time is not None:
         time = utils.validate_time(time)
         file_path = _get_file_path(meta, time)

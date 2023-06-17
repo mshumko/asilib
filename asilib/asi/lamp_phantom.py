@@ -81,6 +81,7 @@ def lamp(location_code, time=None, time_range=None, redownload=False, missing_ok
             'time_range': time_range,
         }
 
+    # TODO: refactor_interface
     elif time is not None:  # Load the LAMP file and find the nearest time and image.
         _times, _images = lamp_reader(file_paths[0])
         image_index = np.argmin(np.abs([(time - t_i).total_seconds() for t_i in _times]))

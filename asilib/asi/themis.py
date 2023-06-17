@@ -92,6 +92,7 @@ def themis(
             missing_ok,
         )
 
+        # TODO: refactor_interface
         if time is not None:
             # Find and load the nearest time stamp
             _times, _images = _load_pgm(file_paths[0])
