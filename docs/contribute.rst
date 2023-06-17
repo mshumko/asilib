@@ -30,19 +30,59 @@ You can add a new ASI to `asilib` by writing a `wrapper` function that creates a
 
 The `asilib.Imager` interface consists of three dictionaries:
 
-1. `data`,
+- `data`,
+- `skymap`, and
+- `meta`.
 
-2. `skymap`, and
 
-3. `meta`.
+Data dictionary
+^^^^^^^^^^^^^^^
 
-The `data` dictionary provides information on when and how to load ASI images. The four required keys are: 
-- `path`---list of image file paths represented as `pathlib.Path`, that `asilib.Imager` will load. 
-- `start_time`---list specifying the time of the first image in each file in `path`,
-- `end_time`---list specifying the time of the last image in each file in `path`,
-- `loader`---function with a `path` argument that returns time stamps represented as `datetime.datetime` and images represented as a `np.array`. `asilib.Imager` will call the `loader` when it needs to load one or more images.
+The `data` dictionary provides information on when and how to load ASI images. See the two code snippets below for the required key-value pairs for loading one or multiple images.
 
-Lastly, `data` must contain either a `time` or `time_range` keys. These tell `asilib.Imager` what image to load, or what time range the user requested (in general, the `time_range` will not correspond to `start_time[0]` and `end_time[-1]`).
+
+**One Image**
+
+.. code-block:: python
+
+    data = {
+        # The time to load the image
+        'time': datetime.datetime(),
+        # Specify the path the relevant image file. List length is 1.
+        'path': List[pathlib.Path],  
+        # The time of the first image in each file in `path`. List length is 1.
+        'start_time': List[datetime.datetime()],
+        # The time of the last image in each file in `path`. List length is 1.
+        'end_time': List[datetime.datetime()],
+        # The function that takes an image path and returns time stamps represented
+        # as `datetime.datetime()` and images represented as a `np.array()`.
+        'loader': callable,
+    }
+
+The function specified by the `loader` key is called by `asilib.Imager` when it needs to call the images. This type of function is often called a callback function. 
+
+**Multiple Images**
+
+.. code-block:: python
+
+    data = {
+        # The start and end times to load the images. The Tuple length is 2.
+        'time_range': Tuple[datetime.datetime()],  
+        # The paths to all relevant image file. List length is N.
+        'path': List[pathlib.Path],
+        # The time of the first image in each file in `path`. List length is N.
+        'start_time': List[datetime.datetime()],
+        # The time of the last image in each file in `path`. List length is N.
+        'end_time': List[datetime.datetime()],
+        # The function that takes an image path and returns time stamps represented
+        # as `datetime.datetime()` and images represented as a `np.array()`.
+        'loader': callable,
+    }
+
+The reason that `asilib` needs both the `time_range`, as well as `start_time` and `end_time` is that in general, the `time_range` will not correspond to `start_time[0]` and `end_time[-1]`.
+
+Skymap Dictionary
+^^^^^^^^^^^^^^^^^
 
 The `skymap` dictionary provides information on how to orient and map images onto a geographic map. See the code snippet below for the required key-value pairs. 
 
@@ -59,6 +99,8 @@ The `skymap` dictionary provides information on how to orient and map images ont
             'path':pathlib.Path(...),  # The path to the skymap file.
         }
 
+Meta Dictionary
+^^^^^^^^^^^^^^^
 The `meta` dictionary provides information about the ASI. See the code snippet below for the required key-value pairs. 
 
 .. code-block:: python
