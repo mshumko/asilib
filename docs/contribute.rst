@@ -28,11 +28,12 @@ Adding a new ASI
 ----------------
 You can add a new ASI to `asilib` by writing a `wrapper` function that creates and returns an `asilib.Imager` instance. As you read the following interface descriptions, you're welcome to see an example in the `asilib/asi/fake_asi.py` module that contains a `fake_asi()` wrapper function. 
 
-The `asilib.Imager` interface consists of three dictionaries:
+The `asilib.Imager` interface consists of four dictionaries:
 
 - `data`,
-- `skymap`, and
-- `meta`.
+- `skymap`,
+- `meta`, and
+- `plot_settings` (optional) 
 
 
 Data dictionary
@@ -114,6 +115,20 @@ The `meta` dictionary provides information about the ASI. See the code snippet b
         'cadence': float,  # Imager cadence in units of seconds.
         'resolution': (int, int),  # Imager pixel resolution.
     }
+
+Plot Settings
+^^^^^^^^^^^^^
+An optional dictionary that customizes the `asilib.Imager`'s plot settings.
+
+.. code-block:: python
+
+    plot_settings = {
+        # REGO colormap goes from black to red.
+        'color_map': matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r']),
+        'color_norm': 'log',
+        # A function that takes in an image and returns the (vmin, vmax) values passed into matplotlib.
+        'color_bounds': callable 
+        }
 
 Tests
 -----

@@ -57,22 +57,15 @@ class Imager:
     Parameters
     ----------
     data: dict
-        Dictionary containing image data in two main formats (sets of keys): the first is with
-        two keys ``time`` and ``image`` for a single image; or ``start_time``, ``end_time``,
-        ``path``, and ``loader`` keys.
+        Specifies image file paths, start end end times, and the loader function,
     meta: dict
-        The ASI metadata that must have the following keys ``array``, ``location``, ``lat``,
-        ``lon``, ``alt``, and ``cadence``. The ``cadence`` units are seconds and ``alt`` is
-        kilometers.
+        Specifies ASI metadata that describes the ASI name, location, cadence, and pixel resolution.
     skymap: dict
-        The data to map each pixel to azimuth and elevation (``az``, ``el``) and latitude,
-        longitude, altitude (``lat``, ``lon``, ``alt``) coordinates.
+        Specifies what each pixel maps to in (azimuth, elevation) coordinates as well as 
+        (latitude, longitude) coordinates at a prescribed auroral mission altitude.
     plot_settings: dict
-        An optional dictionary containing  ```color_bounds```, ```color_map```,
-        and ```color_norm``` keys. The ```color_bounds``` can be either a function takes in
-        an image and returns the lower and upper bound numbers, or a len 2 tuple or list.
-        The ```color_map``` key must be a valid matplotlib colormap. And lastly, ```color_norm```
-        must be either ```lin``` for linear or ```log``` for logarithmic color scale.
+        An optional dictionary customizing the plot colormap, color scale (logarithmic vs linear),
+        and color bounds (vmin, vmax arguments in matplotlib.imshow()).
     """
 
     def __init__(
