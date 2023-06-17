@@ -29,8 +29,11 @@ Adding a new ASI
 You can add a new ASI to `asilib` by writing a `wrapper` function that creates and returns an `asilib.Imager` instance. As you read the following interface descriptions, you're welcome to see an example in the `asilib/asi/fake_asi.py` module that contains a `fake_asi()` wrapper function. 
 
 The `asilib.Imager` interface consists of three dictionaries:
+
 1. `data`,
+
 2. `skymap`, and
+
 3. `meta`.
 
 The `data` dictionary provides information on when and how to load ASI images. The four required keys are: 
@@ -41,18 +44,33 @@ The `data` dictionary provides information on when and how to load ASI images. T
 
 Lastly, `data` must contain either a `time` or `time_range` keys. These tell `asilib.Imager` what image to load, or what time range the user requested (in general, the `time_range` will not correspond to `start_time[0]` and `end_time[-1]`).
 
-The `skymap` dictionary provides information on how to orient and map images onto a geographic map.
+The `skymap` dictionary provides information on how to orient and map images onto a geographic map. See the code snippet below for the required key-value pairs. 
 
-The `meta` dictionary provides information about the ASI. 
+.. TODO: Describe the dimensions of the image and skymap arrays.
 
-meta = {
-        'array': 'TEST',
-        'location': location_dict.index[0],
-        'lat': location_dict['lat'][0],
-        'lon': location_dict['lon'][0],
-        'alt': location_dict['alt'][0] / 1e3,  # km
-        'cadence': 10,
-        'resolution': (512, 512),
+.. code-block:: python
+
+    skymap = {
+            'lat':np.array(...),  # Latitude of pixel vertices.
+            'lon':np.array(...),  # Longitude of pixel vertices. In the (-180->180) degree range.
+            'alt':float,  # The mapping altitude in km.
+            'el':np.array(...),   # The elevation of each pixel.
+            'az':np.array(...),   # The azimuth of each pixel.
+            'path':pathlib.Path(...),  # The path to the skymap file.
+        }
+
+The `meta` dictionary provides information about the ASI. See the code snippet below for the required key-value pairs. 
+
+.. code-block:: python
+
+    meta = {
+        'array': str,  # The ASI array name
+        'location': str,  # The ASI location name.
+        'lat': float,  # Latitude in units of degrees.
+        'lon': float, # Longitude in units of degrees. In the (-180->180) degree range.
+        'alt': float,  # Imager altitude in units of km.
+        'cadence': 3,  # Imager cadence in units of seconds.
+        'resolution': (int, int),  # Imager pixel resolution.
     }
 
 Tests

@@ -4,7 +4,9 @@
 
 ### Added
 - A tutorial using `asilib.Imager()`.
+- Documentation describing the `asilib.Imager()` interface.
 
+### Changed
 
 ## [0.16.2] - 2023-06-10
 
