@@ -175,18 +175,11 @@ def get_data(
         time = utils.validate_time(time)
         file_path = _get_file_path(meta, time)
         image_times, images = _data_loader(file_path)
-
-        # find the nearest image to the requested time.
-        dt = np.array([(image_time - time).total_seconds() for image_time in image_times])
-        dt = np.abs(dt)
-        min_idt = np.argmin(dt)
-        assert abs((image_times[min_idt] - time).total_seconds()) < 10, (
-            'Requested image is' ' more than 10 seconds away from the nearest image time.'
-        )
+        start_file_time = time.replace(minute=0, second=0, microsecond=0)
     
         _data = {
             'time': time,
-            'path': [_get_file_path(meta, start_file_time)],
+            'path': [file_path],
             'start_time': [start_file_time],
             'end_time': [start_file_time + timedelta(hours=1)],
             'loader': _data_loader,
@@ -236,7 +229,7 @@ def _data_loader(file_path):
 
 
 def _get_file_path(meta, time):
-    return f'{time:%Y%m%d_%H}0000_{meta["location"]}_fake_asi.images'  # does not exist.
+    return f'{time:%Y%m%d_%H}0000_{meta["location"]}_fake_asi.png'  # does not exist.
 
 
 def plot_skymap(location_code, alt=110, pixel_center=True):

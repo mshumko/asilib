@@ -35,11 +35,11 @@ def test_time_range():
     assert asi.data.image.shape == (1798, 512, 512)
     assert np.isclose(asi.data.image.mean(), 14.048684923216552)
     assert asi._data['path'] == [
-        '20150101_150000_GILL_fake_asi.images',
-        '20150101_160000_GILL_fake_asi.images',
-        '20150101_170000_GILL_fake_asi.images',
-        '20150101_180000_GILL_fake_asi.images',
-        '20150101_190000_GILL_fake_asi.images',
+        '20150101_150000_GILL_fake_asi.png',
+        '20150101_160000_GILL_fake_asi.png',
+        '20150101_170000_GILL_fake_asi.png',
+        '20150101_180000_GILL_fake_asi.png',
+        '20150101_190000_GILL_fake_asi.png',
     ]
     return
 
@@ -312,7 +312,7 @@ def test_str():
     )
 
     asi2 = asilib.asi.themis('GILL', time=time_range[0])
-    assert str(asi2) == 'A THEMIS-GILL Imager. time=2008-01-16 10:00:00.020162'
+    assert str(asi2) == 'A THEMIS-GILL Imager. time=2008-01-16 10:00:00'
     return
 
 
