@@ -47,12 +47,8 @@ class Imager:
     """
     The central asilib class to plot, animate, and analyze ASI data.
 
-    .. note::
-        Considering that some ASIs produce enough data to overwhelm your computer's memory,
-        for example the Phantom ASIs in support of the LAMP sounding rocket produced a whopping
-        190 GB/hour of data, by default asilib loads data as needed. This is the "lazy" mode
-        that prioritizes memory at the expense of higher CPU usage. Alternatively, if memory is
-        not a concern, asilib supports an "eager" mode that loads all of the data into memory.
+    Normally asilib.Imager() should not be directly called by users, but by the ASI wrapper functions. 
+    This interface is thoroughly documented in the :ref:`contribute_asi` documentation page.
 
     Parameters
     ----------

@@ -24,7 +24,8 @@ To develop the docs, you must install Sphinx to your operating system. For linux
 
     apt-get install python3-sphinx
 
-Adding a new ASI
+.. _contribute_asi:
+Adding A New ASI
 ----------------
 You can add a new ASI to `asilib` by writing a `wrapper` function that creates and returns an `asilib.Imager` instance. As you read the following interface descriptions, you're welcome to see an example in the `asilib/asi/fake_asi.py` module that contains a `fake_asi()` wrapper function. 
 

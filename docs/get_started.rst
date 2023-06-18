@@ -54,6 +54,10 @@ The entry function downloads the necessary image and skymap files, and passes th
 
 Once initiated, :py:meth:`~asilib.imager.Imager` exposes an intuitive user API to load, plot, animate, and analyze ASI data.
 
+.. note::
+
+   Considering that some ASIs produce enough data to overwhelm your computer's memory, for example the Phantom ASIs in support of the LAMP sounding rocket produced 190 GB/hour of data, by default asilib loads data as needed. This is the "lazy" mode that prioritizes memory at the expense of longer run time. Alternatively, if memory is not a concern, asilib supports an "eager" mode that loads all of the data into memory. Eager mode is triggered by calling the `Imager().data` attribute. 
+
 The architecture described so far is illustrated in the flowchart below.
 
 .. figure:: ./_static/imager_flowchart.png
