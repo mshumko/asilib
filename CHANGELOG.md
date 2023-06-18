@@ -4,7 +4,7 @@
 
 ### Added
 - A tutorial using `asilib.Imager()`.
-- Documentation describing the `asilib.Imager()` interface.
+- Documentation in contribute.rst describing the `asilib.Imager()` interface. Simplified the `asilib.Imager().__init__()` docstring and point to the thorough interface description in the new Contribute section.
 
 ### Changed
 - Refactored how `asilib.Imager()` deals with single- and multi-image instances. Now, each ASI `wrapper` function does not need to load a single image if `time` is specified, `asilib.Imager()` does this instead.
