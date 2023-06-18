@@ -171,7 +171,6 @@ def get_data(
     if (time is None) and (time_range is None):
         raise ValueError("Either time or time_range must be specified.")
 
-    # TODO: refactor_interface
     if time is not None:
         time = utils.validate_time(time)
         file_path = _get_file_path(meta, time)
@@ -184,7 +183,14 @@ def get_data(
         assert abs((image_times[min_idt] - time).total_seconds()) < 10, (
             'Requested image is' ' more than 10 seconds away from the nearest image time.'
         )
-        return {'time': image_times[min_idt], 'image': images[min_idt, ...]}
+    
+        _data = {
+            'time': time,
+            'path': [_get_file_path(meta, start_file_time)],
+            'start_time': [start_file_time],
+            'end_time': [start_file_time + timedelta(hours=1)],
+            'loader': _data_loader,
+        }
 
     else:
         time_range = utils.validate_time_range(time_range)
