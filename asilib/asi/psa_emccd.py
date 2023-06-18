@@ -1,3 +1,7 @@
+"""
+The `Pulsating aurora (PsA) project <http://www.psa-research.org>`_ operated high-speed ground-based cameras in the northern Scandinavia (in Norway, Sweden, Finland, and Alaska) during the XXXX-YYYY years to observe rapid modulation of PsA. These ground-based observations will be compared with the wave and particle data from the ERG satellite, which launched in 2016, in the magnetosphere to understand the connection between the non-linear processes in the magnetosphere and periodic variation of PsA on the ground. Before using this data, please refer to the `rules of the road <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/rules-of-the-road_psa-pwing.pdf>`_ document for data caveats and other prudent considerations. You can find the animations and keogram `online <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi>`_
+"""
+
 from datetime import datetime, timedelta
 import re
 import warnings
@@ -14,12 +18,12 @@ import asilib.io.download as download
 
 image_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/lamp/sav_img/'
 skymap_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/lamp/sav_fov/'
-local_base_dir = asilib.config['ASI_DATA_DIR'] / 'lamp_emccd'
+local_base_dir = asilib.config['ASI_DATA_DIR'] / 'psa_emccd'
 
 
-def lamp(location_code, time=None, time_range=None, redownload=False, missing_ok=True, alt=90):
+def psa_emccd(location_code, time=None, time_range=None, redownload=False, missing_ok=True, alt=90):
     """
-    Create an Imager instance using the LAMP's ground-based EMCCD ASI.
+    Create an Imager instance of the Pulsating Aurora ground-based EMCCD ASI.
 
     Parameters
     ----------
@@ -40,6 +44,15 @@ def lamp(location_code, time=None, time_range=None, redownload=False, missing_ok
         for them locally and online).
     alt: int
         The mapping altitude.
+
+    Example
+    -------
+
+
+    Returns
+    -------
+    :py:meth:`~asilib.imager.Imager`
+        A LAMP EMCCD ASI instance with the time stamps, images, skymaps, and metadata.
     """
     if location_code.lower() == 'vee':
         meta = {
@@ -74,40 +87,25 @@ def lamp(location_code, time=None, time_range=None, redownload=False, missing_ok
         'path': _skymap['path'],
     }
 
-    # Download and find one-minute image file(s). If the user supplies both or
-    # neither time and time_range, the loader will crash here.
     file_paths = _get_files(location_code, time, time_range, redownload, missing_ok)
 
-    if time_range is not None:  # Prepare the loader for multiple files
-        start_times = len(file_paths) * [None]
-        end_times = len(file_paths) * [None]
-        for i, file_path in enumerate(file_paths):
-            date_match = re.search(r'\d{8}_\d{4}', file_path.name)
-            start_times[i] = datetime.strptime(date_match.group(), '%Y%m%d_%H%M')
-            end_times[i] = start_times[i] + timedelta(minutes=1)
+    start_times = len(file_paths) * [None]
+    end_times = len(file_paths) * [None]
+    for i, file_path in enumerate(file_paths):
+        date_match = re.search(r'\d{8}_\d{4}', file_path.name)
+        start_times[i] = datetime.strptime(date_match.group(), '%Y%m%d_%H%M')
+        end_times[i] = start_times[i] + timedelta(minutes=1)
 
-        data = {
-            'path': file_paths,
-            'start_time': start_times,
-            'end_time': end_times,
-            'loader': lamp_reader,
-            'time_range': time_range,
-        }
-
-    # TODO: refactor_interface
-    elif time is not None:  # Load the LAMP file and find the nearest time and image.
-        _times, _images = lamp_reader(file_paths[0])
-        image_index = np.argmin(np.abs([(time - t_i).total_seconds() for t_i in _times]))
-        if np.abs((time - _times[image_index]).total_seconds()) > meta['cadence']:
-            raise IndexError(
-                f'Cannot find a time stamp within of {meta["cadence"]} s of '
-                f'{time}. Closest time stamp is {_times[image_index]}.'
-            )
-        data = {'time': _times[image_index], 'image': _images[image_index]}
+    data = {
+        'path': file_paths,
+        'start_time': start_times,
+        'end_time': end_times,
+        'loader': lamp_reader,
+    }
+    if time_range is not None:
+        data['time_range'] = time_range
     else:
-        raise ValueError(
-            "Not sure we got here. Whoops! You need to provide either a " "time or time_range."
-        )
+        data['time'] = time
     return asilib.Imager(data, meta, skymap)
 
 
@@ -281,20 +279,27 @@ def _transform_azimuth_to_180(skymap):
 
 
 if __name__ == '__main__':
-    import cProfile, pstats, io
-    from pstats import SortKey
+    import matplotlib.pyplot as plt
+    import matplotlib.gridspec
 
-    with cProfile.Profile() as pr:
-        img = lamp(
-            'vee',
-            time_range=[datetime(2022, 3, 5, 11, 0), datetime(2022, 3, 5, 11, 3)],
-            # time=datetime(2022, 3, 5, 11, 0),
-            redownload=False,
+    import asilib.map
+    from asilib.asi.psa_emccd import psa_emccd
+
+    asi = psa_emccd(
+        'vee',
+        time=datetime(2022, 3, 5, 11, 0),
+        redownload=False,
+    )
+
+    fig = plt.figure()
+    gs = matplotlib.gridspec.GridSpec(1, 2, fig)
+    ax = fig.add_subplot(gs[0,0])
+    bx = asilib.map.create_map(
+        lon_bounds=(asi.meta['lon']-7, asi.meta['lon']+7),
+        lat_bounds=(asi.meta['lat']-5, asi.meta['lat']+5), 
+        fig_ax=(fig, gs[0,1])
         )
-    ps = pstats.Stats(pr).sort_stats('cumulative')
-    ps.strip_dirs()
-    print('Cumulative time\n', ps.print_stats(10))
 
-    ps = pstats.Stats(pr).sort_stats('time')
-    ps.strip_dirs()
-    print('Total time\n', ps.print_stats(10))
+    asi.plot_fisheye(ax=ax)
+    asi.plot_map(ax=bx)
+    plt.show()
