@@ -115,34 +115,29 @@ def rego(
             missing_ok,
         )
 
-        # TODO: refactor_interface
-        if time is not None:
-            # Find and load the nearest time stamp
-            _times, _images = _load_rego_pgm(file_paths[0])
-            image_index = np.argmin(np.abs([(time - t_i).total_seconds() for t_i in _times]))
-            if np.abs((time - _times[image_index]).total_seconds()) > 3:
-                raise IndexError(
-                    f'Cannot find a time stamp within 6 seconds of '
-                    f'{time}. Closest time stamp is {_times[image_index]}.'
-                )
-            data = {'time': _times[image_index], 'image': _images[image_index]}
-
-        elif time_range is not None:
-            start_times = len(file_paths) * [None]
-            end_times = len(file_paths) * [None]
-            for i, file_path in enumerate(file_paths):
-                date_match = re.search(r'\d{8}_\d{4}', file_path.name)
-                start_times[i] = datetime.strptime(date_match.group(), '%Y%m%d_%H%M')
-                end_times[i] = start_times[i] + timedelta(minutes=1)
-            data = {
-                'path': file_paths,
-                'start_time': start_times,
-                'time_range': time_range,
-                'end_time': end_times,
-                'loader': _load_rego_pgm,
-            }
+        start_times = len(file_paths) * [None]
+        end_times = len(file_paths) * [None]
+        for i, file_path in enumerate(file_paths):
+            date_match = re.search(r'\d{8}_\d{4}', file_path.name)
+            start_times[i] = datetime.strptime(date_match.group(), '%Y%m%d_%H%M')
+            end_times[i] = start_times[i] + timedelta(minutes=1)
+        data = {
+            'path': file_paths,
+            'start_time': start_times,
+            'end_time': end_times,
+            'loader': _load_rego_pgm,
+        }
     else:
-        data = {'time': time, 'image': None}
+        data = {
+                'path': [],
+                'start_time': [],
+                'end_time': [],
+                'loader': [],
+            }
+    if time_range is not None:
+        data['time_range'] = time_range
+    else:
+        data['time'] = time
 
     # Download and find the appropriate skymap
     if time is not None:

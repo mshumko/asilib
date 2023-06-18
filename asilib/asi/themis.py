@@ -104,18 +104,18 @@ def themis(
             'end_time': end_times,
             'loader': _load_pgm,
         }
-        if time_range is not None:
-            data['time_range'] = time_range
-        else:
-            data['time'] = time
     else:
         data = {
                 'path': [],
                 'start_time': [],
-                'time_range': [],
                 'end_time': [],
                 'loader': [],
             }
+        
+    if time_range is not None:
+        data['time_range'] = time_range
+    else:
+        data['time'] = time
 
     # Download and find the appropriate skymap
     if time is not None:
