@@ -8,7 +8,8 @@
 
 ### Changed
 - Refactored how `asilib.Imager()` deals with single- and multi-image instances. Now, each ASI `wrapper` function does not need to load a single image if `time` is specified, `asilib.Imager()` does this instead.
-- Due to this change, the `asilib.Imager.__getitem__()` method significantly simplified. 
+- Refactored the `themis`, `rego`, `trex_nir`, `lamp_phantom`, and `psa_emccd` wrapper functions with the new `asilib.Imager()` interface.
+- Due to this change, the `asilib.Imager.__getitem__()` method significantly simplified.
 
 ## [0.16.2] - 2023-06-10
 
