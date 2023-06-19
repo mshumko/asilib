@@ -47,7 +47,30 @@ def psa_emccd(location_code, time=None, time_range=None, redownload=False, missi
 
     Example
     -------
-
+    >>> import matplotlib.pyplot as plt
+    >>> import matplotlib.gridspec
+    >>> 
+    >>> import asilib.map
+    >>> from asilib.asi.psa_emccd import psa_emccd
+    >>> 
+    >>> asi = psa_emccd(
+    >>>     'vee',
+    >>>     time=datetime(2022, 3, 5, 11, 0),
+    >>>     redownload=False,
+    >>> )
+    >>> 
+    >>> fig = plt.figure(figsize=(8, 4))
+    >>> gs = matplotlib.gridspec.GridSpec(1, 2, fig)
+    >>> ax = fig.add_subplot(gs[0,0])
+    >>> bx = asilib.map.create_map(
+    >>>     lon_bounds=(asi.meta['lon']-8, asi.meta['lon']+8),
+    >>>     lat_bounds=(asi.meta['lat']-4, asi.meta['lat']+4), 
+    >>>     fig_ax=(fig, gs[0,1])
+    >>>     )
+    >>> ax.axis('off')
+    >>> asi.plot_fisheye(ax=ax)
+    >>> asi.plot_map(ax=bx)
+    >>> plt.show()
 
     Returns
     -------
@@ -276,30 +299,3 @@ def _transform_azimuth_to_180(skymap):
     valid_val_idx = np.where(~np.isnan(skymap['azm']))
     skymap['azm'][valid_val_idx] = np.mod(skymap['azm'][valid_val_idx], 360)
     return skymap
-
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    import matplotlib.gridspec
-
-    import asilib.map
-    from asilib.asi.psa_emccd import psa_emccd
-
-    asi = psa_emccd(
-        'vee',
-        time=datetime(2022, 3, 5, 11, 0),
-        redownload=False,
-    )
-
-    fig = plt.figure()
-    gs = matplotlib.gridspec.GridSpec(1, 2, fig)
-    ax = fig.add_subplot(gs[0,0])
-    bx = asilib.map.create_map(
-        lon_bounds=(asi.meta['lon']-7, asi.meta['lon']+7),
-        lat_bounds=(asi.meta['lat']-5, asi.meta['lat']+5), 
-        fig_ax=(fig, gs[0,1])
-        )
-
-    asi.plot_fisheye(ax=ax)
-    asi.plot_map(ax=bx)
-    plt.show()
