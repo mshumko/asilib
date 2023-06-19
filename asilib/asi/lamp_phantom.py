@@ -112,8 +112,7 @@ def _get_files(location_code, time, time_range, redownload, missing_ok):
         if (len(file_paths) == 0) or redownload:
             d = download.Downloader(image_base_url + f'{filename}')
             file_paths = d.download(local_dir, redownload=redownload, stream=True)
-        else:
-            return file_paths
+        return file_paths
 
     # Find multiple image files.
     if time_range is not None:
@@ -137,7 +136,7 @@ def _get_files(location_code, time, time_range, redownload, missing_ok):
                     ):
                         continue
                     raise
-    return file_paths
+        return file_paths
 
 
 def lamp_reader(path):

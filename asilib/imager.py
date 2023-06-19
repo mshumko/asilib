@@ -1360,15 +1360,29 @@ class Imager:
             If the nearest image timestamp is more than self.meta['cadence'] away
             from time.
         """
-        _times, _images = self._data['loader'](self._data['path'][0])
-        image_index = np.argmin(np.abs([(time - t_i).total_seconds() for t_i in _times]))
-        if np.abs((time - _times[image_index]).total_seconds()) > self.meta['cadence']:
+        # Case where the loader is a function
+        if not inspect.isgeneratorfunction(self._data['loader']):
+            _times, _images = self._data['loader'](self._data['path'][0])
+            image_index = np.argmin(np.abs([(time - t_i).total_seconds() for t_i in _times]))
+            if np.abs((time - _times[image_index]).total_seconds()) > self.meta['cadence']:
+                raise IndexError(
+                    f'Cannot find a time stamp within {self.meta["cadence"]} seconds of '
+                    f'{time}. Closest time stamp is {_times[image_index]}.'
+                )
+            return _times[image_index], _images[image_index, ...]  # Ellipses to load all other dimenstions.
+        # Case where the loader is a generator function.
+        else:
+            gen = self._data['loader'](self._data['path'][0])
+            for _times, _images in gen:
+                image_index = np.argmin(np.abs([(time - t_i).total_seconds() for t_i in _times]))
+                if np.abs((time - _times[image_index]).total_seconds()) < self.meta['cadence']:
+                    return _times[image_index], _images[image_index, ...]
+
             raise IndexError(
                 f'Cannot find a time stamp within {self.meta["cadence"]} seconds of '
-                f'{time}. Closest time stamp is {_times[image_index]}.'
+                f'{time}.'
             )
-        return _times[image_index], _images[image_index, ...]  # Ellipses to load all other dimenstions.
-
+        
     def __str__(self) -> str:
         if ('time' in self._data.keys()) and (self._data['time'] is not None):
             s = (
@@ -1557,7 +1571,12 @@ class Imager:
             _az = self.skymap['az'].copy()
             _az[id_el] = np.nan
 
-            min_az_flat_array = np.nanargmin(np.abs(_az - _azimuths[direction]))
+            try:
+                min_az_flat_array = np.nanargmin(np.abs(_az - _azimuths[direction]))
+            except ValueError as err:
+                if 'All-NaN slice encountered' == str(err):
+                    continue
+                raise
             _direction_pixels[i, :] = np.unravel_index(min_az_flat_array, self.skymap['az'].shape)
 
         _direction_pixels = _direction_pixels[~np.isnan(_direction_pixels[:, 0]), :]
