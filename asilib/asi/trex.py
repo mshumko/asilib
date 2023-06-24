@@ -140,7 +140,6 @@ def trex_nir(
         data = {
             'path': file_paths,
             'start_time': start_times,
-            'time_range': time_range,
             'end_time': end_times,
             'loader': _load_nir_pgm,
         }
@@ -149,7 +148,7 @@ def trex_nir(
                 'path': [],
                 'start_time': [],
                 'end_time': [],
-                'loader': [],
+                'loader': None,
             }
 
     if time_range is not None:
