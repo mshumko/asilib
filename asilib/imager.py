@@ -84,7 +84,7 @@ class Imager:
         label: bool = True,
         color_map: str = None,
         color_bounds: List[float] = None,
-        color_norm: str = 'log',
+        color_norm: str = None,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
@@ -106,7 +106,9 @@ class Imager:
             The lower and upper values of the color scale. The default is: low=1st_quartile and
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
         color_norm: str
-            Set the 'lin' linear or 'log' logarithmic color normalization.
+            Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
+            the color normalization will be taken from the ASI array (if specified), and if not 
+            specified it will default to logarithmic.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -184,7 +186,9 @@ class Imager:
             The lower and upper values of the color scale. The default is: low=1st_quartile and
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
         color_norm: str
-            Set the 'lin' linear or 'log' logarithmic color normalization.
+            Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
+            the color normalization will be taken from the ASI array (if specified), and if not 
+            specified it will default to logarithmic.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -240,7 +244,7 @@ class Imager:
         label: bool = True,
         color_map: str = None,
         color_bounds: List[float] = None,
-        color_norm: str = 'log',
+        color_norm: str = None,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
@@ -274,7 +278,9 @@ class Imager:
             The lower and upper values of the color scale. The default is: low=1st_quartile and
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
         color_norm: str
-            Set the 'lin' linear or 'log' logarithmic color normalization.
+            Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
+            the color normalization will be taken from the ASI array (if specified), and if not 
+            specified it will default to logarithmic.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -403,7 +409,7 @@ class Imager:
         ocean_color: str = 'w',
         color_map: str = None,
         color_bounds: List[float] = None,
-        color_norm: str = 'log',
+        color_norm: str = None,
         min_elevation: float = 10,
         asi_label: bool = True,
         pcolormesh_kwargs: dict = {},
@@ -439,7 +445,9 @@ class Imager:
             automatically set it to low=1st_quartile and
             high=min(3rd_quartile, 10*1st_quartile)
         color_norm: str
-            Sets the 'lin' linear or 'log' logarithmic color normalization.
+            Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
+            the color normalization will be taken from the ASI array (if specified), and if not 
+            specified it will default to logarithmic.
         pcolormesh_kwargs: dict
             A dictionary of keyword arguments (kwargs) to pass directly into
             plt.pcolormesh.
@@ -552,7 +560,9 @@ class Imager:
             The lower and upper values of the color scale. The default is: low=1st_quartile and
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
         color_norm: str
-            Set the 'lin' linear or 'log' logarithmic color normalization.
+            Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
+            the color normalization will be taken from the ASI array (if specified), and if not 
+            specified it will default to logarithmic.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -603,7 +613,7 @@ class Imager:
         ocean_color: str = 'w',
         color_map: str = None,
         color_bounds: List[float] = None,
-        color_norm: str = 'log',
+        color_norm: str = None,
         min_elevation: float = 10,
         pcolormesh_kwargs: dict = {},
         asi_label: bool = True,
@@ -647,7 +657,9 @@ class Imager:
             The lower and upper values of the color scale. The default is: low=1st_quartile and
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
         color_norm: str
-            Set the 'lin' linear or 'log' logarithmic color normalization.
+            Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
+            the color normalization will be taken from the ASI array (if specified), and if not 
+            specified it will default to logarithmic.
         min_elevation: float
             Masks the pixels below min_elevation degrees.
         pcolormesh_kwargs: dict
@@ -884,7 +896,7 @@ class Imager:
         minimum_elevation: float = 0,
         color_map: str = None,
         color_bounds: List[float] = None,
-        color_norm: str = 'log',
+        color_norm: str = None,
         pcolormesh_kwargs={},
     ) -> Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
         """
@@ -913,7 +925,9 @@ class Imager:
             The lower and upper values of the color scale. The default is: low=1st_quartile and
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
         color_norm: str
-            Set the 'lin' linear or 'log' logarithmic color normalization.
+            Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
+            the color normalization will be taken from the ASI array (if specified), and if not 
+            specified it will default to logarithmic.
         pcolormesh_kwargs: dict
             A dictionary of keyword arguments (kwargs) to pass directly into
             plt.pcolormesh.
@@ -1247,7 +1261,7 @@ class Imager:
                 times, images = self._data['loader'](path)
 
                 idt = np.where(
-                    (times > self._data['time_range'][0]) & (times <= self._data['time_range'][1])
+                    (times >= self._data['time_range'][0]) & (times <= self._data['time_range'][1])
                 )[0]
                 yield times[idt], images[idt]
 
@@ -1256,7 +1270,7 @@ class Imager:
 
                 for time_chunk, image_chunk in gen:
                     idt = np.where(
-                        (time_chunk > self._data['time_range'][0])
+                        (time_chunk >= self._data['time_range'][0])
                         & (time_chunk <= self._data['time_range'][1])
                     )[0]
                     yield time_chunk[idt], image_chunk[idt]
@@ -1429,12 +1443,16 @@ class Imager:
         else:
             color_map = color_map
 
+        # If color_norm is specified by the method, it overrules the ASI array settings
+        # or Imager setting. If the method's color_norm is not specified, check if the 
+        # ASI has it specified in self.plot_settings. Lastly, if the ASI does not have 
+        # it specified, default to a logarithmic color_norm.
         if color_norm is None:
             if 'color_norm' in self.plot_settings.keys():
                 color_norm = self.plot_settings['color_norm']
             else:
                 color_norm = 'log'
-        elif color_norm == 'log':
+        if color_norm == 'log':
             color_norm = colors.LogNorm(vmin=color_bounds[0], vmax=color_bounds[1])
         elif color_norm == 'lin':
             color_norm = colors.Normalize(vmin=color_bounds[0], vmax=color_bounds[1])
