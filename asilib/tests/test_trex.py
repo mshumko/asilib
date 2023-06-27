@@ -37,8 +37,8 @@ def test_trex_nir_time_range():
     asi.data
     assert asi.data.time[0] == datetime(2020, 3, 21, 5, 0, 0)
     assert asi.data.time[-1] == datetime(2020, 3, 21, 5, 9, 54)
-    assert asi.data.time.shape == (99,)
-    assert asi.data.image.shape == (99, 256, 256)
+    assert asi.data.time.shape == (100,)
+    assert asi.data.image.shape == (100, 256, 256)
     return
 
 def test_trex_nir_no_file():
