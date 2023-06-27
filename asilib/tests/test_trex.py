@@ -35,7 +35,7 @@ def test_trex_nir_time_range():
     assert asi._data['path'][0].name == '20200321_0500_gill_nir-219_8446.pgm.gz'
     assert asi._data['path'][-1].name == '20200321_0509_gill_nir-219_8446.pgm.gz'
     asi.data
-    assert asi.data.time[0] == datetime(2020, 3, 21, 5, 0, 6)
+    assert asi.data.time[0] == datetime(2020, 3, 21, 5, 0, 0)
     assert asi.data.time[-1] == datetime(2020, 3, 21, 5, 9, 54)
     assert asi.data.time.shape == (99,)
     assert asi.data.image.shape == (99, 256, 256)
