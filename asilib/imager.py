@@ -1708,7 +1708,7 @@ class Imager:
         A machine-readable representation of Imager.
         """
         params = (
-            f'data={self.file_info}, skymap={self.skymap}, '
+            f'file_info={self.file_info}, skymap={self.skymap}, '
             f'meta={self.meta}, plot_settings={self.plot_settings}'
         )
         return f'{self.__class__.__qualname__}(' + params + ')'

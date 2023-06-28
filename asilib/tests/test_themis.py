@@ -20,8 +20,8 @@ def test_themis_time():
     """
     # Calls the download function
     asi = asilib.asi.themis('gill', time='2014-05-05T04:49:10', redownload=True)
-    # asi._data should not be accessed by the user.
-    assert asi._data['time'] == datetime(2014, 5, 5, 4, 49, 10)
+    # asi.file_info should not be accessed by the user.
+    assert asi.file_info['time'] == datetime(2014, 5, 5, 4, 49, 10)
     # But asi.data should be
     assert asi.data.time == datetime(2014, 5, 5, 4, 49, 9, 37070)
     assert asi.data[0] == datetime(2014, 5, 5, 4, 49, 9, 37070)
@@ -31,7 +31,7 @@ def test_themis_time():
     assert asi.skymap['path'].name == 'themis_skymap_gill_20130103-%2B_vXX.sav'
     # Does not call the download function
     asi2 = asilib.asi.themis('gill', time='2014-05-05T04:49:10', redownload=False)
-    assert asi2._data['time'] == datetime(2014, 5, 5, 4, 49, 10)
+    assert asi2.file_info['time'] == datetime(2014, 5, 5, 4, 49, 10)
     return
 
 
@@ -40,8 +40,8 @@ def test_themis_time_range():
     Tests that multiple files are loaded using themis()'s time_range kwarg.
     """
     img = asilib.asi.themis('gill', time_range=['2014-05-05T05:10', '2014-05-05T05:12'])
-    assert img._data['path'][0].name == '20140505_0510_gill_themis19_full.pgm.gz'
-    assert img._data['path'][1].name == '20140505_0511_gill_themis19_full.pgm.gz'
+    assert img.file_info['path'][0].name == '20140505_0510_gill_themis19_full.pgm.gz'
+    assert img.file_info['path'][1].name == '20140505_0511_gill_themis19_full.pgm.gz'
 
     assert img.data.time[0] == datetime(2014, 5, 5, 5, 10, 0, 30996)
     assert img.data.time[-1] == datetime(2014, 5, 5, 5, 11, 57, 23046)
@@ -74,9 +74,9 @@ def test_themis_partial_files():
         missing_ok=True,
         redownload=False,
     )
-    assert img._data['path'][0].name == '20110707_0421_pina_themis18_full.pgm.gz'
-    assert img._data['path'][1].name == '20110707_0422_pina_themis18_full.pgm.gz'
-    assert img._data['path'][2].name == '20110707_0423_pina_themis18_full.pgm.gz'
+    assert img.file_info['path'][0].name == '20110707_0421_pina_themis18_full.pgm.gz'
+    assert img.file_info['path'][1].name == '20110707_0422_pina_themis18_full.pgm.gz'
+    assert img.file_info['path'][2].name == '20110707_0423_pina_themis18_full.pgm.gz'
     return
 
 

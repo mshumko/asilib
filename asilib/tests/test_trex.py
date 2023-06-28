@@ -32,8 +32,8 @@ def test_trex_nir_time_range():
     """
     time_range = ('2020-03-21T05:00', '2020-03-21T05:10')
     asi = asilib.asi.trex_nir('gill', time_range=time_range)
-    assert asi._data['path'][0].name == '20200321_0500_gill_nir-219_8446.pgm.gz'
-    assert asi._data['path'][-1].name == '20200321_0509_gill_nir-219_8446.pgm.gz'
+    assert asi.file_info['path'][0].name == '20200321_0500_gill_nir-219_8446.pgm.gz'
+    assert asi.file_info['path'][-1].name == '20200321_0509_gill_nir-219_8446.pgm.gz'
     asi.data
     assert asi.data.time[0] == datetime(2020, 3, 21, 5, 0, 0)
     assert asi.data.time[-1] == datetime(2020, 3, 21, 5, 9, 54)
@@ -65,9 +65,9 @@ def test_trex_nir_no_file():
 #         missing_ok=True,
 #         redownload=True,
 #     )
-#     assert img._data['path'][0].name == '20110707_0421_pina_themis18_full.pgm.gz'
-#     assert img._data['path'][1].name == '20110707_0422_pina_themis18_full.pgm.gz'
-#     assert img._data['path'][2].name == '20110707_0423_pina_themis18_full.pgm.gz'
+#     assert img.file_info['path'][0].name == '20110707_0421_pina_themis18_full.pgm.gz'
+#     assert img.file_info['path'][1].name == '20110707_0422_pina_themis18_full.pgm.gz'
+#     assert img.file_info['path'][2].name == '20110707_0423_pina_themis18_full.pgm.gz'
 #     return
 
 

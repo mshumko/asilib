@@ -34,7 +34,7 @@ def test_time_range():
     assert asi.data.time.shape == (1798,)
     assert asi.data.image.shape == (1798, 512, 512)
     assert np.isclose(asi.data.image.mean(), 14.048684923216552)
-    assert asi._data['path'] == [
+    assert asi.file_info['path'] == [
         '20150101_150000_GILL_fake_asi.png',
         '20150101_160000_GILL_fake_asi.png',
         '20150101_170000_GILL_fake_asi.png',
