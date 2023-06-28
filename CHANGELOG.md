@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.17.1] - 2023-06-28
+## [0.17.0] - 2023-06-24
 
 ### Added
 - A tutorial using `asilib.Imager()`.
