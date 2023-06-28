@@ -98,14 +98,14 @@ def themis(
             date_match = re.search(r'\d{8}_\d{4}', file_path.name)
             start_times[i] = datetime.strptime(date_match.group(), '%Y%m%d_%H%M')
             end_times[i] = start_times[i] + timedelta(minutes=1)
-        data = {
+        file_info = {
             'path': file_paths,
             'start_time': start_times,
             'end_time': end_times,
             'loader': _load_pgm,
         }
     else:
-        data = {
+        file_info = {
                 'path': [],
                 'start_time': [],
                 'end_time': [],
@@ -113,9 +113,9 @@ def themis(
             }
         
     if time_range is not None:
-        data['time_range'] = time_range
+        file_info['time_range'] = time_range
     else:
-        data['time'] = time
+        file_info['time'] = time
 
     # Download and find the appropriate skymap
     if time is not None:
@@ -146,7 +146,7 @@ def themis(
         'cadence': 3,
         'resolution': (256, 256),
     }
-    return imager(data, meta, skymap)
+    return imager(file_info, meta, skymap)
 
 
 def themis_skymap(location_code, time, redownload):

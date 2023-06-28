@@ -52,8 +52,9 @@ class Imager:
 
     Parameters
     ----------
-    data: dict
-        Specifies image file paths, start end end times, and the loader function,
+    file_info: dict
+        Specifies image file paths, start end end times for each file, the loader function,
+        and if the user needs one or multiple images.
     meta: dict
         Specifies ASI metadata that describes the ASI name, location, cadence, and pixel resolution.
     skymap: dict
@@ -66,12 +67,12 @@ class Imager:
 
     def __init__(
         self,
-        data: dict,
+        file_info: dict,
         meta: dict,
         skymap: dict,
         plot_settings: dict = {},
     ) -> None:
-        self._data = {k.lower(): v for k, v in data.items()}
+        self.file_info = {k.lower(): v for k, v in file_info.items()}
         self.meta = {k.lower(): v for k, v in meta.items()}
         self.skymap = {k.lower(): v for k, v in skymap.items()}
         self.plot_settings = {k.lower(): v for k, v in plot_settings.items()}
@@ -154,7 +155,7 @@ class Imager:
         if ax is None:
             _, ax = plt.subplots()
 
-        self_copy = self.__getitem__(self._data['time'])
+        self_copy = self.__getitem__(self.file_info['time'])
         time, image = self_copy.data
 
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
@@ -347,12 +348,12 @@ class Imager:
             asilib.config['ASI_DATA_DIR'],
             'animations',
             'images',
-            f'{self._data["time_range"][0].strftime("%Y%m%d_%H%M%S")}_{self.meta["array"].lower()}_'
+            f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_{self.meta["array"].lower()}_'
             f'{self.meta["location"].lower()}_fisheye',
         )
         self.animation_name = (
-            f'{self._data["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
-            f'{self._data["time_range"][-1].strftime("%H%M%S")}_'
+            f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
+            f'{self.file_info["time_range"][-1].strftime("%H%M%S")}_'
             f'{self.meta["array"].lower()}_{self.meta["location"].lower()}_fisheye.{movie_container}'
         )
         movie_save_path = image_save_dir.parents[1] / self.animation_name
@@ -471,7 +472,7 @@ class Imager:
         >>> plt.tight_layout()
         >>> plt.show()
         """
-        assert 'time' in self._data.keys(), (
+        assert 'time' in self.file_info.keys(), (
             f'Need to specify an image time.'
         )
         for _skymap_key in ['lat', 'lon', 'el']:
@@ -488,7 +489,7 @@ class Imager:
                 ocean_color=ocean_color,
             )
 
-        self_copy = self.__getitem__(self._data['time'])
+        self_copy = self.__getitem__(self.file_info['time'])
         _, image = self_copy.data
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
@@ -734,12 +735,12 @@ class Imager:
             asilib.config['ASI_DATA_DIR'],
             'animations',
             'images',
-            f'{self._data["time_range"][0].strftime("%Y%m%d_%H%M%S")}_{self.meta["array"].lower()}_'
+            f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_{self.meta["array"].lower()}_'
             f'{self.meta["location"].lower()}_map',
         )
         self.animation_name = (
-            f'{self._data["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
-            f'{self._data["time_range"][-1].strftime("%H%M%S")}_'
+            f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
+            f'{self.file_info["time_range"][-1].strftime("%H%M%S")}_'
             f'{self.meta["array"].lower()}_{self.meta["location"].lower()}_map.{movie_container}'
         )
         movie_save_path = image_save_dir.parents[1] / self.animation_name
@@ -862,7 +863,7 @@ class Imager:
             start_time_index = 0
             _progressbar = utils.progressbar(
                 self.iter_files(),
-                iter_length=np.array(self._data['path']).shape[0],
+                iter_length=np.array(self.file_info['path']).shape[0],
                 text=f'{self.meta["array"]} {self.meta["location"]} keogram',
             )
             for file_times, file_images in _progressbar:
@@ -882,7 +883,7 @@ class Imager:
         if self._keogram.shape[0] == 0:
             raise ValueError(
                 f"The keogram is empty for {self.meta['array']}/{self.meta['location']} "
-                f"during {self._data['time_range']}. The images likely don't exist "
+                f"during {self.file_info['time_range']}. The images likely don't exist "
                 f"in this time interval."
             )
         return self._keogram_time, self._geogram_lat, self._keogram
@@ -990,7 +991,7 @@ class Imager:
 
         if title:
             ax.set_title(
-                f'{self._data["time_range"][0].date()} | {self.meta["array"]}-{self.meta["location"]} keogram'
+                f'{self.file_info["time_range"][0].date()} | {self.meta["array"]}-{self.meta["location"]} keogram'
             )
         return ax, pcolormesh_obj
 
@@ -1080,7 +1081,7 @@ class Imager:
                 _geo_lats,
                 _geo_lons,
                 self.skymap['alt'],
-                self._data['time_range'][0],
+                self.file_info['time_range'][0],
                 method_code="G2A",
             )[0]
             return _aacgm_lats
@@ -1113,7 +1114,7 @@ class Imager:
             elif isinstance(_slice.start, (datetime.datetime, pd.Timestamp)):
                 start_time = _slice.start
             elif _slice.start is None:
-                start_time = self._data['time_range'][0]
+                start_time = self.file_info['time_range'][0]
             else:
                 raise ValueError(
                     f'The start index can only be a time object, string, or None. '
@@ -1125,7 +1126,7 @@ class Imager:
             elif isinstance(_slice.stop, (datetime.datetime, pd.Timestamp)):
                 end_time = _slice.stop
             elif _slice.stop is None:
-                end_time = self._data['time_range'][1]
+                end_time = self.file_info['time_range'][1]
             else:
                 raise ValueError(
                     f'The start index can only be a time object, string, or None. '
@@ -1135,14 +1136,14 @@ class Imager:
             if _slice.step is not None:
                 raise NotImplementedError
 
-            new_data = copy.copy(self._data)
+            new_data = copy.copy(self.file_info)
             new_data['time_range'] = [start_time, end_time]
             # new_data['start_time'] = new_data['start_time'][start_file_i:end_file_i]
             # new_data['end_time'] = new_data['end_time'][start_file_i:end_file_i]
             # new_data['path'] = new_data['path'][start_file_i:end_file_i]
             files = np.where(
-                (start_time <= np.array(self._data['end_time']))
-                & (end_time >= np.array(self._data['start_time']))
+                (start_time <= np.array(self.file_info['end_time']))
+                & (end_time >= np.array(self.file_info['start_time']))
             )[0]
             new_data['start_time'] = np.array(new_data['start_time'])[files]
             new_data['end_time'] = np.array(new_data['end_time'])[files]
@@ -1162,22 +1163,22 @@ class Imager:
                 slice_time = _slice
 
             file_index = np.where(
-                (slice_time >= np.array(self._data['start_time']))
-                & (slice_time < np.array(self._data['end_time']))
+                (slice_time >= np.array(self.file_info['start_time']))
+                & (slice_time < np.array(self.file_info['end_time']))
             )[0]
             if len(file_index) != 1:
                 raise FileNotFoundError(
                     f'{slice_time} out of imager range: '
-                    f'{self._data["start_time"][0]}-{self._data["end_time"][-1]}'
+                    f'{self.file_info["start_time"][0]}-{self.file_info["end_time"][-1]}'
                 )
             file_index = file_index[0]
 
             new_data = {
                 'time':slice_time,
-                'path':[self._data['path'][file_index]],
-                'start_time': [self._data['start_time'][file_index]],
-                'end_time': [self._data['end_time'][file_index]],
-                'loader':self._data['loader']
+                'path':[self.file_info['path'][file_index]],
+                'start_time': [self.file_info['start_time'][file_index]],
+                'end_time': [self.file_info['end_time'][file_index]],
+                'loader':self.file_info['loader']
             }
 
             new_meta = copy.copy(self.meta)
@@ -1247,31 +1248,31 @@ class Imager:
                 2008-01-16 10:03:00.050822 2008-01-16 10:03:57.020254 (20, 256, 256)
                 2008-01-16 10:04:00.030448 2008-01-16 10:04:57.046170 (20, 256, 256)
         """
-        self._loader_is_gen = inspect.isgeneratorfunction(self._data['loader'])
-        if 'time_range' not in self._data.keys():
+        self._loader_is_gen = inspect.isgeneratorfunction(self.file_info['loader'])
+        if 'time_range' not in self.file_info.keys():
             raise KeyError('Imager was not instantiated with a time_range.')
 
-        for path in self._data['path']:
+        for path in self.file_info['path']:
             # Check if the loader function is a generator. If not, asilib
             # will load one image file at a time and assume that opening one file
             # won't overwhelm the PC's memory. If loader is a generator,
             # on the other hand, we need to loop over every chunk of data
             # yielded by the generator and over the timestamps in each chunk.
             if not self._loader_is_gen:
-                times, images = self._data['loader'](path)
+                times, images = self.file_info['loader'](path)
 
                 idt = np.where(
-                    (times >= self._data['time_range'][0]) & (times <= self._data['time_range'][1])
+                    (times >= self.file_info['time_range'][0]) & (times <= self.file_info['time_range'][1])
                 )[0]
                 yield times[idt], images[idt]
 
             else:
-                gen = self._data['loader'](path)
+                gen = self.file_info['loader'](path)
 
                 for time_chunk, image_chunk in gen:
                     idt = np.where(
-                        (time_chunk >= self._data['time_range'][0])
-                        & (time_chunk <= self._data['time_range'][1])
+                        (time_chunk >= self.file_info['time_range'][0])
+                        & (time_chunk <= self.file_info['time_range'][1])
                     )[0]
                     yield time_chunk[idt], image_chunk[idt]
         return
@@ -1305,7 +1306,7 @@ class Imager:
         """
         Estimate the maximum number of time stamps for the Imager's time range.
         """
-        n_sec = (self._data['time_range'][1] - self._data['time_range'][0]).total_seconds()
+        n_sec = (self.file_info['time_range'][1] - self.file_info['time_range'][0]).total_seconds()
         # +2 is for when time_range includes the start and end time stamps.
         # This will be trimmed later.
         return int(n_sec / self.meta['cadence']) + 2
@@ -1323,7 +1324,7 @@ class Imager:
         """
         _img_data_type = namedtuple('data', ['time', 'image'])
 
-        if 'time_range' in self._data.keys():
+        if 'time_range' in self.file_info.keys():
             # If already run.
             if hasattr(self, '_times') and hasattr(self, '_images'):
                 return _img_data_type(self._times, self._images)
@@ -1342,14 +1343,14 @@ class Imager:
             self._images = self._images[valid_ind]
             return _img_data_type(self._times, self._images)
 
-        elif 'time' in self._data.keys():
-            return _img_data_type(*self._load_image(self._data['time']))
+        elif 'time' in self.file_info.keys():
+            return _img_data_type(*self._load_image(self.file_info['time']))
 
         else:
             raise ValueError(
                 f'This imager instance does not contain either the '
                 f'"time" or "time_range" data variables. The data '
-                f'variables are {self._data.keys()}.'
+                f'variables are {self.file_info.keys()}.'
             )
         
     def _load_image(self, time):
@@ -1375,8 +1376,8 @@ class Imager:
             from time.
         """
         # Case where the loader is a function
-        if not inspect.isgeneratorfunction(self._data['loader']):
-            _times, _images = self._data['loader'](self._data['path'][0])
+        if not inspect.isgeneratorfunction(self.file_info['loader']):
+            _times, _images = self.file_info['loader'](self.file_info['path'][0])
             image_index = np.argmin(np.abs([(time - t_i).total_seconds() for t_i in _times]))
             if np.abs((time - _times[image_index]).total_seconds()) > self.meta['cadence']:
                 raise IndexError(
@@ -1386,7 +1387,7 @@ class Imager:
             return _times[image_index], _images[image_index, ...]  # Ellipses to load all other dimenstions.
         # Case where the loader is a generator function.
         else:
-            gen = self._data['loader'](self._data['path'][0])
+            gen = self.file_info['loader'](self.file_info['path'][0])
             for _times, _images in gen:
                 image_index = np.argmin(np.abs([(time - t_i).total_seconds() for t_i in _times]))
                 if np.abs((time - _times[image_index]).total_seconds()) < self.meta['cadence']:
@@ -1398,15 +1399,15 @@ class Imager:
             )
         
     def __str__(self) -> str:
-        if ('time' in self._data.keys()) and (self._data['time'] is not None):
+        if ('time' in self.file_info.keys()) and (self.file_info['time'] is not None):
             s = (
                 f'A {self.meta["array"]}-{self.meta["location"]} Imager. '
-                f'time={self._data["time"]}'
+                f'time={self.file_info["time"]}'
             )
-        elif ('time_range' in self._data.keys()) and (self._data['time_range'] is not None):
+        elif ('time_range' in self.file_info.keys()) and (self.file_info['time_range'] is not None):
             s = (
                 f'A {self.meta["array"]}-{self.meta["location"]} Imager. '
-                f'time_range={self._data["time_range"]}'
+                f'time_range={self.file_info["time_range"]}'
             )
         return s
 
@@ -1707,7 +1708,7 @@ class Imager:
         A machine-readable representation of Imager.
         """
         params = (
-            f'data={self._data}, skymap={self.skymap}, '
+            f'data={self.file_info}, skymap={self.skymap}, '
             f'meta={self.meta}, plot_settings={self.plot_settings}'
         )
         return f'{self.__class__.__qualname__}(' + params + ')'

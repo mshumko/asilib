@@ -31,23 +31,23 @@ You can add a new ASI to `asilib` by writing a `wrapper` function that creates a
 
 The `asilib.Imager` interface consists of four dictionaries:
 
-- `data`,
+- `file_info`,
 - `skymap`,
 - `meta`, and
 - `plot_settings` (optional) 
 
 
-Data dictionary
-^^^^^^^^^^^^^^^
+file_info dictionary
+^^^^^^^^^^^^^^^^^^^^
 
-The `data` dictionary provides information on when and how to load ASI images. See the two code snippets below for the required key-value pairs for loading one or multiple images.
+The `file_info` dictionary provides information on when and how to load ASI images. See the two code snippets below for the required key-value pairs for loading one or multiple images.
 
 
 **One Image**
 
 .. code-block:: python
 
-    data = {
+    file_info = {
         # The time to load the image
         'time': datetime.datetime(),
         # Specify the path the relevant image file. List length is 1.
@@ -69,7 +69,7 @@ The function specified by the `loader` key is called by `asilib.Imager` when it 
 
 .. code-block:: python
 
-    data = {
+    file_info = {
         # The start and end times to load the images. The Tuple length is 2.
         'time_range': Tuple[datetime.datetime()],  
         # The paths to all relevant image file. List length is N.

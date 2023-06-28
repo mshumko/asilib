@@ -50,8 +50,8 @@ def fake_asi(
 
     meta = get_meta(_location)
     skymap = get_skymap(meta, alt=alt, pixel_center=pixel_center)
-    data = get_data(meta, time=time, time_range=time_range)
-    return asilib.Imager(data, meta, skymap)
+    file_info = get_file_info(meta, time=time, time_range=time_range)
+    return asilib.Imager(file_info, meta, skymap)
 
 
 def asi_info() -> pd.DataFrame:
@@ -148,7 +148,7 @@ def get_skymap(meta: dict, alt: int, pixel_center: bool = True):
     return skymap
 
 
-def get_data(
+def get_file_info(
     meta: dict, time: utils._time_type = None, time_range: utils._time_range_type = None
 ) -> dict:
     """

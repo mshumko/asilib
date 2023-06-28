@@ -121,23 +121,23 @@ def rego(
             date_match = re.search(r'\d{8}_\d{4}', file_path.name)
             start_times[i] = datetime.strptime(date_match.group(), '%Y%m%d_%H%M')
             end_times[i] = start_times[i] + timedelta(minutes=1)
-        data = {
+        file_info = {
             'path': file_paths,
             'start_time': start_times,
             'end_time': end_times,
             'loader': _load_rego_pgm,
         }
     else:
-        data = {
+        file_info = {
                 'path': [],
                 'start_time': [],
                 'end_time': [],
                 'loader': [],
             }
     if time_range is not None:
-        data['time_range'] = time_range
+        file_info['time_range'] = time_range
     else:
-        data['time'] = time
+        file_info['time'] = time
 
     # Download and find the appropriate skymap
     if time is not None:
@@ -171,7 +171,7 @@ def rego(
     plot_settings = {
         'color_map': matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
     }
-    return imager(data, meta, skymap, plot_settings=plot_settings)
+    return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
 def rego_info() -> pd.DataFrame:

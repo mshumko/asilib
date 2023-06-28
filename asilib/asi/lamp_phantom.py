@@ -80,17 +80,17 @@ def lamp_phantom(location_code, time=None, time_range=None, redownload=False, mi
         start_times[i] = datetime.strptime(f'20220305_{date_match.group()}', '%Y%m%d_%H%M')
         end_times[i] = start_times[i] + timedelta(minutes=1)
 
-    data = {
+    file_info = {
         'path': file_paths,
         'start_time': start_times,
         'end_time': end_times,
         'loader': lamp_reader,
     }
     if time_range is not None:
-        data['time_range'] = time_range
+        file_info['time_range'] = time_range
     else:
-        data['time'] = time
-    return asilib.Imager(data, meta, skymap)
+        file_info['time'] = time
+    return asilib.Imager(file_info, meta, skymap)
 
 
 def _get_files(location_code, time, time_range, redownload, missing_ok):
