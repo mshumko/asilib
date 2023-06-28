@@ -321,10 +321,10 @@ def test_repr():
     Tests the __repr__() for printing machine-readable information about the imager
     """
     asi = asilib.Imager(
-        data={'data': 0}, skymap={'skymap': 1}, meta={'meta': 2}, plot_settings={'plot_settings': 3}
+        file_info={'test_variable': 0}, skymap={'skymap': 1}, meta={'meta': 2}, plot_settings={'plot_settings': 3}
     )
     assert repr(asi) == (
-        "Imager(data={'data': 0}, skymap={'skymap': 1}, meta={'meta': 2},"
+        "Imager(file_info={'test_variable': 0}, skymap={'skymap': 1}, meta={'meta': 2},"
         " plot_settings={'plot_settings': 3})"
     )
     return
