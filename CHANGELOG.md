@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.17.1] - 2023-06-28
+### Changed
+- Fixed the `color_norm` keyword argument in `asilib.Imager()` methods. Now it defaults to `None` so the normalization is correctly overridden. Also, the `color_norm` docstring is updated to clarify the hierarchy.
+- Changed the `data` to `file_info` argument in `asilib.Imager()`, and all ASI loaders, to more clearly convey the purpose of the variable.
+
 ## [0.17.0] - 2023-06-24
 
 ### Added
@@ -10,8 +15,6 @@
 - Refactored how `asilib.Imager()` deals with single- and multi-image instances. Now, each ASI `wrapper` function does not need to load a single image if `time` is specified, `asilib.Imager()` does this instead.
 - Refactored the `themis`, `rego`, `trex_nir`, `lamp_phantom`, and `psa_emccd` wrapper functions with the new `asilib.Imager()` interface.
 - Due to this change, the `asilib.Imager.__getitem__()` method significantly simplified.
-- Fixed the `color_norm` keyword argument in `asilib.Imager()` methods. Now it defaults to `None` so the normalization is correctly overridden. Also, the `color_norm` docstring is updated to clarify the hierarchy.
-- Changed the `data` to `file_info` argument in `asilib.Imager()`, and all ASI loaders, to more clearly convey the purpose of the variable.
 
 ## [0.16.2] - 2023-06-10
 
