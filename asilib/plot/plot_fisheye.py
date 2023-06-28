@@ -27,6 +27,10 @@ def plot_fisheye(
     """
     Plots one fisheye image, oriented with North on the top, and East on the right of the image.
 
+    .. warning::
+        Use :py:meth:`~asilib.imager.Imager.plot_fisheye()` instead. This function will be 
+        removed in or after December 2023.
+
     Parameters
     ----------
     asi_array_code: str
@@ -102,6 +106,8 @@ def plot_fisheye(
     | ax.axis('off')
     | plt.show()
     """
+    warnings.warn('DeprecationWarning', "Use asilib.Imager.plot_fisheye() "
+                  "instead. This function will be removed in or after December 2023.")
     if ax is None:
         _, ax = plt.subplots()
 

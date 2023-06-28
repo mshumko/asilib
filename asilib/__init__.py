@@ -46,3 +46,5 @@ from asilib.imager import Imager
 from asilib.conjunction import Conjunction
 from asilib.asi.themis import themis, themis_info, themis_skymap
 from asilib.asi.rego import rego, rego_info, rego_skymap
+
+__all__ = ['Imager', 'Conjunction']  # So Sphinx shortens the name. See https://stackoverflow.com/a/66743762

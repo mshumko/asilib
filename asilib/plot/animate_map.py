@@ -3,6 +3,7 @@ import importlib
 import pathlib
 from datetime import datetime
 from typing import List, Union, Generator, Tuple
+import warnings
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -35,6 +36,10 @@ def animate_map(
     the full argument list.
 
     Note: To make animations, you'll need to install ``ffmpeg`` in your operating system.
+
+    .. warning::
+        Use :py:meth:`~asilib.imager.Imager.animate_map()` instead. This function will be 
+        removed in or after December 2023.
 
     Parameters
     ----------
@@ -71,6 +76,9 @@ def animate_map(
     | asilib.animate_map('THEMIS', 'FSMI', time_range, map_alt=map_alt)
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')
     """
+    warnings.warn('DeprecationWarning', "Use asilib.Imager.animate_map() "
+                  "instead. This function will be removed in or after December 2023.")
+
     map_generator = animate_map_generator(
         asi_array_code, location_code, time_range, map_alt, **kwargs
     )
@@ -111,6 +119,10 @@ def animate_map_generator(
     Once this generator is initiated with the name `gen`, for example, but **before**
     the for loop, you can get the ASI images and times by calling `gen.send('data')`.
     This will yield a collections.namedtuple with `time` and `images` attributes.
+
+    .. warning::
+        Use :py:meth:`~asilib.imager.Imager.animate_map_gen()` instead. This function will be 
+        removed in or after December 2023.
 
     Parameters
     ----------
@@ -207,6 +219,8 @@ def animate_map_generator(
     |
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')
     """
+    warnings.warn('DeprecationWarning', "Use asilib.Imager.animate_fisheye_gen() "
+                  "instead. This function will be removed in or after December 2023.")
     try:
         image_times, images = load_image(asi_array_code, location_code, time_range=time_range)
     except AssertionError as err:

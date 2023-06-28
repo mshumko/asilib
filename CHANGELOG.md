@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.17.2] - 2023-06-28 
+### Added
+- Deprecation warnings to the legacy asilib plotting functions and in the API reference. They will be removed in or after December 2023.
+
 ## [0.17.1] - 2023-06-28
 ### Changed
 - Fixed the `color_norm` keyword argument in `asilib.Imager()` methods. Now it defaults to `None` so the normalization is correctly overridden. Also, the `color_norm` docstring is updated to clarify the hierarchy.

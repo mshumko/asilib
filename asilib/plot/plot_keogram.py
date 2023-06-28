@@ -1,4 +1,5 @@
 from typing import List
+import warnings
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
@@ -23,6 +24,10 @@ def plot_keogram(
 ):
     """
     Makes a keogram along the central meridian.
+
+    .. warning::
+        Use :py:meth:`~asilib.imager.Imager.plot_keogram()` instead. This function will be 
+        removed in or after December 2023.
 
     Parameters
     ----------
@@ -91,6 +96,8 @@ def plot_keogram(
     | plt.tight_layout()
     | plt.show()
     """
+    warnings.warn('DeprecationWarning', "Use asilib.Imager.plot_keogram() "
+                  "instead. This function will be removed in or after December 2023.")
     time_range = utils._validate_time_range(time_range)
     keo_df = keogram(asi_array_code, location_code, time_range, map_alt, path=path, aacgm=aacgm)
 

@@ -29,6 +29,10 @@ def animate_fisheye(
 
     Note: To make movies, you'll need to install ``ffmpeg`` in your operating system.
 
+    .. warning::
+        Use :py:meth:`~asilib.imager.Imager.animate_fisheye()` instead. This function will be 
+        removed in or after December 2023.
+
     Parameters
     ----------
     asi_array_code: str
@@ -103,6 +107,10 @@ def animate_fisheye_generator(
     the for loop, you can get the ASI images and times by calling `gen.send('data')`.
     This will yield a collections.namedtuple with `time` and `images` attributes.
 
+    .. warning::
+        Use :py:meth:`~asilib.imager.Imager.animate_fisheye_gen()` instead. This function will be 
+        removed in or after December 2023.
+
     Parameters
     ----------
     asi_array_code: str
@@ -175,6 +183,8 @@ def animate_fisheye_generator(
     |
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "movies"}')
     """
+    warnings.warn('DeprecationWarning', "Use asilib.Imager.animate_fisheye_gen() "
+                  "instead. This function will be removed in or after December 2023.")
     try:
         image_times, images = load_image(asi_array_code, location_code, time_range=time_range)
     except AssertionError as err:

@@ -5,6 +5,7 @@ from typing import List, Union
 import importlib
 import pathlib
 import zipfile
+import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -38,6 +39,10 @@ def plot_map(
 ):
     """
     Projects the ASI images to a map at an altitude defined in the skymap calibration file.
+
+    .. warning::
+        Use :py:meth:`~asilib.imager.Imager.plot_map()` instead. This function will be 
+        removed in or after December 2023.
 
     Parameters
     ----------
@@ -122,6 +127,9 @@ def plot_map(
     | asilib.plot_map(asi_array_code, location_code, time, map_alt_km);
     | plt.show()
     """
+    warnings.warn('DeprecationWarning', "Use asilib.Imager.plot_map() "
+                  "instead. This function will be removed in or after December 2023.")
+
     image_time, image = load.load_image(
         asi_array_code, location_code, time=time, time_thresh_s=time_thresh_s
     )
@@ -197,6 +205,10 @@ def make_map(
     A good place to download shapefiles is
     https://www.naturalearthdata.com/downloads/10m-physical-vectors/.
 
+    .. warning::
+        Use :py:meth:`~asilib.map.create_map()` instead. This function will be 
+        removed in or after December 2023.
+
     Parameters
     ----------
     file: str or pathlib.Path
@@ -226,6 +238,9 @@ def make_map(
     |
     | ax = asilib.make_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
     """
+    warnings.warn('DeprecationWarning', "Use asilib.map.create_map() "
+                  "instead. This function will be removed in or after December 2023.")
+
     shp_path = asilib.config['ASILIB_DIR'] / 'data' / f'{file}'
 
     with zipfile.ZipFile(shp_path.with_suffix('.zip'), 'r') as archive:
@@ -367,19 +382,3 @@ def _mask_low_horizon(image, lon_map, lat_map, el_map, min_elevation):
     lon_map_copy[idh_boundary_right] = np.nan
     lat_map_copy[idh_boundary_right] = np.nan
     return image_copy, lon_map_copy, lat_map_copy
-
-
-# if __name__ == '__main__':
-#     from datetime import datetime
-
-#     import matplotlib.pyplot as plt
-
-#     import asilib
-
-#     asi_array_code = 'THEMIS'
-#     location_code = 'ATHA'
-#     time = datetime(2008, 3, 9, 9, 18, 0)
-#     map_alt_km = 110
-#     asilib.plot_map(asi_array_code, location_code, time, map_alt_km)
-#     plt.tight_layout()
-#     plt.show()

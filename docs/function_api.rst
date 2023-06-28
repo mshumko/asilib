@@ -3,7 +3,7 @@ Legacy API Reference
 ====================
 
 .. warning::
-   This API interface will be phased out at asilib version 1.0.0. See the Imager API Reference tab for the current (and equivalent) asilib implementation. 
+   This API interface is deprecated and will be removed on or after December 2023. See the :ref:`api` for the current (and equivalent) asilib implementation. 
 
 `asilib` saves all of the ASI image files, skymap calibration files, and movies to 
 
