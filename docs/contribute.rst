@@ -56,8 +56,10 @@ The `data` dictionary provides information on when and how to load ASI images. S
         'start_time': List[datetime.datetime()],
         # The time of the last image in each file in `path`. List length is 1.
         'end_time': List[datetime.datetime()],
-        # The function that takes an image path and returns time stamps represented
-        # as `datetime.datetime()` and images represented as a `np.array()`.
+        # The function that takes an image path and returns an `np.array()` of 
+        # `datetime.datetime()` time stamps and an `np.array()` with images. The 
+        # first dimension of both arrays must correspond to the number of time 
+        # stamps (1 if there is only one image per file).
         'loader': callable,
     }
 
