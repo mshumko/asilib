@@ -1,14 +1,14 @@
 ![Test python package](https://github.com/mshumko/aurora-asi-lib/workflows/Test%20python%20package/badge.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4746447.svg)](https://doi.org/10.5281/zenodo.4746446)
 
 # aurora-asi-lib
-Your one stop to working with the world's extensive arrays of auroral all-sky imagers (ASI). Currently the two supported camera systems (arrays) are: 
-* Red-line Emission Geospace Observatory (REGO)
-* Time History of Events and Macroscale Interactions during Substorms (THEMIS).
-* Transition Region Explorer (TREx)
+Your one stop to working with the world's extensive arrays of auroral all-sky imagers (ASI). Currently the supported camera systems (arrays) are: 
+* [Red-line Emission Geospace Observatory (REGO)](https://aurora-asi-lib.readthedocs.io/en/latest/imager_api.html#rego-asi)
+* [Time History of Events and Macroscale Interactions during Substorms (THEMIS)](https://aurora-asi-lib.readthedocs.io/en/latest/imager_api.html#module-asilib.asi.themis)
+* [Transition Region Explorer (TREx)](https://aurora-asi-lib.readthedocs.io/en/latest/imager_api.html#module-asilib.asi.trex)
 
 [Documentation](https://aurora-asi-lib.readthedocs.io/) | [Code on GitHub](https://github.com/mshumko/aurora-asi-lib) | [PyPI archive](https://pypi.org/project/aurora-asi-lib/) | [Zenodo archive](https://doi.org/10.5281/zenodo.4746446)
 
-![asilib collage showing fisheye images, mapped images, and a keogram from the THEMIS and REGO imagers at RANK.](/docs/_static/collage.png)
+![An asilib collage showing fisheye images, mapped images, and a keogram from the THEMIS and REGO imagers at RANK.](/docs/_static/collage.png)
 
 [And you can animate images & conjunctions!](https://aurora-asi-lib.readthedocs.io/en/latest/basics_tutorial.html#Satellite-conjunction)
 
