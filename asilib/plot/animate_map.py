@@ -76,8 +76,10 @@ def animate_map(
     | asilib.animate_map('THEMIS', 'FSMI', time_range, map_alt=map_alt)
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')
     """
-    warnings.warn('DeprecationWarning', "Use asilib.Imager.animate_map() "
-                  "instead. This function will be removed in or after December 2023.")
+    warnings.warn(
+        "Use asilib.Imager.animate_map() instead. This function will be removed "
+        "in or after December 2023.", DeprecationWarning
+        )
 
     map_generator = animate_map_generator(
         asi_array_code, location_code, time_range, map_alt, **kwargs
@@ -219,8 +221,11 @@ def animate_map_generator(
     |
     | print(f'Movie saved in {asilib.config["ASI_DATA_DIR"] / "animations"}')
     """
-    warnings.warn('DeprecationWarning', "Use asilib.Imager.animate_fisheye_gen() "
-                  "instead. This function will be removed in or after December 2023.")
+    warnings.warn(
+        "Use asilib.Imager.animate_fisheye_gen() instead. This function will be removed "
+        "in or after December 2023.", 
+        DeprecationWarning
+        )
     try:
         image_times, images = load_image(asi_array_code, location_code, time_range=time_range)
     except AssertionError as err:

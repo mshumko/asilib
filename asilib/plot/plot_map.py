@@ -127,8 +127,8 @@ def plot_map(
     | asilib.plot_map(asi_array_code, location_code, time, map_alt_km);
     | plt.show()
     """
-    warnings.warn('DeprecationWarning', "Use asilib.Imager.plot_map() "
-                  "instead. This function will be removed in or after December 2023.")
+    warnings.warn("Use asilib.Imager.plot_map() instead. This function will be removed "
+                  "in or after December 2023.", DeprecationWarning)
 
     image_time, image = load.load_image(
         asi_array_code, location_code, time=time, time_thresh_s=time_thresh_s
@@ -238,8 +238,8 @@ def make_map(
     |
     | ax = asilib.make_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
     """
-    warnings.warn('DeprecationWarning', "Use asilib.map.create_map() "
-                  "instead. This function will be removed in or after December 2023.")
+    warnings.warn("Use asilib.map.create_map() instead. This function will be removed "
+                  "in or after December 2023.", DeprecationWarning)
 
     shp_path = asilib.config['ASILIB_DIR'] / 'data' / f'{file}'
 

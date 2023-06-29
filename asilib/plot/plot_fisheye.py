@@ -106,8 +106,8 @@ def plot_fisheye(
     | ax.axis('off')
     | plt.show()
     """
-    warnings.warn('DeprecationWarning', "Use asilib.Imager.plot_fisheye() "
-                  "instead. This function will be removed in or after December 2023.")
+    warnings.warn("Use asilib.Imager.plot_fisheye() instead. This function will be removed "
+                  "in or after December 2023.", DeprecationWarning)
     if ax is None:
         _, ax = plt.subplots()
 

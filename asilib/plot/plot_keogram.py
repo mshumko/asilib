@@ -96,8 +96,8 @@ def plot_keogram(
     | plt.tight_layout()
     | plt.show()
     """
-    warnings.warn('DeprecationWarning', "Use asilib.Imager.plot_keogram() "
-                  "instead. This function will be removed in or after December 2023.")
+    warnings.warn("Use asilib.Imager.plot_keogram() instead. This function will be removed "
+                  "in or after December 2023.", DeprecationWarning)
     time_range = utils._validate_time_range(time_range)
     keo_df = keogram(asi_array_code, location_code, time_range, map_alt, path=path, aacgm=aacgm)
 
