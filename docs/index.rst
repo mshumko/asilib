@@ -17,7 +17,9 @@ Supported ASI arrays
 .. note::
    While this package is named `aurora-asi-lib`, import it using the name `asilib`.
 
-The two ways to interact with `asilib` is via the mature function Application Program Interface (API) or the experimental Imager API. If you're new to `asilib` use the function API for now.
+.. figure:: ./_static/collage.png
+   :alt: Top four panels are a collage showing an image from a THEMIS and REGO ASI in the fisheye and mapped formats. The bottom panel is a THEMIS ASI keogram from this time interval. 
+   :width: 75%
 
 Acknowledgements
 ----------------
