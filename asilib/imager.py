@@ -841,21 +841,30 @@ class Imager:
         >>> np.all(mag_keogram == geo_keogram)  # aacgm=True only changes the latitudes.
         True
         """
-        self._keogram_time = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
-        #TODO: Refactor so that _keogram is not created twice.
-        self._keogram = np.nan * np.zeros((self._estimate_n_times(), self.meta['resolution'][0]))
-
-        # Determine what pixels to slice
+        # Determine what pixels to slice (path or along the meridian).
         self._keogram_pixels(path, minimum_elevation)
-        # Not all of the pixels are valid (e.g. below the horizon)
-        self._keogram = self._keogram[:, : self._pixels.shape[0]]
-        self._keogram = np.nan * np.zeros((self._estimate_n_times(), self._pixels.shape[0]))
+
+        # Allocate the keogram time and image arrays. Currently the black and white (B&W)
+        # and color (RGB) images are allocated separately. In the future we should try to 
+        # consolidate this into one self._keogram array allocation.
+        self._keogram_time = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
+        if len(self.meta['resolution']) == 2:
+            # B&W images.
+            self._keogram = np.nan * np.zeros(
+                (self._estimate_n_times(), self._pixels.shape[0])
+                )
+        elif len(self.meta['resolution']) == 3:
+            # RGB images.
+            self._keogram = np.nan * np.zeros(
+                (self._estimate_n_times(), self._pixels.shape[0], self.meta['resolution'][2])
+                )
+
         self._geogram_lat = self._keogram_latitude(aacgm)
 
         if (hasattr(self, '_times')) and (hasattr(self, '_images')):
             # if self.data() was already called
-            self._keogram[0 : self._images.shape[0]] = self._images[
-                :, self._pixels[:, 0], self._pixels[:, 1]
+            self._keogram[0 : self._images.shape[0], ...] = self._images[
+                :, self._pixels[:, 0], self._pixels[:, 1], ...
             ]
             self._keogram_time = self._times
         else:
@@ -869,14 +878,14 @@ class Imager:
             for file_times, file_images in _progressbar:
                 end_time_index = start_time_index + file_images.shape[0]
 
-                self._keogram[start_time_index:end_time_index, :] = file_images[
-                    :, self._pixels[:, 0], self._pixels[:, 1]
+                self._keogram[start_time_index:end_time_index, ...] = file_images[
+                    :, self._pixels[:, 0], self._pixels[:, 1], ...
                 ]
                 self._keogram_time[start_time_index:end_time_index] = file_times
                 start_time_index += file_images.shape[0]
 
         # Remove NaN keogram rows (unfilled or the data is NaN.).
-        i_valid = np.where(~np.isnan(self._keogram[:, 0]))[0]
+        i_valid = np.where(~np.isnan(self._keogram[:, 0, ...]))[0]
         self._keogram = self._keogram[i_valid, :]
         self._keogram_time = self._keogram_time[i_valid]
 
@@ -1003,8 +1012,9 @@ class Imager:
         if path is None:
             self._pixels = np.column_stack(
                 (
-                    np.arange(self._keogram.shape[1]),
-                    self._keogram.shape[1] * np.ones(self._keogram.shape[1]) // 2,
+                    np.arange(self.meta['resolution'][0]),  # All y-axis indices
+                    # Slice half way in the x-axis (meridian)
+                    np.full((self.meta['resolution'][1]), self.meta['resolution'][1]//2),
                 )
             ).astype(int)
 
@@ -1087,10 +1097,6 @@ class Imager:
             return _aacgm_lats
         else:
             return _geo_lats
-
-    # def accumulate(self, n):
-    #     self._accumulate_n = n
-    #     return self
 
     def __getitem__(self, _slice):
         """
