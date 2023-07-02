@@ -41,7 +41,7 @@ def plot_map(
     Projects the ASI images to a map at an altitude defined in the skymap calibration file.
 
     .. warning::
-        Use :py:meth:`~asilib.imager.Imager.plot_map()` instead. This function will be 
+        Use :py:meth:`~asilib.imager.Imager.plot_map()` instead. This function will be
         removed in or after December 2023.
 
     Parameters
@@ -127,8 +127,11 @@ def plot_map(
     | asilib.plot_map(asi_array_code, location_code, time, map_alt_km);
     | plt.show()
     """
-    warnings.warn("Use asilib.Imager.plot_map() instead. This function will be removed "
-                  "in or after December 2023.", DeprecationWarning)
+    warnings.warn(
+        "Use asilib.Imager.plot_map() instead. This function will be removed "
+        "in or after December 2023.",
+        DeprecationWarning,
+    )
 
     image_time, image = load.load_image(
         asi_array_code, location_code, time=time, time_thresh_s=time_thresh_s
@@ -206,7 +209,7 @@ def make_map(
     https://www.naturalearthdata.com/downloads/10m-physical-vectors/.
 
     .. warning::
-        Use :py:meth:`~asilib.map.create_map()` instead. This function will be 
+        Use :py:meth:`~asilib.map.create_map()` instead. This function will be
         removed in or after December 2023.
 
     Parameters
@@ -238,8 +241,11 @@ def make_map(
     |
     | ax = asilib.make_map(lon_bounds=(-127, -100), lat_bounds=(45, 65))
     """
-    warnings.warn("Use asilib.map.create_map() instead. This function will be removed "
-                  "in or after December 2023.", DeprecationWarning)
+    warnings.warn(
+        "Use asilib.map.create_map() instead. This function will be removed "
+        "in or after December 2023.",
+        DeprecationWarning,
+    )
 
     shp_path = asilib.config['ASILIB_DIR'] / 'data' / f'{file}'
 

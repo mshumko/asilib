@@ -105,6 +105,7 @@ def test_plot_fisheye_example():
     from datetime import datetime
     import matplotlib.pyplot as plt
     import asilib.asi
+
     asi = asilib.asi.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
     ax, im = asi.plot_fisheye(cardinal_directions='NE', origin=(0.95, 0.05))
     plt.colorbar(im)
@@ -207,7 +208,7 @@ def test_plot_keogram_geographic_example():
     import matplotlib.pyplot as plt
     import asilib.asi
 
-    time_range=['2008-01-16T10', '2008-01-16T12']
+    time_range = ['2008-01-16T10', '2008-01-16T12']
     asi = asilib.asi.themis('GILL', time_range=time_range)
     ax, p = asi.plot_keogram(color_map='turbo')
     ax.set_ylabel('Geographic Lat [deg]')
@@ -321,7 +322,10 @@ def test_repr():
     Tests the __repr__() for printing machine-readable information about the imager
     """
     asi = asilib.Imager(
-        file_info={'test_variable': 0}, skymap={'skymap': 1}, meta={'meta': 2}, plot_settings={'plot_settings': 3}
+        file_info={'test_variable': 0},
+        skymap={'skymap': 1},
+        meta={'meta': 2},
+        plot_settings={'plot_settings': 3},
     )
     assert repr(asi) == (
         "Imager(file_info={'test_variable': 0}, skymap={'skymap': 1}, meta={'meta': 2},"

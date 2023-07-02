@@ -38,7 +38,7 @@ def animate_map(
     Note: To make animations, you'll need to install ``ffmpeg`` in your operating system.
 
     .. warning::
-        Use :py:meth:`~asilib.imager.Imager.animate_map()` instead. This function will be 
+        Use :py:meth:`~asilib.imager.Imager.animate_map()` instead. This function will be
         removed in or after December 2023.
 
     Parameters
@@ -78,8 +78,9 @@ def animate_map(
     """
     warnings.warn(
         "Use asilib.Imager.animate_map() instead. This function will be removed "
-        "in or after December 2023.", DeprecationWarning
-        )
+        "in or after December 2023.",
+        DeprecationWarning,
+    )
 
     map_generator = animate_map_generator(
         asi_array_code, location_code, time_range, map_alt, **kwargs
@@ -123,7 +124,7 @@ def animate_map_generator(
     This will yield a collections.namedtuple with `time` and `images` attributes.
 
     .. warning::
-        Use :py:meth:`~asilib.imager.Imager.animate_map_gen()` instead. This function will be 
+        Use :py:meth:`~asilib.imager.Imager.animate_map_gen()` instead. This function will be
         removed in or after December 2023.
 
     Parameters
@@ -223,9 +224,9 @@ def animate_map_generator(
     """
     warnings.warn(
         "Use asilib.Imager.animate_fisheye_gen() instead. This function will be removed "
-        "in or after December 2023.", 
-        DeprecationWarning
-        )
+        "in or after December 2023.",
+        DeprecationWarning,
+    )
     try:
         image_times, images = load_image(asi_array_code, location_code, time_range=time_range)
     except AssertionError as err:

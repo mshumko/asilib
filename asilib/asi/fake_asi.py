@@ -176,7 +176,7 @@ def get_file_info(
         file_path = _get_file_path(meta, time)
         image_times, images = _data_loader(file_path)
         start_file_time = time.replace(minute=0, second=0, microsecond=0)
-    
+
         _data = {
             'time': time,
             'path': [file_path],

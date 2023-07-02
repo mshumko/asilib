@@ -41,6 +41,7 @@ def test_trex_nir_time_range():
     assert asi.data.image.shape == (100, 256, 256)
     return
 
+
 def test_trex_nir_no_file():
     """
     Tests that trex_nir() returns a FileNotFound error when we try to download
@@ -97,7 +98,10 @@ def test_trex_nir_no_file():
 ############# TEST EXAMPLES ##############
 ##########################################
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_trex_nir_fisheye_map_example'], tol=20, remove_text=True, extensions=['png']
+    baseline_images=['test_trex_nir_fisheye_map_example'],
+    tol=20,
+    remove_text=True,
+    extensions=['png'],
 )
 def test_trex_nir_fisheye_map_example():
     """
@@ -130,6 +134,7 @@ def test_trex_nir_keogram_example():
     import asilib.map
     import asilib.asi
     import matplotlib.pyplot as plt
+
     time_range = ('2020-03-21T05:00', '2020-03-21T05:10')
     fig, ax = plt.subplots(2, sharex=True)
     asi = asilib.asi.trex_nir('gill', time_range=time_range)

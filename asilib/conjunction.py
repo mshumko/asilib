@@ -127,8 +127,10 @@ class Conjunction:
             }
         )
         return df
-    
-    def intensity(self, box:Tuple[float, float]=None, box_op:Callable=np.nanmean) -> np.ndarray:
+
+    def intensity(
+        self, box: Tuple[float, float] = None, box_op: Callable = np.nanmean
+    ) -> np.ndarray:
         """
         Calculate the auroral intensity near the satellite's footprint.
 
@@ -137,41 +139,41 @@ class Conjunction:
         box: Tuple[float, float]
             A tuple of two floats that specifies the rectangular area, at the auroral emission
             altitude, in which to calculate the auroral intensity. The intensities in the box
-            are averaged by default, and can be changed using the ``box_op`` kwarg. If ``box_size=None``, 
+            are averaged by default, and can be changed using the ``box_op`` kwarg. If ``box_size=None``,
             the auroral intensity will come from the pixel nearest to the footprint. In this case the
             box_op kwarg is irrelevant.
         box_op: Callable
-            The function to apply to the auroral intensity in the box surrounding the footprint. Since 
-            it must operate on the mask array that :py:meth:`~asilib.Conjunction.equal_area()` produces, 
-            the ``box_op`` function must work with (i.e., ignore) ``np.nan`` values. 
+            The function to apply to the auroral intensity in the box surrounding the footprint. Since
+            it must operate on the mask array that :py:meth:`~asilib.Conjunction.equal_area()` produces,
+            the ``box_op`` function must work with (i.e., ignore) ``np.nan`` values.
 
         Returns
         -------
         np.ndarray
-            The auroral intensity near the footprint, calculated either from the nearest pixel 
-            (if ``box_size=None``) or the mean intensity in a rectangular area defined by 
+            The auroral intensity near the footprint, calculated either from the nearest pixel
+            (if ``box_size=None``) or the mean intensity in a rectangular area defined by
             ``box_size``.
 
         .. note::
             If box_size=None the nearest pixel is calculated using :py:meth:`~asilib.Conjunction.map_azel`, otherwise
-            if ``box_size=(10, 10)`` and ``box_op`` is the default, :py:meth:`~asilib.Conjunction.equal_area()` is 
-            used to calculate the mean intensity in a 10x10 km box. The two different implementations should yield 
-            similar results, but discrepancies may arise if the skymap (az, el) and (lat, lon) mapping arrays are 
-            mismatched. This is the case for some of the THEMIS ASIs right after they were deployed.   
+            if ``box_size=(10, 10)`` and ``box_op`` is the default, :py:meth:`~asilib.Conjunction.equal_area()` is
+            used to calculate the mean intensity in a 10x10 km box. The two different implementations should yield
+            similar results, but discrepancies may arise if the skymap (az, el) and (lat, lon) mapping arrays are
+            mismatched. This is the case for some of the THEMIS ASIs right after they were deployed.
         """
-        _intensity = np.nan*np.zeros(self.sat.shape[0], dtype=float)
+        _intensity = np.nan * np.zeros(self.sat.shape[0], dtype=float)
         if box is None:  # Nearest pixel to footprint
             _, azel_pixels = self.map_azel()
             for i, ((_, image), pixels) in enumerate(zip(self.imager, azel_pixels)):
                 if np.any(np.isnan(pixels)):
                     continue
                 # The ::-1 b/c pixels are in plotting (not indexing) order.
-                _intensity[i] =  image[int(pixels[1]), int(pixels[0])]
+                _intensity[i] = image[int(pixels[1]), int(pixels[0])]
         else:  # Area around footprint
             # equal_area_gen() is slower than using equal_area(), but this plays nice with memory.
             gen = self.equal_area_gen(box=box)
             for i, ((_, image), mask) in enumerate(zip(self.imager, gen)):
-                _intensity[i] = box_op(image*mask)
+                _intensity[i] = box_op(image * mask)
         return _intensity
 
     def interp_sat(self):
@@ -296,11 +298,11 @@ class Conjunction:
             elevation coordinates.
         np.ndarray
             An array with shape (nPosition, 2) of the x- and y-axis pixel
-            indices for the ASI image. 
-        
+            indices for the ASI image.
+
         .. note::
             The azel pixel columns are ordered for plotting with an image:
-            plt.plot(azel_pixels[:, 0], azel_pixels[:, 1]). However, the 
+            plt.plot(azel_pixels[:, 0], azel_pixels[:, 1]). However, the
             column order must be flipped for indexing. For example:
             image[azel_pixels[:, 1], azel_pixels[:, 0]]
         """
@@ -333,7 +335,7 @@ class Conjunction:
         azel_pixels[invalid_el, :] = np.nan
         return azel, azel_pixels
 
-    def equal_area(self, box:Tuple[float, float]=(5, 5)) -> np.ndarray:
+    def equal_area(self, box: Tuple[float, float] = (5, 5)) -> np.ndarray:
         """
         Find all pixels around the footprint within a rectangular area
         defined by box.
@@ -354,7 +356,7 @@ class Conjunction:
         See Also
         --------
         Conjunction.equal_area_gen : A memory-friendly way to calculate equal areas.
-        
+
         """
         assert len(box) == 2, 'The box_km parameter must have a length of 2.'
 
@@ -367,7 +369,7 @@ class Conjunction:
             self.area_mask[i, :, :] = mask
         return self.area_mask
 
-    def equal_area_gen(self, box:Tuple[float, float]=(5, 5)) -> np.ndarray:
+    def equal_area_gen(self, box: Tuple[float, float] = (5, 5)) -> np.ndarray:
         """
         Generator to find all pixels around the footprint within a rectangular area
         defined by box.
@@ -532,13 +534,11 @@ class Conjunction:
             for i, (az, el) in enumerate(azel):
                 el = el * np.ones_like(self.imager.skymap['el'])
                 az = el * np.ones_like(self.imager.skymap['az'])
-                distances = _haversine(
-                    self.imager.skymap['el'], self.imager.skymap['az'], el, az
-                )
+                distances = _haversine(self.imager.skymap['el'], self.imager.skymap['az'], el, az)
                 pixel_index[i, :] = np.unravel_index(np.nanargmin(distances), distances.shape)
         # Before, pixel_index columns corresponded to (row, column) = (y-pixel, x-pixel), but for plotting
         # we need to flip them to be (column, row) = (x-pixel, y-pixel).
-        pixel_index[:,[1,0]] = pixel_index[:,[0,1]]
+        pixel_index[:, [1, 0]] = pixel_index[:, [0, 1]]
         return pixel_index
 
     def _conjunction_intervals(self, times: np.array, min_dt: float):

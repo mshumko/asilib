@@ -66,7 +66,9 @@ def test_themis_partial_files():
     non-existant data.
     """
     with pytest.raises(FileNotFoundError):
-        asilib.asi.themis('pina', time_range=['2011/07/07T04:15', '2011/07/07T04:23'], missing_ok=False)
+        asilib.asi.themis(
+            'pina', time_range=['2011/07/07T04:15', '2011/07/07T04:23'], missing_ok=False
+        )
 
     img = asilib.asi.themis(
         'pina',

@@ -354,28 +354,31 @@ def test_azel_multiple_lla():
     assert np.all(
         np.isclose(
             pixels,
-            np.array([
-                [310., 167.],
-                [303., 178.],
-                [295., 190.],
-                [285., 205.],
-                [273., 227.],
-                [239., 285.],
-                [226., 306.],
-                [218., 322.],
-                [212., 335.],
-                [206., 346.]
-            ])
+            np.array(
+                [
+                    [310.0, 167.0],
+                    [303.0, 178.0],
+                    [295.0, 190.0],
+                    [285.0, 205.0],
+                    [273.0, 227.0],
+                    [239.0, 285.0],
+                    [226.0, 306.0],
+                    [218.0, 322.0],
+                    [212.0, 335.0],
+                    [206.0, 346.0],
+                ]
+            ),
         )
     )
     return
+
 
 def test_intensity_closest_pixel():
     """
     Test the auroral intensity from the nearest pixel.
     """
     location_code = 'RANK'
-    alt=110  # km
+    alt = 110  # km
     time_range = (datetime(2017, 9, 15, 2, 32, 0), datetime(2017, 9, 15, 2, 35, 0))
 
     asi = asilib.asi.themis(location_code, time_range=time_range, alt=alt)
@@ -388,27 +391,84 @@ def test_intensity_closest_pixel():
     lons = (asi.meta["lon"] - 0.5) * np.ones(n)
     alts = alt * np.ones(n)  # Altitude needs to be the same as the skymap.
     sat_lla = np.array([lats, lons, alts]).T
-    # Normally the satellite time stamps are not the same as the ASI. 
+    # Normally the satellite time stamps are not the same as the ASI.
     # You may need to call Conjunction.interp_sat() to find the LLA coordinates
     # at the ASI timestamps.
     sat_time = asi.data.time
 
     conjunction_obj = asilib.Conjunction(asi, (sat_time, sat_lla))
     nearest_pixel_intensity = conjunction_obj.intensity(box=None)
-    assert np.all(np.isclose(
-        nearest_pixel_intensity, 
-        np.array(
-            [ 4328.,  4298.,  4258.,  4252.,  4288.,  4211.,  4118.,  4120.,
-            4089.,  4004.,  4060.,  4005.,  3991.,  3908.,  3890.,  3887.,
-            3824.,  3757.,  3678.,  3643.,  3644.,  3658.,  3643.,  3548.,
-            3574.,  3565.,  3526.,  3534.,  3480.,  3494.,  3933., 12374.,
-            16140.,  5523.,  7557., 12812.,  5121.,  4202.,  4051.,  4101.,
-            4015.,  4198.,  4136.,  4331.,  4306.,  4368.,  4164.,  4462.,
-            4541.,  4515.,  4612.,  4705.,  4861.,  4960.,  4959.,  5036.,
-            5098.,  5092.,  5158.,  5295.]
-            )
-        ))
+    assert np.all(
+        np.isclose(
+            nearest_pixel_intensity,
+            np.array(
+                [
+                    4328.0,
+                    4298.0,
+                    4258.0,
+                    4252.0,
+                    4288.0,
+                    4211.0,
+                    4118.0,
+                    4120.0,
+                    4089.0,
+                    4004.0,
+                    4060.0,
+                    4005.0,
+                    3991.0,
+                    3908.0,
+                    3890.0,
+                    3887.0,
+                    3824.0,
+                    3757.0,
+                    3678.0,
+                    3643.0,
+                    3644.0,
+                    3658.0,
+                    3643.0,
+                    3548.0,
+                    3574.0,
+                    3565.0,
+                    3526.0,
+                    3534.0,
+                    3480.0,
+                    3494.0,
+                    3933.0,
+                    12374.0,
+                    16140.0,
+                    5523.0,
+                    7557.0,
+                    12812.0,
+                    5121.0,
+                    4202.0,
+                    4051.0,
+                    4101.0,
+                    4015.0,
+                    4198.0,
+                    4136.0,
+                    4331.0,
+                    4306.0,
+                    4368.0,
+                    4164.0,
+                    4462.0,
+                    4541.0,
+                    4515.0,
+                    4612.0,
+                    4705.0,
+                    4861.0,
+                    4960.0,
+                    4959.0,
+                    5036.0,
+                    5098.0,
+                    5092.0,
+                    5158.0,
+                    5295.0,
+                ]
+            ),
+        )
+    )
     return
+
 
 def test_intensity_area():
     """
@@ -416,7 +476,7 @@ def test_intensity_area():
     """
     # ASI parameters
     location_code = 'RANK'
-    alt=110  # km
+    alt = 110  # km
     time_range = (datetime(2017, 9, 15, 2, 32, 0), datetime(2017, 9, 15, 2, 35, 0))
 
     asi = asilib.asi.themis(location_code, time_range=time_range, alt=alt)
@@ -429,7 +489,7 @@ def test_intensity_area():
     lons = (asi.meta["lon"] - 0.5) * np.ones(n)
     alts = alt * np.ones(n)  # Altitude needs to be the same as the skymap.
     sat_lla = np.array([lats, lons, alts]).T
-    # Normally the satellite time stamps are not the same as the ASI. 
+    # Normally the satellite time stamps are not the same as the ASI.
     # You may need to call Conjunction.interp_sat() to find the LLA coordinates
     # at the ASI timestamps.
     sat_time = asi.data.time
@@ -437,24 +497,73 @@ def test_intensity_area():
     conjunction_obj = asilib.Conjunction(asi, (sat_time, sat_lla))
     area_intensity = conjunction_obj.intensity(box=(10, 10))
 
-    assert np.all(np.isclose(
-        area_intensity, 
-        np.array(
-            [4429.5      ,  4307.        ,  4359.        ,  4258.        ,
-            4277.        ,  4307.        ,  4142.66666667,  4129.        ,
-            4092.        ,  4002.        ,  3991.66666667,  3990.        ,
-            3987.        ,  3906.66666667,  3895.33333333,  3909.        ,
-            3829.75      ,  3774.        ,  3741.75      ,  3699.8       ,
-            3685.88888889,  3616.9       ,  3615.3125    ,  3585.3125    ,
-            3548.33333333,  3532.23076923,  3501.77142857,  3496.58536585,
-            3485.09803922,  3532.40740741,  3904.        , 11476.43137255,
-            15238.31818182,  5658.125     ,  7793.53571429, 12330.76190476,
-            5629.        ,  4244.69230769,  4105.81818182,  4064.2       ,
-            4055.14285714,  4131.33333333,  4180.16666667,  4236.4       ,
-            4297.33333333,  4354.66666667,  4291.        ,  4386.        ,
-            4530.5       ,  4537.        ,  4605.5       ,  4627.        ,
-            4711.        ,  4799.5       ,  4959.        ,  5078.        ,
-            5014.        ,  5007.5       ,  5070.        ,  5156.        ]
-            )
-    ))
+    assert np.all(
+        np.isclose(
+            area_intensity,
+            np.array(
+                [
+                    4429.5,
+                    4307.0,
+                    4359.0,
+                    4258.0,
+                    4277.0,
+                    4307.0,
+                    4142.66666667,
+                    4129.0,
+                    4092.0,
+                    4002.0,
+                    3991.66666667,
+                    3990.0,
+                    3987.0,
+                    3906.66666667,
+                    3895.33333333,
+                    3909.0,
+                    3829.75,
+                    3774.0,
+                    3741.75,
+                    3699.8,
+                    3685.88888889,
+                    3616.9,
+                    3615.3125,
+                    3585.3125,
+                    3548.33333333,
+                    3532.23076923,
+                    3501.77142857,
+                    3496.58536585,
+                    3485.09803922,
+                    3532.40740741,
+                    3904.0,
+                    11476.43137255,
+                    15238.31818182,
+                    5658.125,
+                    7793.53571429,
+                    12330.76190476,
+                    5629.0,
+                    4244.69230769,
+                    4105.81818182,
+                    4064.2,
+                    4055.14285714,
+                    4131.33333333,
+                    4180.16666667,
+                    4236.4,
+                    4297.33333333,
+                    4354.66666667,
+                    4291.0,
+                    4386.0,
+                    4530.5,
+                    4537.0,
+                    4605.5,
+                    4627.0,
+                    4711.0,
+                    4799.5,
+                    4959.0,
+                    5078.0,
+                    5014.0,
+                    5007.5,
+                    5070.0,
+                    5156.0,
+                ]
+            ),
+        )
+    )
     return

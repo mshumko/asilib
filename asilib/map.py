@@ -333,9 +333,9 @@ def create_cartopy_map(
 def _validate_fig_ax(fig_ax):
     if fig_ax is not None:
         valid_first_param = isinstance(fig_ax[0], matplotlib.figure.Figure)
-        valid_second_param = isinstance(fig_ax[1], 
-            (int, matplotlib.gridspec.GridSpec, matplotlib.gridspec.SubplotSpec, tuple)
-            )
+        valid_second_param = isinstance(
+            fig_ax[1], (int, matplotlib.gridspec.GridSpec, matplotlib.gridspec.SubplotSpec, tuple)
+        )
         if valid_first_param and valid_second_param:
             return
         elif valid_first_param and not valid_second_param:

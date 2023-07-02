@@ -47,7 +47,7 @@ class Imager:
     """
     The central asilib class to plot, animate, and analyze ASI data.
 
-    Normally asilib.Imager() should not be directly called by users, but by the ASI wrapper functions. 
+    Normally asilib.Imager() should not be directly called by users, but by the ASI wrapper functions.
     This interface is thoroughly documented in the :ref:`contribute_asi` documentation page.
 
     Parameters
@@ -58,7 +58,7 @@ class Imager:
     meta: dict
         Specifies ASI metadata that describes the ASI name, location, cadence, and pixel resolution.
     skymap: dict
-        Specifies what each pixel maps to in (azimuth, elevation) coordinates as well as 
+        Specifies what each pixel maps to in (azimuth, elevation) coordinates as well as
         (latitude, longitude) coordinates at a prescribed auroral mission altitude.
     plot_settings: dict
         An optional dictionary customizing the plot colormap, color scale (logarithmic vs linear),
@@ -108,7 +108,7 @@ class Imager:
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
-            the color normalization will be taken from the ASI array (if specified), and if not 
+            the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
@@ -188,7 +188,7 @@ class Imager:
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
-            the color normalization will be taken from the ASI array (if specified), and if not 
+            the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
@@ -280,7 +280,7 @@ class Imager:
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
-            the color normalization will be taken from the ASI array (if specified), and if not 
+            the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
@@ -447,7 +447,7 @@ class Imager:
             high=min(3rd_quartile, 10*1st_quartile)
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
-            the color normalization will be taken from the ASI array (if specified), and if not 
+            the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic.
         pcolormesh_kwargs: dict
             A dictionary of keyword arguments (kwargs) to pass directly into
@@ -472,9 +472,7 @@ class Imager:
         >>> plt.tight_layout()
         >>> plt.show()
         """
-        assert 'time' in self.file_info.keys(), (
-            f'Need to specify an image time.'
-        )
+        assert 'time' in self.file_info.keys(), f'Need to specify an image time.'
         for _skymap_key in ['lat', 'lon', 'el']:
             assert _skymap_key in self.skymap.keys(), (
                 f'The "{_skymap_key}" key not in ' f'Imager.skymap: got {self.skymap.keys()}'
@@ -562,7 +560,7 @@ class Imager:
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
-            the color normalization will be taken from the ASI array (if specified), and if not 
+            the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
@@ -659,7 +657,7 @@ class Imager:
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
-            the color normalization will be taken from the ASI array (if specified), and if not 
+            the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic.
         min_elevation: float
             Masks the pixels below min_elevation degrees.
@@ -845,19 +843,17 @@ class Imager:
         self._keogram_pixels(path, minimum_elevation)
 
         # Allocate the keogram time and image arrays. Currently the black and white (B&W)
-        # and color (RGB) images are allocated separately. In the future we should try to 
+        # and color (RGB) images are allocated separately. In the future we should try to
         # consolidate this into one self._keogram array allocation.
         self._keogram_time = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
         if len(self.meta['resolution']) == 2:
             # B&W images.
-            self._keogram = np.nan * np.zeros(
-                (self._estimate_n_times(), self._pixels.shape[0])
-                )
+            self._keogram = np.nan * np.zeros((self._estimate_n_times(), self._pixels.shape[0]))
         elif len(self.meta['resolution']) == 3:
             # RGB images.
             self._keogram = np.nan * np.zeros(
                 (self._estimate_n_times(), self._pixels.shape[0], self.meta['resolution'][2])
-                )
+            )
 
         self._geogram_lat = self._keogram_latitude(aacgm)
 
@@ -936,7 +932,7 @@ class Imager:
             high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
-            the color normalization will be taken from the ASI array (if specified), and if not 
+            the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic.
         pcolormesh_kwargs: dict
             A dictionary of keyword arguments (kwargs) to pass directly into
@@ -1014,7 +1010,7 @@ class Imager:
                 (
                     np.arange(self.meta['resolution'][0]),  # All y-axis indices
                     # Slice half way in the x-axis (meridian)
-                    np.full((self.meta['resolution'][1]), self.meta['resolution'][1]//2),
+                    np.full((self.meta['resolution'][1]), self.meta['resolution'][1] // 2),
                 )
             ).astype(int)
 
@@ -1058,11 +1054,11 @@ class Imager:
 
         for i, (lat, lon) in enumerate(path):
             distances = _haversine(
-                self.skymap['lat'], 
-                self.skymap['lon'], 
-                lat*np.ones_like(self.skymap['lon']), 
-                lon*np.ones_like(self.skymap['lon']),
-                )
+                self.skymap['lat'],
+                self.skymap['lon'],
+                lat * np.ones_like(self.skymap['lon']),
+                lon * np.ones_like(self.skymap['lon']),
+            )
             idx = np.where(distances == np.nanmin(distances))
 
             if distances[idx][0] > threshold:
@@ -1105,7 +1101,7 @@ class Imager:
         Parameters
         ----------
         _slice: str, pd.Timestamp, datetime.datetime, or list.
-            The time(s) to slice an Imager object. Can type of slice can be either 
+            The time(s) to slice an Imager object. Can type of slice can be either
             1) [start_time:end_time], or 2) just time.
 
         Yields
@@ -1115,14 +1111,12 @@ class Imager:
         """
         start_time, end_time = self._convert_slice(_slice)
         idx = np.where(
-            (start_time <= np.array(self.file_info['end_time'])) &
-            (end_time >= np.array(self.file_info['start_time']))
+            (start_time <= np.array(self.file_info['end_time']))
+            & (end_time >= np.array(self.file_info['start_time']))
         )[0]
 
         if len(idx) == 0:
-            raise FileNotFoundError(
-                f'Imager does not have any data contained in slice={_slice}'
-                )
+            raise FileNotFoundError(f'Imager does not have any data contained in slice={_slice}')
 
         # Create the new variables.
         new_file_info = {}
@@ -1135,14 +1129,14 @@ class Imager:
         new_file_info['end_time'] = np.array(self.file_info['end_time'])[idx]
         new_file_info['path'] = np.array(self.file_info['path'])[idx]
         new_file_info['loader'] = self.file_info['loader']
-        
+
         new_meta = copy.copy(self.meta)
         new_skymap = copy.copy(self.skymap)
         new_plot_settings = copy.copy(self.plot_settings)
 
         cls = type(self)
         return cls(new_file_info, new_meta, new_skymap, plot_settings=new_plot_settings)
-    
+
     def _convert_slice(self, _slice):
         """
         Validate and convert the slice into datetime objects.
@@ -1161,7 +1155,7 @@ class Imager:
                     f'The start index can only be a time object, string, or None. '
                     f'{_slice.start} is unsupported'
                 )
-            
+
             # Check the end slice and if it is None assign time_range[1]
             if isinstance(_slice.stop, str):
                 end_time = dateutil.parser.parse(_slice.stop)
@@ -1178,7 +1172,7 @@ class Imager:
             if _slice.step is not None:
                 raise NotImplementedError
             return start_time, end_time
-        
+
         # Convert the [time] slice to datetime object.
         elif isinstance(_slice, (str, datetime.datetime, pd.Timestamp)):
             if isinstance(_slice, str):
@@ -1190,10 +1184,8 @@ class Imager:
             raise NotImplementedError(
                 'At this time asilib.Imager does not support multi-dimensional indexing.'
             )
-        else: 
-            raise ValueError(
-                f'The slice must be [time] or [start_time:end_time], not {_slice}.'
-            )       
+        else:
+            raise ValueError(f'The slice must be [time] or [start_time:end_time], not {_slice}.')
 
     def __iter__(self):
         """
@@ -1263,7 +1255,8 @@ class Imager:
                 times, images = self.file_info['loader'](path)
 
                 idt = np.where(
-                    (times >= self.file_info['time_range'][0]) & (times <= self.file_info['time_range'][1])
+                    (times >= self.file_info['time_range'][0])
+                    & (times <= self.file_info['time_range'][1])
                 )[0]
                 yield times[idt], images[idt]
 
@@ -1353,7 +1346,7 @@ class Imager:
                 f'"time" or "time_range" data variables. The data '
                 f'variables are {self.file_info.keys()}.'
             )
-        
+
     def _load_image(self, time):
         """
         Load a single image and time stamp nearest to time.
@@ -1385,7 +1378,10 @@ class Imager:
                     f'Cannot find a time stamp within {self.meta["cadence"]} seconds of '
                     f'{time}. Closest time stamp is {_times[image_index]}.'
                 )
-            return _times[image_index], _images[image_index, ...]  # Ellipses to load all other dimenstions.
+            return (
+                _times[image_index],
+                _images[image_index, ...],
+            )  # Ellipses to load all other dimenstions.
         # Case where the loader is a generator function.
         else:
             gen = self.file_info['loader'](self.file_info['path'][0])
@@ -1395,10 +1391,9 @@ class Imager:
                     return _times[image_index], _images[image_index, ...]
 
             raise IndexError(
-                f'Cannot find a time stamp within {self.meta["cadence"]} seconds of '
-                f'{time}.'
+                f'Cannot find a time stamp within {self.meta["cadence"]} seconds of ' f'{time}.'
             )
-        
+
     def __str__(self) -> str:
         if ('time' in self.file_info.keys()) and (self.file_info['time'] is not None):
             s = (
@@ -1446,8 +1441,8 @@ class Imager:
             color_map = color_map
 
         # If color_norm is specified by the method, it overrules the ASI array settings
-        # or Imager setting. If the method's color_norm is not specified, check if the 
-        # ASI has it specified in self.plot_settings. Lastly, if the ASI does not have 
+        # or Imager setting. If the method's color_norm is not specified, check if the
+        # ASI has it specified in self.plot_settings. Lastly, if the ASI does not have
         # it specified, default to a logarithmic color_norm.
         if color_norm is None:
             if 'color_norm' in self.plot_settings.keys():
@@ -1785,12 +1780,13 @@ class Imager:
         )
         return p
 
+
 def _haversine(
     lat1: np.array, lon1: np.array, lat2: np.array, lon2: np.array, r: float = 1
 ) -> np.array:
     """
     _haversine distance equation.
-    
+
     Parameters
     ----------
     lat1, lat2: np.array
@@ -1800,16 +1796,22 @@ def _haversine(
     r: float
         The sphere radius.
     """
-    assert lat1.shape == lon1.shape == lat2.shape == lon2.shape, (
-        'All input arrays must have the same shape.'
-    )
+    assert (
+        lat1.shape == lon1.shape == lat2.shape == lon2.shape
+    ), 'All input arrays must have the same shape.'
     lat1_rad = np.deg2rad(lat1)
     lat2_rad = np.deg2rad(lat2)
     lon1_rad = np.deg2rad(lon1)
     lon2_rad = np.deg2rad(lon2)
 
-    d=2*r*np.arcsin(np.sqrt(
-        np.sin((lat1_rad-lat2_rad)/2)**2 + 
-        np.cos(lat1_rad)*np.cos(lat2_rad)*np.sin((lon2_rad-lon1_rad)/2)**2
-    ))
+    d = (
+        2
+        * r
+        * np.arcsin(
+            np.sqrt(
+                np.sin((lat1_rad - lat2_rad) / 2) ** 2
+                + np.cos(lat1_rad) * np.cos(lat2_rad) * np.sin((lon2_rad - lon1_rad) / 2) ** 2
+            )
+        )
+    )
     return d

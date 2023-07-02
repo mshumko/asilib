@@ -16,7 +16,9 @@ skymap_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/lamp/geof
 local_base_dir = asilib.config['ASI_DATA_DIR'] / 'lamp_phantom'
 
 
-def lamp_phantom(location_code, time=None, time_range=None, redownload=False, missing_ok=True, alt=100):
+def lamp_phantom(
+    location_code, time=None, time_range=None, redownload=False, missing_ok=True, alt=100
+):
     """
     Create an Imager instance of LAMP's Phantom ASI.
 
@@ -41,8 +43,8 @@ def lamp_phantom(location_code, time=None, time_range=None, redownload=False, mi
         The mapping altitude.
 
     Example
-    -------    
-    
+    -------
+
     Returns
     -------
     :py:meth:`~asilib.imager.Imager`
@@ -180,7 +182,7 @@ def find_skymap(location_code, alt, redownload=True):
         # Download the AzEl skymaps.
         d = download.Downloader(skymap_base_url + 'Average_fps_im_-17700_to_-17600_AzEl.txt')
         local_azel_paths = d.download(local_dir, redownload=redownload)
-        
+
     if len(local_azel_paths) != 1:
         raise FileNotFoundError(
             f'Unable to find the "Average_fps_im_-17700_to_-17600_AzEl.txt" LAMP skymap.'
@@ -193,7 +195,9 @@ def find_skymap(location_code, alt, redownload=True):
 
     if (len(local_latlon_paths) == 0) or redownload:
         # Download the LatLon skymaps.
-        d = download.Downloader(skymap_base_url + f'Average_fps_im_-17700_to_-17600_LatLong{alt:03}km.txt')
+        d = download.Downloader(
+            skymap_base_url + f'Average_fps_im_-17700_to_-17600_LatLong{alt:03}km.txt'
+        )
         local_latlon_paths = d.download(local_dir, redownload=redownload)
 
     if len(local_latlon_paths) != 1:
@@ -265,27 +269,28 @@ def _transform_azimuth_to_180(skymap):
     skymap['azm'][valid_val_idx] = np.mod(skymap['azm'][valid_val_idx], 360)
     return skymap
 
+
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import matplotlib.gridspec
-    
+
     import asilib.map
     from asilib.asi.lamp_phantom import lamp_phantom
-    
+
     asi = lamp_phantom(
         'vee',
         time=datetime(2022, 3, 5, 11, 32),
         redownload=False,
     )
-    
+
     fig = plt.figure(figsize=(8, 4))
     gs = matplotlib.gridspec.GridSpec(1, 2, fig)
-    ax = fig.add_subplot(gs[0,0])
+    ax = fig.add_subplot(gs[0, 0])
     bx = asilib.map.create_map(
-        lon_bounds=(asi.meta['lon']-8, asi.meta['lon']+8),
-        lat_bounds=(asi.meta['lat']-4, asi.meta['lat']+4), 
-        fig_ax=(fig, gs[0,1])
-        )
+        lon_bounds=(asi.meta['lon'] - 8, asi.meta['lon'] + 8),
+        lat_bounds=(asi.meta['lat'] - 4, asi.meta['lat'] + 4),
+        fig_ax=(fig, gs[0, 1]),
+    )
     ax.axis('off')
     asi.plot_fisheye(ax=ax)
     asi.plot_map(ax=bx)

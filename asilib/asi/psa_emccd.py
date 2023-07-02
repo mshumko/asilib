@@ -49,22 +49,22 @@ def psa_emccd(location_code, time=None, time_range=None, redownload=False, missi
     -------
     >>> import matplotlib.pyplot as plt
     >>> import matplotlib.gridspec
-    >>> 
+    >>>
     >>> import asilib.map
     >>> from asilib.asi.psa_emccd import psa_emccd
-    >>> 
+    >>>
     >>> asi = psa_emccd(
     >>>     'vee',
     >>>     time=datetime(2022, 3, 5, 11, 0),
     >>>     redownload=False,
     >>> )
-    >>> 
+    >>>
     >>> fig = plt.figure(figsize=(8, 4))
     >>> gs = matplotlib.gridspec.GridSpec(1, 2, fig)
     >>> ax = fig.add_subplot(gs[0,0])
     >>> bx = asilib.map.create_map(
     >>>     lon_bounds=(asi.meta['lon']-8, asi.meta['lon']+8),
-    >>>     lat_bounds=(asi.meta['lat']-4, asi.meta['lat']+4), 
+    >>>     lat_bounds=(asi.meta['lat']-4, asi.meta['lat']+4),
     >>>     fig_ax=(fig, gs[0,1])
     >>>     )
     >>> ax.axis('off')

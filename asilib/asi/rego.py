@@ -129,11 +129,11 @@ def rego(
         }
     else:
         file_info = {
-                'path': [],
-                'start_time': [],
-                'end_time': [],
-                'loader': [],
-            }
+            'path': [],
+            'start_time': [],
+            'end_time': [],
+            'loader': [],
+        }
     if time_range is not None:
         file_info['time_range'] = time_range
     else:

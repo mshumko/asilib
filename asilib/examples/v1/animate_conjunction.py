@@ -12,7 +12,7 @@ import asilib.asi
 
 # ASI parameters
 location_code = 'RANK'
-alt=110  # km
+alt = 110  # km
 time_range = (datetime(2017, 9, 15, 2, 32, 0), datetime(2017, 9, 15, 2, 35, 0))
 
 fig, ax = plt.subplots(
@@ -29,7 +29,7 @@ lats = np.linspace(asi.meta["lat"] + 5, asi.meta["lat"] - 5, n)
 lons = (asi.meta["lon"] - 0.5) * np.ones(n)
 alts = alt * np.ones(n)  # Altitude needs to be the same as the skymap.
 sat_lla = np.array([lats, lons, alts]).T
-# Normally the satellite time stamps are not the same as the ASI. 
+# Normally the satellite time stamps are not the same as the ASI.
 # You may need to call Conjunction.interp_sat() to find the LLA coordinates
 # at the ASI timestamps.
 sat_time = asi.data.time
@@ -45,7 +45,7 @@ sat_azel, sat_azel_pixels = conjunction_obj.map_azel()
 # Calculate the auroral intensity near the satellite and mean intensity within a 10x10 km area.
 nearest_pixel_intensity = conjunction_obj.intensity(box=None)
 area_intensity = conjunction_obj.intensity(box=(10, 10))
-area_mask = conjunction_obj.equal_area(box=(10,10))
+area_mask = conjunction_obj.equal_area(box=(10, 10))
 
 # Need to change masked NaNs to 0s so we can plot the rectangular area contours.
 area_mask[np.where(np.isnan(area_mask))] = 0

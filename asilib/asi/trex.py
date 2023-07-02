@@ -85,7 +85,7 @@ def trex_nir(
     >>> import asilib.map
     >>> import asilib.asi
     >>> import matplotlib.pyplot as plt
-    >>> 
+    >>>
     >>> fig = plt.figure(figsize=(10, 6))
     >>> ax = fig.add_subplot(121)
     >>> bx = asilib.map.create_map(fig_ax=(fig, 122), lon_bounds=(-102, -86), lat_bounds=(51, 61))
@@ -99,7 +99,7 @@ def trex_nir(
     >>> import asilib.map
     >>> import asilib.asi
     >>> import matplotlib.pyplot as plt
-    >>> 
+    >>>
     >>> time_range = ('2020-03-21T05:00', '2020-03-21T07:00')
     >>> fig, ax = plt.subplots(2, sharex=True)
     >>> asi = asilib.asi.trex_nir('gill', time_range=time_range)
@@ -145,17 +145,17 @@ def trex_nir(
         }
     else:
         file_info = {
-                'path': [],
-                'start_time': [],
-                'end_time': [],
-                'loader': None,
-            }
+            'path': [],
+            'start_time': [],
+            'end_time': [],
+            'loader': None,
+        }
 
     if time_range is not None:
         file_info['time_range'] = time_range
     else:
         file_info['time'] = time
-        
+
     # Download and find the appropriate skymap
     if time is not None:
         _time = time
@@ -331,7 +331,7 @@ def _load_nir_pgm(path):
     # TODO: Remove the import once opencv is updated and trex_imager_readfile can be
     # updated https://github.com/opencv/opencv/issues/23059
     import trex_imager_readfile
-    
+
     images, meta, problematic_file_list = trex_imager_readfile.read_nir(str(path))
     if len(problematic_file_list):
         raise ValueError(f'A problematic PGM file: {problematic_file_list[0]}')
