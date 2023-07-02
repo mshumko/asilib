@@ -1112,15 +1112,24 @@ class Imager:
             (start_time <= np.array(self.file_info['end_time'])) &
             (end_time >= np.array(self.file_info['start_time']))
         )[0]
-        new_file_info = copy.copy(self.file_info)
-        new_file_info['start_time'] = np.array(new_file_info['start_time'])[idx]
-        new_file_info['end_time'] = np.array(new_file_info['end_time'])[idx]
-        new_file_info['path'] = np.array(new_file_info['path'])[idx]
+
+        if len(idx) == 0:
+            raise FileNotFoundError(
+                f'Imager does not have any data contained in slice={_slice}'
+                )
+
+        # Create the new variables.
+        new_file_info = {}
         if start_time == end_time:
             # A single time stamp
             new_file_info['time'] = start_time
         else:
             new_file_info['time_range'] = [start_time, end_time]
+        new_file_info['start_time'] = np.array(self.file_info['start_time'])[idx]
+        new_file_info['end_time'] = np.array(self.file_info['end_time'])[idx]
+        new_file_info['path'] = np.array(self.file_info['path'])[idx]
+        new_file_info['loader'] = self.file_info['loader']
+        
         new_meta = copy.copy(self.meta)
         new_skymap = copy.copy(self.skymap)
         new_plot_settings = copy.copy(self.plot_settings)
