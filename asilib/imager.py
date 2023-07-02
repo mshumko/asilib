@@ -886,7 +886,7 @@ class Imager:
 
         # Remove NaN keogram rows (unfilled or the data is NaN.).
         i_valid = np.where(~np.isnan(self._keogram[:, 0, ...]))[0]
-        self._keogram = self._keogram[i_valid, :]
+        self._keogram = self._keogram[i_valid, ...]
         self._keogram_time = self._keogram_time[i_valid]
 
         if self._keogram.shape[0] == 0:
