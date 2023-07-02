@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.17.3] - 
+
+### Changed
+- Simplified `asilib.Imager.__getitem__()` to repay the technical debt. Before the method was difficult to reason about and it processed the [time] and [start_time:end_time] slice cases separately. Now `__getitem__` handles both of those cases in the same way.
+
 ## [0.17.2] - 2023-06-28 
 ### Added
 - Deprecation warnings to the legacy asilib plotting functions and in the API reference. They will be removed in or after December 2023.
