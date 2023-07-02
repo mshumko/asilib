@@ -1094,21 +1094,47 @@ class Imager:
 
     def __getitem__(self, _slice):
         """
-        Add time slicing to asilib.
+        Slice an Imager object by time.
 
         Parameters
         ----------
-        _slice: str, pd.Timestamp, datetime.datetime, or list thereof.
-            The time(s) to slice an Imager object.
+        _slice: str, pd.Timestamp, datetime.datetime, or list.
+            The time(s) to slice an Imager object. Can type of slice can be either 
+            1) [start_time:end_time], or 2) just time.
 
         Yields
         ------
         asilib.Imager:
             A sliced version of the Imager.
         """
-        # TODO: Break up into smaller methods.
-        # Deal with the [time_i:time_f] slice logic.
+        start_time, end_time = self._convert_slice(_slice)
+        idx = np.where(
+            (start_time <= np.array(self.file_info['end_time'])) &
+            (end_time >= np.array(self.file_info['start_time']))
+        )[0]
+        new_file_info = copy.copy(self.file_info)
+        new_file_info['start_time'] = np.array(new_file_info['start_time'])[idx]
+        new_file_info['end_time'] = np.array(new_file_info['end_time'])[idx]
+        new_file_info['path'] = np.array(new_file_info['path'])[idx]
+        if start_time == end_time:
+            # A single time stamp
+            new_file_info['time'] = start_time
+        else:
+            new_file_info['time_range'] = [start_time, end_time]
+        new_meta = copy.copy(self.meta)
+        new_skymap = copy.copy(self.skymap)
+        new_plot_settings = copy.copy(self.plot_settings)
+
+        cls = type(self)
+        return cls(new_file_info, new_meta, new_skymap, plot_settings=new_plot_settings)
+    
+    def _convert_slice(self, _slice):
+        """
+        Validate and convert the slice into datetime objects.
+        """
+        # Convert the [start_time:end_time] slice to datetime objects.
         if isinstance(_slice, slice):
+            # Check the start slice and if it is None assign time_range[0]
             if isinstance(_slice.start, str):
                 start_time = dateutil.parser.parse(_slice.start)
             elif isinstance(_slice.start, (datetime.datetime, pd.Timestamp)):
@@ -1120,7 +1146,8 @@ class Imager:
                     f'The start index can only be a time object, string, or None. '
                     f'{_slice.start} is unsupported'
                 )
-
+            
+            # Check the end slice and if it is None assign time_range[1]
             if isinstance(_slice.stop, str):
                 end_time = dateutil.parser.parse(_slice.stop)
             elif isinstance(_slice.stop, (datetime.datetime, pd.Timestamp)):
@@ -1135,64 +1162,23 @@ class Imager:
 
             if _slice.step is not None:
                 raise NotImplementedError
-
-            new_data = copy.copy(self.file_info)
-            new_data['time_range'] = [start_time, end_time]
-            # new_data['start_time'] = new_data['start_time'][start_file_i:end_file_i]
-            # new_data['end_time'] = new_data['end_time'][start_file_i:end_file_i]
-            # new_data['path'] = new_data['path'][start_file_i:end_file_i]
-            files = np.where(
-                (start_time <= np.array(self.file_info['end_time']))
-                & (end_time >= np.array(self.file_info['start_time']))
-            )[0]
-            new_data['start_time'] = np.array(new_data['start_time'])[files]
-            new_data['end_time'] = np.array(new_data['end_time'])[files]
-            new_data['path'] = np.array(new_data['path'])[files]
-            new_meta = copy.copy(self.meta)
-            new_skymap = copy.copy(self.skymap)
-            new_plot_settings = copy.copy(self.plot_settings)
-
-            cls = type(self)
-            return cls(new_data, new_meta, new_skymap, plot_settings=new_plot_settings)
-
-        # Deal with the [time] slice logic.
+            return start_time, end_time
+        
+        # Convert the [time] slice to datetime object.
         elif isinstance(_slice, (str, datetime.datetime, pd.Timestamp)):
             if isinstance(_slice, str):
                 slice_time = dateutil.parser.parse(_slice)
             else:
                 slice_time = _slice
-
-            file_index = np.where(
-                (slice_time >= np.array(self.file_info['start_time']))
-                & (slice_time < np.array(self.file_info['end_time']))
-            )[0]
-            if len(file_index) != 1:
-                raise FileNotFoundError(
-                    f'{slice_time} out of imager range: '
-                    f'{self.file_info["start_time"][0]}-{self.file_info["end_time"][-1]}'
-                )
-            file_index = file_index[0]
-
-            new_data = {
-                'time':slice_time,
-                'path':[self.file_info['path'][file_index]],
-                'start_time': [self.file_info['start_time'][file_index]],
-                'end_time': [self.file_info['end_time'][file_index]],
-                'loader':self.file_info['loader']
-            }
-
-            new_meta = copy.copy(self.meta)
-            new_skymap = copy.copy(self.skymap)
-            new_plot_settings = copy.copy(self.plot_settings)
-
-            cls = type(self)
-            return cls(new_data, new_meta, new_skymap, plot_settings=new_plot_settings)
-
+            return slice_time, slice_time
         elif isinstance(_slice, tuple):
             raise NotImplementedError(
-                'At this time Imager does not support multi-dimensional indexing.'
+                'At this time asilib.Imager does not support multi-dimensional indexing.'
             )
-        return
+        else: 
+            raise ValueError(
+                f'The slice must be [time] or [start_time:end_time], not {_slice}.'
+            )       
 
     def __iter__(self):
         """
