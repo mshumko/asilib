@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.17.3] - 
+## [0.17.3] - 2023-07-02
 
 ### Added
 - Support for RGB images in `asilib.Imager.keogram()`.
@@ -8,6 +8,7 @@
 ### Changed
 - Simplified `asilib.Imager.__getitem__()` to repay the technical debt. Before the method was difficult to reason about and it processed the [time] and [start_time:end_time] slice cases separately. Now `__getitem__` handles both of those cases in the same way.
 - Simplified how the `Imager._keogram` array is allocated when `asilib.Imager.keogram()` is called.
+- Edited the Imager flowchart.
 
 ## [0.17.2] - 2023-06-28 
 ### Added
