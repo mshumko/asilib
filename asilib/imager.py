@@ -1088,9 +1088,9 @@ class Imager:
         else:
             return _geo_lats
 
-    def accumulate(self, n):
-        self._accumulate_n = n
-        return self
+    # def accumulate(self, n):
+    #     self._accumulate_n = n
+    #     return self
 
     def __getitem__(self, _slice):
         """
