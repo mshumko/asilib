@@ -8,7 +8,7 @@ Your one stop to working with the world's extensive arrays of auroral all-sky im
 
 [Documentation](https://aurora-asi-lib.readthedocs.io/) | [Code on GitHub](https://github.com/mshumko/aurora-asi-lib) | [PyPI archive](https://pypi.org/project/aurora-asi-lib/) | [Zenodo archive](https://doi.org/10.5281/zenodo.4746446)
 
-![An asilib collage showing fisheye images, mapped images, and a keogram from the THEMIS and REGO imagers at RANK.](/docs/_static/collage.png)
+![An asilib collage showing fisheye images, mapped images, and a keogram from the THEMIS and REGO imagers at RANK.](https://github.com/mshumko/aurora-asi-lib/blob/main/docs/_static/collage.png?raw=true)
 
 [And you can animate images & conjunctions!](https://aurora-asi-lib.readthedocs.io/en/latest/basics_tutorial.html#Satellite-conjunction)
 
