@@ -9,7 +9,7 @@ from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 
-from asilib.imager import Imager
+from asilib.imager import Imager, _haversine
 
 
 class Imagers:
@@ -34,6 +34,23 @@ class Imagers:
     
     def animate_map_gen(self):
         raise NotImplementedError
+    
+    def _overlap_mask(self):
+        """
+        Calculate which pixels to plot for overlapping imagers by the criteria that the ith 
+        imager's pixel must be closest to that imager (and not a neighboring one).
+
+        Algorithm:
+        1. Loop over ith imager
+        2. Loop over jth imager within 500 km distance of the ith imager
+        3. Mask low-elevations with np.nan
+        4. Create a distance array with shape (resolution[0], resolution[1], j_total)
+        5. For all pixels in ith imager, calculate the haversine distance to jth imager and 
+        assign it to distance[..., j].
+        6. For all pixels calculate the nearest imager out of all j's.
+        7. If the minimum j is not the ith imager, mask as np.nan.
+        """
+        return
     
     
 if __name__ == '__main__':
