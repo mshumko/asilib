@@ -21,6 +21,8 @@ class Imagers:
         raise NotImplementedError
     
     def plot_map(self, ax=None, overlap=False):
+        if overlap:
+            self._calc_overlap_mask()
         raise NotImplementedError
     
     def animate_fisheye(self):
@@ -30,12 +32,15 @@ class Imagers:
         raise NotImplementedError
     
     def animate_map(self):
+        
         raise NotImplementedError
     
-    def animate_map_gen(self):
+    def animate_map_gen(self, overlap=False):
+        if overlap:
+            self._calc_overlap_mask()
         raise NotImplementedError
     
-    def _overlap_mask(self):
+    def _calc_overlap_mask(self):
         """
         Calculate which pixels to plot for overlapping imagers by the criteria that the ith 
         imager's pixel must be closest to that imager (and not a neighboring one).
@@ -50,6 +55,15 @@ class Imagers:
         6. For all pixels calculate the nearest imager out of all j's.
         7. If the minimum j is not the ith imager, mask as np.nan.
         """
+        if hasattr(self, '_overlap_masks'):
+            return self._overlap_masks
+        self._overlap_masks = {
+                asi.meta['location']:np.ones(
+                    (asi.meta['resolution'][0], asi.meta['resolution'][1])
+                ) for asi in self.imagers
+                }
+        for asi in self.imagers:
+            pass
         return
     
     
