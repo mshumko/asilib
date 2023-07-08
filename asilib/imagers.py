@@ -23,6 +23,9 @@ class Imagers:
     def plot_map(self, ax=None, overlap=False):
         if overlap:
             self._calc_overlap_mask()
+            
+        for imager in self.imagers:
+            imager.plot_map(ax=ax)
         raise NotImplementedError
     
     def animate_fisheye(self):
@@ -53,15 +56,16 @@ class Imagers:
         5. For all pixels in ith imager, calculate the haversine distance to jth imager and 
         assign it to distance[..., j].
         6. For all pixels calculate the nearest imager out of all j's.
-        7. If the minimum j is not the ith imager, mask as np.nan.
+        7. If the minimum j is not the ith imager, mask the imager.skymap['lat'] and 
+        imager.skymap['lon'] as np.nan.
         """
         if hasattr(self, '_overlap_masks'):
             return self._overlap_masks
-        self._overlap_masks = {
-                asi.meta['location']:np.ones(
-                    (asi.meta['resolution'][0], asi.meta['resolution'][1])
-                ) for asi in self.imagers
-                }
+        
+        self._overlap_masks = {}
+        for imager in self.imagers:
+            self._overlap_masks[imager.meta['location']] = np.ones_like(imager.skymap['lat'])
+
         for asi in self.imagers:
             pass
         return
