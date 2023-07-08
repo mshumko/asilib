@@ -20,13 +20,13 @@ class Imagers:
     def plot_fisheye(self, ax):
         raise NotImplementedError
     
-    def plot_map(self, ax=None, overlap=False):
+    def plot_map(self, ax=None, min_elevation=10, overlap=False):
         if overlap:
             self._calc_overlap_mask()
 
         for imager in self.imagers:
-            imager.plot_map(ax=ax)
-        raise NotImplementedError
+            imager.plot_map(ax=ax, min_elevation=min_elevation)
+        return
     
     def animate_fisheye(self):
         raise NotImplementedError
@@ -71,9 +71,12 @@ class Imagers:
             for j, other_imager in enumerate(self.imagers):
                 _distances[:, :, j] = _haversine(
                     imager.skymap['lat'], imager.skymap['lon'],
-                    other_imager.meta['lat'], other_imager.meta['lon']
+                    np.broadcast_to(other_imager.meta['lat'], imager.skymap['lat'].shape), 
+                    np.broadcast_to(other_imager.meta['lon'], imager.skymap['lat'].shape)
                     )
-            min_distances = np.nanargmin(_distances, axis=2)
+            # Need a masked array so that np.nanargmin correctly handles all NaN slices.
+            _distances = np.ma.masked_array(_distances, np.isnan(_distances))
+            min_distances = np.argmin(_distances, axis=2)
             far_pixels = np.where(min_distances != i)
             imager.skymap['lat'][far_pixels] = np.nan
             imager.skymap['lon'][far_pixels] = np.nan
@@ -97,7 +100,7 @@ if __name__ == '__main__':
         _imagers.append(asilib.asi.themis(location_code, time=time, alt=map_alt))
 
     asis = Imagers(_imagers)
-    asis.plot_map(ax=ax, min_elevation=min_elevation, overlap=True)
+    asis.plot_map(ax=ax, overlap=True, min_elevation=min_elevation)
 
     ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
     plt.show()
