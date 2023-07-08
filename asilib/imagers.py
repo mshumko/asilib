@@ -23,7 +23,7 @@ class Imagers:
     def plot_map(self, ax=None, overlap=False):
         if overlap:
             self._calc_overlap_mask()
-            
+
         for imager in self.imagers:
             imager.plot_map(ax=ax)
         raise NotImplementedError
@@ -66,8 +66,17 @@ class Imagers:
         for imager in self.imagers:
             self._overlap_masks[imager.meta['location']] = np.ones_like(imager.skymap['lat'])
 
-        for asi in self.imagers:
-            pass
+        for i, imager in enumerate(self.imagers):
+            _distances = np.nan*np.ones((*imager.skymap['lat'].shape, len(self.imagers)))
+            for j, other_imager in enumerate(self.imagers):
+                _distances[:, :, j] = _haversine(
+                    imager.skymap['lat'], imager.skymap['lon'],
+                    other_imager.meta['lat'], other_imager.meta['lon']
+                    )
+            min_distances = np.nanargmin(_distances, axis=2)
+            far_pixels = np.where(min_distances != i)
+            imager.skymap['lat'][far_pixels] = np.nan
+            imager.skymap['lon'][far_pixels] = np.nan
         return
     
     
