@@ -59,16 +59,14 @@ class Imagers:
         7. If the minimum j is not the ith imager, mask the imager.skymap['lat'] and 
         imager.skymap['lon'] as np.nan.
         """
-        if hasattr(self, '_overlap_masks'):
-            return self._overlap_masks
-        
-        self._overlap_masks = {}
-        for imager in self.imagers:
-            self._overlap_masks[imager.meta['location']] = np.ones_like(imager.skymap['lat'])
+        if hasattr(self, '_masked'):
+            return
 
         for i, imager in enumerate(self.imagers):
             _distances = np.nan*np.ones((*imager.skymap['lat'].shape, len(self.imagers)))
             for j, other_imager in enumerate(self.imagers):
+                # Calculate the distance between all imager pixels and every other imager 
+                # location (including itself).
                 _distances[:, :, j] = _haversine(
                     imager.skymap['lat'], imager.skymap['lon'],
                     np.broadcast_to(other_imager.meta['lat'], imager.skymap['lat'].shape), 
@@ -76,10 +74,14 @@ class Imagers:
                     )
             # Need a masked array so that np.nanargmin correctly handles all NaN slices.
             _distances = np.ma.masked_array(_distances, np.isnan(_distances))
+            # For each pixel, calculate the nearest imager. If the pixel is not closest to 
+            # the imager that it's from, mask it as np.nan. Then the Imager._pcolormesh_nan() 
+            # method then won't plot that pixel.
             min_distances = np.argmin(_distances, axis=2)
             far_pixels = np.where(min_distances != i)
             imager.skymap['lat'][far_pixels] = np.nan
             imager.skymap['lon'][far_pixels] = np.nan
+        self._masked = True  # A flag to not run again.
         return
     
     
