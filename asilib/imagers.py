@@ -72,6 +72,10 @@ class Imagers:
                     np.broadcast_to(other_imager.meta['lat'], imager.skymap['lat'].shape), 
                     np.broadcast_to(other_imager.meta['lon'], imager.skymap['lat'].shape)
                     )
+            # Without this small reduction in the distance of pixels to its own imager,
+            # there are gaps between the imager boundaries. In other words, this scaling
+            # slightly biases to plotting pixels nearest to the imager. 
+            _distances[:, :, i] *= 0.95
             # Need a masked array so that np.nanargmin correctly handles all NaN slices.
             _distances = np.ma.masked_array(_distances, np.isnan(_distances))
             # For each pixel, calculate the nearest imager. If the pixel is not closest to 
