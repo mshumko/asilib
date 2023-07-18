@@ -1453,6 +1453,8 @@ class Imager:
             color_norm = colors.LogNorm(vmin=color_bounds[0], vmax=color_bounds[1])
         elif color_norm == 'lin':
             color_norm = colors.Normalize(vmin=color_bounds[0], vmax=color_bounds[1])
+        elif isinstance(color_norm, matplotlib.colors.Normalize):
+            pass
         else:
             raise ValueError(f'color_norm must be either None, "log", or "lin", not {color_norm=}.')
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- Added a check to allow custom `matplotlib.colors.Normalization` object to be passed for `color_norm`.
+
 ## [0.17.3] - 2023-07-02
 
 ### Added
