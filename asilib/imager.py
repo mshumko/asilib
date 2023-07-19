@@ -1632,12 +1632,13 @@ class Imager:
         lon_map_copy[idh] = np.nan
         lat_map_copy[idh] = np.nan
 
-        if image is not None:
-            image_copy = image.copy()
-            image_copy = image_copy.astype(float)  # Can't mask image unless it is a float array.
-            image_copy[idh] = np.nan
-        else:
-            image_copy = None
+        # if image is not None:
+        #     image_copy = image.copy()
+        #     original_dtype = image.dtype
+        #     image_copy = image_copy.astype(float)  # Can't mask image unless it is a float array.
+        #     image_copy[idh] = np.nan
+        # else:
+        #     image_copy = None
 
         if (lon_map.shape[0] == el_map.shape[0] + 1) and (lon_map.shape[1] == el_map.shape[1] + 1):
             # TODO: This is REGO/THEMIS specific. Remove here and add this to the themis() function?
@@ -1653,7 +1654,7 @@ class Imager:
             lat_map_copy[idh_boundary_bottom] = np.nan
             lon_map_copy[idh_boundary_right] = np.nan
             lat_map_copy[idh_boundary_right] = np.nan
-        return lon_map_copy, lat_map_copy, image_copy
+        return lon_map_copy, lat_map_copy, image
 
     def _create_animation(
         self,
