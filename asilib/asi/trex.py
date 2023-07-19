@@ -156,7 +156,7 @@ def trex_rgb(
             'path': file_paths,
             'start_time': start_times,
             'end_time': end_times,
-            'loader': lambda path: _load_rgb_h5(path, colors),
+            'loader': lambda path: _load_rgb_h5(path, colors.lower()),
         }
     else:
         file_info = {
@@ -371,6 +371,7 @@ def _download_one_h5_file(
 
 
 def _load_rgb_h5(path, colors):
+    # TODO: Move import to the top when the opencv bug is fixed for Linux.
     import trex_imager_readfile
 
     images, meta, problematic_file_list = trex_imager_readfile.read_rgb(
@@ -378,13 +379,26 @@ def _load_rgb_h5(path, colors):
     if len(problematic_file_list):
         raise ValueError(f'A problematic PGM file: {problematic_file_list[0]}')
     images = np.moveaxis(images, 3, 0)
+
     if colors == 'rgb':
         # Scale from 0-255 to work with plt.imshow(). Convert to unit16 to avoid rounding 
         # off the highest bits.
         images = images.astype(np.uint16)*255/np.max(images)
         # Need uint8 for plt.imshow() to work with RGB images. 
         images = images.astype(np.uint8)
-    images = images[:, ::-1, ::-1, :]  # Flip north-south. ##TODO DOES FLIPPING NEED TO BE DONE?
+        _color_indices = [0, 1, 2]
+    else:
+        _color_indices = []
+        _color_indices_map = {'r':0, 'g':1, 'b':2}
+        for _color in colors:
+            assert _color in ['r', 'g', 'b'], (f'{_color} is an invalid color letter. '
+                                               'Try "r", "b", "g" (or a combination).')
+            _color_indices.append(_color_indices_map[_color])
+            _color_indices.sort()
+
+    images = images[:, ::-1, ::-1, _color_indices]  # Flip north-south.
+    if len(_color_indices) == 1:  # If just one channel we want to remove the 3rd dimension.
+        images = images[..., 0]
     times = np.array(
         [
             dateutil.parser.parse(
@@ -392,13 +406,6 @@ def _load_rgb_h5(path, colors):
             for dict_i in meta
         ]
     )
-    # # rearrange to time, width, height, rgb
-    # if(rgb == 0):
-    #     images = np.reshape(images, (np.shape(images)[3], 480, 553, 3))
-    # else:
-    #     images = images[rgb-1]  # r=1,g=2,b=3 however, index is 0,1,2 for rgb
-    #     images = np.reshape(images, (np.shape(images)[2], 480, 553))
-
     return times, images  # returns green
 
 
