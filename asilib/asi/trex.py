@@ -358,7 +358,6 @@ def _download_one_h5_file(
     """
     start_url = base_url + f'{time.year}/{time.month:02}/{time.day:02}/'
     d = download.Downloader(start_url)
-    print(d)
     # Find the unique directory
     matched_downloaders = d.ls(f'{location_code.lower()}_{array}*')
     assert len(matched_downloaders) == 1
@@ -427,12 +426,10 @@ def trex_rgb_skymap(location_code: str, time: utils._time_type, redownload: bool
     dict:
         The skymap.
     """
-    print('testing123')
     time = utils.validate_time(time)
     local_dir = local_base_dir / 'skymaps' / location_code.lower()
     local_dir.mkdir(parents=True, exist_ok=True)
     skymap_top_url = skymap_base_url_rgb + location_code.lower() + '/'
-    print(skymap_top_url)
     if redownload:
         # Delete any existing skymap files.
         local_skymap_paths = pathlib.Path(local_dir).rglob(
@@ -453,7 +450,6 @@ def trex_rgb_skymap(location_code: str, time: utils._time_type, redownload: bool
             local_skymap_paths = _download_all_skymaps(
                 location_code, skymap_top_url, local_dir, redownload=redownload
             )
-    print(local_skymap_paths)
     skymap_filenames = [
         local_skymap_path.name for local_skymap_path in local_skymap_paths]
     skymap_file_dates = []
