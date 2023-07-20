@@ -92,34 +92,24 @@ def trex_rgb(
 
     Examples
     --------
-    >>> import asilib
-    >>> import asilib.map
-    >>> import asilib.asi
+    >>> from datetime import datetime
+    >>> 
     >>> import matplotlib.pyplot as plt
-    >>>
-    >>> fig = plt.figure(figsize=(10, 6))
-    >>> ax = fig.add_subplot(121)
-    >>> bx = asilib.map.create_map(fig_ax=(fig, 122), lon_bounds=(-102, -86), lat_bounds=(51, 61))
-    >>> asi = asilib.asi.trex_nir('gill', time='2020-03-21T06:00')
-    >>> asi.plot_fisheye(ax=ax)
-    >>> asi.plot_map(ax=bx)
+    >>> import asilib.map
+    >>> import asilib.imagers
+    >>> from asilib.asi.trex import trex_rgb
+    >>> 
+    >>> time = datetime(2021, 11, 4, 7, 3, 51)
+    >>> location_codes = ['FSMI', 'LUCK', 'RABB', 'PINA', 'GILL']
+    >>> asi_list = []
+    >>> ax = asilib.map.create_simple_map()
+    >>> for location_code in location_codes:
+    >>>     asi_list.append(trex_rgb(location_code, time=time, colors='rgb'))
+    >>> 
+    >>> asis = asilib.imagers.Imagers(asi_list)
+    >>> asis.plot_map(ax=ax)
+    >>> ax.set(title=time)
     >>> plt.tight_layout()
-    >>> plt.show()
-
-    >>> import asilib
-    >>> import asilib.map
-    >>> import asilib.asi
-    >>> import matplotlib.pyplot as plt
-    >>>
-    >>> time_range = ('2020-03-21T05:00', '2020-03-21T07:00')
-    >>> fig, ax = plt.subplots(2, sharex=True)
-    >>> asi = asilib.asi.trex_nir('gill', time_range=time_range)
-    >>> asi.plot_keogram(ax=ax[0])
-    >>> asi.plot_keogram(ax=ax[1], aacgm=True)
-    >>> ax[0].set_title(f'TREX_NIR GILL keogram | {time_range}')
-    >>> ax[0].set_ylabel('Geo Lat')
-    >>> ax[1].set_ylabel('Mag Lat')
-    >>> ax[1].set_xlabel('Time')
     >>> plt.show()
     """
     if burst == True:
