@@ -984,10 +984,17 @@ class Imager:
 
         _color_map, _color_norm = self._plot_params(_keogram, color_bounds, color_map, color_norm)
 
+        # Same as transpose, but correctly handles RGB keograms.
+        _keogram = np.swapaxes(_keogram, 1, 0)
+        if len(_keogram.shape) == 3:
+            # To see anything, the channel intensities need to span 0-255
+            # _keogram*=(255/_keogram.max())
+            _keogram = _keogram.astype(np.uint8)
+
         pcolormesh_obj = ax.pcolormesh(
             _keogram_time,
             _geogram_lat,
-            _keogram[:-1, :-1].T,
+            _keogram,
             norm=_color_norm,
             shading='auto',
             cmap=_color_map,
@@ -1006,13 +1013,16 @@ class Imager:
         """
         # CASE 1: No path provided. Output self._pixels that slice the meridian.
         if path is None:
-            self._pixels = np.column_stack(
-                (
-                    np.arange(self.meta['resolution'][0]),  # All y-axis indices
-                    # Slice half way in the x-axis (meridian)
-                    np.full((self.meta['resolution'][1]), self.meta['resolution'][1] // 2),
-                )
-            ).astype(int)
+            # self._pixels = np.column_stack(
+            #     (
+            #         np.arange(self.meta['resolution'][0]),  # All y-axis indices
+            #         # Slice half way in the x-axis (meridian)
+            #         np.full((self.meta['resolution'][1]), self.meta['resolution'][1] // 2),
+            #     )
+            # ).astype(int)
+            self._pixels = -1*np.ones((self.meta['resolution'][0], 2), dtype=int)
+            self._pixels[:, 0] = np.arange(self.meta['resolution'][0])
+            self._pixels[:, 1] = int(self.meta['resolution'][1] // 2)
 
         # CASE 2: A path is provided so now we need to calculate the custom path
         # on the lat/lon skymap.
