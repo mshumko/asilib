@@ -63,12 +63,16 @@ The architecture described so far is illustrated in the flowchart below.
 .. figure:: ./_static/imager_flowchart.png
     :alt: asilib Imager architecture.
 
-asilib also implements two classes to extend :py:meth:`~asilib.imager.Imager`. First, :py:meth:`~asilib.conjunction.Conjunction` finds and calculates auroral intensity near a satellite's footprint. Second, asilib.Imagers() plots and animates images from multiple asilib.Imager() instances, useful for example, for creating mosaics.
+asilib also implements two classes to extend :py:meth:`~asilib.imager.Imager`. First, :py:meth:`~asilib.conjunction.Conjunction` finds and calculates auroral intensity near a satellite's footprint. Second, :py:meth:`~asilib.imagers.Imagers` plots and animates images from multiple :py:meth:`~asilib.imager.Imager` instances.
 
-:py:meth:`~asilib.conjunction.Conjunction`: Often ASI observations need to be combined with in-situ measurements such as low Earth orbiting satellites.
+:py:meth:`~asilib.conjunction.Conjunction`: Often ASI observations need to be combined with in-situ measurements such as low Earth orbiting satellites. This involves mapping the ASI pixels and the satellite location to an assumed emission altitude (e.g., 110 km). This mapping is done via line-of-sight for the ASI pixels, and along magnetic field lines for the satellite (to the satellite's footprint).
+
+:py:meth:`~asilib.imagers.Imagers` plots and animates images from multiple :py:meth:`~asilib.imager.Imager` instances. This is useful for creating mosaics (multiple images mapped onto a map). While you can call :py:meth:`~asilib.imager.Imager.plot_map()` for each Imager, any overlapping fields of view will be overplotted except the final imager (see the `zorder <https://matplotlib.org/stable/gallery/misc/zorder_demo.html>`_ concept). :py:meth:`~asilib.imagers.Imagers.plot_map()` overcomes this issue for overlapping fields of view by plotting only the higher elevation pixels (the ones that have the least amount of spatial distortion.) Another reason to use :py:meth:`~asilib.imagers.Imagers` is to synchronize animating multiple :py:meth:`~asilib.imager.Imager` fisheye or mapped images.
 
 Examples
 --------
+See the :ref:`Examples` gallery for fully-functioning examples of the fundamental asilib functionality.
 
 Tutorial
 --------
+See the :ref:`Tutorials` for comprehensive walk-throughs of the asilib functionality.
