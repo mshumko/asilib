@@ -40,9 +40,10 @@ class Imagers:
 
         Example
         -------
-        >>> import matplotlib.pyplot as plt
+        >>> from datetime import datetime
         >>> 
-        >>> import asilib.map
+        >>> import matplotlib.pyplot as plt
+        >>> import asilib
         >>> import asilib.asi
         >>> 
         >>> time = datetime(2007, 3, 13, 5, 8, 45)
@@ -58,7 +59,7 @@ class Imagers:
         >>> for ax_i in ax:
         >>>     ax_i.axis('off')
         >>> 
-        >>> asis = Imagers(_imagers)
+        >>> asis = asilib.Imagers(_imagers)
         >>> asis.plot_fisheye(ax=ax)
         >>> 
         >>> plt.suptitle('Donovan et al. 2008 | First breakup of an auroral arc')
