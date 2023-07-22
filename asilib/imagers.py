@@ -33,8 +33,43 @@ class Imagers:
         Parameters
         ----------
         ax: Tuple[plt.Axes]
+            Subplots corresponding to each fisheye lens image.
+        kwargs: dict
+            Keyword arguments directly passed into each :py:meth:`~asilib.imager.Imager.plot_fisheye()`
+            method.
+
+        Example
+        -------
+        >>> import matplotlib.pyplot as plt
+        >>> 
+        >>> import asilib.map
+        >>> import asilib.asi
+        >>> 
+        >>> time = datetime(2007, 3, 13, 5, 8, 45)
+        >>> location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+        >>> 
+        >>> fig, ax = plt.subplots(1, len(location_codes), figsize=(12, 3.5))
+        >>> 
+        >>> _imagers = []
+        >>> 
+        >>> for location_code in location_codes:
+        >>>     _imagers.append(asilib.asi.themis(location_code, time=time))
+        >>> 
+        >>> for ax_i in ax:
+        >>>     ax_i.axis('off')
+        >>> 
+        >>> asis = Imagers(_imagers)
+        >>> asis.plot_fisheye(ax=ax)
+        >>> 
+        >>> plt.suptitle('Donovan et al. 2008 | First breakup of an auroral arc')
+        >>> plt.tight_layout()
+        >>> plt.show()
         """
-        raise NotImplementedError
+        assert len(ax) == len(self.imagers), 'Number of subplots must equal the number of imagers.'
+
+        for ax_i, imager_i in zip(ax, self.imagers):
+            imager_i.plot_fisheye(ax=ax_i, **kwargs)
+        return
     
     def plot_map(self, overlap=False, **kwargs):
         """
@@ -85,20 +120,20 @@ class Imagers:
             imager.plot_map(**kwargs)
         return
     
-    def animate_fisheye(self):
-        raise NotImplementedError
+    # def animate_fisheye(self):
+    #     raise NotImplementedError
     
-    def animate_fisheye_gen(self):
-        raise NotImplementedError
+    # def animate_fisheye_gen(self):
+    #     raise NotImplementedError
     
-    def animate_map(self):
+    # def animate_map(self):
         
-        raise NotImplementedError
+    #     raise NotImplementedError
     
-    def animate_map_gen(self, overlap=False):
-        if overlap:
-            self._calc_overlap_mask()
-        raise NotImplementedError
+    # def animate_map_gen(self, overlap=False):
+    #     if overlap:
+    #         self._calc_overlap_mask()
+    #     raise NotImplementedError
     
     def _calc_overlap_mask(self):
         """
@@ -147,23 +182,27 @@ class Imagers:
     
     
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
     import asilib.map
     import asilib.asi
 
     time = datetime(2007, 3, 13, 5, 8, 45)
     location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
-    map_alt = 110
-    min_elevation = 2
 
-    ax = asilib.map.create_map(lon_bounds=(-140, -60), lat_bounds=(40, 82))
+    fig, ax = plt.subplots(1, len(location_codes), figsize=(12, 3.5))
 
     _imagers = []
 
     for location_code in location_codes:
-        _imagers.append(asilib.asi.themis(location_code, time=time, alt=map_alt))
+        _imagers.append(asilib.asi.themis(location_code, time=time))
+
+    for ax_i in ax:
+        ax_i.axis('off')
 
     asis = Imagers(_imagers)
-    asis.plot_map(ax=ax, overlap=False, min_elevation=min_elevation)
+    asis.plot_fisheye(ax=ax)
 
-    ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
+    plt.suptitle('Donovan et al. 2008 | First breakup of an auroral arc')
+    plt.tight_layout()
     plt.show()
