@@ -1,3 +1,4 @@
+.. _Examples:
 ========
 Examples
 ========
@@ -145,11 +146,15 @@ The first breakup of an auroral arc during a substorm analyzed by Donovan et al.
             map_alt = 110
             min_elevation = 2
 
-            ax = asilib.map.create_map(lon_bounds=(-140, -60), lat_bounds=(40, 82))
+            ax = asilib.map.create_simple_map(lon_bounds=(-140, -60), lat_bounds=(40, 82))
+
+            _imagers = []
 
             for location_code in location_codes:
-                asi = asilib.asi.themis(location_code, time=time, alt=map_alt)
-                asi.plot_map(ax=ax, min_elevation=min_elevation)
+                _imagers.append(asilib.asi.themis(location_code, time=time, alt=map_alt))
+
+            asis = asilib.Imagers(_imagers)
+            asis.plot_map(ax=ax, overlap=False, min_elevation=min_elevation)
 
             ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
             plt.show()
