@@ -1,6 +1,6 @@
 """
-The Imagers class combines multiple Imager objects to coordinate plotting and animating multiple
-fisheye lens images, as well as mapped images (also called mosaics).   
+The Imagers class handles multiple Imager objects and coordinates plotting and animating multiple
+fisheye lens and mapped images. The mapped images are also called mosaics.
 """
 
 from typing import Tuple
@@ -14,10 +14,26 @@ from asilib.imager import Imager, _haversine
 
 class Imagers:
     def __init__(self, imagers:Tuple[Imager]) -> None:
+        """
+        Plot and animate multiple :py:meth:`~asilib.imager.Imager` objects.
+
+        Parameters
+        ----------
+        imagers: Tuple
+            The Imager objects to plot and animate. 
+        """
         self.imagers = imagers
         return
     
-    def plot_fisheye(self, ax):
+    def plot_fisheye(self, ax:Tuple[plt.Axes], **kwargs):
+        """
+        Plots one fisheye image in each subplot, oriented with North on the top, and East on the 
+        left of the image.
+
+        Parameters
+        ----------
+        ax: Tuple[plt.Axes]
+        """
         raise NotImplementedError
     
     def plot_map(self, overlap=False, **kwargs):
@@ -33,6 +49,34 @@ class Imagers:
         kwargs: dict
             Keyword arguments directly passed into each :py:meth:`~asilib.imager.Imager.plot_map()`
             method.
+
+        Example
+        -------
+        >>> from datetime import datetime
+        >>> 
+        >>> import matplotlib.pyplot as plt
+        >>> 
+        >>> import asilib
+        >>> import asilib.map
+        >>> import asilib.asi
+        >>> 
+        >>> time = datetime(2007, 3, 13, 5, 8, 45)
+        >>> location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+        >>> map_alt = 110
+        >>> min_elevation = 2
+        >>> 
+        >>> ax = asilib.map.create_map(lon_bounds=(-140, -60), lat_bounds=(40, 82))
+        >>> 
+        >>> _imagers = []
+        >>> 
+        >>> for location_code in location_codes:
+        >>>     _imagers.append(asilib.asi.themis(location_code, time=time, alt=map_alt))
+        >>> 
+        >>> asis = asilib.Imagers(_imagers)
+        >>> asis.plot_map(ax=ax, overlap=False, min_elevation=min_elevation)
+        >>> 
+        >>> ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
+        >>> plt.show()
         """
         if not overlap:
             self._calc_overlap_mask()
