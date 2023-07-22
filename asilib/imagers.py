@@ -20,12 +20,25 @@ class Imagers:
     def plot_fisheye(self, ax):
         raise NotImplementedError
     
-    def plot_map(self, ax=None, min_elevation=10, overlap=False):
-        if overlap:
+    def plot_map(self, overlap=False, **kwargs):
+        """
+        Projects multiple ASI images onto a map at an altitude that is defined in the skymap 
+        calibration file.
+
+        Parameters
+        ----------
+        overlap: bool
+            If True, pixels that overlap between imager FOV's are overplotted such that only the 
+            final imager's pixels are shown.
+        kwargs: dict
+            Keyword arguments directly passed into each :py:meth:`~asilib.imager.Imager.plot_map()`
+            method.
+        """
+        if not overlap:
             self._calc_overlap_mask()
 
         for imager in self.imagers:
-            imager.plot_map(ax=ax, min_elevation=min_elevation)
+            imager.plot_map(**kwargs)
         return
     
     def animate_fisheye(self):
@@ -106,7 +119,7 @@ if __name__ == '__main__':
         _imagers.append(asilib.asi.themis(location_code, time=time, alt=map_alt))
 
     asis = Imagers(_imagers)
-    asis.plot_map(ax=ax, overlap=True, min_elevation=min_elevation)
+    asis.plot_map(ax=ax, overlap=False, min_elevation=min_elevation)
 
     ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
     plt.show()
