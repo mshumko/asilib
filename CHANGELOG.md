@@ -10,10 +10,6 @@
 - Added an `Imagers()` description in the Get Started and API pages.
 ### Changed
 - Refactored the Donovan+2008 auroral arc example to use `asilib.Imagers.plot_map()`.
-
-## [Unreleased]
-
-### Changed
 - Added a check to allow custom `matplotlib.colors.Normalization` object to be passed for `color_norm`.
 
 ## [0.17.3] - 2023-07-02
