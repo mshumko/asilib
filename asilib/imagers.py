@@ -232,9 +232,9 @@ class Imagers:
             )
             _valid_idx = np.where(~np.isnan(_masked_lon_map))
 
-            lat_grid = _masked_lat_map[*_valid_idx]
-            lon_grid = _masked_lon_map[*_valid_idx]
-            intensity = _masked_image[*_valid_idx, ...]
+            lat_grid = _masked_lat_map[_valid_idx[:, 0], _valid_idx[:, 1]]
+            lon_grid = _masked_lon_map[_valid_idx[:, 0], _valid_idx[:, 1]]
+            intensity = _masked_image[_valid_idx[:, 0], _valid_idx[:, 1], ...]
 
             # Concatenate joins arrays along an existing axis, while stack joins arrays
             # along a new axis. 
