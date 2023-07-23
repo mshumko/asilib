@@ -4,6 +4,7 @@ fisheye lens and mapped images. The mapped images are also called mosaics.
 """
 
 from typing import Tuple
+from collections import namedtuple
 from datetime import datetime
 
 import numpy as np
@@ -16,6 +17,9 @@ class Imagers:
     def __init__(self, imagers:Tuple[Imager]) -> None:
         """
         Plot and animate multiple :py:meth:`~asilib.imager.Imager` objects.
+
+        .. warning::
+            This class is in development and not all methods are implemented.
 
         Parameters
         ----------
@@ -135,6 +139,54 @@ class Imagers:
     #     if overlap:
     #         self._calc_overlap_mask()
     #     raise NotImplementedError
+
+    def get_points(self, min_elevation:float=10)->Tuple[np.ndarray, np.ndarray]:
+        """
+        Get pixel intensities in each (lat, lon) grid point.
+
+        Parameters
+        ----------
+        min_elevation: float
+            Only return pixel intensities above min_elevation.
+
+        Returns
+        -------
+        np.ndarray
+            An (n, 2) array with each row corresponding to a (lon, lat) point.
+        np.ndarray
+            Pixel intensities with shape (n) for white-light images, and (n, 3) for RGB images.
+        """
+        lon_lat_points = np.zeros((0, 2), dtype=float)
+        if len(self.imagers[0].meta['resolution'].shape) == 3: # RGB
+            intensities  = np.zeros((0, self.imagers[0].meta['resolution'].shape[-1]), dtype=float)
+        else:  # single-color (or white light)
+            intensities  = np.zeros(0, dtype=float)
+
+        self._calc_overlap_mask()
+
+        for _imager in self.imagers:
+            assert 'time' in _imager.file_info.keys(), (
+                f'Imagers.get_points() only works with single images.'
+                )
+            image = _imager.data.image
+            _masked_lon_map, _masked_lat_map, _masked_image = _imager._mask_low_horizon(
+                _imager.skymap['lon'], _imager.skymap['lat'], _imager.skymap['el'], min_elevation, 
+                image=image
+            )
+            _valid_idx = np.where(~np.isnan(_masked_lon_map))
+
+            lat_grid = _masked_lat_map[*_valid_idx]
+            lon_grid = _masked_lon_map[*_valid_idx]
+            intensity = _masked_image[*_valid_idx, ...]
+
+            # Concatenate joins arrays along an existing axis, while stack joins arrays
+            # along a new axis. 
+            intensities = np.concatenate((intensities, intensity))
+            lon_lat_points = np.concatenate((
+                lon_lat_points, 
+                np.stack((lon_grid, lat_grid)).T
+                ))
+        return lon_lat_points, intensities
     
     def _calc_overlap_mask(self):
         """
