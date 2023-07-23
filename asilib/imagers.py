@@ -155,6 +155,50 @@ class Imagers:
             An (n, 2) array with each row corresponding to a (lon, lat) point.
         np.ndarray
             Pixel intensities with shape (n) for white-light images, and (n, 3) for RGB images.
+
+        Examples
+        --------
+        >>> # A comprehensive example showing how Imagers.get_points() can closely reproduce 
+        >>> # Imagers.plot_map()
+        >>> from datetime import datetime
+        >>> 
+        >>> import matplotlib.pyplot as plt
+        >>> import matplotlib.colors
+        >>> 
+        >>> import asilib
+        >>> import asilib.map
+        >>> import asilib.asi
+        >>> 
+        >>> time = datetime(2007, 3, 13, 5, 8, 45)
+        >>> location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+        >>> map_alt = 110
+        >>> min_elevation = 2
+        >>> 
+        >>> _imagers = []
+        >>> 
+        >>> for location_code in location_codes:
+        >>>     _imagers.append(asilib.asi.themis(location_code, time=time, alt=map_alt))
+        >>> 
+        >>> asis = asilib.Imagers(_imagers)
+        >>> lon_lat_points, intensities = asis.get_points(min_elevation=min_elevation)
+        >>> 
+        >>> fig = plt.figure(figsize=(12,5))
+        >>> ax = asilib.map.create_simple_map(
+        >>>     lon_bounds=(-140, -60), lat_bounds=(40, 82), fig_ax=(fig, 121)
+        >>>     )
+        >>> bx = asilib.map.create_simple_map(
+        >>>     lon_bounds=(-140, -60), lat_bounds=(40, 82), fig_ax=(fig, 122)
+        >>>     )
+        >>> asis.plot_map(ax=ax, overlap=False, min_elevation=min_elevation)
+        >>> bx.scatter(lon_lat_points[:, 0], lon_lat_points[:, 1], c=intensities, 
+        >>>         norm=matplotlib.colors.LogNorm())
+        >>> ax.text(0.01, 0.99, f'(A) Mosaic using Imagers.plot_map()', transform=ax.transAxes, 
+        >>>         va='top', fontweight='bold', color='red')
+        >>> bx.text(0.01, 0.99, f'(B) Mosaic from Imagers.get_points() scatter', transform=bx.transAxes,
+        >>>         va='top', fontweight='bold', color='red')
+        >>> fig.suptitle('Donovan et al. 2008 | First breakup of an auroral arc')
+        >>> plt.tight_layout()
+        >>> plt.show()
         """
         lon_lat_points = np.zeros((0, 2), dtype=float)
         if len(self.imagers[0].meta['resolution']) == 3: # RGB

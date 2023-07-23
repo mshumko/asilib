@@ -61,3 +61,26 @@ def test_plot_fisheye():
     plt.suptitle('Donovan et al. 2008 | First breakup of an auroral arc')
     plt.tight_layout()
     return
+
+
+def test_get_points():
+    from datetime import datetime
+    
+    import asilib
+    import asilib.map
+    
+    time = datetime(2007, 3, 13, 5, 8, 45)
+    location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+    map_alt = 110
+    min_elevation = 2
+    
+    _imagers = []
+    
+    for location_code in location_codes:
+        _imagers.append(asilib.asi.themis(location_code, time=time, alt=map_alt))
+    
+    asis = asilib.Imagers(_imagers)
+    lon_lat_points, intensities = asis.get_points(min_elevation=min_elevation)
+    pass
+
+    return
