@@ -157,8 +157,8 @@ class Imagers:
             Pixel intensities with shape (n) for white-light images, and (n, 3) for RGB images.
         """
         lon_lat_points = np.zeros((0, 2), dtype=float)
-        if len(self.imagers[0].meta['resolution'].shape) == 3: # RGB
-            intensities  = np.zeros((0, self.imagers[0].meta['resolution'].shape[-1]), dtype=float)
+        if len(self.imagers[0].meta['resolution']) == 3: # RGB
+            intensities  = np.zeros((0, self.imagers[0].meta['resolution'][-1]), dtype=float)
         else:  # single-color (or white light)
             intensities  = np.zeros(0, dtype=float)
 
@@ -235,27 +235,30 @@ class Imagers:
     
     
 if __name__ == '__main__':
+    from datetime import datetime
+    
     import matplotlib.pyplot as plt
-
+    
+    import asilib
     import asilib.map
     import asilib.asi
-
+    
     time = datetime(2007, 3, 13, 5, 8, 45)
     location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
-
-    fig, ax = plt.subplots(1, len(location_codes), figsize=(12, 3.5))
-
+    map_alt = 110
+    min_elevation = 2
+    
+    # ax = asilib.map.create_map(lon_bounds=(-140, -60), lat_bounds=(40, 82))
+    
     _imagers = []
-
+    
     for location_code in location_codes:
-        _imagers.append(asilib.asi.themis(location_code, time=time))
-
-    for ax_i in ax:
-        ax_i.axis('off')
-
-    asis = Imagers(_imagers)
-    asis.plot_fisheye(ax=ax)
-
-    plt.suptitle('Donovan et al. 2008 | First breakup of an auroral arc')
-    plt.tight_layout()
-    plt.show()
+        _imagers.append(asilib.asi.themis(location_code, time=time, alt=map_alt))
+    
+    asis = asilib.Imagers(_imagers)
+    lon_lat_points, intensities = asis.get_points()
+    pass
+    # asis.plot_map(ax=ax, overlap=False, min_elevation=min_elevation)
+    
+    # ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
+    # plt.show()
