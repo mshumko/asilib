@@ -14,18 +14,19 @@ from asilib.imager import Imager, _haversine
 
 
 class Imagers:
+    """
+    Plot and animate multiple :py:meth:`~asilib.imager.Imager`s.
+
+    .. warning::
+
+        This class is in development and not all methods are implemented/matured.
+
+    Parameters
+    ----------
+    imagers: Tuple
+        The Imager objects to plot and animate. 
+    """
     def __init__(self, imagers:Tuple[Imager]) -> None:
-        """
-        Plot and animate multiple :py:meth:`~asilib.imager.Imager` objects.
-
-        .. warning::
-            This class is in development and not all methods are implemented.
-
-        Parameters
-        ----------
-        imagers: Tuple
-            The Imager objects to plot and animate. 
-        """
         self.imagers = imagers
         return
     
@@ -158,6 +159,21 @@ class Imagers:
 
         Examples
         --------
+        >>> from datetime import datetime
+        >>> 
+        >>> import asilib
+        >>> import asilib.asi
+        >>> 
+        >>> time = datetime(2007, 3, 13, 5, 8, 45)
+        >>> location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+        >>> map_alt = 110
+        >>> min_elevation = 2
+        >>> 
+        >>> _imagers = [asilib.asi.themis(location_code, time=time, alt=map_alt) 
+        >>>             for location_code in location_codes]
+        >>> asis = asilib.Imagers(_imagers)
+        >>> lon_lat_points, intensities = asis.get_points(min_elevation=min_elevation)
+
         >>> # A comprehensive example showing how Imagers.get_points() can closely reproduce 
         >>> # Imagers.plot_map()
         >>> from datetime import datetime
@@ -174,11 +190,8 @@ class Imagers:
         >>> map_alt = 110
         >>> min_elevation = 2
         >>> 
-        >>> _imagers = []
-        >>> 
-        >>> for location_code in location_codes:
-        >>>     _imagers.append(asilib.asi.themis(location_code, time=time, alt=map_alt))
-        >>> 
+        >>> _imagers = [asilib.asi.themis(location_code, time=time, alt=map_alt) 
+        >>>             for location_code in location_codes]
         >>> asis = asilib.Imagers(_imagers)
         >>> lon_lat_points, intensities = asis.get_points(min_elevation=min_elevation)
         >>> 

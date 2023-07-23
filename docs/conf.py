@@ -42,6 +42,7 @@ extensions = [
 ]
 
 copybutton_prompt_text = ">>> "
+copybutton_copy_empty_lines = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
