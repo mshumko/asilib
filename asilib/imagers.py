@@ -230,7 +230,17 @@ class Imagers:
                 _imager.skymap['lon'], _imager.skymap['lat'], _imager.skymap['el'], min_elevation, 
                 image=image
             )
-            _valid_idx = np.where(~np.isnan(_masked_lon_map))
+            if _imager.skymap['lon'].shape[0] == image.shape[0] + 1:
+                # Skymap defines vertices. We look for NaNs at either of the pixel edges.
+                _valid_idx = np.where(
+                    ~np.isnan(_masked_lon_map[1:, 1:]-_masked_lon_map[:-1, :-1])
+                    )
+            elif _imager.skymap['lon'].shape[0] == image.shape[0]:
+                # Skymap defines pixel centers
+                _valid_idx = np.where(~np.isnan(_masked_lon_map))
+            else:
+                raise ValueError(f'The skymap shape: {_imager.skymap["lon"].shape} and image '
+                                 f'shape: {image.shape} are incompatible.')
 
             lat_grid = _masked_lat_map[_valid_idx[0], _valid_idx[1]]
             lon_grid = _masked_lon_map[_valid_idx[0], _valid_idx[1]]
@@ -322,7 +332,7 @@ if __name__ == '__main__':
         lon_bounds=(-140, -60), lat_bounds=(40, 82), fig_ax=(fig, 122)
         )
     asis.plot_map(ax=ax, overlap=False, min_elevation=min_elevation)
-    bx.scatter(lat_lon_points[:, 0], lat_lon_points[:, 1], c=intensities, 
+    bx.scatter(lat_lon_points[:, 1], lat_lon_points[:, 0], c=intensities, 
                norm=matplotlib.colors.LogNorm())
     ax.text(0.01, 0.99, f'(A) Mosaic using Imagers.plot_map()', transform=ax.transAxes, 
             va='top', fontweight='bold', color='red')
