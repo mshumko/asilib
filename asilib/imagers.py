@@ -153,7 +153,7 @@ class Imagers:
         Returns
         -------
         np.ndarray
-            An (n, 2) array with each row corresponding to a (lon, lat) point.
+            An (n, 2) array with each row corresponding to a (lat, lon) point.
         np.ndarray
             Pixel intensities with shape (n) for white-light images, and (n, 3) for RGB images.
 
@@ -172,7 +172,7 @@ class Imagers:
         >>> _imagers = [asilib.asi.themis(location_code, time=time, alt=map_alt) 
         >>>             for location_code in location_codes]
         >>> asis = asilib.Imagers(_imagers)
-        >>> lon_lat_points, intensities = asis.get_points(min_elevation=min_elevation)
+        >>> lat_lon_points, intensities = asis.get_points(min_elevation=min_elevation)
 
         >>> # A comprehensive example showing how Imagers.get_points() can closely reproduce 
         >>> # Imagers.plot_map()
@@ -193,7 +193,7 @@ class Imagers:
         >>> _imagers = [asilib.asi.themis(location_code, time=time, alt=map_alt) 
         >>>             for location_code in location_codes]
         >>> asis = asilib.Imagers(_imagers)
-        >>> lon_lat_points, intensities = asis.get_points(min_elevation=min_elevation)
+        >>> lat_lon_points, intensities = asis.get_points(min_elevation=min_elevation)
         >>> 
         >>> fig = plt.figure(figsize=(12,5))
         >>> ax = asilib.map.create_simple_map(
@@ -203,7 +203,7 @@ class Imagers:
         >>>     lon_bounds=(-140, -60), lat_bounds=(40, 82), fig_ax=(fig, 122)
         >>>     )
         >>> asis.plot_map(ax=ax, overlap=False, min_elevation=min_elevation)
-        >>> bx.scatter(lon_lat_points[:, 0], lon_lat_points[:, 1], c=intensities, 
+        >>> bx.scatter(lat_lon_points[:, 1], lat_lon_points[:, 0], c=intensities, 
         >>>         norm=matplotlib.colors.LogNorm())
         >>> ax.text(0.01, 0.99, f'(A) Mosaic using Imagers.plot_map()', transform=ax.transAxes, 
         >>>         va='top', fontweight='bold', color='red')
@@ -213,7 +213,7 @@ class Imagers:
         >>> plt.tight_layout()
         >>> plt.show()
         """
-        lon_lat_points = np.zeros((0, 2), dtype=float)
+        lat_lon_points = np.zeros((0, 2), dtype=float)
         if len(self.imagers[0].meta['resolution']) == 3: # RGB
             intensities  = np.zeros((0, self.imagers[0].meta['resolution'][-1]), dtype=float)
         else:  # single-color (or white light)
@@ -239,11 +239,11 @@ class Imagers:
             # Concatenate joins arrays along an existing axis, while stack joins arrays
             # along a new axis. 
             intensities = np.concatenate((intensities, intensity))
-            lon_lat_points = np.concatenate((
-                lon_lat_points, 
-                np.stack((lon_grid, lat_grid)).T
+            lat_lon_points = np.concatenate((
+                lat_lon_points, 
+                np.stack((lat_grid, lon_grid)).T
                 ))
-        return lon_lat_points, intensities
+        return lat_lon_points, intensities
     
     def _calc_overlap_mask(self):
         """
@@ -312,7 +312,7 @@ if __name__ == '__main__':
         _imagers.append(asilib.asi.themis(location_code, time=time, alt=map_alt))
     
     asis = asilib.Imagers(_imagers)
-    lon_lat_points, intensities = asis.get_points(min_elevation=min_elevation)
+    lat_lon_points, intensities = asis.get_points(min_elevation=min_elevation)
 
     fig = plt.figure(figsize=(12,5))
     ax = asilib.map.create_simple_map(
@@ -322,7 +322,7 @@ if __name__ == '__main__':
         lon_bounds=(-140, -60), lat_bounds=(40, 82), fig_ax=(fig, 122)
         )
     asis.plot_map(ax=ax, overlap=False, min_elevation=min_elevation)
-    bx.scatter(lon_lat_points[:, 0], lon_lat_points[:, 1], c=intensities, 
+    bx.scatter(lat_lon_points[:, 0], lat_lon_points[:, 1], c=intensities, 
                norm=matplotlib.colors.LogNorm())
     ax.text(0.01, 0.99, f'(A) Mosaic using Imagers.plot_map()', transform=ax.transAxes, 
             va='top', fontweight='bold', color='red')

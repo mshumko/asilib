@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.18.1] - 2023-07-23
+
+### Added
+- `asilib.Imagers.get_points()` method to get the (lon, lat) and pixel intensity points.
+- Tests for `asilib.Imagers.get_points()`
+
 ## [0.18.0] - 2023-07-22
 
 ### Added
