@@ -181,7 +181,7 @@ def trex_rgb(
         'path': _skymap['PATH'],
     }
     meta = {
-        'array': 'TREX_rgb',
+        'array': 'TREX_RGB',
         'location': location_code.upper(),
         'lat': float(_skymap['SITE_MAP_LATITUDE']),
         'lon': float(_skymap['SITE_MAP_LONGITUDE']),
@@ -478,7 +478,7 @@ def trex_rgb_info() -> pd.DataFrame:
     """
     path = pathlib.Path(asilib.__file__).parent / 'data' / 'asi_locations.csv'
     df = pd.read_csv(path)
-    df = df[df['array'] == 'TREx_rgb']
+    df = df[df['array'] == 'TREx_RGB']
     return df.reset_index(drop=True)
 
 
