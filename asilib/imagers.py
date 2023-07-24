@@ -15,7 +15,7 @@ from asilib.imager import Imager, _haversine
 
 class Imagers:
     """
-    Plot and animate multiple :py:meth:`~asilib.imager.Imager`s.
+    Plot and animate multiple :py:meth:`~asilib.imager.Imager` objects.
 
     .. warning::
 
