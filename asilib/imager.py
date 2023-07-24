@@ -416,7 +416,8 @@ class Imager:
         pcolormesh_kwargs: dict = {},
     ) -> Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
         """
-        Projects the ASI images to a map at an altitude defined in the skymap calibration file.
+        Projects an ASI image onto a map at an altitude that is defined in the skymap calibration 
+        file.
 
         Parameters
         ----------

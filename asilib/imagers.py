@@ -1,9 +1,10 @@
 """
-The Imagers class combines multiple Imager objects to coordinate plotting and animating multiple
-fisheye lens images, as well as mapped images (also called mosaics).   
+The Imagers class handles multiple Imager objects and coordinates plotting and animating multiple
+fisheye lens and mapped images. The mapped images are also called mosaics.
 """
 
 from typing import Tuple
+from collections import namedtuple
 from datetime import datetime
 
 import numpy as np
@@ -13,35 +14,246 @@ from asilib.imager import Imager, _haversine
 
 
 class Imagers:
+    """
+    Plot and animate multiple :py:meth:`~asilib.imager.Imager`s.
+
+    .. warning::
+
+        This class is in development and not all methods are implemented/matured.
+
+    Parameters
+    ----------
+    imagers: Tuple
+        The Imager objects to plot and animate. 
+    """
     def __init__(self, imagers:Tuple[Imager]) -> None:
         self.imagers = imagers
         return
     
-    def plot_fisheye(self, ax):
-        raise NotImplementedError
+    def plot_fisheye(self, ax:Tuple[plt.Axes], **kwargs):
+        """
+        Plots one fisheye image in each subplot, oriented with North on the top, and East on the 
+        left of the image.
+
+        Parameters
+        ----------
+        ax: Tuple[plt.Axes]
+            Subplots corresponding to each fisheye lens image.
+        kwargs: dict
+            Keyword arguments directly passed into each :py:meth:`~asilib.imager.Imager.plot_fisheye()`
+            method.
+
+        Example
+        -------
+        >>> from datetime import datetime
+        >>> 
+        >>> import matplotlib.pyplot as plt
+        >>> import asilib
+        >>> import asilib.asi
+        >>> 
+        >>> time = datetime(2007, 3, 13, 5, 8, 45)
+        >>> location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+        >>> 
+        >>> fig, ax = plt.subplots(1, len(location_codes), figsize=(12, 3.5))
+        >>> 
+        >>> _imagers = []
+        >>> 
+        >>> for location_code in location_codes:
+        >>>     _imagers.append(asilib.asi.themis(location_code, time=time))
+        >>> 
+        >>> for ax_i in ax:
+        >>>     ax_i.axis('off')
+        >>> 
+        >>> asis = asilib.Imagers(_imagers)
+        >>> asis.plot_fisheye(ax=ax)
+        >>> 
+        >>> plt.suptitle('Donovan et al. 2008 | First breakup of an auroral arc')
+        >>> plt.tight_layout()
+        >>> plt.show()
+        """
+        assert len(ax) == len(self.imagers), 'Number of subplots must equal the number of imagers.'
+
+        for ax_i, imager_i in zip(ax, self.imagers):
+            imager_i.plot_fisheye(ax=ax_i, **kwargs)
+        return
     
-    def plot_map(self, ax=None, min_elevation=10, overlap=False):
+    def plot_map(self, overlap=False, **kwargs):
+        """
+        Projects multiple ASI images onto a map at an altitude that is defined in the skymap 
+        calibration file.
+
+        Parameters
+        ----------
+        overlap: bool
+            If True, pixels that overlap between imager FOV's are overplotted such that only the 
+            final imager's pixels are shown.
+        kwargs: dict
+            Keyword arguments directly passed into each :py:meth:`~asilib.imager.Imager.plot_map()`
+            method.
+
+        Example
+        -------
+        >>> from datetime import datetime
+        >>> 
+        >>> import matplotlib.pyplot as plt
+        >>> 
+        >>> import asilib
+        >>> import asilib.map
+        >>> import asilib.asi
+        >>> 
+        >>> time = datetime(2007, 3, 13, 5, 8, 45)
+        >>> location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+        >>> map_alt = 110
+        >>> min_elevation = 2
+        >>> 
+        >>> ax = asilib.map.create_map(lon_bounds=(-140, -60), lat_bounds=(40, 82))
+        >>> 
+        >>> _imagers = []
+        >>> 
+        >>> for location_code in location_codes:
+        >>>     _imagers.append(asilib.asi.themis(location_code, time=time, alt=map_alt))
+        >>> 
+        >>> asis = asilib.Imagers(_imagers)
+        >>> asis.plot_map(ax=ax, overlap=False, min_elevation=min_elevation)
+        >>> 
+        >>> ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
+        >>> plt.show()
+        """
         if not overlap:
             self._calc_overlap_mask()
 
         for imager in self.imagers:
-            imager.plot_map(ax=ax, min_elevation=min_elevation)
+            imager.plot_map(**kwargs)
         return
     
-    def animate_fisheye(self):
-        raise NotImplementedError
+    # def animate_fisheye(self):
+    #     raise NotImplementedError
     
-    def animate_fisheye_gen(self):
-        raise NotImplementedError
+    # def animate_fisheye_gen(self):
+    #     raise NotImplementedError
     
-    def animate_map(self):
+    # def animate_map(self):
         
-        raise NotImplementedError
+    #     raise NotImplementedError
     
-    def animate_map_gen(self, overlap=False):
-        if overlap:
-            self._calc_overlap_mask()
-        raise NotImplementedError
+    # def animate_map_gen(self, overlap=False):
+    #     if overlap:
+    #         self._calc_overlap_mask()
+    #     raise NotImplementedError
+
+    def get_points(self, min_elevation:float=10)->Tuple[np.ndarray, np.ndarray]:
+        """
+        Get pixel intensities in each (lat, lon) grid point.
+
+        Parameters
+        ----------
+        min_elevation: float
+            Only return pixel intensities above min_elevation.
+
+        Returns
+        -------
+        np.ndarray
+            An (n, 2) array with each row corresponding to a (lat, lon) point.
+        np.ndarray
+            Pixel intensities with shape (n) for white-light images, and (n, 3) for RGB images.
+
+        Examples
+        --------
+        >>> from datetime import datetime
+        >>> 
+        >>> import asilib
+        >>> import asilib.asi
+        >>> 
+        >>> time = datetime(2007, 3, 13, 5, 8, 45)
+        >>> location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+        >>> map_alt = 110
+        >>> min_elevation = 2
+        >>> 
+        >>> _imagers = [asilib.asi.themis(location_code, time=time, alt=map_alt) 
+        >>>             for location_code in location_codes]
+        >>> asis = asilib.Imagers(_imagers)
+        >>> lat_lon_points, intensities = asis.get_points(min_elevation=min_elevation)
+
+        >>> # A comprehensive example showing how Imagers.get_points() can closely reproduce 
+        >>> # Imagers.plot_map()
+        >>> from datetime import datetime
+        >>> 
+        >>> import matplotlib.pyplot as plt
+        >>> import matplotlib.colors
+        >>> 
+        >>> import asilib
+        >>> import asilib.map
+        >>> import asilib.asi
+        >>> 
+        >>> time = datetime(2007, 3, 13, 5, 8, 45)
+        >>> location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
+        >>> map_alt = 110
+        >>> min_elevation = 2
+        >>> 
+        >>> _imagers = [asilib.asi.themis(location_code, time=time, alt=map_alt) 
+        >>>             for location_code in location_codes]
+        >>> asis = asilib.Imagers(_imagers)
+        >>> lat_lon_points, intensities = asis.get_points(min_elevation=min_elevation)
+        >>> 
+        >>> fig = plt.figure(figsize=(12,5))
+        >>> ax = asilib.map.create_simple_map(
+        >>>     lon_bounds=(-140, -60), lat_bounds=(40, 82), fig_ax=(fig, 121)
+        >>>     )
+        >>> bx = asilib.map.create_simple_map(
+        >>>     lon_bounds=(-140, -60), lat_bounds=(40, 82), fig_ax=(fig, 122)
+        >>>     )
+        >>> asis.plot_map(ax=ax, overlap=False, min_elevation=min_elevation)
+        >>> bx.scatter(lat_lon_points[:, 1], lat_lon_points[:, 0], c=intensities, 
+        >>>         norm=matplotlib.colors.LogNorm())
+        >>> ax.text(0.01, 0.99, f'(A) Mosaic using Imagers.plot_map()', transform=ax.transAxes, 
+        >>>         va='top', fontweight='bold', color='red')
+        >>> bx.text(0.01, 0.99, f'(B) Mosaic from Imagers.get_points() scatter', transform=bx.transAxes,
+        >>>         va='top', fontweight='bold', color='red')
+        >>> fig.suptitle('Donovan et al. 2008 | First breakup of an auroral arc')
+        >>> plt.tight_layout()
+        >>> plt.show()
+        """
+        lat_lon_points = np.zeros((0, 2), dtype=float)
+        if len(self.imagers[0].meta['resolution']) == 3: # RGB
+            intensities  = np.zeros((0, self.imagers[0].meta['resolution'][-1]), dtype=float)
+        else:  # single-color (or white light)
+            intensities  = np.zeros(0, dtype=float)
+
+        self._calc_overlap_mask()
+
+        for _imager in self.imagers:
+            assert 'time' in _imager.file_info.keys(), (
+                f'Imagers.get_points() only works with single images.'
+                )
+            image = _imager.data.image
+            _masked_lon_map, _masked_lat_map, _masked_image = _imager._mask_low_horizon(
+                _imager.skymap['lon'], _imager.skymap['lat'], _imager.skymap['el'], min_elevation, 
+                image=image
+            )
+            if _imager.skymap['lon'].shape[0] == image.shape[0] + 1:
+                # Skymap defines vertices. We look for NaNs at either of the pixel edges.
+                _valid_idx = np.where(
+                    ~np.isnan(_masked_lon_map[1:, 1:]-_masked_lon_map[:-1, :-1])
+                    )
+            elif _imager.skymap['lon'].shape[0] == image.shape[0]:
+                # Skymap defines pixel centers
+                _valid_idx = np.where(~np.isnan(_masked_lon_map))
+            else:
+                raise ValueError(f'The skymap shape: {_imager.skymap["lon"].shape} and image '
+                                 f'shape: {image.shape} are incompatible.')
+
+            lat_grid = _masked_lat_map[_valid_idx[0], _valid_idx[1]]
+            lon_grid = _masked_lon_map[_valid_idx[0], _valid_idx[1]]
+            intensity = _masked_image[_valid_idx[0], _valid_idx[1], ...]
+
+            # Concatenate joins arrays along an existing axis, while stack joins arrays
+            # along a new axis. 
+            intensities = np.concatenate((intensities, intensity))
+            lat_lon_points = np.concatenate((
+                lat_lon_points, 
+                np.stack((lat_grid, lon_grid)).T
+                ))
+        return lat_lon_points, intensities
     
     def _calc_overlap_mask(self):
         """
@@ -90,23 +302,43 @@ class Imagers:
     
     
 if __name__ == '__main__':
+    from datetime import datetime
+    
+    import matplotlib.pyplot as plt
+    import matplotlib.colors
+
+    import asilib
     import asilib.map
     import asilib.asi
-
+    
     time = datetime(2007, 3, 13, 5, 8, 45)
     location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
     map_alt = 110
     min_elevation = 2
-
-    ax = asilib.map.create_map(lon_bounds=(-140, -60), lat_bounds=(40, 82))
-
+    
     _imagers = []
-
+    
     for location_code in location_codes:
         _imagers.append(asilib.asi.themis(location_code, time=time, alt=map_alt))
+    
+    asis = asilib.Imagers(_imagers)
+    lat_lon_points, intensities = asis.get_points(min_elevation=min_elevation)
 
-    asis = Imagers(_imagers)
-    asis.plot_map(ax=ax, overlap=True, min_elevation=min_elevation)
-
-    ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
+    fig = plt.figure(figsize=(12,5))
+    ax = asilib.map.create_simple_map(
+        lon_bounds=(-140, -60), lat_bounds=(40, 82), fig_ax=(fig, 121)
+        )
+    bx = asilib.map.create_simple_map(
+        lon_bounds=(-140, -60), lat_bounds=(40, 82), fig_ax=(fig, 122)
+        )
+    asis.plot_map(ax=ax, overlap=False, min_elevation=min_elevation)
+    bx.scatter(lat_lon_points[:, 1], lat_lon_points[:, 0], c=intensities, 
+               norm=matplotlib.colors.LogNorm())
+    ax.text(0.01, 0.99, f'(A) Mosaic using Imagers.plot_map()', transform=ax.transAxes, 
+            va='top', fontweight='bold', color='red')
+    bx.text(0.01, 0.99, f'(B) Mosaic from Imagers.get_points() scatter', transform=bx.transAxes,
+            va='top', fontweight='bold', color='red')
+    fig.suptitle('Donovan et al. 2008 | First breakup of an auroral arc')
+    plt.tight_layout()
     plt.show()
+    pass

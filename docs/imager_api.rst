@@ -58,9 +58,17 @@ Imager Interface
    :undoc-members:
    :show-inheritance:
 
+Imagers Interface
+=================
 
-Conjunctions with Satellites
-============================
+.. automodule:: asilib.imagers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Conjunction Interface
+=====================
 .. automodule:: asilib.conjunction
    :members:
    :undoc-members:

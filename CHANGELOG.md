@@ -1,8 +1,21 @@
 # Changelog
 
-## [Unreleased]
+## [0.18.1] - 2023-07-23
 
+### Added
+- `asilib.Imagers.get_points()` method to get the (lon, lat) and pixel intensity points.
+- Tests for `asilib.Imagers.get_points()`
+
+## [0.18.0] - 2023-07-22
+
+### Added
+- `asilib.Imagers()` class to make mosaics and synchronize plotting multiple imagers. The first two methods implemented are:
+  - `asilib.Imagers.plot_fisheye()` to plot fisheye lens images from multiple imagers, and
+  - `asilib.Imagers.plot_map()` to project images from multiple imagers onto a map. This method has an `overlap` kwarg that by default masks out the (lat, lon) skymaps that map to pixels that overlap with a neighboring imager. This is a surprisingly efficient method that needs to be run just once (tested for up to five imagers; I'm unsure how a 10 or a 20 imager array will fare).
+- Added plot tests for the two `Imagers` methods.
+- Added an `Imagers()` description in the Get Started and API pages.
 ### Changed
+- Refactored the Donovan+2008 auroral arc example to use `asilib.Imagers.plot_map()`.
 - Added a check to allow custom `matplotlib.colors.Normalization` object to be passed for `color_norm`.
 
 ## [0.17.3] - 2023-07-02
