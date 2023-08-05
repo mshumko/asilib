@@ -257,7 +257,6 @@ class Conjunction:
         ImportError
             If IRBEM can't be imported.
         """
-        # TODO: Add tests
         if importlib.util.find_spec('IRBEM') is None:
             raise ImportError(
                 "IRBEM can't be imported. This is a required dependency for asilib.lla2footprint()"
@@ -271,14 +270,15 @@ class Conjunction:
         m = IRBEM.MagFields(kext=b_model)  # Initialize the IRBEM model.
 
         # Loop over every set of satellite coordinates.
-        for i, (time, (lat, lon, alt)) in enumerate(self.sat.iterrows()):
-            X = {'datetime': time, 'x1': alt, 'x2': lat, 'x3': lon}
+        for i, (_time, (_lat, _lon, _alt)) in enumerate(self.sat.iterrows()):
+            X = {'datetime': _time, 'x1': _alt, 'x2': _lat, 'x3': _lon}
             m_output = m.find_foot_point(X, maginput, alt, hemisphere)
             magnetic_footprint[i, :] = m_output['XFOOT']
         # Map from IRBEM's (alt, lat, lon) -> (lat, lon, alt)
         # magnetic_footprint[:, [2, 0, 1]] = magnetic_footprint[:, [0, 1, 2]]
         self.sat.loc[:, ['alt', 'lat', 'lon']] = magnetic_footprint
-        return
+        self.sat[self.sat['lat'] == -1E31] = np.nan
+        return self.sat
 
     def map_azel(self, min_el=0) -> Tuple[np.ndarray, np.ndarray]:
         """

@@ -270,6 +270,8 @@ def test_plot_keogram_magnetic_path_example():
     plt.colorbar(p)
     return
 
+# TODO: Add keogram tests for latitudes and values.
+
 
 def test_getitem():
     """

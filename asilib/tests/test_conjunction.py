@@ -289,7 +289,33 @@ def test_plot_interp_sat_wrap():
 
 @pytest.mark.skipif(not irbem_imported, reason='IRBEM is not installed.')
 def test_magnetic_tracing():
-    raise AssertionError
+    location = 'ATHA'
+    dt = 10  # seconds
+    time_range = (datetime(2020, 1, 1, 0, 0, 0), datetime(2020, 1, 1, 0, 1, 0))
+    asi = asilib.asi.fake_asi.fake_asi(location, time_range=time_range)
+
+    n = int((time_range[1]-time_range[0]).total_seconds()//dt)
+    sat_time = np.array([time_range[0] + timedelta(seconds=i*dt) 
+                         for i in range(n)])
+    lats = np.linspace(asi.meta['lat'] - 2, asi.meta['lat'] + 2, num=sat_time.shape[0])
+    lons = np.linspace(asi.meta['lon'] - 2, asi.meta['lon'] + 2, num=sat_time.shape[0])
+    sat_lla = np.stack((lats, lons, 500 * np.ones_like(lons))).T
+    c = asilib.Conjunction(asi, (sat_time, sat_lla))
+
+    c.lla_footprint(110)
+    
+    assert np.all(c.sat.index == sat_time)
+    np.testing.assert_almost_equal(c.sat['alt'], 110*np.ones_like(c.sat['alt']), decimal=1)
+    np.testing.assert_almost_equal(
+        c.sat['lat'],
+        np.array([53.63169896, 54.39262177, 55.1545005 , 55.91733138, 56.68123125,
+            57.44607773])
+    )
+    np.testing.assert_almost_equal(
+        c.sat['lon'],
+        np.array([-114.9137138, -114.12793  , -113.342572 , -112.5576476,
+            -111.7731121, -110.9890267])
+    )
     return
 
 
