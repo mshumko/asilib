@@ -13,7 +13,7 @@ aacgmv2==2.6.0
 # Necessary libraries to load ASI data.
 rego-imager-readfile==1.2.0 
 themis-imager-readfile==1.2.1 
-trex-imager-readfile==1.4.0
+trex-imager-readfile==1.4.4
 h5py==3.8.0
 
 # Dev
