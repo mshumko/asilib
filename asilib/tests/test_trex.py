@@ -145,3 +145,22 @@ def test_trex_nir_keogram_example():
     ax[1].set_ylabel('Mag Lat')
     ax[1].set_xlabel('Time')
     return
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_trex_rgb_keogram'], tol=20, remove_text=True, extensions=['png']
+)
+def test_trex_rgb_keogram():
+    from datetime import datetime
+    
+    import matplotlib.pyplot as plt
+    from asilib.asi import trex_rgb
+    
+    time_range = (
+        datetime(2021, 11, 4, 6, 50, 0),
+        datetime(2021, 11, 4, 7, 10, 51)
+        )
+    location_code = 'PINA'
+    asi = trex_rgb(location_code, time_range=time_range, colors='rgb')
+    asi.plot_keogram()
+    plt.tight_layout()
+    return
