@@ -6,6 +6,7 @@
 - The TREx-RGB loader, `asilib.asi.trex_rgb()`, courtesy of C. McKenna.
 - `asilib.asi.trex_rgb()` tests
 - `Conjunction.lla_footprint` tests
+- `asilib.asi.trex_rgb()` to the online documentation.
 
 ## Fixed
 - A bug in `Imager.keogram()` that calculated the incorrect pixels that is used for slicing images when assembling a keogram. While this bug does not affect ASIs with square pixel resolution, it did for TREx-RGB which is rectangular. The fix slightly modified the keograms, by about a pixel, so I regenerated the baseline keogram plots.
