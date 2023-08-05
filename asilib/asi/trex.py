@@ -97,7 +97,7 @@ def trex_rgb(
     >>> import matplotlib.pyplot as plt
     >>> import asilib.map
     >>> import asilib.imagers
-    >>> from asilib.asi.trex import trex_rgb
+    >>> from asilib.asi import trex_rgb
     >>> 
     >>> time = datetime(2021, 11, 4, 7, 3, 51)
     >>> location_codes = ['FSMI', 'LUCK', 'RABB', 'PINA', 'GILL']
