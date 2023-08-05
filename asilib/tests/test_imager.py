@@ -251,6 +251,7 @@ def test_plot_keogram_magnetic_path_example():
     Event from https://doi.org/10.1029/2021GL094696
     """
     import matplotlib.pyplot as plt
+    import numpy as np
     import asilib.asi
 
     time_range = ['2008-01-16T10', '2008-01-16T12']
