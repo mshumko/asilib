@@ -50,7 +50,7 @@ def trex_rgb(
     colors: str = 'rgb',
     burst: bool = False,
     imager=asilib.Imager,
-) -> asilib.Imager:
+) -> asilib.imager.Imager:
     """
     Create an Imager instance using the TREX-RGB ASI images and skymaps.
 
@@ -81,7 +81,7 @@ def trex_rgb(
         by "r", "g", "b" (or any combination of them).
     burst: bool
         Sometimes Trex-rgb uses a burst mode with higher resolution.
-    imager: asilib.Imager
+    imager: :py:meth:`~asilib.imager.Imager`
         Controls what Imager instance to return, asilib.Imager by default. This
         parameter is useful if you need to subclass asilib.Imager.
 
@@ -400,14 +400,14 @@ def _load_rgb_h5(path, colors):
 
 def trex_rgb_skymap(location_code: str, time: utils._time_type, redownload: bool = False) -> dict:
     """
-    Load a TREx NIR ASI skymap file.
+    Load a TREx RGB skymap file.
 
     Parameters
     ----------
     location_code: str
         The four character location name.
     time: str or datetime.datetime
-        A ISO-fomatted time string or datetime object. Must be in UT time.
+        A ISO-formatted time string or datetime object. Must be in UT time.
     redownload: bool
         Redownload the file.
 
@@ -469,12 +469,12 @@ def trex_rgb_skymap(location_code: str, time: utils._time_type, redownload: bool
 
 def trex_rgb_info() -> pd.DataFrame:
     """
-    Returns a pd.DataFrame with the TREx NIR ASI names and locations.
+    Returns a pd.DataFrame with the TREx RGB ASI names and locations.
 
     Returns
     -------
     pd.DataFrame
-        A table of REGO imager names and locations.
+        A table of TREx-RGB imager names and locations.
     """
     path = pathlib.Path(asilib.__file__).parent / 'data' / 'asi_locations.csv'
     df = pd.read_csv(path)
@@ -642,7 +642,7 @@ def trex_nir_info() -> pd.DataFrame:
     Returns
     -------
     pd.DataFrame
-        A table of REGO imager names and locations.
+        A table of TREx-RGB imager names and locations.
     """
     path = pathlib.Path(asilib.__file__).parent / 'data' / 'asi_locations.csv'
     df = pd.read_csv(path)
@@ -659,7 +659,7 @@ def trex_nir_skymap(location_code: str, time: utils._time_type, redownload: bool
     location_code: str
         The four character location name.
     time: str or datetime.datetime
-        A ISO-fomatted time string or datetime object. Must be in UT time.
+        A ISO-formatted time string or datetime object. Must be in UT time.
     redownload: bool
         Redownload the file.
 
