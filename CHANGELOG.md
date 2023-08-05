@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.19.0] - 2023-08-05
+
+### Added
+- The TREx-RGB loader, `asilib.asi.trex_rgb()`, courtesy of C. McKenna.
+- `asilib.asi.trex_rgb()` tests
+- `Conjunction.lla_footprint` tests
+
+## Fixed
+- A bug in `Imager.keogram()` that calculated the incorrect pixels that is used for slicing images when assembling a keogram. While this bug does not affect ASIs with square pixel resolution, it did for TREx-RGB which is rectangular. The fix slightly modified the keograms, by about a pixel, so I regenerated the baseline keogram plots.
+- A bug in `Conjunction.lla_footprint` where the `alt` variable was rewritten. As a result, IRBEM did not map to the requested altitude.
+
 ## [0.18.1] - 2023-07-23
 
 ### Added
