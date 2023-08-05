@@ -96,7 +96,7 @@ def trex_rgb(
     >>> 
     >>> import matplotlib.pyplot as plt
     >>> import asilib.map
-    >>> import asilib.imagers
+    >>> import asilib
     >>> from asilib.asi import trex_rgb
     >>> 
     >>> time = datetime(2021, 11, 4, 7, 3, 51)
@@ -106,7 +106,7 @@ def trex_rgb(
     >>> for location_code in location_codes:
     >>>     asi_list.append(trex_rgb(location_code, time=time, colors='rgb'))
     >>> 
-    >>> asis = asilib.imagers.Imagers(asi_list)
+    >>> asis = asilib.Imagers(asi_list)
     >>> asis.plot_map(ax=ax)
     >>> ax.set(title=time)
     >>> plt.tight_layout()

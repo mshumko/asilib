@@ -164,3 +164,73 @@ def test_trex_rgb_keogram():
     asi.plot_keogram()
     plt.tight_layout()
     return
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_trex_rgb_fisheye'],
+    tol=20,
+    remove_text=True,
+    extensions=['png'],
+)
+def test_trex_rgb_fisheye():
+    """
+    Plot one fisheye lens image.
+    """
+    from datetime import datetime
+    
+    import matplotlib.pyplot as plt
+    import asilib
+    from asilib.asi.trex import trex_rgb
+    
+    time = datetime(2021, 11, 4, 7, 3, 51)
+    asi = trex_rgb('PINA', time=time, colors='rgb')
+    asi.plot_fisheye()
+    plt.tight_layout()
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_trex_rgb_map'],
+    tol=20,
+    remove_text=True,
+    extensions=['png'],
+)
+def test_trex_rgb_map():
+    """
+    Plot one fisheye lens image and project it onto a map.
+    """
+    from datetime import datetime
+    
+    import matplotlib.pyplot as plt
+    import asilib.map
+    import asilib
+    from asilib.asi.trex import trex_rgb
+    
+    time = datetime(2021, 11, 4, 7, 3, 51)
+    asi = trex_rgb('PINA', time=time, colors='rgb')
+    ax = asilib.map.create_simple_map(
+        lon_bounds=(asi.meta['lon']-7, asi.meta['lon']+7),
+        lat_bounds=(asi.meta['lat']-5, asi.meta['lat']+5)
+    )
+    asi.plot_map(ax=ax)
+    plt.tight_layout()
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_trex_mosaic'], tol=20, remove_text=True, extensions=['png']
+)
+def test_trex_mosaic():
+    from datetime import datetime
+    
+    import matplotlib.pyplot as plt
+    import asilib.map
+    from asilib.asi import trex_rgb
+    
+    time = datetime(2021, 11, 4, 7, 3, 51)
+    location_codes = ['FSMI', 'LUCK', 'RABB', 'PINA', 'GILL']
+    asi_list = []
+    ax = asilib.map.create_simple_map()
+    for location_code in location_codes:
+        asi_list.append(trex_rgb(location_code, time=time, colors='rgb'))
+    
+    asis = asilib.Imagers(asi_list)
+    asis.plot_map(ax=ax)
+    ax.set(title=time)
+    plt.tight_layout()
+    return
