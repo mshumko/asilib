@@ -161,19 +161,29 @@ class Conjunction:
             similar results, but discrepancies may arise if the skymap (az, el) and (lat, lon) mapping arrays are
             mismatched. This is the case for some of the THEMIS ASIs right after they were deployed.
         """
-        _intensity = np.nan * np.zeros(self.sat.shape[0], dtype=float)
+        print(self.imager.meta['resolution'], 'test')
+        try: # TREx-RGB can be [x,y,z] where mono-cameras are [x,y]
+            _intensity = np.nan * np.zeros((self.sat.shape[0],self.imager.meta['resolution'][2]), dtype=float)
+        except IndexError:
+            _intensity = np.nan * np.zeros(self.sat.shape[0], dtype=float)
+        print(np.shape(_intensity))
         if box is None:  # Nearest pixel to footprint
             _, azel_pixels = self.map_azel()
             for i, ((_, image), pixels) in enumerate(zip(self.imager, azel_pixels)):
                 if np.any(np.isnan(pixels)):
                     continue
+
                 # The ::-1 b/c pixels are in plotting (not indexing) order.
                 _intensity[i] = image[int(pixels[1]), int(pixels[0])]
         else:  # Area around footprint
             # equal_area_gen() is slower than using equal_area(), but this plays nice with memory.
             gen = self.equal_area_gen(box=box)
             for i, ((_, image), mask) in enumerate(zip(self.imager, gen)):
-                _intensity[i] = box_op(image * mask)
+                try: #for rgb images
+                    for j in range(_intensity.shape[1]):
+                        _intensity[i][j] = box_op(image[:,:,j] * mask[:,:,j])
+                except IndexError: 
+                    _intensity[i] = box_op(image * mask)
         return _intensity
 
     def interp_sat(self):
