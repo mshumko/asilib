@@ -1,6 +1,7 @@
 import importlib
 from typing import Tuple, Union, Callable
 import warnings
+import functools
 
 import numpy as np
 import pandas as pd
@@ -129,7 +130,7 @@ class Conjunction:
         return df
 
     def intensity(
-        self, box: Tuple[float, float] = None, box_op: Callable = np.nanmean
+        self, box: Tuple[float, float] = None, box_op: Callable = None
     ) -> np.ndarray:
         """
         Calculate the auroral intensity near the satellite's footprint.
@@ -145,7 +146,8 @@ class Conjunction:
         box_op: Callable
             The function to apply to the auroral intensity in the box surrounding the footprint. Since
             it must operate on the mask array that :py:meth:`~asilib.Conjunction.equal_area()` produces,
-            the ``box_op`` function must work with (i.e., ignore) ``np.nan`` values.
+            the ``box_op`` function must work with (i.e., ignore) ``np.nan`` values. If None, the function
+            is np.nanmean() summed over the x-y pixels.
 
         Returns
         -------
@@ -161,7 +163,15 @@ class Conjunction:
             similar results, but discrepancies may arise if the skymap (az, el) and (lat, lon) mapping arrays are
             mismatched. This is the case for some of the THEMIS ASIs right after they were deployed.
         """
-        _intensity = np.nan * np.zeros(self.sat.shape[0], dtype=float)
+        if len(self.imager.meta['resolution']) == 2: # white-light intensity
+            _intensity = np.nan * np.zeros(self.sat.shape[0], dtype=float)
+        elif len(self.imager.meta['resolution']) == 3: # RGB intensity
+            _intensity = np.nan * np.zeros(
+                (self.sat.shape[0], self.imager.meta['resolution'][-1]), dtype=float
+                )
+        else:
+            raise NotImplementedError
+            
         if box is None:  # Nearest pixel to footprint
             _, azel_pixels = self.map_azel()
             for i, ((_, image), pixels) in enumerate(zip(self.imager, azel_pixels)):
@@ -170,6 +180,7 @@ class Conjunction:
                 # The ::-1 b/c pixels are in plotting (not indexing) order.
                 _intensity[i] = image[int(pixels[1]), int(pixels[0])]
         else:  # Area around footprint
+            box_op = functools.partial(np.nanmean, axis=(0,1))  # Sum only the x-y pixels.
             # equal_area_gen() is slower than using equal_area(), but this plays nice with memory.
             gen = self.equal_area_gen(box=box)
             for i, ((_, image), mask) in enumerate(zip(self.imager, gen)):
@@ -483,7 +494,7 @@ class Conjunction:
         dlon_rads = 2 * np.arcsin(numerator / denominator)
         return np.rad2deg(dlon_rads)
 
-    def _nearest_pixel(self, azel, n_max_vectorize=10_000) -> np.ndarray:
+    def _nearest_pixel(self, azel, n_max_vectorize=1_000) -> np.ndarray:
         """
         Locate the nearest ASI skymap (x, y) pixel indices.
 
