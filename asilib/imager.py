@@ -1335,10 +1335,9 @@ class Imager:
                 self._times[start_idt : start_idt + file_times.shape[0]] = file_times
                 self._images[start_idt : start_idt + file_times.shape[0]] = file_images
                 start_idt += file_times.shape[0]
-            # Cut any unfilled times and images
-            valid_ind = np.where(~np.isnan(self._images[:, 0, 0]))[0]
-            self._times = self._times[valid_ind]
-            self._images = self._images[valid_ind]
+            # Remove any unfilled times and images
+            self._times = self._times[:start_idt]
+            self._images = self._images[:start_idt, ...]
             return _img_data_type(self._times, self._images)
 
         elif 'time' in self.file_info.keys():

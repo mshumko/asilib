@@ -512,6 +512,9 @@ def test_rgb_intensity_closest_pixel():
     lons = asi.meta['lon'] * np.ones_like(lats)
     alts = alt * np.ones_like(lats)
     lla = np.stack((lats, lons, alts)).T
+
+    c = asilib.Conjunction(asi, (sat_times, lla))
+    intensity = c.intensity()
     return
 
 def test_intensity_area():

@@ -9,6 +9,9 @@
 ### Changed
 - The `asilib.Conjunction()` class had am ambiguity regarding whether if the satellite ephemeris was interpolated (or downsampled to) the ASI time stamps, or kept at the original cadence. This ambiguity made calculating auroral intensity error-prone, so now `asilib.Conjunction.intensity()` automatically interpolates the satellite ephemeris.
 
+### Fixed
+- A bug in the asilib.Imager.data property that relied on hard-coded filtering of unfilled images using `np.where()`. This led to duplicate time stamps for RGB images, and a crash with `asilib.Conjunction.intensity()`.
+
 ## [0.19.0] - 2023-08-05
 
 ### Added
