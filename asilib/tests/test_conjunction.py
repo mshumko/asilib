@@ -515,6 +515,10 @@ def test_rgb_intensity_closest_pixel():
 
     c = asilib.Conjunction(asi, (sat_times, lla))
     intensity = c.intensity()
+
+    for color, _intensity in zip(['r', 'g', 'b'], intensity.T):
+        plt.plot(c.sat.index, _intensity, c=color)
+    plt.show()
     return
 
 def test_intensity_area():

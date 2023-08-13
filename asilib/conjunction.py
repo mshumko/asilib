@@ -163,6 +163,8 @@ class Conjunction:
             similar results, but discrepancies may arise if the skymap (az, el) and (lat, lon) mapping arrays are
             mismatched. This is the case for some of the THEMIS ASIs right after they were deployed.
         """
+        self.interp_sat()  # Need the sat time stamps and coordinates to match the Imager's.
+        
         if len(self.imager.meta['resolution']) == 2: # white-light intensity
             _intensity = np.nan * np.zeros(self.sat.shape[0], dtype=float)
         elif len(self.imager.meta['resolution']) == 3: # RGB intensity
@@ -173,8 +175,7 @@ class Conjunction:
             raise ValueError(
                 f'Imager resolution must be 2d or 3d, not {len(self.imager.meta["resolution"])}d.'
                 )
-        
-        self.interp_sat()  # Need the sat time stamps and coordinates to match the Imager's.
+
             
         if box is None:  # Nearest pixel to footprint
             _, azel_pixels = self.map_azel()
