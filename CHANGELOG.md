@@ -1,5 +1,14 @@
 # Changelog
 
+## [unreleased]
+
+### Added
+- RGB auroral intensities in `asilib.Conjunction.intensity()`.
+- An auroral intensity test (from the nearest pixel and equal area) using the TREx-RGB data.
+
+### Changed
+- The `asilib.Conjunction()` class had am ambiguity regarding whether if the satellite ephemeris was interpolated (or downsampled to) the ASI time stamps, or kept at the original cadence. This ambiguity made calculating auroral intensity error-prone, so now `asilib.Conjunction.intensity()` automatically interpolates the satellite ephemeris.
+
 ## [0.19.0] - 2023-08-05
 
 ### Added

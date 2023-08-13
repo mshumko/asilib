@@ -495,6 +495,24 @@ def test_intensity_closest_pixel():
     )
     return
 
+def test_rgb_intensity_closest_pixel():
+    """
+    Test the RGB auroral intensity from the nearest pixel.
+    """
+    time_range = (datetime(2021, 11, 4, 7, 2, 0), datetime(2021, 11, 4, 7, 4, 0))
+    location_code = 'LUCK'
+    alt = 110
+
+    asi = asilib.asi.trex_rgb(location_code, time_range=time_range, alt=alt)
+
+    # Create a orbit with a footprint every 10 seconds.
+    n_sat_times = int((time_range[1]-time_range[0]).total_seconds()//10)
+    sat_times = np.array([time_range[0]+timedelta(seconds=10*i) for i in range(n_sat_times)])
+    lats = np.linspace(asi.meta['lat']-5, asi.meta['lat']+5, num=n_sat_times)
+    lons = asi.meta['lon'] * np.ones_like(lats)
+    alts = alt * np.ones_like(lats)
+    lla = np.stack((lats, lons, alts)).T
+    return
 
 def test_intensity_area():
     """

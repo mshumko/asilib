@@ -133,7 +133,7 @@ class Conjunction:
         self, box: Tuple[float, float] = None, box_op: Callable = None
     ) -> np.ndarray:
         """
-        Calculate the auroral intensity near the satellite's footprint.
+        Calculate the auroral intensity near the satellite's footprint at the ASI time stamps.
 
         Parameters
         ----------
@@ -170,7 +170,11 @@ class Conjunction:
                 (self.sat.shape[0], self.imager.meta['resolution'][-1]), dtype=float
                 )
         else:
-            raise NotImplementedError
+            raise ValueError(
+                f'Imager resolution must be 2d or 3d, not {len(self.imager.meta["resolution"])}d.'
+                )
+        
+        self.interp_sat()  # Need the sat time stamps and coordinates to match the Imager's.
             
         if box is None:  # Nearest pixel to footprint
             _, azel_pixels = self.map_azel()
@@ -189,7 +193,7 @@ class Conjunction:
 
     def interp_sat(self):
         """
-        Interpolate the satellite timestamps and LLA at the imager timestamps.
+        Interpolate the satellite timestamps and LLA to imager timestamps.
         """
         imager_times, _ = self.imager.data
         numeric_imager_times = date2num(imager_times)
