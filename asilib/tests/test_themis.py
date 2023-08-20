@@ -116,9 +116,9 @@ def test_themis_fisheye():
     """
     from datetime import datetime
     import matplotlib.pyplot as plt
-    import asilib
+    import asilib.asi
 
-    asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
+    asi = asilib.asi.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
     ax, im = asi.plot_fisheye(cardinal_directions='NE', origin=(0.95, 0.05))
     plt.colorbar(im)
     ax.axis('off')
@@ -134,10 +134,10 @@ def test_themis_map():
     """
     from datetime import datetime
     import matplotlib.pyplot as plt
-    import asilib
+    import asilib.asi
     import asilib.map
 
-    asi = asilib.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
+    asi = asilib.asi.themis('RANK', time=datetime(2017, 9, 15, 2, 34, 0))
     ax = asilib.map.create_simple_map()
     ax, im = asi.plot_map(ax=ax)
     plt.colorbar(im)
@@ -154,9 +154,9 @@ def test_themis_keogram():
     """
     from datetime import datetime
     import matplotlib.pyplot as plt
-    import asilib
+    import asilib.asi
 
-    asi = asilib.themis(
+    asi = asilib.asi.themis(
         'RANK', time_range=(datetime(2017, 9, 15, 2, 30, 0), datetime(2017, 9, 15, 2, 35, 0))
     )
     ax, im = asi.plot_keogram()
