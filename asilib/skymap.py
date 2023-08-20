@@ -41,20 +41,26 @@ def geodetic_skymap(
 
     el_skymap[el_skymap <= 0] = np.nan
 
+    # The range calculation assumes Earth is spherical, i.e. not an ellipsoid.
+    # https://github.com/space-physics/dascasi/blob/4d72aa91e471a495566044c3fc387344dd12461f/src/dascasi/io.py#L107C32-L107C32
+    _el_rad = np.deg2rad(el_skymap)
+    _range = np.sqrt(
+        (Re+alt)**2 +
+        (Re+imager_lla[-1])**2 - 
+        2*(Re+alt)*(Re+imager_lla[-1])*np.sin(
+            _el_rad + np.arcsin((Re+imager_lla[-1])/(Re+alt)*np.cos(_el_rad))
+            )
+        )
+
     for row in range(az_skymap.shape[0]):
         for col in range(az_skymap.shape[1]):
-            # _range = np.sqrt((Re+alt)**2+(Re+imager_lla[-1])**2)
             # Based on Michael Hirsh's (scivision) dascasi package.
             lat_skymap[row, col], lon_skymap[row, col], _alts[row, col] = pymap3d.aer2geodetic(
                 az_skymap[row, col],
                 el_skymap[row, col],
-                alt * 1e3 / np.sin(np.radians(el_skymap[row, col])),
+                _range[row, col] * 1e3,
                 *imager_lla[:2], 
                 1E3*imager_lla[-1],
-                deg=True
+                deg=True,
             )
-            pass
-    plt.pcolormesh(_alts/1E3, vmin=0, vmax=200, cmap='seismic'); 
-    plt.colorbar()
-    plt.show()
     return lat_skymap, lon_skymap
