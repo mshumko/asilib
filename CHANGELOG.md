@@ -5,12 +5,15 @@
 ### Added
 - RGB auroral intensities in `asilib.Conjunction.intensity()`.
 - An auroral intensity test (from the nearest pixel and equal area) using the TREx-RGB data.
+- `asilib.skymap.geodetic.skymap()` function that maps the (az, el) skymaps to (lat, lon) skymaps assuming Earth is a sphere (i.e., not an ellipsoid).
+- Added a plot test comparing the official and the asilib THEMIS GILL (lat, lon) skymaps.
 
 ### Changed
 - The `asilib.Conjunction()` class had am ambiguity regarding whether if the satellite ephemeris was interpolated (or downsampled to) the ASI time stamps, or kept at the original cadence. This ambiguity made calculating auroral intensity error-prone, so now `asilib.Conjunction.intensity()` automatically interpolates the satellite ephemeris.
 
 ### Fixed
 - A bug in the asilib.Imager.data property that relied on hard-coded filtering of unfilled images using `np.where()`. This led to duplicate time stamps for RGB images, and a crash with `asilib.Conjunction.intensity()`.
+- Removed the THEMIS and REGO imports at the top-level of asilib, i.e., in `asilib/__init__.py`. Now they are imported in `asilib/asi/__init__.py`, so users must always import asilib.asi when using ASI modules contained within the `asi/` folder.
 
 ## [0.19.0] - 2023-08-05
 
