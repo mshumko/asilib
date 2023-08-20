@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import dateutil.parser
 
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import matplotlib.testing.decorators
 import pandas as pd
 import pytest
@@ -516,8 +517,15 @@ def test_rgb_intensity_closest_pixel():
     c = asilib.Conjunction(asi, (sat_times, lla))
     intensity = c.intensity()
 
+    plot_n_times = 4
+    fig = plt.figure(figsize=(2.5*plot_n_times, 6))
+    gs = gridspec.GridSpec(2, plot_n_times)
+    ax = [fig.add_subplot(gs[0, i]) for i in range(plot_n_times)]
+    bx = fig.add_subplot(gs[1, :])
+
     for color, _intensity in zip(['r', 'g', 'b'], intensity.T):
-        plt.plot(c.sat.index, _intensity, c=color)
+        bx.plot(c.sat.index, _intensity, c=color)
+    fig.tight_layout()
     plt.show()
     return
 
