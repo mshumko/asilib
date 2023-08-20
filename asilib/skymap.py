@@ -4,6 +4,7 @@ import numpy as np
 
 import pymap3d
 
+
 def geodetic_skymap(
         imager_lla:Tuple[float],
         az_skymap:np.ndarray, 
@@ -44,6 +45,4 @@ def geodetic_skymap(
                 alt * 1e3 / np.sin(np.radians(el_skymap[row, col])),
                 *imager_lla
             )
-        pass
-
-    return
+    return lat_skymap, lon_skymap
