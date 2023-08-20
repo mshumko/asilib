@@ -1,9 +1,15 @@
 import asilib.asi
 import asilib.skymap
 
+import matplotlib.testing.decorators
 import matplotlib.pyplot as plt
 
-
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_geodetic_skymap'],
+    tol=10,
+    remove_text=True,
+    extensions=['png'],
+)
 def test_geodetic_skymap():
     """
     Compare the (lat, lon) skymaps between the asilib and the official implementation.

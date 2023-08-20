@@ -1,9 +1,9 @@
 from typing import Tuple
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 import pymap3d
+
 
 Re = 6378.14  # km
 
@@ -41,7 +41,7 @@ def geodetic_skymap(
 
     el_skymap[el_skymap <= 0] = np.nan
 
-    # The range calculation assumes Earth is spherical, i.e. not an ellipsoid.
+    # Range from observer to target assuming Earth is spherical, i.e. not an ellipsoid.
     # https://github.com/space-physics/dascasi/blob/4d72aa91e471a495566044c3fc387344dd12461f/src/dascasi/io.py#L107C32-L107C32
     _el_rad = np.deg2rad(el_skymap)
     _range = np.sqrt(
