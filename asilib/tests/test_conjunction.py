@@ -511,9 +511,9 @@ def test_rgb_intensity_closest_pixel():
     dt_sat = 5
     n_sat_times = int((time_range[1]-time_range[0]).total_seconds()//dt_sat)
     sat_times = np.array([time_range[0]+timedelta(seconds=dt_sat*i) for i in range(n_sat_times)])
-    lats = np.linspace(asi.meta['lat']-4.5, asi.meta['lat']+4.5, num=n_sat_times)
+    lats = np.linspace(asi.meta['lat']-3, asi.meta['lat']+3, num=n_sat_times)
     # lons = (asi.meta['lon']+2) * np.ones_like(lats)
-    lons = (asi.meta['lon']-2) * np.linspace(0.98, 1.05, num=n_sat_times)
+    lons = (asi.meta['lon']-2) * np.linspace(1.02, 0.98, num=n_sat_times)
     alts = alt * np.ones_like(lats)
     lla = np.stack((lats, lons, alts)).T
 
@@ -528,7 +528,7 @@ def test_rgb_intensity_closest_pixel():
     dt_plot = int((time_range[1]-time_range[0]).total_seconds()//plot_n_times)
 
     for i, ax_i in enumerate(ax):
-        t_i = time_range[0] + timedelta(seconds=i*dt_plot)
+        t_i = time_range[0] + timedelta(seconds=(i+0.5)*dt_plot)
         asi_image = asi[t_i]
         asi_image.plot_map(ax=ax_i)
         ax_i.text(
@@ -540,6 +540,7 @@ def test_rgb_intensity_closest_pixel():
 
         idt_min = np.argmin(np.abs([sat_time_i - t_i for sat_time_i in sat_times]))
         ax_i.scatter(lla[idt_min, 1], lla[idt_min, 0], c='r', marker='x')
+        bx.axvline(sat_times[idt_min], c='k')
 
     for color, _intensity in zip(['r', 'g', 'b'], intensity.T):
         bx.plot(c.sat.index, _intensity, c=color)
