@@ -45,8 +45,6 @@ from asilib.analysis.equal_area import equal_area
 from asilib.imager import Imager
 from asilib.imagers import Imagers
 from asilib.conjunction import Conjunction
-from asilib.asi.themis import themis, themis_info, themis_skymap
-from asilib.asi.rego import rego, rego_info, rego_skymap
 
 __all__ = [
     'Imager',
