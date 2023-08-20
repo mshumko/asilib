@@ -510,7 +510,7 @@ def test_rgb_intensity_closest_pixel():
     n_sat_times = int((time_range[1]-time_range[0]).total_seconds()//10)
     sat_times = np.array([time_range[0]+timedelta(seconds=10*i) for i in range(n_sat_times)])
     lats = np.linspace(asi.meta['lat']-5, asi.meta['lat']+5, num=n_sat_times)
-    lons = asi.meta['lon'] * np.ones_like(lats)
+    lons = (asi.meta['lon']+2) * np.ones_like(lats)
     alts = alt * np.ones_like(lats)
     lla = np.stack((lats, lons, alts)).T
 
@@ -522,6 +522,17 @@ def test_rgb_intensity_closest_pixel():
     gs = gridspec.GridSpec(2, plot_n_times)
     ax = [fig.add_subplot(gs[0, i]) for i in range(plot_n_times)]
     bx = fig.add_subplot(gs[1, :])
+    dt_plot = int((time_range[1]-time_range[0]).total_seconds()//plot_n_times)
+
+    for i, ax_i in enumerate(ax):
+        t_i = time_range[0] + timedelta(seconds=i*dt_plot)
+        asi_image = asi[t_i]
+        asi_image.plot_map(ax=ax_i)
+        ax_i.text(
+            0, 0, f'{asi_image.file_info["time"]}', transform=ax_i.transAxes,
+            bbox=dict(facecolor='white', edgecolor='red', pad=0.01)
+            )
+        ax_i.plot(lla[:, 1], lla[:, 0], c='r', ls=':')
 
     for color, _intensity in zip(['r', 'g', 'b'], intensity.T):
         bx.plot(c.sat.index, _intensity, c=color)
