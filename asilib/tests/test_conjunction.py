@@ -3,6 +3,7 @@ Tests the asilib's Conjunction class.
 """
 from datetime import datetime, timedelta
 import dateutil.parser
+import string
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -506,11 +507,13 @@ def test_rgb_intensity_closest_pixel():
 
     asi = asilib.asi.trex_rgb(location_code, time_range=time_range, alt=alt)
 
-    # Create a orbit with a footprint every 10 seconds.
-    n_sat_times = int((time_range[1]-time_range[0]).total_seconds()//10)
-    sat_times = np.array([time_range[0]+timedelta(seconds=10*i) for i in range(n_sat_times)])
-    lats = np.linspace(asi.meta['lat']-5, asi.meta['lat']+5, num=n_sat_times)
-    lons = (asi.meta['lon']+2) * np.ones_like(lats)
+    # Create a orbit with a footprint every 5 seconds.
+    dt_sat = 5
+    n_sat_times = int((time_range[1]-time_range[0]).total_seconds()//dt_sat)
+    sat_times = np.array([time_range[0]+timedelta(seconds=dt_sat*i) for i in range(n_sat_times)])
+    lats = np.linspace(asi.meta['lat']-4.5, asi.meta['lat']+4.5, num=n_sat_times)
+    # lons = (asi.meta['lon']+2) * np.ones_like(lats)
+    lons = (asi.meta['lon']-2) * np.linspace(0.98, 1.05, num=n_sat_times)
     alts = alt * np.ones_like(lats)
     lla = np.stack((lats, lons, alts)).T
 
@@ -518,7 +521,7 @@ def test_rgb_intensity_closest_pixel():
     intensity = c.intensity()
 
     plot_n_times = 4
-    fig = plt.figure(figsize=(2.5*plot_n_times, 6))
+    fig = plt.figure(figsize=(3*plot_n_times, 6))
     gs = gridspec.GridSpec(2, plot_n_times)
     ax = [fig.add_subplot(gs[0, i]) for i in range(plot_n_times)]
     bx = fig.add_subplot(gs[1, :])
@@ -529,10 +532,14 @@ def test_rgb_intensity_closest_pixel():
         asi_image = asi[t_i]
         asi_image.plot_map(ax=ax_i)
         ax_i.text(
-            0, 0, f'{asi_image.file_info["time"]}', transform=ax_i.transAxes,
-            bbox=dict(facecolor='white', edgecolor='red', pad=0.01)
+            0, 0.99, f'({string.ascii_uppercase[i]}) {asi_image.file_info["time"]}', 
+            transform=ax_i.transAxes, va='top', fontsize=12,
+            bbox=dict(facecolor='white', edgecolor='red', pad=0.01),
             )
         ax_i.plot(lla[:, 1], lla[:, 0], c='r', ls=':')
+
+        idt_min = np.argmin(np.abs([sat_time_i - t_i for sat_time_i in sat_times]))
+        ax_i.scatter(lla[idt_min, 1], lla[idt_min, 0], c='r', marker='x')
 
     for color, _intensity in zip(['r', 'g', 'b'], intensity.T):
         bx.plot(c.sat.index, _intensity, c=color)
