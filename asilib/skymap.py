@@ -24,7 +24,7 @@ def geodetic_skymap(
     el_skymap:np.ndarray 
         A 2d array of pixel elevations.
     alt:float
-        Auroral emission altitude to map to.
+        Auroral emission altitude in km to map to.
 
     Returns
     -------
