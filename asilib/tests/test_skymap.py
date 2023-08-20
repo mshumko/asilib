@@ -15,10 +15,11 @@ def test_geodetic_skymap():
         (asi.meta['lat'], asi.meta['lon'], asi.meta['alt']),
         asi.skymap['az'], asi.skymap['el'], 110
     )
-    fig, ax = plt.subplots(2, sharex=True, sharey=True)
+    fig, ax = plt.subplots(2, sharex=True, sharey=True, figsize=(4, 8))
 
     asi._pcolormesh_nan(asi.skymap['lon'], asi.skymap['lat'], asi.skymap['lat'], ax[0])
     asi._pcolormesh_nan(asilib_lon_skymap, asilib_lat_skymap, asilib_lat_skymap, ax[1])
     ax[0].set(title='Reference')
+    plt.tight_layout()
     plt.show()
     return
