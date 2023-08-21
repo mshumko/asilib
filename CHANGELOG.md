@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## [0.20.0] - 2023-08-20
 
 ### Added
 - RGB auroral intensities in `asilib.Conjunction.intensity()`.
