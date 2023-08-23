@@ -1337,7 +1337,7 @@ class Imager:
                 start_idt += file_times.shape[0]
             # Remove any unfilled times and images
             self._times = self._times[:start_idt]
-            self._images = self._images[:start_idt, ...]
+            self._images = self._images[:start_idt, ...].astype(int)
             return _img_data_type(self._times, self._images)
 
         elif 'time' in self.file_info.keys():
