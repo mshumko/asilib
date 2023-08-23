@@ -1600,6 +1600,14 @@ class Imager:
             _direction_pixels[i, :] = np.unravel_index(min_az_flat_array, self.skymap['az'].shape)
 
         _direction_pixels = _direction_pixels[~np.isnan(_direction_pixels[:, 0]), :]
+        # Points near the edge scew the cardinal direction from the true direction.
+        _not_near_edge = np.where(
+            (_direction_pixels[:, 0] < self.meta['resolution'][0]-1) & 
+            (_direction_pixels[:, 0] > 0) & 
+            (_direction_pixels[:, 1] < self.meta['resolution'][1]-1) & 
+            (_direction_pixels[:, 1] > 0)
+            )[0]
+        _direction_pixels = _direction_pixels[_not_near_edge, :]
         _direction_pixels = _direction_pixels.astype(int)
 
         # Calculate the pixels nerest and furthest away from zenith. This will define the rise
