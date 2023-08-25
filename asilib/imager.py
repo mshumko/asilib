@@ -158,7 +158,11 @@ class Imager:
         self_copy = self.__getitem__(self.file_info['time'])
         time, image = self_copy.data
 
-        color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
+        color_map, color_norm = self._plot_params(
+            image, color_bounds, color_map, color_norm)
+
+        if len(self.meta['resolution']) == 3:  # tests if rgb
+            image = self._rgb_replacer(image)
 
         im = ax.imshow(image, cmap=color_map, norm=color_norm, origin="lower")
         if label:
@@ -166,7 +170,8 @@ class Imager:
         if azel_contours:
             self._add_azel_contours(ax, color=azel_contour_color)
         if cardinal_directions is not None:
-            self._add_cardinal_directions(ax, cardinal_directions, origin=origin)
+            self._add_cardinal_directions(
+                ax, cardinal_directions, origin=origin)
         return ax, im
 
     def animate_fisheye(self, **kwargs) -> None:
@@ -254,7 +259,8 @@ class Imager:
         ffmpeg_params={},
         overwrite: bool = False,
     ) -> Generator[
-        Tuple[datetime.datetime, np.ndarray, plt.Axes, matplotlib.collections.QuadMesh], None, None
+        Tuple[datetime.datetime, np.ndarray, plt.Axes,
+              matplotlib.collections.QuadMesh], None, None
     ]:
         """
         Animate a series of fisheye images and superpose your data on each image.
@@ -377,9 +383,14 @@ class Imager:
             ax.clear()
             ax.axis('off')
             # Use an underscore so the original method parameters are not overwritten.
-            _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
+            _color_map, _color_norm = self._plot_params(
+                image, color_bounds, color_map, color_norm)
 
-            im = ax.imshow(image, cmap=_color_map, norm=_color_norm, origin='lower')
+            if len(self.meta['resolution']) == 3:  # tests if rgb
+                image = self._rgb_replacer(image)
+
+            im = ax.imshow(image, cmap=_color_map,
+                           norm=_color_norm, origin='lower')
             if label:
                 self._add_fisheye_label(image_time, ax)
 
@@ -397,7 +408,8 @@ class Imager:
             plt.savefig(image_save_dir / save_name)
             image_paths.append(image_save_dir / save_name)
 
-        self._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
+        self._create_animation(
+            image_paths, movie_save_path, ffmpeg_params, overwrite)
         return
 
     def plot_map(
@@ -490,7 +502,8 @@ class Imager:
 
         self_copy = self.__getitem__(self.file_info['time'])
         _, image = self_copy.data
-        color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
+        color_map, color_norm = self._plot_params(
+            image, color_bounds, color_map, color_norm)
 
         ax, p, _ = self._plot_mapped_image(
             ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs
@@ -621,7 +634,8 @@ class Imager:
         ffmpeg_params={},
         overwrite: bool = False,
     ) -> Generator[
-        Tuple[datetime.datetime, np.ndarray, plt.Axes, matplotlib.collections.QuadMesh], None, None
+        Tuple[datetime.datetime, np.ndarray, plt.Axes,
+              matplotlib.collections.QuadMesh], None, None
     ]:
         """
         Animate a series of mapped images and superpose your data on each image.
@@ -757,7 +771,8 @@ class Imager:
         )
         for i, (image_time, image) in _progressbar:
             # Use an underscore so the original method parameters are not overwritten.
-            _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
+            _color_map, _color_norm = self._plot_params(
+                image, color_bounds, color_map, color_norm)
 
             ax, pcolormesh_obj, label_obj = self._plot_mapped_image(
                 ax, image, min_elevation, _color_map, _color_norm, asi_label, pcolormesh_kwargs
@@ -770,6 +785,7 @@ class Imager:
             # Save the plot before the next iteration.
             save_name = f'{str(i).zfill(6)}.png'
             plt.savefig(image_save_dir / save_name)
+            print('test')
             image_paths.append(image_save_dir / save_name)
 
             # Clean up the objects that this method generated.
@@ -779,7 +795,8 @@ class Imager:
             # ax.collections.remove(pcolormesh_obj)
             pcolormesh_obj.remove()
 
-        self._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
+        self._create_animation(
+            image_paths, movie_save_path, ffmpeg_params, overwrite)
         return
 
     def keogram(
@@ -846,21 +863,24 @@ class Imager:
         # Allocate the keogram time and image arrays. Currently the black and white (B&W)
         # and color (RGB) images are allocated separately. In the future we should try to
         # consolidate this into one self._keogram array allocation.
-        self._keogram_time = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
+        self._keogram_time = np.nan * \
+            np.zeros(self._estimate_n_times(), dtype=object)
         if len(self.meta['resolution']) == 2:
             # B&W images.
-            self._keogram = np.nan * np.zeros((self._estimate_n_times(), self._pixels.shape[0]))
+            self._keogram = np.nan * \
+                np.zeros((self._estimate_n_times(), self._pixels.shape[0]))
         elif len(self.meta['resolution']) == 3:
             # RGB images.
             self._keogram = np.nan * np.zeros(
-                (self._estimate_n_times(), self._pixels.shape[0], self.meta['resolution'][2])
+                (self._estimate_n_times(),
+                 self._pixels.shape[0], self.meta['resolution'][2])
             )
 
         self._geogram_lat = self._keogram_latitude(aacgm)
 
         if (hasattr(self, '_times')) and (hasattr(self, '_images')):
             # if self.data() was already called
-            self._keogram[0 : self._images.shape[0], ...] = self._images[
+            self._keogram[0: self._images.shape[0], ...] = self._images[
                 :, self._pixels[:, 0], self._pixels[:, 1], ...
             ]
             self._keogram_time = self._times
@@ -983,14 +1003,15 @@ class Imager:
             path=path, aacgm=aacgm, minimum_elevation=minimum_elevation
         )
 
-        _color_map, _color_norm = self._plot_params(_keogram, color_bounds, color_map, color_norm)
+        _color_map, _color_norm = self._plot_params(
+            _keogram, color_bounds, color_map, color_norm)
 
         # Same as transpose, but correctly handles RGB keograms.
         _keogram = np.swapaxes(_keogram, 1, 0)
         if len(_keogram.shape) == 3:
             # To see anything, the channel intensities need to span 0-255
             # _keogram*=(255/_keogram.max())
-            _keogram = _keogram.astype(np.uint8)
+            _keogram = _keogram.astype(float)
 
         pcolormesh_obj = ax.pcolormesh(
             _keogram_time,
@@ -1014,7 +1035,8 @@ class Imager:
         """
         # CASE 1: No path provided. Output self._pixels that slice the meridian.
         if path is None:
-            self._pixels = -1*np.ones((self.meta['resolution'][0], 2), dtype=int)
+            self._pixels = -1 * \
+                np.ones((self.meta['resolution'][0], 2), dtype=int)
             self._pixels[:, 0] = np.arange(self.meta['resolution'][0])
             self._pixels[:, 1] = int(self.meta['resolution'][1] // 2)
 
@@ -1024,7 +1046,8 @@ class Imager:
             self._pixels = self._path_to_pixels(path)
 
         above_elevation = np.where(
-            (self.skymap['el'][self._pixels[:, 0], self._pixels[:, 1]] >= minimum_elevation)
+            (self.skymap['el'][self._pixels[:, 0],
+                               self._pixels[:, 1]] >= minimum_elevation)
             & (np.isfinite(self.skymap['lat'][self._pixels[:, 0], self._pixels[:, 1]]))
         )[0]
         self._pixels = self._pixels[above_elevation]
@@ -1052,7 +1075,8 @@ class Imager:
         if np.any(np.isnan(path)):
             raise ValueError("The lat/lon path can't contain NaNs.")
         if np.any(np.max(path) > 180) or np.any(np.min(path) < -180):
-            raise ValueError("The lat/lon values must be in the range -180 to 180.")
+            raise ValueError(
+                "The lat/lon values must be in the range -180 to 180.")
 
         nearest_pixels = np.nan * np.zeros_like(path)
 
@@ -1076,7 +1100,8 @@ class Imager:
 
         valid_pixels = np.where(np.isfinite(nearest_pixels[:, 0]))[0]
         if valid_pixels.shape[0] == 0:
-            raise ValueError('The keogram path is completely outside of the skymap.')
+            raise ValueError(
+                'The keogram path is completely outside of the skymap.')
         return nearest_pixels[valid_pixels, :].astype(int)
 
     def _keogram_latitude(self, aacgm):
@@ -1084,9 +1109,11 @@ class Imager:
         Keogram's vertical axis: geographic latitude, magnetic latitude, or pixel index.
         """
         _geo_lats = self.skymap['lat'][self._pixels[:, 0], self._pixels[:, 1]]
-        assert np.all(np.isfinite(_geo_lats)), f'Some keogram lats are NaNs {_geo_lats=}.'
+        assert np.all(np.isfinite(_geo_lats)
+                      ), f'Some keogram lats are NaNs {_geo_lats=}.'
         if aacgm:
-            _geo_lons = self.skymap['lon'][self._pixels[:, 0], self._pixels[:, 1]]
+            _geo_lons = self.skymap['lon'][self._pixels[:,
+                                                        0], self._pixels[:, 1]]
             _aacgm_lats = aacgmv2.convert_latlon_arr(
                 _geo_lats,
                 _geo_lons,
@@ -1120,7 +1147,8 @@ class Imager:
         )[0]
 
         if len(idx) == 0:
-            raise FileNotFoundError(f'Imager does not have any data contained in slice={_slice}')
+            raise FileNotFoundError(
+                f'Imager does not have any data contained in slice={_slice}')
 
         # Create the new variables.
         new_file_info = {}
@@ -1129,7 +1157,8 @@ class Imager:
             new_file_info['time'] = start_time
         else:
             new_file_info['time_range'] = [start_time, end_time]
-        new_file_info['start_time'] = np.array(self.file_info['start_time'])[idx]
+        new_file_info['start_time'] = np.array(
+            self.file_info['start_time'])[idx]
         new_file_info['end_time'] = np.array(self.file_info['end_time'])[idx]
         new_file_info['path'] = np.array(self.file_info['path'])[idx]
         new_file_info['loader'] = self.file_info['loader']
@@ -1189,7 +1218,8 @@ class Imager:
                 'At this time asilib.Imager does not support multi-dimensional indexing.'
             )
         else:
-            raise ValueError(f'The slice must be [time] or [start_time:end_time], not {_slice}.')
+            raise ValueError(
+                f'The slice must be [time] or [start_time:end_time], not {_slice}.')
 
     def __iter__(self):
         """
@@ -1245,7 +1275,8 @@ class Imager:
                 2008-01-16 10:03:00.050822 2008-01-16 10:03:57.020254 (20, 256, 256)
                 2008-01-16 10:04:00.030448 2008-01-16 10:04:57.046170 (20, 256, 256)
         """
-        self._loader_is_gen = inspect.isgeneratorfunction(self.file_info['loader'])
+        self._loader_is_gen = inspect.isgeneratorfunction(
+            self.file_info['loader'])
         if 'time_range' not in self.file_info.keys():
             raise KeyError('Imager was not instantiated with a time_range.')
 
@@ -1304,7 +1335,8 @@ class Imager:
         """
         Estimate the maximum number of time stamps for the Imager's time range.
         """
-        n_sec = (self.file_info['time_range'][1] - self.file_info['time_range'][0]).total_seconds()
+        n_sec = (self.file_info['time_range'][1] -
+                 self.file_info['time_range'][0]).total_seconds()
         # +2 is for when time_range includes the start and end time stamps.
         # This will be trimmed later.
         return int(n_sec / self.meta['cadence']) + 2
@@ -1327,13 +1359,17 @@ class Imager:
             if hasattr(self, '_times') and hasattr(self, '_images'):
                 return _img_data_type(self._times, self._images)
 
-            self._times = np.nan * np.zeros(self._estimate_n_times(), dtype=object)
-            self._images = np.nan * np.zeros((self._estimate_n_times(), *self.meta['resolution']))
+            self._times = np.nan * \
+                np.zeros(self._estimate_n_times(), dtype=object)
+            self._images = np.nan * \
+                np.zeros((self._estimate_n_times(), *self.meta['resolution']))
 
             start_idt = 0
             for file_times, file_images in self.iter_files():
-                self._times[start_idt : start_idt + file_times.shape[0]] = file_times
-                self._images[start_idt : start_idt + file_times.shape[0]] = file_images
+                self._times[start_idt: start_idt +
+                            file_times.shape[0]] = file_times
+                self._images[start_idt: start_idt +
+                             file_times.shape[0]] = file_images
                 start_idt += file_times.shape[0]
             # Remove any unfilled times and images
             self._times = self._times[:start_idt]
@@ -1374,8 +1410,10 @@ class Imager:
         """
         # Case where the loader is a function
         if not inspect.isgeneratorfunction(self.file_info['loader']):
-            _times, _images = self.file_info['loader'](self.file_info['path'][0])
-            image_index = np.argmin(np.abs([(time - t_i).total_seconds() for t_i in _times]))
+            _times, _images = self.file_info['loader'](
+                self.file_info['path'][0])
+            image_index = np.argmin(
+                np.abs([(time - t_i).total_seconds() for t_i in _times]))
             if np.abs((time - _times[image_index]).total_seconds()) > self.meta['cadence']:
                 raise IndexError(
                     f'Cannot find a time stamp within {self.meta["cadence"]} seconds of '
@@ -1389,7 +1427,8 @@ class Imager:
         else:
             gen = self.file_info['loader'](self.file_info['path'][0])
             for _times, _images in gen:
-                image_index = np.argmin(np.abs([(time - t_i).total_seconds() for t_i in _times]))
+                image_index = np.argmin(
+                    np.abs([(time - t_i).total_seconds() for t_i in _times]))
                 if np.abs((time - _times[image_index]).total_seconds()) < self.meta['cadence']:
                     return _times[image_index], _images[image_index, ...]
 
@@ -1453,13 +1492,16 @@ class Imager:
             else:
                 color_norm = 'log'
         if color_norm == 'log':
-            color_norm = colors.LogNorm(vmin=color_bounds[0], vmax=color_bounds[1])
+            color_norm = colors.LogNorm(
+                vmin=color_bounds[0], vmax=color_bounds[1])
         elif color_norm == 'lin':
-            color_norm = colors.Normalize(vmin=color_bounds[0], vmax=color_bounds[1])
+            color_norm = colors.Normalize(
+                vmin=color_bounds[0], vmax=color_bounds[1])
         elif isinstance(color_norm, matplotlib.colors.Normalize):
             pass
         else:
-            raise ValueError(f'color_norm must be either None, "log", or "lin", not {color_norm=}.')
+            raise ValueError(
+                f'color_norm must be either None, "log", or "lin", not {color_norm=}.')
 
         return color_map, color_norm
 
@@ -1526,18 +1568,21 @@ class Imager:
         length: float
             The arrow length.
         """
-        assert isinstance(directions, str), 'Cardinal directions must be a string.'
+        assert isinstance(
+            directions, str), 'Cardinal directions must be a string.'
         for direction in directions:
             direction = direction.upper()
             if direction not in ['N', 'S', 'E', 'W']:
-                raise ValueError(f'Cardinality direction "{direction}" is invalid."')
+                raise ValueError(
+                    f'Cardinality direction "{direction}" is invalid."')
             rise, run = self._calc_cardinal_direction(direction, el_step)
             norm = length / np.sqrt(rise**2 + run**2)
 
             ax.annotate(
                 direction,
                 xy=origin,
-                xytext=(origin[0] + run * norm, origin[1] + rise * norm),  # trig
+                xytext=(origin[0] + run * norm,
+                        origin[1] + rise * norm),  # trig
                 arrowprops={'arrowstyle': "<-", 'color': 'w'},
                 xycoords='axes fraction',
                 color='w',
@@ -1584,36 +1629,43 @@ class Imager:
                 return self._cardinal_direction[direction]
 
         elevation_steps = np.arange(0, 91, el_step)
-        _direction_pixels = np.nan * np.zeros((elevation_steps.shape[0], 2), dtype=int)
+        _direction_pixels = np.nan * \
+            np.zeros((elevation_steps.shape[0], 2), dtype=int)
 
         for i, (el_low, el_high) in enumerate(zip(elevation_steps[:-1], elevation_steps[1:])):
-            id_el = np.where(~((self.skymap['el'] > el_low) & (self.skymap['el'] <= el_high)))
+            id_el = np.where(
+                ~((self.skymap['el'] > el_low) & (self.skymap['el'] <= el_high)))
             _az = self.skymap['az'].copy()
             _az[id_el] = np.nan
 
             try:
-                min_az_flat_array = np.nanargmin(np.abs(_az - _azimuths[direction]))
+                min_az_flat_array = np.nanargmin(
+                    np.abs(_az - _azimuths[direction]))
             except ValueError as err:
                 if 'All-NaN slice encountered' == str(err):
                     continue
                 raise
-            _direction_pixels[i, :] = np.unravel_index(min_az_flat_array, self.skymap['az'].shape)
+            _direction_pixels[i, :] = np.unravel_index(
+                min_az_flat_array, self.skymap['az'].shape)
 
-        _direction_pixels = _direction_pixels[~np.isnan(_direction_pixels[:, 0]), :]
+        _direction_pixels = _direction_pixels[~np.isnan(
+            _direction_pixels[:, 0]), :]
         # Points near the edge scew the cardinal direction from the true direction.
         _not_near_edge = np.where(
-            (_direction_pixels[:, 0] < self.meta['resolution'][0]-1) & 
-            (_direction_pixels[:, 0] > 0) & 
-            (_direction_pixels[:, 1] < self.meta['resolution'][1]-1) & 
+            (_direction_pixels[:, 0] < self.meta['resolution'][0]-1) &
+            (_direction_pixels[:, 0] > 0) &
+            (_direction_pixels[:, 1] < self.meta['resolution'][1]-1) &
             (_direction_pixels[:, 1] > 0)
-            )[0]
+        )[0]
         _direction_pixels = _direction_pixels[_not_near_edge, :]
-        _direction_pixels = _direction_pixels.astype(int)
+        _direction_pixels = _direction_pixels.astype(np.float32)
 
         # Calculate the pixels nerest and furthest away from zenith. This will define the rise
         # and run.
-        center_pixel = np.array([self.skymap['az'].shape[0] // 2, self.skymap['az'].shape[1] // 2])
-        dx = _direction_pixels - np.tile(center_pixel, (_direction_pixels.shape[0], 1))
+        center_pixel = np.array(
+            [self.skymap['az'].shape[0] // 2, self.skymap['az'].shape[1] // 2])
+        dx = _direction_pixels - \
+            np.tile(center_pixel, (_direction_pixels.shape[0], 1))
         distances = numpy.linalg.norm(dx, axis=1)
         nearest_pixel = _direction_pixels[np.argmin(distances), :]
         furthest_pixel = _direction_pixels[np.argmax(distances), :]
@@ -1706,11 +1758,13 @@ class Imager:
                 # Pop so it won't be passed into movie_obj.output().
                 framerate=_ffmpeg_params.pop('framerate'),
             )
-            movie_obj.output(str(movie_save_path), **_ffmpeg_params).run(overwrite_output=overwrite)
+            movie_obj.output(str(movie_save_path), **
+                             _ffmpeg_params).run(overwrite_output=overwrite)
             print(f'Animation saved to {movie_save_path}')
         except FileNotFoundError as err:
             if '[WinError 2] The system cannot find the file specified' in str(err):
-                raise FileNotFoundError("Windows doesn't have ffmpeg installed.") from err
+                raise FileNotFoundError(
+                    "Windows doesn't have ffmpeg installed.") from err
         return
 
     def __repr__(self):
@@ -1722,6 +1776,24 @@ class Imager:
             f'meta={self.meta}, plot_settings={self.plot_settings}'
         )
         return f'{self.__class__.__qualname__}(' + params + ')'
+
+    def _rgb_replacer(self, image):
+        if (*self.meta['colors'],) == ['r', 'g', 'b ']:
+            pass
+
+        else:
+            # tests if color is selected, if not selected, then add nan values to array in lieu of color
+            if 'r' not in (*self.meta['colors'],):
+                # takes the shape of c, excluding the last index (-1) and replaces that matrix with nans
+                image[:, :, 0] = np.full(np.shape(image)[:-1], np.nan)
+
+            if 'g' not in (*self.meta['colors'],):
+                image[:, :, 1] = np.full(np.shape(image)[:-1], np.nan)
+
+            if 'b' not in (*self.meta['colors'],):
+                image[:, :, 2] = c[:, :, 0] = np.full(
+                    np.shape(image)[:-1], np.nan)
+        return image
 
     def _pcolormesh_nan(
         self,
@@ -1769,8 +1841,8 @@ class Imager:
                 bottom = i
 
             # Reassign all lat/lon columns after good[-1] (all nans) to good[-1].
-            x[i, good[-1] :] = x[i, good[-1]]
-            y[i, good[-1] :] = y[i, good[-1]]
+            x[i, good[-1]:] = x[i, good[-1]]
+            y[i, good[-1]:] = y[i, good[-1]]
             # Reassign all lat/lon columns before good[0] (all nans) to good[0].
             x[i, : good[0]] = x[i, good[0]]
             y[i, : good[0]] = y[i, good[0]]
@@ -1785,24 +1857,8 @@ class Imager:
         # old masked c code: np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1]
 
         if len(self.meta['resolution']) == 3:
-            # tests to see if a color from rgb is missing
-            if (*self.meta['colors'],) == ['r', 'g', 'b ']:
-                pass
+            c = self._rgb_replacer(c)
 
-            else:
-                # tests if color is selected, if not selected, then add nan values to array in lieu of color
-                if 'r' not in (*self.meta['colors'],):
-                    # takes the shape of c, excluding the last index (-1) and replaces that matrix with nans
-                    c[:, :, 0] = np.full(np.shape(c)[:-1], np.nan)
-
-                if 'g' not in (*self.meta['colors'],):
-                    c[:, :, 1] = np.full(np.shape(c)[:-1], np.nan)
-
-                if 'b' not in (*self.meta['colors'],):
-                    c[:, :, 2] = c[:, :, 0] = np.full(np.shape(c)[:-1], np.nan)
-
-        else: #not rgb
-            pass
 
         p = ax.pcolormesh(
             x,
