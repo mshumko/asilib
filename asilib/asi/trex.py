@@ -146,7 +146,7 @@ def trex_rgb(
             'path': file_paths,
             'start_time': start_times,
             'end_time': end_times,
-            'loader': lambda path: _load_rgb_h5(path),
+            'loader': lambda path: _load_rgb_h5(path, colors.lower()),
         }
     else:
         file_info = {
@@ -187,10 +187,9 @@ def trex_rgb(
         'lon': float(_skymap['SITE_MAP_LONGITUDE']),
         'alt': float(_skymap['SITE_MAP_ALTITUDE']) / 1e3,
         'cadence': 3,
-        'resolution': (480, 553, 3),
-        'colors': colors,
+        'resolution': (480, 553, len(colors))
     }
-    plot_settings = {'color_norm': 'lin'}
+    plot_settings = {'color_norm':'lin'}
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
@@ -360,7 +359,7 @@ def _download_one_h5_file(
     return matched_downloaders2[0].download(save_dir, redownload=redownload)
 
 
-def _load_rgb_h5(path):
+def _load_rgb_h5(path, colors):
     # TODO: Move import to the top when the opencv bug is fixed for Linux.
     import trex_imager_readfile
 
@@ -370,16 +369,24 @@ def _load_rgb_h5(path):
         raise ValueError(f'A problematic PGM file: {problematic_file_list[0]}')
     images = np.moveaxis(images, 3, 0)
 
-    # Scale from 0-255 to work with plt.imshow(). Convert to unit16 to avoid rounding
-    # off the highest bits.
-    images = images.astype(np.uint16)*255/np.max(images)
-    # Need uint8 for plt.imshow() to work with RGB images.
-    images = images.astype(np.uint8)
-    _color_indices = [0, 1, 2]
+    if colors == 'rgb':
+        # Scale from 0-255 to work with plt.imshow(). Convert to unit16 to avoid rounding 
+        # off the highest bits.
+        images = images.astype(np.uint16)*255/np.max(images)
+        # Need uint8 for plt.imshow() to work with RGB images. 
+        images = images.astype(np.uint8)
+        _color_indices = [0, 1, 2]
+    else:
+        _color_indices = []
+        _color_indices_map = {'r':0, 'g':1, 'b':2}
+        for _color in colors:
+            assert _color in ['r', 'g', 'b'], (f'{_color} is an invalid color letter. '
+                                               'Try "r", "b", "g" (or a combination).')
+            _color_indices.append(_color_indices_map[_color])
+            _color_indices.sort()
 
     images = images[:, ::-1, ::-1, _color_indices]  # Flip north-south.
-    # If just one channel we want to remove the 3rd dimension.
-    if len(_color_indices) == 1:
+    if len(_color_indices) == 1:  # If just one channel we want to remove the 3rd dimension.
         images = images[..., 0]
     times = np.array(
         [
@@ -742,7 +749,6 @@ def _load_nir_skymap(skymap_path):
     skymap_dict['PATH'] = skymap_path
     return skymap_dict
 
-
 def _load_rgb_skymap(skymap_path):
     """
     A helper function to load a TREx RGB skymap and transform it.
@@ -823,7 +829,7 @@ if __name__ == '__main__':
     ax = asilib.map.create_simple_map()
     for location_code in location_codes:
         asi_list.append(trex_rgb(location_code, time=time, colors='rgb'))
-
+    
     asis = asilib.imagers.Imagers(asi_list)
     asis.plot_map(ax=ax)
     # plt.axis('off')
