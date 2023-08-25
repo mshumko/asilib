@@ -1783,6 +1783,27 @@ class Imager:
         y[bottom:, :] = np.nanmax(y[bottom, :])
 
         # old masked c code: np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1]
+
+        if len(self.meta['resolution']) == 3:
+            # tests to see if a color from rgb is missing
+            if (*self.meta['colors'],) == ['r', 'g', 'b ']:
+                pass
+
+            else:
+                # tests if color is selected, if not selected, then add nan values to array in lieu of color
+                if 'r' not in (*self.meta['colors'],):
+                    # takes the shape of c, excluding the last index (-1) and replaces that matrix with nans
+                    c[:, :, 0] = np.full(np.shape(c)[:-1], np.nan)
+
+                if 'g' not in (*self.meta['colors'],):
+                    c[:, :, 1] = np.full(np.shape(c)[:-1], np.nan)
+
+                if 'b' not in (*self.meta['colors'],):
+                    c[:, :, 2] = c[:, :, 0] = np.full(np.shape(c)[:-1], np.nan)
+
+        else: #not rgb
+            pass
+
         p = ax.pcolormesh(
             x,
             y,
