@@ -1743,7 +1743,7 @@ class Imager:
                 image[:, :, 1] = np.full(np.shape(image)[:-1], np.nan)
 
             if 'b' not in (*self.meta['colors'],):
-                image[:, :, 2] = c[:, :, 0] = np.full(
+                image[:, :, 2] = np.full(
                     np.shape(image)[:-1], np.nan)
         return image
 
