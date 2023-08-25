@@ -146,7 +146,7 @@ def trex_rgb(
             'path': file_paths,
             'start_time': start_times,
             'end_time': end_times,
-            'loader': lambda path: _load_rgb_h5(path, colors.lower()),
+            'loader': lambda path: _load_rgb_h5(path),
         }
     else:
         file_info = {
@@ -187,7 +187,8 @@ def trex_rgb(
         'lon': float(_skymap['SITE_MAP_LONGITUDE']),
         'alt': float(_skymap['SITE_MAP_ALTITUDE']) / 1e3,
         'cadence': 3,
-        'resolution': (480, 553, len(colors))
+        'resolution': (480, 553, 3),
+        'colors': colors,
     }
     plot_settings = {'color_norm':'lin'}
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
@@ -369,21 +370,13 @@ def _load_rgb_h5(path, colors):
         raise ValueError(f'A problematic PGM file: {problematic_file_list[0]}')
     images = np.moveaxis(images, 3, 0)
 
-    if colors == 'rgb':
-        # Scale from 0-255 to work with plt.imshow(). Convert to unit16 to avoid rounding 
-        # off the highest bits.
-        images = images.astype(np.uint16)*255/np.max(images)
-        # Need uint8 for plt.imshow() to work with RGB images. 
-        images = images.astype(np.uint8)
-        _color_indices = [0, 1, 2]
-    else:
-        _color_indices = []
-        _color_indices_map = {'r':0, 'g':1, 'b':2}
-        for _color in colors:
-            assert _color in ['r', 'g', 'b'], (f'{_color} is an invalid color letter. '
-                                               'Try "r", "b", "g" (or a combination).')
-            _color_indices.append(_color_indices_map[_color])
-            _color_indices.sort()
+    
+    # Scale from 0-255 to work with plt.imshow(). Convert to unit16 to avoid rounding 
+    # off the highest bits.
+    images = images.astype(np.uint16)*255/np.max(images)
+    # Need uint8 for plt.imshow() to work with RGB images. 
+    images = images.astype(np.uint8)
+    _color_indices = [0, 1, 2]
 
     images = images[:, ::-1, ::-1, _color_indices]  # Flip north-south.
     if len(_color_indices) == 1:  # If just one channel we want to remove the 3rd dimension.
