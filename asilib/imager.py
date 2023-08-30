@@ -1730,7 +1730,15 @@ class Imager:
         return f'{self.__class__.__qualname__}(' + params + ')'
 
     def _rgb_replacer(self, image):
-        if (*self.meta['colors'],) == ['r', 'g', 'b ']:
+
+        #https://www.tutorialspoint.com/How-to-check-if-a-string-only-contains-certain-characters-in-Python
+
+        if set(self.meta['colors']).issubset('rgb'): #Checks if the colors selected are a subset of 'rgb', if there is a character not 'r' 'g' or 'b', it will raise an error
+            pass
+        else:
+            raise ValueError(" The only valid characters for the colors kwarg are 'r', 'g', 'b' ")
+        
+        if (*self.meta['colors'],) == ['r', 'g', 'b ']: #Passes colour removal if all colors are present, no logic required
             pass
 
         else:
