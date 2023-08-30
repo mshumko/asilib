@@ -360,7 +360,7 @@ def _download_one_h5_file(
     return matched_downloaders2[0].download(save_dir, redownload=redownload)
 
 
-def _load_rgb_h5(path, colors):
+def _load_rgb_h5(path):
     # TODO: Move import to the top when the opencv bug is fixed for Linux.
     import trex_imager_readfile
 
@@ -379,8 +379,7 @@ def _load_rgb_h5(path, colors):
     _color_indices = [0, 1, 2]
 
     images = images[:, ::-1, ::-1, _color_indices]  # Flip north-south.
-    if len(_color_indices) == 1:  # If just one channel we want to remove the 3rd dimension.
-        images = images[..., 0]
+    
     times = np.array(
         [
             dateutil.parser.parse(
@@ -388,7 +387,7 @@ def _load_rgb_h5(path, colors):
             for dict_i in meta
         ]
     )
-    return times, images  # returns green
+    return times, images  # returns green ##TODO Comment unclear
 
 
 def trex_rgb_skymap(location_code: str, time: utils._time_type, redownload: bool = False) -> dict:
