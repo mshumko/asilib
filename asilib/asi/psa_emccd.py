@@ -18,7 +18,7 @@ import asilib.io.download as download
 
 
 image_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/raw/'
-skymap_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/raw/fovd/azm_ele/'
+skymap_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/raw/fovd/'
 local_base_dir = asilib.config['ASI_DATA_DIR'] / 'psa_emccd'
 
 def psa_emccd(
@@ -72,15 +72,48 @@ def psa_emccd(
     else:
         time_range = utils.validate_time_range(time_range)
 
-    local_image_dir = local_base_dir / 'images' / location_code.lower()
+    # local_image_dir = local_base_dir / 'images' / location_code.lower()
 
+    # if load_images:
+    #     # Download and find image data
+    #     file_paths = _get_pgm_files(
+    #         'themis',
+    #         location_code,
+    #         time,
+    #         time_range,
+    #         pgm_base_url,
+    #         local_pgm_dir,
+    #         redownload,
+    #         missing_ok,
+    #     )
+
+    #     start_times = len(file_paths) * [None]
+    #     end_times = len(file_paths) * [None]
+    #     for i, file_path in enumerate(file_paths):
+    #         date_match = re.search(r'\d{8}_\d{4}', file_path.name)
+    #         start_times[i] = datetime.strptime(date_match.group(), '%Y%m%d_%H%M')
+    #         end_times[i] = start_times[i] + timedelta(minutes=1)
+    #     file_info = {
+    #         'path': file_paths,
+    #         'start_time': start_times,
+    #         'end_time': end_times,
+    #         'loader': _load_pgm,
+    #     }
+    # else:
+    #     file_info = {
+    #         'path': [],
+    #         'start_time': [],
+    #         'end_time': [],
+    #         'loader': [],
+    #     }
     file_info = {}
-    # Download and find the appropriate skymap
-    if time is not None:
-        _time = time
-    else:
+    if time_range is not None:
+        file_info['time_range'] = time_range
         _time = time_range[0]
-    skymap = psa_emccd_skymap(location_code, _time, redownload)
+    else:
+        file_info['time'] = time
+        _time = time
+    skymap = psa_emccd_skymap(location_code, _time, redownload, alt)
 
     meta = {
         'array': 'PSA_EMCCD',
@@ -107,7 +140,7 @@ def psa_emccd_info() -> pd.DataFrame:
     df = df[df['array'] == 'psa_project']
     return df.reset_index(drop=True)
 
-def psa_emccd_skymap(location_code, time, redownload):
+def psa_emccd_skymap(location_code, time, redownload, alt):
     """
     Load a PSA EMCCD ASI skymap file.
 
@@ -161,10 +194,11 @@ def psa_emccd_skymap(location_code, time, redownload):
         )
     else:
         closest_index = np.nanargmin(dt)
-    # Assume that the skymap files come in pairs.
-    az_skymap_path = local_skymap_paths[closest_index]
-    el_skymap_path = local_skymap_paths[closest_index+1]
-    skymap = _load_skymap(az_skymap_path, el_skymap_path)
+    closest_date = skymap_file_dates[closest_index]
+    # Find the the az and el skymaps (2), and the lat and lon skymaps (2*n_altitudes).
+    valid_skymap_idx = np.where(np.array(skymap_file_dates) == closest_date)[0]
+    valid_skymap_paths = np.array(local_skymap_paths)[valid_skymap_idx]
+    skymap = _load_skymap(valid_skymap_paths, alt)
     return skymap
 
 def _verify_location(location_str):
@@ -195,19 +229,34 @@ def _verify_location(location_str):
     return row['location_code'].to_numpy()[0]
 
 def _download_all_skymaps(location_code, url, save_dir, redownload):
-    d = download.Downloader(url)
-    ds = d.ls(f'{location_code}*.txt')
-
     save_paths = []
-    for d_i in ds:
-        save_paths.append(d_i.download(save_dir, redownload=redownload))
+
+    for folder in ['azm_ele/', 'gla_glo/']:
+        d = download.Downloader(url + folder)
+        ds = d.ls(f'{location_code}*.txt')
+
+        for d_i in ds:
+            save_paths.append(d_i.download(save_dir, redownload=redownload))
     return save_paths
 
-def _load_skymap(az_skymap_path, el_skymap_path):
+def _load_skymap(valid_skymap_paths, alt):
+    for valid_skymap_path in valid_skymap_paths:
+        if 'az.txt' in valid_skymap_path.name:
+            az_skymap_path = valid_skymap_path
+        if 'el.txt' in valid_skymap_path.name:
+            el_skymap_path = valid_skymap_path
+        if f'{alt}_lat.txt' in valid_skymap_path.name:
+            lat_skymap_path = valid_skymap_path
+        if f'{alt}_long.txt' in valid_skymap_path.name:
+            lon_skymap_path = valid_skymap_path
+
     az_skymap = np.genfromtxt(az_skymap_path)
     el_skymap = np.genfromtxt(el_skymap_path)
-    # TODO: I need to know where the imager is located to get (lat, lon) skymaps (ask Keisuke).
-    return {'az':az_skymap, 'el':el_skymap}
+    lat_skymap = np.genfromtxt(lat_skymap_path)
+    lon_skymap = np.genfromtxt(lon_skymap_path)
+    lat_skymap[lat_skymap == -999] = np.nan
+    lon_skymap[lon_skymap == -999] = np.nan
+    return {'az':az_skymap, 'el':el_skymap, 'lat':lat_skymap, 'lon':lon_skymap, 'alt':alt}
 
 def _load_image_file(path):
     with bz2.open(path, "rb") as f:
@@ -216,10 +265,11 @@ def _load_image_file(path):
 
 if __name__ == '__main__':
     asi = psa_emccd(
-        'C1', 
+        'C6', 
         time_range=(
             datetime(2019, 3, 1, 18, 30, 0),
             datetime(2019, 3, 1, 20, 0, 0)
-            )
+            ),
+        redownload=False
         )
     pass
