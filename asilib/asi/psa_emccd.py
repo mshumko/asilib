@@ -61,18 +61,7 @@ def psa_emccd(
     :py:meth:`~asilib.imager.Imager`
         A PSA Project ASI instance with the time stamps, images, skymaps, and metadata.
     """
-    location_code = location_code.upper()
-    if (len(location_code) != 2) and location_code[0] != 'C':
-        location_df = psa_emccd_info()
-        location_df['name_uppercase'] = location_df['name'].str.upper()
-        row = location_df.loc[location_df['name_uppercase']==location_code]
-        if row.shape[0] != 1:
-            raise ValueError(
-                f'{location_code=} is invalid. Try one of these: '
-                f'{location_df["location_code"].to_numpy()} or '
-                f'{location_df["name"].to_numpy()}'
-            )
-    pass
+    location_code = _verify_location(location_code)
 
     if time is not None:
         time = utils.validate_time(time)
@@ -168,6 +157,33 @@ def psa_emccd_skymap(location_code, time, redownload):
     # skymap_path = local_skymap_paths[closest_index]
     # skymap = _load_skymap(skymap_path)
     return skymap
+
+def _verify_location(location_str):
+    """
+    Locate and verify that the location code (C#) or full name is valid.
+    """
+    location_code = location_str.upper()
+    location_df = psa_emccd_info()
+    location_df['name_uppercase'] = location_df['name'].str.upper()
+    if (len(location_code) != 2) and location_code[0] != 'C':
+        # Assume its the full name
+        row = location_df.loc[location_df['name_uppercase']==location_code]
+        if row.shape[0] != 1:
+            raise ValueError(
+                f'{location_code=} is invalid. Try one of these: '
+                f'{location_df["location_code"].to_numpy()} or '
+                f'{location_df["name"].to_numpy()}'
+            )
+    else:
+        # Assume it is a Camera code.
+        row = location_df.loc[location_df['location_code']==location_code]
+        if row.shape[0] != 1:
+            raise ValueError(
+                    f'{location_code=} is invalid. Try one of these: '
+                    f'{location_df["location_code"].to_numpy()} or '
+                    f'{location_df["name"].to_numpy()}'
+                )
+    return row['location_code'].to_numpy()[0]
 
 def _load_image_file(path):
     with bz2.open(path, "rb") as f:
