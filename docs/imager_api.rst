@@ -50,6 +50,15 @@ Transition Region Explorer (TREx)
    :undoc-members:
    :show-inheritance:
 
+.. _psa_project:
+
+The Pulsating aurora (PsA) project
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. automodule:: asilib.asi.psa_emccd
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Imager Interface
 ================
 

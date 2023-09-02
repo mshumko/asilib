@@ -158,7 +158,7 @@ def themis_skymap(location_code, time, redownload):
     location_code: str
         The four character location name.
     time: str or datetime.datetime
-        A ISO-fomatted time string or datetime object. Must be in UT time.
+        A ISO-formatted time string or datetime object. Must be in UT time.
     redownload: bool
         Redownload all skymaps.
     """

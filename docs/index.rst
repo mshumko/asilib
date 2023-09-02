@@ -12,7 +12,8 @@ Supported ASI arrays
 --------------------   
 - :ref:`rego_asi`,
 - :ref:`themis_asi`,
-- :ref:`trex_asi`
+- :ref:`trex_asi`,
+- :ref:`psa_project`
 
 .. note::
    While this package is named `aurora-asi-lib`, import it using the name `asilib`.
