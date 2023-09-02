@@ -3,7 +3,10 @@ The `Pulsating Aurora (PsA) project <http://www.psa-research.org>`_ operated hig
 """
 from datetime import datetime
 import pathlib
+import warnings
 import bz2
+import os
+import re
 
 import numpy as np
 import pandas as pd
@@ -71,7 +74,12 @@ def psa_emccd(
     local_image_dir = local_base_dir / 'images' / location_code.lower()
 
     file_info = {}
-    skymap = {}
+    # Download and find the appropriate skymap
+    if time is not None:
+        _time = time
+    else:
+        _time = time_range[0]
+    skymap = psa_emccd_skymap(location_code, _time, redownload)
 
     meta = {
         'array': 'PSA_EMCCD',
@@ -114,47 +122,47 @@ def psa_emccd_skymap(location_code, time, redownload):
     time = utils.validate_time(time)
     local_dir = local_base_dir / 'skymaps' / location_code.lower()
     local_dir.mkdir(parents=True, exist_ok=True)
-    skymap_top_url = skymap_base_url + location_code.lower() + '/'
 
-    # if redownload:
-    #     # Delete any existing skymap files.
-    #     local_skymap_paths = pathlib.Path(local_dir).rglob(f'*skymap_{location_code.lower()}*.sav')
-    #     for local_skymap_path in local_skymap_paths:
-    #         os.unlink(local_skymap_path)
-    #     local_skymap_paths = _download_all_skymaps(
-    #         location_code, skymap_top_url, local_dir, redownload=redownload
-    #     )
+    if redownload:
+        # Delete any existing skymap files.
+        local_skymap_paths = pathlib.Path(local_dir).rglob(f'{location_code}*.txt')
+        for local_skymap_path in local_skymap_paths:
+            os.unlink(local_skymap_path)
+        local_skymap_paths = _download_all_skymaps(
+            location_code, skymap_base_url, local_dir, redownload=redownload
+        )
 
-    # else:
-    #     local_skymap_paths = sorted(
-    #         pathlib.Path(local_dir).rglob(f'*skymap_{location_code.lower()}*.sav')
-    #     )
-    #     # TODO: Add a check to periodically redownload the skymap data, maybe once a month?
-    #     if len(local_skymap_paths) == 0:
-    #         local_skymap_paths = _download_all_skymaps(
-    #             location_code, skymap_top_url, local_dir, redownload=redownload
-    #         )
+    else:
+        local_skymap_paths = sorted(
+            pathlib.Path(local_dir).rglob(f'{location_code}*.txt')
+        )
+        if len(local_skymap_paths) == 0:
+            local_skymap_paths = _download_all_skymaps(
+                location_code, skymap_base_url, local_dir, redownload=redownload
+            )
 
-    # skymap_filenames = [local_skymap_path.name for local_skymap_path in local_skymap_paths]
-    # skymap_file_dates = []
-    # for skymap_filename in skymap_filenames:
-    #     date_match = re.search(r'\d{8}', skymap_filename)
-    #     skymap_file_dates.append(datetime.strptime(date_match.group(), '%Y%m%d'))
+    skymap_filenames = [local_skymap_path.name for local_skymap_path in local_skymap_paths]
+    skymap_file_dates = []
+    for skymap_filename in skymap_filenames:
+        date_match = re.search(r'\d{8}', skymap_filename)
+        skymap_file_dates.append(datetime.strptime(date_match.group(), '%Y%m%d'))
 
-    # # Find the skymap_date that is closest and before time.
-    # # For reference: dt > 0 when time is after skymap_date.
-    # dt = np.array([(time - skymap_date).total_seconds() for skymap_date in skymap_file_dates])
-    # dt[dt < 0] = np.inf  # Mask out all skymap_dates after time.
-    # if np.all(~np.isfinite(dt)):
-    #     # Edge case when time is before the first skymap_date.
-    #     closest_index = 0
-    #     warnings.warn(
-    #         f'The requested skymap time={time} for THEMIS-{location_code.upper()} is before first '
-    #         f'skymap file dated: {skymap_file_dates[0]}. This skymap file will be used.'
-    #     )
-    # else:
-    #     closest_index = np.nanargmin(dt)
-    # skymap_path = local_skymap_paths[closest_index]
+    # Find the skymap_date that is closest and before time.
+    # For reference: dt > 0 when time is after skymap_date.
+    dt = np.array([(time - skymap_date).total_seconds() for skymap_date in skymap_file_dates])
+    dt[dt < 0] = np.inf  # Mask out all skymap_dates after time.
+    if np.all(~np.isfinite(dt)):
+        # Edge case when time is before the first skymap_date.
+        closest_index = 0
+        warnings.warn(
+            f'The requested skymap time={time} for psa_emccd imager {location_code.upper()} is '
+            f'before first skymap file dated: {skymap_file_dates[0]}. This skymap file will be used.'
+        )
+    else:
+        closest_index = np.nanargmin(dt)
+    # Assume that the skymaps come in pairs.
+    az_skymap_path = local_skymap_paths[closest_index]
+    el_skymap_path = local_skymap_paths[closest_index+1]
     # skymap = _load_skymap(skymap_path)
     return skymap
 
@@ -185,6 +193,15 @@ def _verify_location(location_str):
                 )
     return row['location_code'].to_numpy()[0]
 
+def _download_all_skymaps(location_code, url, save_dir, redownload):
+    d = download.Downloader(url)
+    ds = d.ls(f'{location_code}*.txt')
+
+    save_paths = []
+    for d_i in ds:
+        save_paths.append(d_i.download(save_dir, redownload=redownload))
+    return save_paths
+
 def _load_image_file(path):
     with bz2.open(path, "rb") as f:
         content = f.read()
@@ -192,7 +209,7 @@ def _load_image_file(path):
 
 if __name__ == '__main__':
     asi = psa_emccd(
-        'test', 
+        'C1', 
         time_range=(
             datetime(2019, 3, 1, 18, 30, 0),
             datetime(2019, 3, 1, 20, 0, 0)
