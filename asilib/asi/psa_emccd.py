@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 
 import asilib
+import asilib.skymap
 import asilib.utils as utils
 import asilib.io.download as download
 
@@ -21,15 +22,15 @@ skymap_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/raw/fovd/azm_el
 local_base_dir = asilib.config['ASI_DATA_DIR'] / 'psa_emccd'
 
 def psa_emccd(
-        location_code: str,
-        time: utils._time_type = None,
-        time_range: utils._time_range_type = None,
-        alt: int = 110,
-        redownload: bool = False,
-        missing_ok: bool = True,
-        load_images: bool = True,
-        imager=asilib.Imager,
-        ) -> asilib.Imager:
+    location_code: str,
+    time: utils._time_type = None,
+    time_range: utils._time_range_type = None,
+    alt: int = 110,
+    redownload: bool = False,
+    missing_ok: bool = True,
+    load_images: bool = True,
+    imager=asilib.Imager,
+    ) -> asilib.Imager:
     """
     Create an Imager instance of the Pulsating Aurora project's EMCCD ASI.
 
@@ -163,7 +164,7 @@ def psa_emccd_skymap(location_code, time, redownload):
     # Assume that the skymaps come in pairs.
     az_skymap_path = local_skymap_paths[closest_index]
     el_skymap_path = local_skymap_paths[closest_index+1]
-    # skymap = _load_skymap(skymap_path)
+    skymap = _load_skymap(az_skymap_path, el_skymap_path)
     return skymap
 
 def _verify_location(location_str):
@@ -201,6 +202,12 @@ def _download_all_skymaps(location_code, url, save_dir, redownload):
     for d_i in ds:
         save_paths.append(d_i.download(save_dir, redownload=redownload))
     return save_paths
+
+def _load_skymap(az_skymap_path, el_skymap_path):
+    az_skymap = pd.read_csv(az_skymap_path)
+    el_skymap = pd.read_csv(el_skymap_path)
+    # TODO: I need to know where the imager is located (ask Keisuke).
+    return
 
 def _load_image_file(path):
     with bz2.open(path, "rb") as f:
