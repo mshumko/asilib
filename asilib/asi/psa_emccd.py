@@ -161,7 +161,7 @@ def psa_emccd_skymap(location_code, time, redownload):
         )
     else:
         closest_index = np.nanargmin(dt)
-    # Assume that the skymaps come in pairs.
+    # Assume that the skymap files come in pairs.
     az_skymap_path = local_skymap_paths[closest_index]
     el_skymap_path = local_skymap_paths[closest_index+1]
     skymap = _load_skymap(az_skymap_path, el_skymap_path)
@@ -204,10 +204,10 @@ def _download_all_skymaps(location_code, url, save_dir, redownload):
     return save_paths
 
 def _load_skymap(az_skymap_path, el_skymap_path):
-    az_skymap = pd.read_csv(az_skymap_path)
-    el_skymap = pd.read_csv(el_skymap_path)
-    # TODO: I need to know where the imager is located (ask Keisuke).
-    return
+    az_skymap = np.genfromtxt(az_skymap_path)
+    el_skymap = np.genfromtxt(el_skymap_path)
+    # TODO: I need to know where the imager is located to get (lat, lon) skymaps (ask Keisuke).
+    return {'az':az_skymap, 'el':el_skymap}
 
 def _load_image_file(path):
     with bz2.open(path, "rb") as f:
