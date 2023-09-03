@@ -11,6 +11,7 @@ import re
 
 import numpy as np
 import pandas as pd
+import rawpy  # TODO: Add to package requirements
 
 import asilib
 import asilib.skymap
@@ -106,18 +107,19 @@ def psa_emccd(
             'end_time': [],
             'loader': [],
         }
-    file_info = {}
     if time_range is not None:
         file_info['time_range'] = time_range
         _time = time_range[0]
     else:
         file_info['time'] = time
         _time = time
+
     skymap = psa_emccd_skymap(location_code, _time, redownload, alt)
 
     meta = {
         'array': 'PSA_EMCCD',
         'location': location_code,
+        # TODO: Get site locations from Keisuke.
         # 'lat': float(_skymap['SITE_MAP_LATITUDE']),
         # 'lon': float(_skymap['SITE_MAP_LONGITUDE']),
         # 'alt': float(_skymap['SITE_MAP_ALTITUDE']) / 1e3,
@@ -250,6 +252,7 @@ def _load_skymap(valid_skymap_paths, alt):
         if f'{alt}_long.txt' in valid_skymap_path.name:
             lon_skymap_path = valid_skymap_path
 
+    # TODO: Verify that the altitude is available.
     az_skymap = np.genfromtxt(az_skymap_path)
     el_skymap = np.genfromtxt(el_skymap_path)
     lat_skymap = np.genfromtxt(lat_skymap_path)
@@ -404,16 +407,21 @@ def _download_one_raw_file(
     # Find the unique directory
     matched_downloaders = d.ls(f'{location_code}_{time:%Y%m%d_%H%M}.raw.bz2')
     assert len(matched_downloaders) == 1
-    # Search that directory for the file and donload it.
+    # Search that directory for the file and download it.
     return matched_downloaders[0].download(save_dir, redownload=redownload, stream=True)
 
 
 def _load_image_file(path):
-    with bz2.open(path, "rb") as f:
+    with bz2.open(path, "r") as f:
         content = f.read()
+        #TODO: Fix the data loader
+        with rawpy.imread(content) as raw:
+            rgb = raw.postprocess()
+        pass
     return
 
 if __name__ == '__main__':
+    # https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi?year=2017&month=03&day=07&jump=Plot
     asi = psa_emccd(
         'C1', 
         time_range=(
@@ -422,4 +430,4 @@ if __name__ == '__main__':
             ),
         redownload=False
         )
-    pass
+    asi.animate_fisheye()
