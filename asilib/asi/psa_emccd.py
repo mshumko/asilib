@@ -1,7 +1,8 @@
 """
 The `Pulsating Aurora (PsA) project <http://www.psa-research.org>`_ operated high-speed ground-based cameras in the northern Scandinavia and Alaska(in Norway, Sweden, Finland, and Alaska) during the 2016-current years to observe rapid modulation of PsA. These ground-based observations will be compared with the wave and particle data from the ERG satellite, which launched in 2016, in the magnetosphere to understand the connection between the non-linear processes in the magnetosphere and periodic variation of PsA on the ground. Before using this data, please refer to the `rules of the road document <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/rules-of-the-road_psa-pwing.pdf>`_ for data caveats and other prudent considerations. The DOIs of the cameras are introduced in the rules of the road document online. When you write a paper using data from these cameras, please indicate the corresponding DOIs of the cameras that you used for your analyses. You can find the animations and keograms `online <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi>`_.
 """
-from datetime import datetime
+from datetime import datetime, timedelta
+from typing import Union, Iterable, List
 import pathlib
 import warnings
 import bz2
@@ -72,40 +73,39 @@ def psa_emccd(
     else:
         time_range = utils.validate_time_range(time_range)
 
-    # local_image_dir = local_base_dir / 'images' / location_code.lower()
+    local_image_dir = local_base_dir / 'images' / location_code.lower()
 
-    # if load_images:
-    #     # Download and find image data
-    #     file_paths = _get_pgm_files(
-    #         'themis',
-    #         location_code,
-    #         time,
-    #         time_range,
-    #         pgm_base_url,
-    #         local_pgm_dir,
-    #         redownload,
-    #         missing_ok,
-    #     )
+    if load_images:
+        # Download and find image data
+        file_paths = _get_raw_files(
+            location_code,
+            time,
+            time_range,
+            image_base_url,
+            local_image_dir,
+            redownload,
+            missing_ok,
+        )
 
-    #     start_times = len(file_paths) * [None]
-    #     end_times = len(file_paths) * [None]
-    #     for i, file_path in enumerate(file_paths):
-    #         date_match = re.search(r'\d{8}_\d{4}', file_path.name)
-    #         start_times[i] = datetime.strptime(date_match.group(), '%Y%m%d_%H%M')
-    #         end_times[i] = start_times[i] + timedelta(minutes=1)
-    #     file_info = {
-    #         'path': file_paths,
-    #         'start_time': start_times,
-    #         'end_time': end_times,
-    #         'loader': _load_pgm,
-    #     }
-    # else:
-    #     file_info = {
-    #         'path': [],
-    #         'start_time': [],
-    #         'end_time': [],
-    #         'loader': [],
-    #     }
+        start_times = len(file_paths) * [None]
+        end_times = len(file_paths) * [None]
+        for i, file_path in enumerate(file_paths):
+            date_match = re.search(r'\d{8}_\d{4}', file_path.name)
+            start_times[i] = datetime.strptime(date_match.group(), '%Y%m%d_%H%M')
+            end_times[i] = start_times[i] + timedelta(minutes=1)
+        file_info = {
+            'path': file_paths,
+            'start_time': start_times,
+            'end_time': end_times,
+            'loader': _load_image_file,
+        }
+    else:
+        file_info = {
+            'path': [],
+            'start_time': [],
+            'end_time': [],
+            'loader': [],
+        }
     file_info = {}
     if time_range is not None:
         file_info['time_range'] = time_range
@@ -258,6 +258,156 @@ def _load_skymap(valid_skymap_paths, alt):
     lon_skymap[lon_skymap == -999] = np.nan
     return {'az':az_skymap, 'el':el_skymap, 'lat':lat_skymap, 'lon':lon_skymap, 'alt':alt}
 
+def _get_raw_files(
+    location_code: str,
+    time: datetime,
+    time_range: Iterable[datetime],
+    base_url: str,
+    save_dir: Union[str, pathlib.Path],
+    redownload: bool,
+    missing_ok: bool,
+) -> List[pathlib.Path]:
+    """
+    Look for and download 1-minute RAW files.
+
+    Parameters
+    ----------
+    location_code:str
+        The C# location code.
+    time: datetime.datetime
+        Time to download one file. Either time or time_range must be specified,
+        but not both.
+    time_range: Iterable[datetime]
+        An iterable with a start and end time. Either time or time_range must be
+        specified, but not both.
+    base_url: str
+        The starting URL to search for file.
+    save_dir: str or pathlib.Path
+        The parent directory where to save the data to.
+    redownload: bool
+        Download data even if the file is found locally. This is useful if data
+        is corrupt.
+    missing_ok: bool
+        Wether to allow missing data files inside time_range (after searching
+        for them locally and online).
+
+    Returns
+    -------
+    list(pathlib.Path)
+        Local paths to each PGM file that was successfully downloaded.
+    """
+    if (time is None) and (time_range is None):
+        raise ValueError('time or time_range must be specified.')
+    elif (time is not None) and (time_range is not None):
+        raise ValueError('both time and time_range can not be simultaneously specified.')
+
+    if redownload:
+        # Option 1/4: Download one minute of data regardless if it is already saved
+        if time is not None:
+            return [
+                _download_one_raw_file(location_code, time, base_url, save_dir, redownload)
+            ]
+
+        # Option 2/4: Download the data in time range regardless if it is already saved.
+        elif time_range is not None:
+            time_range = utils.validate_time_range(time_range)
+            file_times = utils.get_filename_times(time_range, dt='minutes')
+            file_paths = []
+            for file_time in file_times:
+                try:
+                    file_paths.append(
+                        _download_one_raw_file(
+                            location_code, file_time, base_url, save_dir, redownload
+                        )
+                    )
+                except (FileNotFoundError, AssertionError) as err:
+                    if missing_ok and (
+                        ('does not contain any hyper references containing' in str(err))
+                        or ('Only one href is allowed' in str(err))
+                    ):
+                        continue
+                    raise
+            return file_paths
+    else:
+        # Option 3/4: Download one minute of data if it is not already saved.
+        if time is not None:
+            file_search_str = f'{location_code}_{time:%Y%m%d_%H%M}.raw.bz2'
+            local_file_paths = list(pathlib.Path(save_dir).rglob(file_search_str))
+            if len(local_file_paths) == 1:
+                return local_file_paths
+            else:
+                return [
+                    _download_one_raw_file(
+                        location_code, time, base_url, save_dir, redownload
+                    )
+                ]
+
+        # Option 4/4: Download the data in time range if they don't exist locally.
+        elif time_range is not None:
+            time_range = utils.validate_time_range(time_range)
+            file_times = utils.get_filename_times(time_range, dt='minutes')
+            file_paths = []
+            for file_time in file_times:
+                file_search_str = (
+                    f'{location_code}_{file_time:%Y%m%d_%H%M}.raw.bz2'
+                )
+                local_file_paths = list(pathlib.Path(save_dir).rglob(file_search_str))
+                if len(local_file_paths) == 1:
+                    file_paths.append(local_file_paths[0])
+                else:
+                    try:
+                        file_paths.append(
+                            _download_one_raw_file(
+                                location_code, file_time, base_url, save_dir, redownload
+                            )
+                        )
+                    except (FileNotFoundError, AssertionError) as err:
+                        if missing_ok and (
+                            ('does not contain any hyper references containing' in str(err))
+                            or ('Only one href is allowed' in str(err))
+                        ):
+                            continue
+                        raise
+            return file_paths
+
+
+def _download_one_raw_file(
+    location_code: str,
+    time: datetime,
+    base_url: str,
+    save_dir: Union[str, pathlib.Path],
+    redownload: bool,
+) -> pathlib.Path:
+    """
+    Download one raw file.
+
+    Parameters
+    ---------- 
+    location_code: str
+        The C# location code.
+    time: str or datetime.datetime
+        A time to look for the ASI data at.
+    base_url: str
+        The starting URL to search for file.
+    save_dir: str or pathlib.Path
+        The parent directory where to save the data to.
+    redownload: bool
+        Will redownload an existing file.
+
+    Returns
+    -------
+    pathlib.Path
+        Local path to file.
+    """
+    start_url = base_url + f'cam{location_code[-1]}/{time.year}/{time.month:02}/{time.day:02}/'
+    d = download.Downloader(start_url)
+    # Find the unique directory
+    matched_downloaders = d.ls(f'{location_code}_{time:%Y%m%d_%H%M}.raw.bz2')
+    assert len(matched_downloaders) == 1
+    # Search that directory for the file and donload it.
+    return matched_downloaders[0].download(save_dir, redownload=redownload, stream=True)
+
+
 def _load_image_file(path):
     with bz2.open(path, "rb") as f:
         content = f.read()
@@ -265,10 +415,10 @@ def _load_image_file(path):
 
 if __name__ == '__main__':
     asi = psa_emccd(
-        'C6', 
+        'C1', 
         time_range=(
-            datetime(2019, 3, 1, 18, 30, 0),
-            datetime(2019, 3, 1, 20, 0, 0)
+            datetime(2017, 3, 7, 19, 30, 0),
+            datetime(2017, 3, 7, 19, 40, 0)
             ),
         redownload=False
         )
