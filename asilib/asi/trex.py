@@ -30,6 +30,7 @@ import asilib
 from asilib.asi.themis import _get_pgm_files
 import asilib.utils as utils
 import asilib.io.download as download
+import asilib.skymap
 
 
 pgm_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/NIR/stream0/'
@@ -45,6 +46,7 @@ def trex_rgb(
     time_range: utils._time_range_type = None,
     alt: int = 110,
     redownload: bool = False,
+    custom_alt: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
     colors: str = 'rgb',
@@ -66,6 +68,10 @@ def trex_rgb(
         the ASI data time interval.
     alt: int
         The reference skymap altitude, in kilometers.
+    custom_alt: bool
+        If True, allows the user to use the asilib skymaps which are spherical 
+        approximations of the skymap of an ASI.These will be less percise than
+        the defaults of asilib (Courtesy of UofC)
     redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes
@@ -167,19 +173,31 @@ def trex_rgb(
     else:
         _time = time_range[0]
     _skymap = trex_rgb_skymap(location_code, _time, redownload=redownload)
-    alt_index = np.where(_skymap['FULL_MAP_ALTITUDE'] / 1000 == alt)[0]
-    assert (
-        len(alt_index) == 1
-    ), f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1000} km.'
-    alt_index = alt_index[0]
+    if custom_alt==False:
+        alt_index = np.where(_skymap['FULL_MAP_ALTITUDE'] / 1000 == alt)[0]
+        assert (
+            len(alt_index) == 1
+        ), f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1000} km. If you want a custom altitude with less percision, please use the custom_alt keyword'
+        alt_index = alt_index[0]
+        lat=_skymap['FULL_MAP_LATITUDE'][alt_index, :, :]
+        lon=_skymap['FULL_MAP_LONGITUDE'][alt_index, :, :]
+    else:
+        lat,lon = asilib.skymap.geodetic_skymap(
+            (float(_skymap['SITE_MAP_LATITUDE']), float(_skymap['SITE_MAP_LONGITUDE']), float(_skymap['SITE_MAP_ALTITUDE']) / 1e3),
+            _skymap['FULL_AZIMUTH'],
+            _skymap['FULL_ELEVATION'],
+            alt
+            )
+
     skymap = {
-        'lat': _skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
-        'lon': _skymap['FULL_MAP_LONGITUDE'][alt_index, :, :],
-        'alt': _skymap['FULL_MAP_ALTITUDE'][alt_index] / 1e3,
+        'lat': lat,
+        'lon': lon,
+        'alt': alt,
         'el': _skymap['FULL_ELEVATION'],
         'az': _skymap['FULL_AZIMUTH'],
         'path': _skymap['PATH'],
     }
+
     meta = {
         'array': 'TREX_RGB',
         'location': location_code.upper(),
@@ -479,6 +497,7 @@ def trex_nir(
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
     alt: int = 110,
+    custom_alt: bool = False,
     redownload: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
@@ -499,6 +518,10 @@ def trex_nir(
         the ASI data time interval.
     alt: int
         The reference skymap altitude, in kilometers.
+    custom_alt: bool
+        If True, allows the user to use the asilib skymaps which are spherical 
+        approximations of the skymap of an ASI.These will be less percise than
+        the defaults of asilib (Courtesy of UofC)
     redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes
@@ -602,15 +625,27 @@ def trex_nir(
     else:
         _time = time_range[0]
     _skymap = trex_nir_skymap(location_code, _time, redownload=redownload)
-    alt_index = np.where(_skymap['FULL_MAP_ALTITUDE'] / 1000 == alt)[0]
-    assert (
-        len(alt_index) == 1
-    ), f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1000} km.'
-    alt_index = alt_index[0]
+    
+    if custom_alt==False:
+        alt_index = np.where(_skymap['FULL_MAP_ALTITUDE'] / 1000 == alt)[0] #Compares the altitudes versus the ones provided by default and chooses the correct index that correlates to the chosen alitudes
+        assert (
+            len(alt_index) == 1
+        ), f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1000} km. If you want a custom altitude with less percision, please use the custom_alt keyword'
+        alt_index = alt_index[0]
+        lat=_skymap['FULL_MAP_LATITUDE'][alt_index, :, :] #selects lat lon coordinates from data provided in skymap
+        lon=_skymap['FULL_MAP_LONGITUDE'][alt_index, :, :]
+    else:
+        lat,lon = asilib.skymap.geodetic_skymap( #Spherical projection for lat lon coordinates
+            (float(_skymap['SITE_MAP_LATITUDE']), float(_skymap['SITE_MAP_LONGITUDE']), float(_skymap['SITE_MAP_ALTITUDE']) / 1e3),
+            _skymap['FULL_AZIMUTH'],
+            _skymap['FULL_ELEVATION'],
+            alt
+            )
+
     skymap = {
-        'lat': _skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
-        'lon': _skymap['FULL_MAP_LONGITUDE'][alt_index, :, :],
-        'alt': _skymap['FULL_MAP_ALTITUDE'][alt_index] / 1e3,
+        'lat': lat,
+        'lon': lon,
+        'alt': alt,
         'el': _skymap['FULL_ELEVATION'],
         'az': _skymap['FULL_AZIMUTH'],
         'path': _skymap['PATH'],
