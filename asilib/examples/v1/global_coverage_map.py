@@ -5,6 +5,7 @@ from datetime import datetime
 
 import matplotlib.pyplot as plt
 import matplotlib.colors
+import matplotlib.patches
 import numpy as np
 
 import cartopy.crs as ccrs
@@ -13,13 +14,12 @@ import cartopy.feature
 import asilib.asi
 
 asi_arrays = {
-    'THEMIS':(asilib.asi.themis, asilib.asi.themis_info),
-    # 'REGO':(asilib.asi.rego, asilib.asi.rego_info),
-    # 'TREx-NIR':(asilib.asi.trex_nir, asilib.asi.trex_nir_info),
-    # 'TREx-RGB':(asilib.asi.trex_rgb, asilib.asi.trex_rgb_info),
+    'THEMIS':(asilib.asi.themis, asilib.asi.themis_info, 'r', (10, 11)),
+    'REGO':(asilib.asi.rego, asilib.asi.rego_info, 'k', (8, 9)),
+    # 'TREx-NIR':(asilib.asi.trex_nir, asilib.asi.trex_nir_info, 'c', (12, 13)),
+    # 'TREx-RGB':(asilib.asi.trex_rgb, asilib.asi.trex_rgb_info, 'purple', (14, 15)),
     }
 
-elevation_range = (10, 11)
 time = datetime(2020, 1, 1)
 
 fig = plt.figure(figsize=(10, 10))
@@ -31,10 +31,8 @@ ax.add_feature(cartopy.feature .COASTLINE, edgecolor='k')
 
 ax.gridlines()
 
-cmap = matplotlib.colors.ListedColormap(['r'])
-
-
-for array, (loader, info_df) in asi_arrays.items():
+legend_handles = []
+for array, (loader, info_df, color, elevation_range) in asi_arrays.items():
     asi_array_info = info_df()
     for location in asi_array_info['location_code']:
         asi = loader(location, time=time, load_images=False)
@@ -49,11 +47,13 @@ for array, (loader, info_df) in asi_arrays.items():
             asi.skymap['lat'],
             c,
             ax,
-            cmap=cmap,
+            cmap=matplotlib.colors.ListedColormap([color]),
             pcolormesh_kwargs={
                 'transform':ccrs.PlateCarree(),
             }
         )
+    legend_handles.append(matplotlib.patches.Patch(color=color, label=array))
 
+plt.legend(handles=legend_handles)
 plt.tight_layout()
 plt.show()
