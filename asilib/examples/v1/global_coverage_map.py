@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors
 import matplotlib.patches
 import numpy as np
-
+import requests
 import cartopy.crs as ccrs
 import cartopy.feature
 
@@ -16,11 +16,11 @@ import asilib.asi
 asi_arrays = {
     'THEMIS':(asilib.asi.themis, asilib.asi.themis_info, 'r', (10, 11)),
     'REGO':(asilib.asi.rego, asilib.asi.rego_info, 'k', (8, 9)),
-    # 'TREx-NIR':(asilib.asi.trex_nir, asilib.asi.trex_nir_info, 'c', (12, 13)),
-    # 'TREx-RGB':(asilib.asi.trex_rgb, asilib.asi.trex_rgb_info, 'purple', (14, 15)),
+    'TREx-NIR':(asilib.asi.trex_nir, asilib.asi.trex_nir_info, 'c', (12, 13)),
+    'TREx-RGB':(asilib.asi.trex_rgb, asilib.asi.trex_rgb_info, 'purple', (14, 15)),
     }
 
-time = datetime(2020, 1, 1)
+time = datetime(2022, 1, 1)
 
 fig = plt.figure(figsize=(10, 10))
 ax = fig.add_subplot(projection=ccrs.Orthographic(-100, 55))
@@ -32,10 +32,17 @@ ax.add_feature(cartopy.feature .COASTLINE, edgecolor='k')
 ax.gridlines()
 
 legend_handles = []
-for array, (loader, info_df, color, elevation_range) in asi_arrays.items():
+for i, (array, (loader, info_df, color, elevation_range)) in enumerate(asi_arrays.items()):
     asi_array_info = info_df()
     for location in asi_array_info['location_code']:
-        asi = loader(location, time=time, load_images=False)
+        try:
+            asi = loader(location, time=time, load_images=False)
+        except requests.exceptions.HTTPError as err:
+            if 'Not Found for url' in str(err):
+                print(err)
+                continue
+            else:
+                raise
         c = np.ones_like(asi.skymap['lat'][:-1, :-1])
         c[
             (asi.skymap['el'] < elevation_range[0]) |
@@ -52,8 +59,7 @@ for array, (loader, info_df, color, elevation_range) in asi_arrays.items():
                 'transform':ccrs.PlateCarree(),
             }
         )
-    legend_handles.append(matplotlib.patches.Patch(color=color, label=array))
-
-plt.legend(handles=legend_handles)
+        ax.text(0, 0.99-i/25, array, va='top', color=color, transform=ax.transAxes, fontsize=15)
+        
 plt.tight_layout()
 plt.show()
