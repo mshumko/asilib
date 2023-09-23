@@ -48,5 +48,6 @@ from asilib.conjunction import Conjunction
 
 __all__ = [
     'Imager',
+    'Imagers',
     'Conjunction',
-]  # So Sphinx shortens the name. See https://stackoverflow.com/a/66743762
+]  # So Sphinx shortens the name. See https://stackoverflow.com/a/31594545

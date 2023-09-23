@@ -76,7 +76,7 @@ def rego(
     >>> # Plot a single image.
     >>> from datetime import datetime
     >>> import matplotlib.pyplot as plt
-    >>> import asilib
+    >>> import asilib.asi
     >>> import asilib.map
     >>> location_code = 'RANK'
     >>> time = datetime(2017, 9, 15, 2, 34, 0)
@@ -84,7 +84,7 @@ def rego(
     >>> fig = plt.figure(figsize=(10, 6))
     >>> ax = fig.add_subplot(121)
     >>> bx = asilib.map.create_map(fig_ax=(fig, 122), lon_bounds = (-102, -82), lat_bounds = (58, 68))
-    >>> asi = asilib.rego(location_code, time=time, alt=alt_km)
+    >>> asi = asilib.asi.rego(location_code, time=time, alt=alt_km)
     >>> asi.plot_fisheye(ax=ax)
     >>> asi.plot_map(ax=bx)
     >>> plt.tight_layout()

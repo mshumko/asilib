@@ -5,6 +5,9 @@
 ### Fixed
 - A bug in `Imager._calc_cardinal_direction()` method that manifested in non-orthogonal directions when the ASI (az, el) skymaps are offset such that the low elevations are outside of the field of view. 
 
+### Changed
+- Shortened the namespace paths in the Imager API Reference page. Their namespace is the same as it would be imported.
+
 ## [0.20.0] - 2023-08-20
 
 ### Added
