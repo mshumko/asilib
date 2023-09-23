@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## [0.20.1]
 
 ### Fixed
 - A bug in `Imager._calc_cardinal_direction()` method that manifested in non-orthogonal directions when the ASI (az, el) skymaps are offset such that the low elevations are outside of the field of view. 
