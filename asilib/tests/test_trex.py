@@ -52,48 +52,6 @@ def test_trex_nir_no_file():
     return
 
 
-# def test_trex_nir_partial_files():
-#     """
-#     Tests that themis() returns a FileNotFound error when we try to download
-#     non-existant data.
-#     """
-#     with pytest.raises(FileNotFoundError):
-#         themis.themis('pina', time_range=['2011/07/07T04:15', '2011/07/07T04:23'], missing_ok=False)
-
-#     img = themis.themis(
-#         'pina',
-#         time_range=['2011/07/07T04:15', '2011/07/07T04:23:30'],
-#         missing_ok=True,
-#         redownload=True,
-#     )
-#     assert img.file_info['path'][0].name == '20110707_0421_pina_themis18_full.pgm.gz'
-#     assert img.file_info['path'][1].name == '20110707_0422_pina_themis18_full.pgm.gz'
-#     assert img.file_info['path'][2].name == '20110707_0423_pina_themis18_full.pgm.gz'
-#     return
-
-
-# def test_trex_nir_asi_meta():
-#     """
-#     Checks that the THEMIS ASI metadata is correct.
-#     """
-#     img = themis.themis(
-#         'pina',
-#         time_range=['2011/07/07T04:20', '2011/07/07T04:22:00'],
-#         missing_ok=True,
-#         redownload=False,
-#     )
-#     assert img.meta == {
-#         'array': 'THEMIS',
-#         'location': 'PINA',
-#         'lat': 50.15999984741211,
-#         'lon': -96.07000732421875,
-#         'alt': 0.0,
-#         'cadence': 3,
-#         'resolution': (256, 256),
-#     }
-#     return
-
-
 ##########################################
 ############# TEST EXAMPLES ##############
 ##########################################
@@ -186,6 +144,29 @@ def test_trex_rgb_fisheye():
     asi.plot_fisheye()
     plt.tight_layout()
 
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_trex_g_fisheye'],
+    tol=20,
+    remove_text=True,
+    extensions=['png'],
+)
+def test_trex_g_fisheye():
+    """
+    Plot one fisheye lens image with just the green color.
+    """
+    from datetime import datetime
+    
+    import matplotlib.pyplot as plt
+    import asilib
+    from asilib.asi.trex import trex_rgb
+    
+    time = datetime(2021, 11, 4, 7, 3, 51)
+    asi = trex_rgb('PINA', time=time, colors='g')
+    asi.plot_fisheye()
+    plt.tight_layout()
+
+
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_rgb_map'],
     tol=20,
@@ -205,6 +186,33 @@ def test_trex_rgb_map():
     
     time = datetime(2021, 11, 4, 7, 3, 51)
     asi = trex_rgb('PINA', time=time, colors='rgb')
+    ax = asilib.map.create_simple_map(
+        lon_bounds=(asi.meta['lon']-7, asi.meta['lon']+7),
+        lat_bounds=(asi.meta['lat']-5, asi.meta['lat']+5)
+    )
+    asi.plot_map(ax=ax)
+    plt.tight_layout()
+
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_trex_b_map'],
+    tol=20,
+    remove_text=True,
+    extensions=['png'],
+)
+def test_trex_b_map():
+    """
+    Plot one fisheye lens image and project the blue channel onto a map.
+    """
+    from datetime import datetime
+    
+    import matplotlib.pyplot as plt
+    import asilib.map
+    import asilib
+    from asilib.asi.trex import trex_rgb
+    
+    time = datetime(2021, 11, 4, 7, 3, 51)
+    asi = trex_rgb('PINA', time=time, colors='b')
     ax = asilib.map.create_simple_map(
         lon_bounds=(asi.meta['lon']-7, asi.meta['lon']+7),
         lat_bounds=(asi.meta['lat']-5, asi.meta['lat']+5)
