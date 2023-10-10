@@ -55,9 +55,11 @@ def rego(
     alt: int
         The reference skymap altitude, in kilometers.
     custom_alt: bool
-        If True, allows the user to use the asilib skymaps which are spherical 
-        approximations of the skymap of an ASI.These will be less percise than
-        the defaults of asilib (Courtesy of UofC)
+        If True, asilib will calculate (lat, lon) skymaps assuming a spherical Earth. Otherwise, it will use the official skymaps (Courtesy of University of Calgary).
+
+        .. note::
+        
+            The spherical model of Earth's surface is less accurate than the oblate spheroid geometrical representation. Therefore, there will be a small difference between these and the official skymaps.
     redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes

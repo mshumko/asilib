@@ -45,8 +45,8 @@ def trex_rgb(
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
     alt: int = 110,
-    redownload: bool = False,
     custom_alt: bool = False,
+    redownload: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
     colors: str = 'rgb',
@@ -69,9 +69,11 @@ def trex_rgb(
     alt: int
         The reference skymap altitude, in kilometers.
     custom_alt: bool
-        If True, allows the user to use the asilib skymaps which are spherical 
-        approximations of the skymap of an ASI.These will be less percise than
-        the defaults of asilib (Courtesy of UofC)
+        If True, asilib will calculate (lat, lon) skymaps assuming a spherical Earth. Otherwise, it will use the official skymaps (Courtesy of University of Calgary).
+
+        .. note::
+        
+            The spherical model of Earth's surface is less accurate than the oblate spheroid geometrical representation. Therefore, there will be a small difference between these and the official skymaps.
     redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes
@@ -405,7 +407,7 @@ def _load_rgb_h5(path):
             for dict_i in meta
         ]
     )
-    return times, images  # returns green ##TODO Comment unclear
+    return times, images
 
 
 def trex_rgb_skymap(location_code: str, time: utils._time_type, redownload: bool = False) -> dict:
@@ -519,9 +521,11 @@ def trex_nir(
     alt: int
         The reference skymap altitude, in kilometers.
     custom_alt: bool
-        If True, allows the user to use the asilib skymaps which are spherical 
-        approximations of the skymap of an ASI.These will be less percise than
-        the defaults of asilib (Courtesy of UofC)
+        If True, asilib will calculate (lat, lon) skymaps assuming a spherical Earth. Otherwise, it will use the official skymaps (Courtesy of University of Calgary).
+
+        .. note::
+        
+            The spherical model of Earth's surface is less accurate than the oblate spheroid geometrical representation. Therefore, there will be a small difference between these and the official skymaps.
     redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes

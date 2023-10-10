@@ -33,8 +33,8 @@ def themis(
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
     alt: int = 110,
-    redownload: bool = False,
     custom_alt: bool = False,
+    redownload: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
     imager=asilib.Imager,
@@ -59,9 +59,11 @@ def themis(
         wether or not the data exists locally (useful if the data becomes
         corrupted).
     custom_alt: bool
-        If True, allows the user to use the asilib skymaps which are spherical 
-        approximations of the skymap of an ASI.These will be less percise than
-        the defaults of asilib (Courtesy of UofC)
+        If True, asilib will calculate (lat, lon) skymaps assuming a spherical Earth. Otherwise, it will use the official skymaps (Courtesy of University of Calgary).
+
+        .. note::
+        
+            The spherical model of Earth's surface is less accurate than the oblate spheroid geometrical representation. Therefore, there will be a small difference between these and the official skymaps.
     missing_ok: bool
         Wether to allow missing data files inside time_range (after searching
         for them locally and online).
