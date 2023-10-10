@@ -27,8 +27,8 @@ ASI arrays
 
 Time History of Events and Macroscale Interactions during Substorms (THEMIS)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. automodule:: asilib.asi.themis
-   :members:
+.. automodule:: asilib.asi
+   :members: themis, themis_info, themis_skymap
    :undoc-members:
    :show-inheritance:
 
@@ -36,8 +36,8 @@ Time History of Events and Macroscale Interactions during Substorms (THEMIS)
 
 Red-line Emission Geospace Observatory (REGO)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. automodule:: asilib.asi.rego
-   :members:
+.. automodule:: asilib.asi
+   :members: rego, rego_info, rego_skymap
    :undoc-members:
    :show-inheritance:
 
@@ -45,31 +45,15 @@ Red-line Emission Geospace Observatory (REGO)
 
 Transition Region Explorer (TREx)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. automodule:: asilib.asi.trex
-   :members:
+.. automodule:: asilib.asi
+   :members: trex_rgb, trex_rgb_info, trex_rgb_skymap, trex_nir, trex_nir_skymap, trex_nir_info
    :undoc-members:
    :show-inheritance:
 
-Imager Interface
-================
+Class Interface
+===============
 
-.. automodule:: asilib.imager
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Imagers Interface
-=================
-
-.. automodule:: asilib.imagers
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Conjunction Interface
-=====================
-.. automodule:: asilib.conjunction
+.. automodule:: asilib
    :members:
    :undoc-members:
    :show-inheritance:

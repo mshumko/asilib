@@ -1,7 +1,7 @@
 import pathlib
 import configparser
 
-__version__ = '0.20.0'
+__version__ = '0.20.2'
 
 # Load the configuration settings.
 HERE = pathlib.Path(__file__).parent.resolve()
@@ -48,5 +48,6 @@ from asilib.conjunction import Conjunction
 
 __all__ = [
     'Imager',
+    'Imagers',
     'Conjunction',
-]  # So Sphinx shortens the name. See https://stackoverflow.com/a/66743762
+]  # So Sphinx shortens the name. See https://stackoverflow.com/a/31594545

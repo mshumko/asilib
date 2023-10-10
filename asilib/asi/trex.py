@@ -19,12 +19,12 @@ import pathlib
 import copy
 import os
 import dateutil.parser
-from typing import Tuple, Iterable, List, Union
+from typing import Iterable, List, Union
 
 import numpy as np
 import pandas as pd
 import scipy.io
-import matplotlib.colors
+import trex_imager_readfile
 
 import asilib
 from asilib.asi.themis import _get_pgm_files
@@ -53,8 +53,27 @@ def trex_rgb(
     burst: bool = False,
     imager=asilib.Imager,
 ) -> asilib.imager.Imager:
+    # TODO: Remove the warning in 2024.
     """
     Create an Imager instance using the TREX-RGB ASI images and skymaps.
+
+    .. warning::
+
+        In early October 2023 the TREx-RGB data format changed, which resulted in a "ValueError: 
+        A problematic PGM file..." exception for asilib versions <= 0.20.1. If you're having this 
+        issue, you'll need to upgrade asilib to version >= 0.20.2 and delete the outdated TREx RGB
+        image files. The code below is the simplest solution:
+
+        .. code-block:: python
+
+            import os
+            import shutil
+
+            os.system("pip install aurora-asi-lib -U")
+
+            import asilib
+
+            shutil.rmtree(asilib.config['ASI_DATA_DIR'] / 'trex' / 'rgb')
 
     Parameters
     ----------
@@ -381,9 +400,6 @@ def _download_one_h5_file(
 
 
 def _load_rgb_h5(path):
-    # TODO: Move import to the top when the opencv bug is fixed for Linux.
-    import trex_imager_readfile
-
     images, meta, problematic_file_list = trex_imager_readfile.read_rgb(
         str(path))
     if len(problematic_file_list):
@@ -403,7 +419,7 @@ def _load_rgb_h5(path):
     times = np.array(
         [
             dateutil.parser.parse(
-                dict_i['Image request start']).replace(tzinfo=None)
+                dict_i['image_request_start_timestamp']).replace(tzinfo=None)
             for dict_i in meta
         ]
     )

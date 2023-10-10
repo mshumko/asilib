@@ -17,6 +17,10 @@ Supported ASI arrays
 .. note::
    While this package is named `aurora-asi-lib`, import it using the name `asilib`.
 
+.. figure:: ./_static/global_coverage.png
+   :alt: A geographic map showing the spatial coverage (field of view rings) of all imagers supported by aurora-asi-lib.
+   :width: 75%
+
 .. figure:: ./_static/collage.png
    :alt: Top four panels are a collage showing an image from a THEMIS and REGO ASI in the fisheye and mapped formats. The bottom panel is a THEMIS ASI keogram from this time interval. 
    :width: 75%
