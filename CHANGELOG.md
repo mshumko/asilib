@@ -1,9 +1,15 @@
 # Changelog
 
-## [unreleased]
+## [0.20.2]
 
 ### Added
 - An advertisement figure and script. The script in `examples/global_coverage_map.py` plots a geographic map showing the spatial coverage (low-elevation field of view rings) of all imagers supported by aurora-asi-lib. The resulting plot is located in `docs/_static/global_coverage.png` and is shown in the `README.md` and `index.rst` files. 
+
+### Fixed
+- A bug with TREx RGB which resulted in a `ValueError: A problematic PGM file…` error when new data files are downloaded. I added a Warning block to the documentation to instruct users to update asilib
+
+### Changed
+- Incremented the minimum `trex-imager-readfile` version to 1.5.1 to work with the updated TREx-RGB image files.
 
 ## [0.20.1]
 

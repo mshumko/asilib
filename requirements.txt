@@ -13,7 +13,7 @@ aacgmv2==2.6.0
 # Necessary libraries to load ASI data.
 rego-imager-readfile==1.2.0 
 themis-imager-readfile==1.2.1 
-trex-imager-readfile==1.4.4
+trex-imager-readfile==1.5.1
 # This opencv-python version contains a patch for a bug that triggered a Segmentation Fault 
 # in Linux. It should be pinned by trex-imager-readfile, but left here in the meanwhile.
 opencv-python >= 4.8.0
