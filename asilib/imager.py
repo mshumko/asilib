@@ -160,6 +160,9 @@ class Imager:
 
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
+        if len(self.meta['resolution']) == 3:  # tests if rgb
+                image = self._rgb_replacer(image)
+
         im = ax.imshow(image, cmap=color_map, norm=color_norm, origin="lower")
         if label:
             self._add_fisheye_label(time, ax)
@@ -378,6 +381,9 @@ class Imager:
             ax.axis('off')
             # Use an underscore so the original method parameters are not overwritten.
             _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
+            
+            if len(self.meta['resolution']) == 3:  # tests if rgb
+                image = self._rgb_replacer(image)
 
             im = ax.imshow(image, cmap=_color_map, norm=_color_norm, origin='lower')
             if label:
@@ -1723,6 +1729,32 @@ class Imager:
         )
         return f'{self.__class__.__qualname__}(' + params + ')'
 
+    def _rgb_replacer(self, image):
+
+        #https://www.tutorialspoint.com/How-to-check-if-a-string-only-contains-certain-characters-in-Python
+
+        if set(self.meta['colors']).issubset('rgb'): #Checks if the colors selected are a subset of 'rgb', if there is a character not 'r' 'g' or 'b', it will raise an error
+            pass
+        else:
+            raise ValueError(" The only valid characters for the colors kwarg are 'r', 'g', 'b' ")
+        
+        if (*self.meta['colors'],) == ['r', 'g', 'b ']: #Passes colour removal if all colors are present, no logic required
+            pass
+
+        else:
+            # tests if color is selected, if not selected, then add nan values to array in lieu of color
+            if 'r' not in (*self.meta['colors'],):
+                # takes the shape of c, excluding the last index (-1) and replaces that matrix with nans
+                image[:, :, 0] = np.full(np.shape(image)[:-1], np.nan)
+
+            if 'g' not in (*self.meta['colors'],):
+                image[:, :, 1] = np.full(np.shape(image)[:-1], np.nan)
+
+            if 'b' not in (*self.meta['colors'],):
+                image[:, :, 2] = np.full(
+                    np.shape(image)[:-1], np.nan)
+        return image
+
     def _pcolormesh_nan(
         self,
         x: np.ndarray,
@@ -1781,8 +1813,10 @@ class Imager:
         # Same, but for the rows below bottom.
         x[bottom:, :] = np.nanmax(x[bottom, :])
         y[bottom:, :] = np.nanmax(y[bottom, :])
-
-        # old masked c code: np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1]
+        
+        if len(self.meta['resolution']) == 3: #tests to see if the colors selected for an rgb image are rgb or rb or something else
+            c = self._rgb_replacer(c)
+            
         p = ax.pcolormesh(
             x,
             y,
