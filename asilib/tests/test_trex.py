@@ -220,6 +220,34 @@ def test_trex_b_map():
     asi.plot_map(ax=ax)
     plt.tight_layout()
 
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_trex_gb_map'],
+    tol=20,
+    remove_text=True,
+    extensions=['png'],
+)
+def test_trex_gb_map():
+    """
+    Plot one fisheye lens image and project the blue and green channels onto a map.
+    """
+    from datetime import datetime
+    
+    import matplotlib.pyplot as plt
+    import asilib.map
+    import asilib
+    from asilib.asi.trex import trex_rgb
+    
+    time = datetime(2021, 11, 4, 7, 3, 51)
+    asi = trex_rgb('PINA', time=time, colors='gb')
+    ax = asilib.map.create_simple_map(
+        lon_bounds=(asi.meta['lon']-7, asi.meta['lon']+7),
+        lat_bounds=(asi.meta['lat']-5, asi.meta['lat']+5)
+    )
+    asi.plot_map(ax=ax)
+    plt.tight_layout()
+
+
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_mosaic'], tol=20, remove_text=True, extensions=['png']
 )
