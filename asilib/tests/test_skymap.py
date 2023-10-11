@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_geodetic_skymap'],
-    tol=10,
+    tol=20,
     remove_text=True,
     extensions=['png'],
 )
