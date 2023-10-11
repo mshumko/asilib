@@ -1,6 +1,17 @@
 # Changelog
 
-## [0.20.2]
+## [0.20.3] - 2023-10-10
+
+### Added
+- `custom_alt` kwarg to the THEMIS, REGO, and TREx loaders. Credit: Cassandra M.
+- A test for the `custom_alt` functionality.
+- Tests for the custom colors.
+
+### Changed
+- How RGB color channels are loaded. By picking one or multiple color channels, the underlying data for the unselected channels is masked as NaNs. matplotlib handles these images well.
+
+
+## [0.20.2] - 2023-10-09
 
 ### Added
 - An advertisement figure and script. The script in `examples/global_coverage_map.py` plots a geographic map showing the spatial coverage (low-elevation field of view rings) of all imagers supported by aurora-asi-lib. The resulting plot is located in `docs/_static/global_coverage.png` and is shown in the `README.md` and `index.rst` files. 
@@ -11,7 +22,7 @@
 ### Changed
 - Incremented the minimum `trex-imager-readfile` version to 1.5.1 to work with the updated TREx-RGB image files.
 
-## [0.20.1]
+## [0.20.1] - 2023-08-23
 
 ### Fixed
 - A bug in `Imager._calc_cardinal_direction()` method that manifested in non-orthogonal directions when the ASI (az, el) skymaps are offset such that the low elevations are outside of the field of view. 
