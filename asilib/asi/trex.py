@@ -1,15 +1,9 @@
 """
-Transition Region Explorer (TREx) is a CFI-funded project and aims to be the world's foremost auroral imaging facility for remote sensing the near-Earth space environment. The project consists of the development and deployment of an extensive ground-based network of sophisticated optical and radio instrumentation across Alberta, Saskatchewan, Manitoba, and the Northwest Territories.
+Transition Region Explorer (TREx) data is courtesy of Space Environment Canada (space-environment.ca). Use of the data must adhere to the rules of the road for that dataset.  Please see below for the required data acknowledgement. Any questions about the TREx instrumentation or data should be directed to the University of Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan (edonovan@ucalgary.ca).
 
-The TREx project will design and deploy the following instruments:
-- 6 blue-line all-sky imagers (3s-30Hz cadence)
-- 6 RGB colour all-sky imagers (3s cadence)
-- 6 Near-Infrared all-sky imagers (6s cadence)
-- 10 Imaging Riometers (1s-100Hz cadence - operations project is GO-IRIS)
-- 2 Proton Aurora Meridian Imaging Spectographs (15s cadence)
-- 13 Global Navigation Satellite System receiver systems (GNSS)
+“The Transition Region Explorer RGB (TREx RGB) is a joint Canada Foundation for Innovation and Canadian Space Agency project developed by the University of Calgary. TREx-RGB is operated and maintained by Space Environment Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”
 
-In partnership with IBM, TREx will include sensor web technology to autonomously control and coordinate sensor behaviour across the observational region. This architecture will allow TREx to produce the first high resolution data (estimated at 120 TB of data per year) over a region large enough to study multi-scale coupling of key physical processes in the space environment.
+For more information see: https://www.ucalgary.ca/aurora/projects/trex
 """
 
 from datetime import datetime, timedelta
@@ -56,6 +50,12 @@ def trex_rgb(
     # TODO: Remove the warning in 2024.
     """
     Create an Imager instance using the TREX-RGB ASI images and skymaps.
+
+    Transition Region Explorer (TREx) data is courtesy of Space Environment Canada (space-environment.ca). Use of the data must adhere to the rules of the road for that dataset.  Please see below for the required data acknowledgement. Any questions about the TREx instrumentation or data should be directed to the University of Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan (edonovan@ucalgary.ca).
+
+    “The Transition Region Explorer RGB (TREx RGB) is a joint Canada Foundation for Innovation and Canadian Space Agency project developed by the University of Calgary. TREx-RGB is operated and maintained by Space Environment Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”
+
+    For more information see: https://www.ucalgary.ca/aurora/projects/trex.
 
     .. warning::
 

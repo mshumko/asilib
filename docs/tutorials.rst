@@ -8,4 +8,5 @@ Tutorials
    :maxdepth: 2
    
    tutorials/basics_tutorial
+   tutorials/mosaics
    tutorials/legacy_tutorial
