@@ -51,7 +51,7 @@ def trex_rgb(
     """
     Create an Imager instance using the TREX-RGB ASI images and skymaps.
 
-    Transition Region Explorer (TREx) data is courtesy of Space Environment Canada (space-environment.ca). Use of the data must adhere to the rules of the road for that dataset.  Please see below for the required data acknowledgement. Any questions about the TREx instrumentation or data should be directed to the University of Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan (edonovan@ucalgary.ca).
+    Transition Region Explorer (TREx) RGB data is courtesy of Space Environment Canada (space-environment.ca). Use of the data must adhere to the rules of the road for that dataset.  Please see below for the required data acknowledgement. Any questions about the TREx instrumentation or data should be directed to the University of Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan (edonovan@ucalgary.ca).
 
     “The Transition Region Explorer RGB (TREx RGB) is a joint Canada Foundation for Innovation and Canadian Space Agency project developed by the University of Calgary. TREx-RGB is operated and maintained by Space Environment Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”
 
@@ -523,6 +523,12 @@ def trex_nir(
 ) -> asilib.Imager:
     """
     Create an Imager instance using the TREX-NIR ASI images and skymaps.
+
+    Transition Region Explorer (TREx) NIR data is courtesy of Space Environment Canada (space-environment.ca). Use of the data must adhere to the rules of the road for that dataset.  Please see below for the required data acknowledgement. Any questions about the TREx instrumentation or data should be directed to the University of Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan (edonovan@ucalgary.ca).
+
+    “The Transition Region Explorer NIR (TREx NIR) is a joint Canada Foundation for Innovation and Canadian Space Agency project developed by the University of Calgary. TREx-NIR is operated and maintained by Space Environment Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”
+
+    For more information see: https://www.ucalgary.ca/aurora/projects/trex.
 
     Parameters
     ----------
