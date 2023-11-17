@@ -3,6 +3,7 @@ The `Pulsating aurora (PsA) project <http://www.psa-research.org>`_ operated hig
 """
 
 from datetime import datetime, timedelta
+import functools
 import re
 import warnings
 import pathlib
@@ -10,6 +11,7 @@ import copy
 
 import numpy as np
 import scipy.io
+import matplotlib.pyplot as plt
 
 import asilib
 import asilib.utils as utils
@@ -21,7 +23,16 @@ skymap_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/lamp/sav_
 local_base_dir = asilib.config['ASI_DATA_DIR'] / 'psa_emccd'
 
 
-def psa_emccd(location_code, time=None, time_range=None, redownload=False, missing_ok=True, alt=90):
+def psa_emccd(
+        location_code, 
+        time=None, 
+        time_range=None, 
+        redownload=False, 
+        missing_ok=True, 
+        alt:int=90,
+        imager=asilib.Imager,
+        n_avg:int=10
+        ):
     """
     Create an Imager instance of the Pulsating Aurora ground-based EMCCD ASI.
 
@@ -44,6 +55,11 @@ def psa_emccd(location_code, time=None, time_range=None, redownload=False, missi
         for them locally and online).
     alt: int
         The mapping altitude.
+    imager: asilib.Imager
+        Controls what Imager instance to return, asilib.Imager by default. This
+        parameter is useful if you need to subclass asilib.Imager.
+    n_avg:int
+        The number of images to average over
 
     Example
     -------
@@ -84,7 +100,7 @@ def psa_emccd(location_code, time=None, time_range=None, redownload=False, missi
             'lat': 67.0139,
             'lon': -146.4186,
             'alt': 0.174,
-            'cadence': 0.01,
+            'cadence': 0.01*n_avg,
             'resolution': (256, 256),
         }
     elif location_code.lower() == 'pkf':
@@ -94,7 +110,7 @@ def psa_emccd(location_code, time=None, time_range=None, redownload=False, missi
             'lat': 65.1256,
             'lon': -147.4919,
             'alt': 0.213,
-            'cadence': 0.01,
+            'cadence': 0.01*n_avg,
             'resolution': (256, 256),
         }
     else:
@@ -123,13 +139,13 @@ def psa_emccd(location_code, time=None, time_range=None, redownload=False, missi
         'path': file_paths,
         'start_time': start_times,
         'end_time': end_times,
-        'loader': lamp_reader,
+        'loader': functools.partial(lamp_reader, n_avg=n_avg),
     }
     if time_range is not None:
         file_info['time_range'] = time_range
     else:
         file_info['time'] = time
-    return asilib.Imager(file_info, meta, skymap)
+    return imager(file_info, meta, skymap)
 
 
 def _get_files(location_code, time, time_range, redownload, missing_ok):
@@ -186,11 +202,10 @@ def _get_files(location_code, time, time_range, redownload, missing_ok):
     return file_paths
 
 
-def lamp_reader(file_path):
+def lamp_reader(file_path, n_avg=10):
     """ """
     sav_data = scipy.io.readsav(str(file_path), python_dict=True)
-    images = np.moveaxis(sav_data['img'], 2, 0)
-    # images = images[:, :, :]  # Flip from column- to row-major.
+    _images = np.moveaxis(sav_data['img'], 2, 0)
     times = np.array(
         [
             datetime(y, mo, d, h, m, s, 1000 * ms)
@@ -205,6 +220,11 @@ def lamp_reader(file_path):
             )
         ]
     )
+    times = times[::n_avg]
+
+    images = np.zeros((int(_images.shape[0]/n_avg), *_images.shape[1:]))
+    for i in range(images.shape[0]):
+        images[i, ...] = _images[i*n_avg:(i+1)*n_avg, ...].mean(axis=0)
     return times, images
 
 
@@ -299,3 +319,14 @@ def _transform_azimuth_to_180(skymap):
     valid_val_idx = np.where(~np.isnan(skymap['azm']))
     skymap['azm'][valid_val_idx] = np.mod(skymap['azm'][valid_val_idx], 360)
     return skymap
+
+if __name__ == '__main__':
+    n_avg = 10  # Average 10 image frames (the effective imager cadence is 10 Hz)
+
+    asi = psa_emccd(
+        'vee',
+        time_range=(datetime(2022, 3, 5, 11, 0), datetime(2022, 3, 5, 11, 2)),
+        n_avg=n_avg
+    )
+    fig, ax = plt.subplots(figsize=(5, 5), constrained_layout=True)
+    asi.animate_fisheye(ax=ax, ffmpeg_params={'framerate':100})

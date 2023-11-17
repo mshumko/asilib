@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.20.4] - 2023-11-17
+
+### Added
+- The `n_avg` and `imager` kawrgs to the `psa_emccd()` function. These kwargs allow for custom Imager instance, as well as average the images over `n_avg` times.
+
 ## [0.20.3] - 2023-10-10
 
 ### Added
