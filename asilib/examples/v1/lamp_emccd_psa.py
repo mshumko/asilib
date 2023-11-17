@@ -3,7 +3,7 @@ from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 import asilib.map
-from asilib.asi.psa_emccd import psa_emccd  # save the new psa_emccd.py in the same directory as this script
+from asilib.asi.psa_emccd import psa_emccd
 
 
 n_avg = 10  # Average 10 image frames (the effective imager cadence is 10 Hz)
