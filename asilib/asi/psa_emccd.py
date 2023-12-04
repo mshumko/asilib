@@ -206,7 +206,7 @@ def lamp_reader(file_path, n_avg=10):
     """ """
     sav_data = scipy.io.readsav(str(file_path), python_dict=True)
     _images = np.moveaxis(sav_data['img'], 2, 0)
-    times = np.array(
+    _times = np.array(
         [
             datetime(y, mo, d, h, m, s, 1000 * ms)
             for y, mo, d, h, m, s, ms in zip(
@@ -220,11 +220,14 @@ def lamp_reader(file_path, n_avg=10):
             )
         ]
     )
-    times = times[::n_avg]
-
-    images = np.zeros((int(_images.shape[0]/n_avg), *_images.shape[1:]))
-    for i in range(images.shape[0]):
-        images[i, ...] = _images[i*n_avg:(i+1)*n_avg, ...].mean(axis=0)
+    if n_avg == 1:
+        return _times, _images
+    else:
+        images = np.zeros((int(_images.shape[0]/n_avg), *_images.shape[1:]))
+        times = np.zeros(int(_images.shape[0]/n_avg), dtype=object)
+        for i in range(images.shape[0]):
+            images[i, ...] = _images[i*n_avg:(i+1)*n_avg, ...].mean(axis=0)
+            times[i] = _times[i*n_avg]
     return times, images
 
 
