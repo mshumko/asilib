@@ -1,5 +1,10 @@
 # Changelog
 
+## [unreleased]
+
+### Fixed
+- A bug raised in issue #15 (https://github.com/mshumko/aurora-asi-lib/issues/15) where an `asilib.Imagers` class, initiated with a single `asilib.Imager`, would try to incorrectly index `asilib.Imager` unless it is wrapper in a tuple.
+
 ## [0.20.4] - 2023-11-17
 
 ### Added

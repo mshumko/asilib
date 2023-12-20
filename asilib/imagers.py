@@ -28,6 +28,9 @@ class Imagers:
     """
     def __init__(self, imagers:Tuple[Imager]) -> None:
         self.imagers = imagers
+        # Wrap self.imagers in a tuple if the user passes in a single Imager object.
+        if isinstance(self.imagers, Imager):
+            self.imagers = (self.imagers, )
         return
     
     def plot_fisheye(self, ax:Tuple[plt.Axes], **kwargs):
