@@ -42,6 +42,10 @@ def rego(
     """
     Create an Imager instance with the REGO ASI images and skymaps.
 
+    Redline Emission Geospace Observatory (REGO) data is courtesy of Space Environment Canada (space-environment.ca). Use of the data must adhere to the rules of the road for that dataset. Please see below for the required data acknowledgement. Any questions about the REGO instrumentation or data should be directed to the University of Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan (edonovan@ucalgary.ca).
+
+    “The Redline Emission Geospace Observatory (REGO) is a joint Canada Foundation for Innovation and Canadian Space Agency project developed by the University of Calgary. REGO is operated and maintained by Space Environment Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”
+
     Parameters
     ----------
     location_code: str
