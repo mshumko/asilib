@@ -27,10 +27,12 @@ import asilib.io.download as download
 import asilib.skymap
 
 
-pgm_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/NIR/stream0/'
-skymap_base_url_nir = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/NIR/skymaps/'
-h5_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/RGB/stream0/'
-skymap_base_url_rgb = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/RGB/skymaps/'
+nir_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/NIR/stream0/'
+nir_skymap_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/NIR/skymaps/'
+rgb_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/RGB/stream0/'
+rgb_skymap_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/RGB/skymaps/'
+blueline_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/blueline/stream0/'
+blueline_skymap_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/blueline/skymaps/'
 local_base_dir = asilib.config['ASI_DATA_DIR'] / 'trex'
 
 
@@ -156,7 +158,7 @@ def trex_rgb(
             location_code,
             time,
             time_range,
-            h5_base_url,
+            rgb_base_url,
             local_rgb_dir,
             redownload,
             missing_ok,
@@ -447,7 +449,7 @@ def trex_rgb_skymap(location_code: str, time: utils._time_type, redownload: bool
     time = utils.validate_time(time)
     local_dir = local_base_dir / 'skymaps' / location_code.lower()
     local_dir.mkdir(parents=True, exist_ok=True)
-    skymap_top_url = skymap_base_url_rgb + location_code.lower() + '/'
+    skymap_top_url = rgb_skymap_base_url + location_code.lower() + '/'
     if redownload:
         # Delete any existing skymap files.
         local_skymap_paths = pathlib.Path(local_dir).rglob(
@@ -613,7 +615,7 @@ def trex_nir(
             location_code,
             time,
             time_range,
-            pgm_base_url,
+            nir_base_url,
             local_pgm_dir,
             redownload,
             missing_ok,
@@ -724,7 +726,7 @@ def trex_nir_skymap(location_code: str, time: utils._time_type, redownload: bool
     time = utils.validate_time(time)
     local_dir = local_base_dir / 'skymaps' / location_code.lower()
     local_dir.mkdir(parents=True, exist_ok=True)
-    skymap_top_url = skymap_base_url_nir + location_code.lower() + '/'
+    skymap_top_url = nir_skymap_base_url + location_code.lower() + '/'
 
     if redownload:
         # Delete any existing skymap files.
