@@ -180,7 +180,14 @@ class Imagers:
                 _asi_times.append(_asi_time)
                 _asi_images.append(_asi_image)
 
-                
+            dt = np.array([(_asi_times[0]-ti).total_seconds() for ti in _asi_times])
+            if np.max(np.abs(dt)) > self.imagers[0].meta['cadence']:
+                error_str = f'Not all of the ASI times are within the cadence tolerance. There is likely 
+                    missing data or an imager was not on for some time within time_range (this 
+                    is not yet implemented). Below are the imager names and time stamps:\n'
+                for _time, asi in zip(_asi_times, self.imagers):
+                    error_str = error_str + f'\n{asi.meta["array"]}-{asi.meta["location"]}: {_time}.'
+                raise ValueError(error_str)
 
         raise NotImplementedError
     
