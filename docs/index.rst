@@ -6,7 +6,9 @@
 .. _github: https://github.com/mshumko/aurora-asi-lib
 .. _zenodo: https://doi.org/10.5281/zenodo.4746446
 
-Your one stop to working with the world's extensive arrays of auroral all-sky imagers (ASI).
+aurora-asi-lib is an open source package providing data access and analysis tools for the world's all-sky imager (ASI) data.
+
+The purpose of this project is to combine data from numerous observational ASI arrays into a single unified framework and is thus not associated with the development and operations of all sky cameras, or the curation of ASI datasets. All data is publicly available and is provided as-is. Please give appropriate credit and coordinate with instrument teams with regards to data issues and/or interpretation. See the :ref:`acknowledgements` section for more information.
 
 Supported ASI arrays
 --------------------   
@@ -25,6 +27,7 @@ Supported ASI arrays
    :alt: Top four panels are a collage showing an image from a THEMIS and REGO ASI in the fisheye and mapped formats. The bottom panel is a THEMIS ASI keogram from this time interval. 
    :width: 75%
 
+.. _acknowledgements:
 Acknowledgements
 ----------------
 asilib is not associated with the development and operations of all sky cameras, or the curation of ASI datasets. All data accessed by asilib is publicly available from the home institution responsible for the instrumentation. We recommend data users coordinate with instrument teams with regards to data issues and/or interpretation. Users are responsible to appropriately acknowledge the data sources they utilize. Required acknowledgements are contained in the descriptions of each instrument network.
