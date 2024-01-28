@@ -3,7 +3,7 @@ The Imagers class handles multiple Imager objects and coordinates plotting and a
 fisheye lens and mapped images. The mapped images are also called mosaics.
 """
 
-from typing import Tuple
+from typing import Tuple, List, Union
 from collections import namedtuple
 from datetime import datetime, timedelta
 
@@ -135,19 +135,86 @@ class Imagers:
     # def animate_fisheye_gen(self):
     #     raise NotImplementedError
     
-    def animate_map(self, overlap=False):
+    def animate_map(
+            self, 
+            lon_bounds: tuple = (-160, -50),
+            lat_bounds: tuple = (40, 82),
+            ax: Union[plt.Axes, tuple] = None,
+            coast_color: str = 'k',
+            land_color: str = 'g',
+            ocean_color: str = 'w',
+            color_map: str = None,
+            color_bounds: List[float] = None,
+            color_norm: str = None,
+            min_elevation: float = 10,
+            pcolormesh_kwargs: dict = {},
+            asi_label: bool = True,
+            movie_container: str = 'mp4',
+            ffmpeg_params={},
+            overwrite: bool = False,
+            overlap=False
+            ):
         """
-        Animate the ASI mosaic.
+        Animate an ASI mosaic.
 
         Parameters
         ----------
-        TODO: Finish docs
+        lon_bounds: tuple
+            The map's longitude bounds.
+        lat_bounds: tuple
+            The map's latitude bounds.
+        ax: plt.Axes, tuple
+            The subplot to put the map on. If cartopy is installed, ```ax``` must be
+            a two element tuple specifying the ``plt.Figure`` object and subplot position
+            passed directly as ``args`` into
+            `fig.add_subplot() <https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure.add_subplot>`_.
+        coast_color: str
+            The coast color. If None will not draw it.
+        land_color: str
+            The land color. If None will not draw it.
+        ocean_color: str
+            The ocean color. If None will not draw it.
+        color_map: str
+            The matplotlib colormap to use. See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_
+            for supported colormaps.
+        color_bounds: List[float]
+            The lower and upper values of the color scale. The default is: low=1st_quartile and
+            high=min(3rd_quartile, 10*1st_quartile). This range works well for most cases.
+        color_norm: str
+            Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
+            the color normalization will be taken from the ASI array (if specified), and if not
+            specified it will default to logarithmic.
+        min_elevation: float
+            Masks the pixels below min_elevation degrees.
+        pcolormesh_kwargs: dict
+            A dictionary of keyword arguments (kwargs) to pass directly into
+            plt.pcolormesh.
+        asi_label: bool
+            Annotates the map with the ASI code in the center of the mapped image.
+        movie_container: str
+            The movie container: mp4 has better compression but avi was determined
+            to be the official container for preserving digital video by the
+            National Archives and Records Administration.
+        ffmpeg_params: dict
+            The additional/overwitten ffmpeg output parameters. The default parameters are:
+            framerate=10, crf=25, vcodec=libx264, pix_fmt=yuv420p, preset=slower.
+        overwrite: bool
+            Overwrite the animation. If False, ffmpeg will prompt you to answer y/n if the
+            animation already exists.
         """
-        for _ in self.animate_map_gen(overlap=overlap):
+        if ax is None:
+            ax = asilib.map.create_map(
+                lon_bounds=lon_bounds,
+                lat_bounds=lat_bounds,
+                coast_color=coast_color,
+                land_color=land_color,
+                ocean_color=ocean_color,
+            )
+        for _ in self.animate_map_gen(ax=ax, overlap=overlap):
             pass
         return
     
-    def animate_map_gen(self, overlap=False):
+    def animate_map_gen(self, ax=None, overlap=False):
         """
         A generator to animate the ASI mosaic.
 
@@ -158,12 +225,29 @@ class Imagers:
         if overlap:
             self._calc_overlap_mask()
 
+        for _asi_times, _asi_images in self._iterate_imagers():
+            yield _asi_times, _asi_images, # ax, pcolormesh_obj
+
+        raise NotImplementedError
+    
+    def _iterate_imagers(self):
+        """
+        Generate a set of time stamps and images for all imagers, one time stamp at a time.
+
+        The algorithm is to loop over all time stamps within the first imager's time_range,
+        with an inner loop that loops over all of the imagers to get the next time stamp.
+        As long as the all ASIs next time stamps are within the cadence threshold of the current
+        time stamp, we then yield all of the time stamps and images.
+
+        TODO: Correctly handle the case if at least one imager turns off/on inside time_range.
+
+        Raises
+        ------
+        ValueError
+            If the time stamps are misaligned.
+        """
         t0 = self.imagers[0].file_info['time_range'][0]
 
-        # The algorithm is to loop over all time stamps within the first imager's time_range,
-        # with an inner loop that loops over all of the imagers and returns the next time stamp.
-        # As long as the all ASIs next time stamps are within the cadence threshold of the current
-        # time stamp, we then plot the mosaic.
         times = np.array(
             [t0+timedelta(seconds=i*self.imagers[0].meta['cadence']) 
             for i in range(self.imagers[0]._estimate_n_times())]
@@ -175,23 +259,23 @@ class Imagers:
         for _time in times:
             _asi_times = []
             _asi_images = []
-            for _iterator in asi_iterators:
+            for _iterator in asi_iterators.values():
                 _asi_time, _asi_image = next(_iterator)
                 _asi_times.append(_asi_time)
                 _asi_images.append(_asi_image)
 
             dt = np.array([(_asi_times[0]-ti).total_seconds() for ti in _asi_times])
             if np.max(np.abs(dt)) > self.imagers[0].meta['cadence']:
-                error_str = f'Not all of the ASI times are within the cadence tolerance. There is likely 
-                    missing data or an imager was not on for some time within time_range (this 
-                    is not yet implemented). Below are the imager names and time stamps:\n'
+                error_str = (f'Not all of the ASI times are within the cadence tolerance. '
+                             'There is likely missing data or an imager was not on for some '
+                             'time within time_range (this is not yet implemented). '
+                             'Below are the imager names and time stamps:\n')
                 for _time, asi in zip(_asi_times, self.imagers):
                     error_str = error_str + f'\n{asi.meta["array"]}-{asi.meta["location"]}: {_time}.'
                 raise ValueError(error_str)
-
-        raise NotImplementedError
-    
-
+            
+            yield _asi_times, _asi_images
+        return
 
     def get_points(self, min_elevation:float=10)->Tuple[np.ndarray, np.ndarray]:
         """

@@ -17,13 +17,13 @@ time_range = ('2023-02-24T05:00', '2023-02-24T07:00')
 # all of the TREx-RGB imagers were operating.
 trex_metadata = asilib.asi.trex_rgb_info()
 
-time = '2023-02-24T05:55'
+# time = '2023-02-24T05:55'
 
 ax = asilib.map.create_simple_map()
 
 asis = asilib.Imagers(
-    [asilib.asi.trex_rgb(location_code, time=time) 
+    [asilib.asi.trex_rgb(location_code, time_range=time_range) 
     for location_code in trex_metadata['location_code']]
     )
-asis.plot_map(ax=ax)
+asis.animate_map(ax=ax)
 plt.show()
