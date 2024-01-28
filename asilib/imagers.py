@@ -5,7 +5,7 @@ fisheye lens and mapped images. The mapped images are also called mosaics.
 
 from typing import Tuple
 from collections import namedtuple
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -135,14 +135,56 @@ class Imagers:
     # def animate_fisheye_gen(self):
     #     raise NotImplementedError
     
-    # def animate_map(self):
-        
-    #     raise NotImplementedError
+    def animate_map(self, overlap=False):
+        """
+        Animate the ASI mosaic.
+
+        Parameters
+        ----------
+        TODO: Finish docs
+        """
+        for _ in self.animate_map_gen(overlap=overlap):
+            pass
+        return
     
-    # def animate_map_gen(self, overlap=False):
-    #     if overlap:
-    #         self._calc_overlap_mask()
-    #     raise NotImplementedError
+    def animate_map_gen(self, overlap=False):
+        """
+        A generator to animate the ASI mosaic.
+
+        Parameters
+        ----------
+        TODO: Finish docs
+        """
+        if overlap:
+            self._calc_overlap_mask()
+
+        t0 = self.imagers[0].file_info['time_range'][0]
+
+        # The algorithm is to loop over all time stamps within the first imager's time_range,
+        # with an inner loop that loops over all of the imagers and returns the next time stamp.
+        # As long as the all ASIs next time stamps are within the cadence threshold of the current
+        # time stamp, we then plot the mosaic.
+        times = np.array(
+            [t0+timedelta(seconds=i*self.imagers[0].meta['cadence']) 
+            for i in range(self.imagers[0]._estimate_n_times())]
+            )
+        asi_iterators = {
+            f'{_imager.meta["array"]}-{_imager.meta["location"]}':iter(_imager) 
+            for _imager in self.imagers
+            }
+        for _time in times:
+            _asi_times = []
+            _asi_images = []
+            for _iterator in asi_iterators:
+                _asi_time, _asi_image = next(_iterator)
+                _asi_times.append(_asi_time)
+                _asi_images.append(_asi_image)
+
+                
+
+        raise NotImplementedError
+    
+
 
     def get_points(self, min_elevation:float=10)->Tuple[np.ndarray, np.ndarray]:
         """
