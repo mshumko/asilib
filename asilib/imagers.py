@@ -228,18 +228,23 @@ class Imagers:
         for _asi_times, _asi_images in self._iterate_imagers():
             yield _asi_times, _asi_images, # ax, pcolormesh_obj
 
-        raise NotImplementedError
+        return
     
-    def _iterate_imagers(self):
+    def _iterate_imagers(self, time_tol=2):
         """
         Generate a set of time stamps and images for all imagers, one time stamp at a time.
 
         The algorithm is to loop over all time stamps within the first imager's time_range,
         with an inner loop that loops over all of the imagers to get the next time stamp.
-        As long as the all ASIs next time stamps are within the cadence threshold of the current
+        As long as the all ASIs next time stamps are within the time_tol of the current
         time stamp, we then yield all of the time stamps and images.
 
-        TODO: Correctly handle the case if at least one imager turns off/on inside time_range.
+        Parameters
+        ----------
+        time_tol: float
+            The allowable time tolerance, in units of time_tol*imager_cadence, to check the 
+            imagers' time stamps for alignment (so the correct images from all imagers are 
+            animated).
 
         Raises
         ------
@@ -264,14 +269,16 @@ class Imagers:
                 _asi_times.append(_asi_time)
                 _asi_images.append(_asi_image)
 
-            dt = np.array([(_asi_times[0]-ti).total_seconds() for ti in _asi_times])
-            if np.max(np.abs(dt)) > self.imagers[0].meta['cadence']:
-                error_str = (f'Not all of the ASI times are within the cadence tolerance. '
+            # TODO: Correctly handle the case if at least one imager turns off/on inside time_range.
+            dt = np.array([(_time-ti).total_seconds() for ti in _asi_times])
+            if np.max(np.abs(dt)) > self.imagers[0].meta['cadence']*time_tol:
+                error_str = (f'Not all of the ASI times are within the {time_tol} seconds '
+                             f'tolerance of {_time}. '
                              'There is likely missing data or an imager was not on for some '
                              'time within time_range (this is not yet implemented). '
                              'Below are the imager names and time stamps:\n')
                 for _time, asi in zip(_asi_times, self.imagers):
-                    error_str = error_str + f'\n{asi.meta["array"]}-{asi.meta["location"]}: {_time}.'
+                    error_str = error_str + f'\n{asi.meta["array"]}-{asi.meta["location"]}: {_time}'
                 raise ValueError(error_str)
             
             yield _asi_times, _asi_images
