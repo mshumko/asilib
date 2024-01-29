@@ -119,3 +119,45 @@ def test_get_points():
         np.array([2930., 2949., 2954., 2881., 2865., 2823., 2752., 2738., 2738., 2746.])
     )
     return
+
+def test_iterate_imagers():
+    """
+    Test the imagers (time, image) iterations are in sync, and if not, that the image is 
+    correctly masked. 
+    """
+    import asilib
+    import asilib.asi
+
+    time_range = ('2023-02-24T05:10', '2023-02-24T05:15')
+    time_tol = 1
+    # Load all TREx imagers.
+    trex_metadata = asilib.asi.trex_rgb_info()
+    asis = asilib.Imagers(
+        [asilib.asi.trex_rgb(location_code, time_range=time_range) 
+        for location_code in trex_metadata['location_code']]
+        )
+
+    _times = []
+    _images = [] 
+    for i, (_asi_times, _asi_images) in enumerate(asis._iterate_imagers(time_tol=time_tol)):
+        _times.append(_asi_times)
+        _images.append(_asi_images)
+
+    _times = np.array(_times)
+
+    dt = np.full(_times.shape, np.nan)
+    for i, times_i in enumerate(_times):
+        dt[i, :] = [(times_i[0]-j).total_seconds() for j in times_i]
+        dt[i, np.abs(dt[i, :]) > 3600*24] = np.nan
+
+    assert np.nanmax(np.abs(dt)) == 3.181657
+    
+    idx_outside_tol = np.where(np.abs(dt) > asis.imagers[0].meta['cadence']*time_tol)
+    for i, j in zip(idx_outside_tol[0], idx_outside_tol[1]):
+        assert _images[i][j] is None
+
+    assert np.all(np.equal(
+        idx_outside_tol[0],
+        np.array([47, 50, 53, 55, 58, 61, 63, 64, 66, 69, 71, 72, 74, 
+                    77, 79, 80, 82, 85, 87, 88, 90, 93, 95, 96, 98])
+    ))

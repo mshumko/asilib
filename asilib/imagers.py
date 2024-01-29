@@ -265,22 +265,20 @@ class Imagers:
             _asi_times = []
             _asi_images = []
             for _iterator in asi_iterators.values():
-                _asi_time, _asi_image = next(_iterator)
+                try:
+                    _asi_time, _asi_image = next(_iterator)
+                except StopIteration:
+                    _asi_times.append(datetime.min)
+                    _asi_images.append(None)
+                    continue
                 _asi_times.append(_asi_time)
                 _asi_images.append(_asi_image)
 
-            # TODO: Correctly handle the case if at least one imager turns off/on inside time_range.
+            # Replace an image with None when the time stamp for it becomes misaligned.
             dt = np.array([(_time-ti).total_seconds() for ti in _asi_times])
-            if np.max(np.abs(dt)) > self.imagers[0].meta['cadence']*time_tol:
-                error_str = (f'Not all of the ASI times are within the {time_tol} seconds '
-                             f'tolerance of {_time}. '
-                             'There is likely missing data or an imager was not on for some '
-                             'time within time_range (this is not yet implemented). '
-                             'Below are the imager names and time stamps:\n')
-                for _time, asi in zip(_asi_times, self.imagers):
-                    error_str = error_str + f'\n{asi.meta["array"]}-{asi.meta["location"]}: {_time}'
-                raise ValueError(error_str)
-            
+            outside_tol = np.where(np.abs(dt) > self.imagers[0].meta['cadence']*time_tol)[0]
+            for i in outside_tol:  # Usually skip for loop if all imagers are in sync.
+                _asi_images[i] = None            
             yield _asi_times, _asi_images
         return
 
@@ -442,46 +440,3 @@ class Imagers:
             imager.skymap['lon'][far_pixels] = np.nan
         self._masked = True  # A flag to not run again.
         return
-    
-    
-if __name__ == '__main__':
-    from datetime import datetime
-    
-    import matplotlib.pyplot as plt
-    import matplotlib.colors
-
-    import asilib
-    import asilib.map
-    import asilib.asi
-    
-    time = datetime(2007, 3, 13, 5, 8, 45)
-    location_codes = ['FSIM', 'ATHA', 'TPAS', 'SNKQ']
-    map_alt = 110
-    min_elevation = 2
-    
-    _imagers = []
-    
-    for location_code in location_codes:
-        _imagers.append(asilib.asi.themis(location_code, time=time, alt=map_alt))
-    
-    asis = asilib.Imagers(_imagers)
-    lat_lon_points, intensities = asis.get_points(min_elevation=min_elevation)
-
-    fig = plt.figure(figsize=(12,5))
-    ax = asilib.map.create_simple_map(
-        lon_bounds=(-140, -60), lat_bounds=(40, 82), fig_ax=(fig, 121)
-        )
-    bx = asilib.map.create_simple_map(
-        lon_bounds=(-140, -60), lat_bounds=(40, 82), fig_ax=(fig, 122)
-        )
-    asis.plot_map(ax=ax, overlap=False, min_elevation=min_elevation)
-    bx.scatter(lat_lon_points[:, 1], lat_lon_points[:, 0], c=intensities, 
-               norm=matplotlib.colors.LogNorm())
-    ax.text(0.01, 0.99, f'(A) Mosaic using Imagers.plot_map()', transform=ax.transAxes, 
-            va='top', fontweight='bold', color='red')
-    bx.text(0.01, 0.99, f'(B) Mosaic from Imagers.get_points() scatter', transform=bx.transAxes,
-            va='top', fontweight='bold', color='red')
-    fig.suptitle('Donovan et al. 2008 | First breakup of an auroral arc')
-    plt.tight_layout()
-    plt.show()
-    pass
