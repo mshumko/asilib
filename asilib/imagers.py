@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from asilib.imager import Imager, _haversine
+import asilib.map
 
 
 class Imagers:
