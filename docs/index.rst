@@ -60,7 +60,7 @@ Lastly, asilib will not be possible without 1) everyone involved with designing,
 
 .. toctree::
    :maxdepth: 2
-   :caption: asilib:
+   :caption: Table of Contents:
 
    get_started
    examples
