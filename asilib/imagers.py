@@ -258,22 +258,47 @@ class Imagers:
             [t0+timedelta(seconds=i*self.imagers[0].meta['cadence']) 
             for i in range(self.imagers[0]._estimate_n_times())]
             )
+        # asi_iterators keeps track of all ASIs in Imagers, with same order as passed into
+        # __init__(). 
+        # 
+        # We must also keep track of ASIs whose next time stamp is in the future, or is off.
+        # future_iterator is for an ASI that has the next time stamp ahead of _time and
         asi_iterators = {
             f'{_imager.meta["array"]}-{_imager.meta["location"]}':iter(_imager) 
             for _imager in self.imagers
             }
+        future_iterators = {}
+
         for _time in times:
             _asi_times = []
             _asi_images = []
-            for _iterator in asi_iterators.values():
-                try:
-                    _asi_time, _asi_image = next(_iterator)
-                except StopIteration:
-                    _asi_times.append(datetime.min)
+            for i, (_name, _iterator) in enumerate(asi_iterators.items()):
+
+                if _name not in future_iterators:
+                    # An imager synchronized in time or is off.
+                    try:
+                        _asi_time, _asi_image = next(_iterator)
+                    except StopIteration:
+                        _asi_times.append(datetime.min)
+                        _asi_images.append(None)
+                        continue
+                    abs_dt = np.abs((_time-_asi_times[-1]).total_seconds())
+
+                else:
+                    # An imager unsynchronized in time
+                    if np.abs((_time-future_iterators[_name][0]).total_seconds()) < self.imagers[0].meta['cadence']*time_tol:
+                        _asi_times.append(_asi_time)
+                        _asi_images.append(_asi_image)
+
+                    future_iterators.pop(_name)
+
+                if np.abs((_time-_asi_time).total_seconds()) < self.imagers[0].meta['cadence']*time_tol:
+                    _asi_times.append(_asi_time)
+                    _asi_images.append(_asi_image)
+                else:  # Save the imager state to future_iterators if it is far in the future
+                    _asi_times.append(None)
                     _asi_images.append(None)
-                    continue
-                _asi_times.append(_asi_time)
-                _asi_images.append(_asi_image)
+                    future_iterators[_name] = (_asi_time, _asi_image)
 
             # Replace an image with None when the time stamp for it becomes misaligned.
             dt = np.array([(_time-ti).total_seconds() for ti in _asi_times])
