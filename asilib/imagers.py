@@ -272,39 +272,38 @@ class Imagers:
         for _time in times:
             _asi_times = []
             _asi_images = []
-            for i, (_name, _iterator) in enumerate(asi_iterators.items()):
+            for _name, _iterator in asi_iterators.items():
+                # We have three cases to address. If the iterator is synchronized, the
+                # future_iterators will not have the _name key. This will trigger next() 
+                # on that iterator. In either case, this will return a time stamp and 
+                # an image. The one exception is when the _iterator is exhausted we fill 
+                # in dummy values for the time and image.
+                try:
+                    _asi_time, _asi_image = future_iterators.get(_name, next(_iterator))
+                except StopIteration:
+                    _asi_times.append(datetime.min)
+                    _asi_images.append(None)
+                    continue
+                abs_dt = np.abs((_time-_asi_time).total_seconds())
+                synchronized = abs_dt < self.imagers[0].meta['cadence']*time_tol
 
-                if _name not in future_iterators:
-                    # An imager synchronized in time (or is off and the iterator is exhausted).
-                    try:
-                        _asi_time, _asi_image = next(_iterator)
-                    except StopIteration:
-                        _asi_times.append(datetime.min)
-                        _asi_images.append(None)
-                        continue
-                    abs_dt = np.abs((_time-_asi_time).total_seconds())
-
-                else:
-                    # An imager unsynchronized in time
-                    if np.abs((_time-future_iterators[_name][0]).total_seconds()) < self.imagers[0].meta['cadence']*time_tol:
-                        _asi_times.append(_asi_time)
-                        _asi_images.append(_asi_image)
-
-                    future_iterators.pop(_name)
-
-                if np.abs((_time-_asi_time).total_seconds()) < self.imagers[0].meta['cadence']*time_tol:
+                if synchronized:
                     _asi_times.append(_asi_time)
                     _asi_images.append(_asi_image)
-                else:  # Save the imager state to future_iterators if it is far in the future
-                    _asi_times.append(None)
-                    _asi_images.append(None)
+                elif synchronized and (_name in future_iterators):
+                    # _time has caught up with the future_iterator.
+                    _asi_times.append(_asi_time)
+                    _asi_images.append(_asi_image)
+                    future_iterators.pop(_name)
+                elif not synchronized:
                     future_iterators[_name] = (_asi_time, _asi_image)
-
-            # Replace an image with None when the time stamp for it becomes misaligned.
-            dt = np.array([(_time-ti).total_seconds() for ti in _asi_times])
-            outside_tol = np.where(np.abs(dt) > self.imagers[0].meta['cadence']*time_tol)[0]
-            for i in outside_tol:  # Usually skip for loop if all imagers are in sync.
-                _asi_images[i] = None            
+                    _asi_times.append(datetime.min)
+                    _asi_images.append(None)
+                else:
+                    raise ValueError(
+                        f'asilib.Imagers.__iter__() unexpectedly broke for {_time=} and {_name=}. '
+                        f'Please create a GitHub issue if you get this error.'
+                        )
             yield _asi_times, _asi_images
         return
 
