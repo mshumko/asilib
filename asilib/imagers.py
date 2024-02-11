@@ -226,12 +226,12 @@ class Imagers:
         if overlap:
             self._calc_overlap_mask()
 
-        for _asi_times, _asi_images in self._iterate_imagers():
+        for _asi_times, _asi_images in self.__iter__():
             yield _asi_times, _asi_images, # ax, pcolormesh_obj
 
         return
     
-    def _iterate_imagers(self, time_tol=2):
+    def __iter__(self, time_tol=2):
         """
         Generate a set of time stamps and images for all imagers, one time stamp at a time.
 
