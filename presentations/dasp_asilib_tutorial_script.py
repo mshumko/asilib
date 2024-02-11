@@ -18,8 +18,13 @@ time_range = ('2023-02-24T05:00', '2023-02-24T07:00')
 # all of the TREx-RGB imagers were operating.
 trex_metadata = asilib.asi.trex_rgb_info()
 
-asi = asilib.asi.trex_rgb('GILL', time_range=time_range) 
-ax, p = asi.plot_keogram(aacgm=True)
-ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%H:%M'))
-ax.set_ylabel(f'$\lambda_{{AACGM}}$ [deg]')
-plt.show()
+asis = asilib.Imagers(
+    [asilib.asi.trex_rgb(location_code, time_range=time_range) 
+    for location_code in trex_metadata['location_code']]
+    )
+pass
+# asi = asilib.asi.trex_rgb('GILL', time_range=time_range) 
+# ax, p = asi.plot_keogram(aacgm=True)
+# ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%H:%M'))
+# ax.set_ylabel(f'$\lambda_{{AACGM}}$ [deg]')
+# plt.show()

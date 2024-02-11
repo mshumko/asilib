@@ -275,14 +275,14 @@ class Imagers:
             for i, (_name, _iterator) in enumerate(asi_iterators.items()):
 
                 if _name not in future_iterators:
-                    # An imager synchronized in time or is off.
+                    # An imager synchronized in time (or is off and the iterator is exhausted).
                     try:
                         _asi_time, _asi_image = next(_iterator)
                     except StopIteration:
                         _asi_times.append(datetime.min)
                         _asi_images.append(None)
                         continue
-                    abs_dt = np.abs((_time-_asi_times[-1]).total_seconds())
+                    abs_dt = np.abs((_time-_asi_time).total_seconds())
 
                 else:
                     # An imager unsynchronized in time
