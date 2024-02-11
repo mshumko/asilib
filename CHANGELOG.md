@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.21.0] - 2024-02-11
+
+### Changed
+- Edited the Acknowledgments section and clarified the source of skymap files.
+
+### Added
+- Animate mosaics via `asilib.Imagers.animate_map()`. This method relies on synchronous iteration of all `asilib.Imager` objects passed into `asilib.Imagers`.
+- Loop over images of all `asilib.Imager` objects passed into `asilib.Imagers` as a function of time via `asilib.Imagers__iter__()`. This method returns a valid time stamp and image for all time synchronized `asilib.Imager` images, and returns a placeholder `None` if an `asilib.Imager` is off, or the imager is not synchorized (closest time stamp is more than a cadence away in time).
+
 ## [0.20.5] - 2023-12-20
 
 ### Fixed
