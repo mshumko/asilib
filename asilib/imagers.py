@@ -3,7 +3,7 @@ The Imagers class handles multiple Imager objects and coordinates plotting and a
 fisheye lens and mapped images. The mapped images are also called mosaics.
 """
 
-from typing import Tuple, List, Union
+from typing import Tuple, List, Union, Generator
 from collections import namedtuple
 from datetime import datetime, timedelta
 
@@ -26,12 +26,17 @@ class Imagers:
     ----------
     imagers: Tuple
         The Imager objects to plot and animate. 
+    iter_tol: float
+        The allowable time tolerance, in units of time_tol*imager_cadence, for imagers to be 
+        considered synchronized. Adjusting this kwarg is useful if the imager has missing 
+        data and you need to animate a mosaic.
     """
-    def __init__(self, imagers:Tuple[Imager]) -> None:
+    def __init__(self, imagers:Tuple[Imager], iter_tol:float=1) -> None:
         self.imagers = imagers
         # Wrap self.imagers in a tuple if the user passes in a single Imager object.
         if isinstance(self.imagers, Imager):
             self.imagers = (self.imagers, )
+        self.iter_tol = iter_tol
         return
     
     def plot_fisheye(self, ax:Tuple[plt.Axes], **kwargs):
@@ -226,31 +231,28 @@ class Imagers:
         if overlap:
             self._calc_overlap_mask()
 
-        for _asi_times, _asi_images in self.__iter__():
+        for _time, _asi_times, _asi_images in self.__iter__():
             yield _asi_times, _asi_images, # ax, pcolormesh_obj
 
         return
     
-    def __iter__(self, time_tol=2):
+    def __iter__(self) -> Generator[datetime.datetime, List, List]:
         """
-        Generate a set of time stamps and images for all imagers, one time stamp at a time.
+        Generate a list of time stamps and images for all synchronized imagers, one time stamp 
+        at a time.
 
-        The algorithm is to loop over all time stamps within the first imager's time_range,
-        with an inner loop that loops over all of the imagers to get the next time stamp.
-        As long as the all ASIs next time stamps are within the time_tol of the current
-        time stamp, we then yield all of the time stamps and images.
-
-        Parameters
-        ----------
-        time_tol: float
-            The allowable time tolerance, in units of time_tol*imager_cadence, to check the 
-            imagers' time stamps for alignment (so the correct images from all imagers are 
-            animated).
-
-        Raises
+        Yields
         ------
-        ValueError
-            If the time stamps are misaligned.
+        datetime.datetime
+            The guide time used to synchronize the imagers. If the difference between the imager
+            time and the guide time is greater than time_tol*imager_cadence, or the imager is off,
+            the imager is considered unsynchronized.
+        list
+            The time stamps from each imager. If the imager is unsynchronized the yielded 
+            time stamp is ``datetime.min``.
+        list 
+            The images from each imager. If the imager is unsynchronized the yielded 
+            image is ``None``.
         """
         t0 = self.imagers[0].file_info['time_range'][0]
 
@@ -270,7 +272,7 @@ class Imagers:
             }
         future_iterators = {}
 
-        for _time in times:
+        for guide_time in times:
             _asi_times = []
             _asi_images = []
             for _name, _iterator in asi_iterators.items():
@@ -285,8 +287,8 @@ class Imagers:
                     _asi_times.append(datetime.min)
                     _asi_images.append(None)
                     continue
-                abs_dt = np.abs((_time-_asi_time).total_seconds())
-                synchronized = abs_dt < self.imagers[0].meta['cadence']*time_tol
+                abs_dt = np.abs((guide_time-_asi_time).total_seconds())
+                synchronized = abs_dt < self.imagers[0].meta['cadence']*self.iter_tol
 
                 # We must always append a time stamp and image, even if a dummy variable
                 # to preserve the Imager order.
@@ -300,7 +302,7 @@ class Imagers:
 
                 if synchronized and (_name in future_iterators):
                     future_iterators.pop(_name)
-            yield _asi_times, _asi_images
+            yield guide_time, _asi_times, _asi_images
         return
 
     def get_points(self, min_elevation:float=10)->Tuple[np.ndarray, np.ndarray]:
