@@ -31,7 +31,7 @@ class Imagers:
         considered synchronized. Adjusting this kwarg is useful if the imager has missing 
         data and you need to animate a mosaic.
     """
-    def __init__(self, imagers:Tuple[Imager], iter_tol:float=1) -> None:
+    def __init__(self, imagers:Tuple[Imager], iter_tol:float=2) -> None:
         self.imagers = imagers
         # Wrap self.imagers in a tuple if the user passes in a single Imager object.
         if isinstance(self.imagers, Imager):
@@ -236,7 +236,7 @@ class Imagers:
 
         return
     
-    def __iter__(self) -> Generator[datetime.datetime, List, List]:
+    def __iter__(self) -> Generator[datetime, List, List]:
         """
         Generate a list of time stamps and images for all synchronized imagers, one time stamp 
         at a time.
@@ -263,14 +263,15 @@ class Imagers:
         # asi_iterators keeps track of all ASIs in Imagers, with same order as passed into
         # __init__(). 
         # 
-        # We must also keep track of ASIs whose next time stamp is in the future, or is off.
-        # future_iterator is for ASIs that has the next time stamp ahead of _time and we will
-        # save its state until it becomes synchronized again.
+        # We must also keep track of ASIs whose next time stamp beyond the allowable tolerance 
+        # of guide_time, or is off. future_iterator holds the imager (time, image) data until 
+        # it becomes synchronized with the guide_time again.
         asi_iterators = {
             f'{_imager.meta["array"]}-{_imager.meta["location"]}':iter(_imager) 
             for _imager in self.imagers
             }
         future_iterators = {}
+        stopped_iterators = 0
 
         for guide_time in times:
             _asi_times = []
@@ -286,6 +287,10 @@ class Imagers:
                 except StopIteration:
                     _asi_times.append(datetime.min)
                     _asi_images.append(None)
+                    stopped_iterators += 1
+                    if len(asi_iterators) == stopped_iterators:
+                        # To avoid yielding a few all-Nan outputs.
+                        return
                     continue
                 abs_dt = np.abs((guide_time-_asi_time).total_seconds())
                 synchronized = abs_dt < self.imagers[0].meta['cadence']*self.iter_tol

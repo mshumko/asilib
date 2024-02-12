@@ -137,27 +137,21 @@ def test_iterate_imagers():
         for location_code in trex_metadata['location_code']]
         )
 
+    _guide_times = []
     _times = []
     _images = [] 
-    for i, (_asi_times, _asi_images) in enumerate(asis._iterate_imagers(time_tol=time_tol)):
+    for _guide_time, _asi_times, _asi_images in asis:
+        _guide_times.append(_guide_time)
         _times.append(_asi_times)
         _images.append(_asi_images)
 
-    _times = np.array(_times)
-
-    dt = np.full(_times.shape, np.nan)
-    for i, times_i in enumerate(_times):
-        dt[i, :] = [(times_i[0]-j).total_seconds() for j in times_i]
-        dt[i, np.abs(dt[i, :]) > 3600*24] = np.nan
-
-    assert np.nanmax(np.abs(dt)) == 3.181657
+    dt = np.full(np.array(_times).shape, np.nan)
+    for i, (_guide_time, imager_times_i) in enumerate(zip(_guide_times, _times)):
+        dt[i, :] = [(_guide_time-j).total_seconds() for j in imager_times_i]
     
-    idx_outside_tol = np.where(np.abs(dt) > asis.imagers[0].meta['cadence']*time_tol)
-    for i, j in zip(idx_outside_tol[0], idx_outside_tol[1]):
-        assert _images[i][j] is None
+    dt[np.abs(dt) > 3600*24] = np.nan
 
-    assert np.all(np.equal(
-        idx_outside_tol[0],
-        np.array([47, 50, 53, 55, 58, 61, 63, 64, 66, 69, 71, 72, 74, 
-                    77, 79, 80, 82, 85, 87, 88, 90, 93, 95, 96, 98])
-    ))
+    assert np.nanmax(np.abs(dt)) == 3.297666
+    assert np.all(~np.isnan(dt[:-1, :]))
+    assert np.all(np.isnan(dt[-1, :]) == np.array([False, False, False,  True, False, False]))
+    return
