@@ -262,7 +262,8 @@ class Imagers:
         # __init__(). 
         # 
         # We must also keep track of ASIs whose next time stamp is in the future, or is off.
-        # future_iterator is for an ASI that has the next time stamp ahead of _time and
+        # future_iterator is for ASIs that has the next time stamp ahead of _time and we will
+        # save its state until it becomes synchronized again.
         asi_iterators = {
             f'{_imager.meta["array"]}-{_imager.meta["location"]}':iter(_imager) 
             for _imager in self.imagers
@@ -287,23 +288,18 @@ class Imagers:
                 abs_dt = np.abs((_time-_asi_time).total_seconds())
                 synchronized = abs_dt < self.imagers[0].meta['cadence']*time_tol
 
+                # We must always append a time stamp and image, even if a dummy variable
+                # to preserve the Imager order.
                 if synchronized:
                     _asi_times.append(_asi_time)
                     _asi_images.append(_asi_image)
-                elif synchronized and (_name in future_iterators):
-                    # _time has caught up with the future_iterator.
-                    _asi_times.append(_asi_time)
-                    _asi_images.append(_asi_image)
-                    future_iterators.pop(_name)
-                elif not synchronized:
+                else:
                     future_iterators[_name] = (_asi_time, _asi_image)
                     _asi_times.append(datetime.min)
                     _asi_images.append(None)
-                else:
-                    raise ValueError(
-                        f'asilib.Imagers.__iter__() unexpectedly broke for {_time=} and {_name=}. '
-                        f'Please create a GitHub issue if you get this error.'
-                        )
+
+                if synchronized and (_name in future_iterators):
+                    future_iterators.pop(_name)
             yield _asi_times, _asi_images
         return
 
