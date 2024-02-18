@@ -406,17 +406,8 @@ def _load_rgb_h5(path):
         str(path))
     if len(problematic_file_list):
         raise ValueError(f'A problematic PGM file: {problematic_file_list[0]}')
-    images = np.moveaxis(images, 3, 0)
-
-    
-    # Scale from 0-255 to work with plt.imshow(). Convert to unit16 to avoid rounding 
-    # off the highest bits.
-    images = images.astype(np.uint16)*255/np.max(images)
-    # Need uint8 for plt.imshow() to work with RGB images. 
-    images = images.astype(np.uint8)
-    _color_indices = [0, 1, 2]
-
-    images = images[:, ::-1, ::-1, _color_indices]  # Flip north-south.
+    images = np.moveaxis(images, 3, 0)  # Move time to first axis.
+    images = images[:, ::-1, ::-1, :]  # Flip north-south.
     
     times = np.array(
         [
@@ -876,18 +867,12 @@ def _load_nir_pgm(path):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import asilib.map
-    import asilib.imagers
+    import asilib.asi
 
-    time = datetime(2021, 11, 4, 7, 3, 51)
-    location_codes = ['FSMI', 'LUCK', 'RABB', 'PINA', 'GILL']
-    asi_list = []
-    ax = asilib.map.create_simple_map()
-    for location_code in location_codes:
-        asi_list.append(trex_rgb(location_code, time=time, colors='rgb'))
-    
-    asis = asilib.imagers.Imagers(asi_list)
-    asis.plot_map(ax=ax)
-    # plt.axis('off')
-    ax.set(title=time)
-    plt.tight_layout()
+    time_range = ('2023-02-24T05:30', '2023-02-24T06:30')
+
+    asi = asilib.asi.trex_rgb('RABB', time_range=time_range)
+    asi.plot_keogram()
+    # asi['2023-02-24T06:10'].plot_fisheye()
+
     plt.show()
