@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.20.6] - 2024-02-18
+
+### Changed
+- Removed the RGB normalization in the `trex_rgb()` loader. This fixed the vertical stripes in the keograms, but made the fisheye and mapped images much darker (since the `norm` kwarg in `plt.pcolormesh` and `plt.imshow` does nothing).
+- Refactored the TREx and Imager tests reflecting the minor changes.
+
+### Added
+- A `color_brighten` kwarg to by default enhance the RGB colors when calling the following asilib.Imager methods, `plot_fisheye`, `animate_fisheye_gen`, `plot_map`, and `animate_map_gen`. Unless `color_brighten=False`, the plots remain the same.
+
 ## [0.20.5] - 2023-12-20
 
 ### Fixed

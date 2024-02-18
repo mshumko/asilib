@@ -171,12 +171,14 @@ def test_animate_map_example():
     """
     from datetime import datetime
     import asilib.asi
+    import asilib.map
     import asilib
 
     location = 'FSMI'
     time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
     asi = asilib.asi.themis(location, time_range=time_range)
-    asi.animate_map(overwrite=True)
+    ax = asilib.map.create_simple_map()
+    asi.animate_map(overwrite=True, ax=ax)
     print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asi.animation_name}')
 
     # End of example.
