@@ -70,14 +70,18 @@ def test_trex_nir_fisheye_map_example():
     import asilib.asi
     import matplotlib.pyplot as plt
 
-    fig = plt.figure(figsize=(10, 6))
+    fig = plt.figure(figsize=(10, 5))
     ax = fig.add_subplot(121)
-    bx = asilib.map.create_map(fig_ax=(fig, 122), lon_bounds=(-102, -86), lat_bounds=(51, 61))
+    bx = asilib.map.create_simple_map(
+        fig_ax=(fig, 122), 
+        lon_bounds=(-102, -86), 
+        lat_bounds=(51, 61)
+        )
 
     asi = asilib.asi.trex_nir('gill', time='2020-03-21T06:00')
     asi.plot_fisheye(ax=ax)
     asi.plot_map(ax=bx)
-    plt.tight_layout()
+    # plt.tight_layout()
     return
 
 
