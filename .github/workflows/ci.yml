@@ -36,6 +36,8 @@ jobs:
 
         # python -m pip install --upgrade pip
         python -m pip install flake8 pytest cartopy
+        python -m pip uninstall shapely  # https://stackoverflow.com/a/52399943
+        python -m pip install --no-binary :all: shapely
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |
