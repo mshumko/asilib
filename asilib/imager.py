@@ -266,6 +266,7 @@ class Imager:
         cardinal_directions: str = 'NE',
         origin: tuple = (0.8, 0.1),
         movie_container: str = 'mp4',
+        animation_save_dir: Union[pathlib.Path, str]=None,
         ffmpeg_params={},
         overwrite: bool = False,
     ) -> Generator[
@@ -363,8 +364,12 @@ class Imager:
 
         # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
         # not exist.
+        if animation_save_dir is None:
+            _path = asilib.config['ASI_DATA_DIR']
+        else:
+            _path = animation_save_dir
         image_save_dir = pathlib.Path(
-            asilib.config['ASI_DATA_DIR'],
+            _path,
             'animations',
             'images',
             f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_{self.meta["array"].lower()}_'
@@ -376,6 +381,7 @@ class Imager:
             f'{self.meta["array"].lower()}_{self.meta["location"].lower()}_fisheye.{movie_container}'
         )
         movie_save_path = image_save_dir.parents[1] / self.animation_name
+
         # If the image directory exists we need to first remove all of the images to avoid
         # animating images from different method calls.
         if image_save_dir.is_dir():
@@ -659,6 +665,7 @@ class Imager:
         pcolormesh_kwargs: dict = {},
         asi_label: bool = True,
         movie_container: str = 'mp4',
+        animation_save_dir: Union[pathlib.Path, str]=None,
         ffmpeg_params={},
         overwrite: bool = False,
     ) -> Generator[
@@ -775,13 +782,18 @@ class Imager:
             )
         # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
         # not exist.
+        if animation_save_dir is None:
+            _path = asilib.config['ASI_DATA_DIR']
+        else:
+            _path = animation_save_dir
         image_save_dir = pathlib.Path(
-            asilib.config['ASI_DATA_DIR'],
+            _path,
             'animations',
             'images',
             f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_{self.meta["array"].lower()}_'
             f'{self.meta["location"].lower()}_map',
         )
+
         self.animation_name = (
             f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
             f'{self.file_info["time_range"][-1].strftime("%H%M%S")}_'
