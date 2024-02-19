@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.20.7] - 2024-02-19
+
+### Fixed
+- Auroral intensities resulted in an index error is the satellite was at the horizon.
+
 ## [0.20.6] - 2024-02-18
 
 ### Changed
