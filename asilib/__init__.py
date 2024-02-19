@@ -1,7 +1,7 @@
 import pathlib
 import configparser
 
-__version__ = '0.20.6'
+__version__ = '0.20.7'
 
 # Load the configuration settings.
 HERE = pathlib.Path(__file__).parent.resolve()
