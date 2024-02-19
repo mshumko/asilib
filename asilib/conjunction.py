@@ -446,6 +446,10 @@ class Conjunction:
 
                 masked_box_len = len(idx_box[0])
                 if masked_box_len:
+                    row_below_hozizon = np.any(idx_box[0] >= mask.shape[0]) or np.any(idx_box[0] == 0)
+                    col_below_hozizon = np.any(idx_box[1] >= mask.shape[1]) or np.any(idx_box[1] == 0)
+                    if row_below_hozizon or col_below_hozizon:
+                        break  # The footprint is at the horizon.
                     mask[idx_box[0], idx_box[1]] = 1
                 else:
                     multiplier += step
