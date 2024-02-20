@@ -86,6 +86,7 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
+        color_brighten: bool = True,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
@@ -109,7 +110,11 @@ class Imager:
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
             the color normalization will be taken from the ASI array (if specified), and if not
-            specified it will default to logarithmic.
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
+        color_brighten: bool
+            If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
+            results in brighter colors. This is only applied to RGB images.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -161,7 +166,9 @@ class Imager:
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
         if len(self.meta['resolution']) == 3:  # tests if rgb
-                image = self._rgb_replacer(image)
+            image = self._rgb_replacer(image)
+            if color_brighten:
+                image = image / np.max(image)
 
         im = ax.imshow(image, cmap=color_map, norm=color_norm, origin="lower")
         if label:
@@ -192,7 +199,11 @@ class Imager:
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
             the color normalization will be taken from the ASI array (if specified), and if not
-            specified it will default to logarithmic.
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
+        color_brighten: bool
+            If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
+            results in brighter colors. This is only applied to RGB images.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -249,11 +260,13 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
+        color_brighten: bool = True,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
         origin: tuple = (0.8, 0.1),
         movie_container: str = 'mp4',
+        animation_save_dir: Union[pathlib.Path, str]=None,
         ffmpeg_params={},
         overwrite: bool = False,
     ) -> Generator[
@@ -284,7 +297,11 @@ class Imager:
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
             the color normalization will be taken from the ASI array (if specified), and if not
-            specified it will default to logarithmic.
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
+        color_brighten: bool
+            If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
+            results in brighter colors. This is only applied to RGB images.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -347,8 +364,12 @@ class Imager:
 
         # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
         # not exist.
+        if animation_save_dir is None:
+            _path = asilib.config['ASI_DATA_DIR']
+        else:
+            _path = animation_save_dir
         image_save_dir = pathlib.Path(
-            asilib.config['ASI_DATA_DIR'],
+            _path,
             'animations',
             'images',
             f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_{self.meta["array"].lower()}_'
@@ -360,6 +381,7 @@ class Imager:
             f'{self.meta["array"].lower()}_{self.meta["location"].lower()}_fisheye.{movie_container}'
         )
         movie_save_path = image_save_dir.parents[1] / self.animation_name
+
         # If the image directory exists we need to first remove all of the images to avoid
         # animating images from different method calls.
         if image_save_dir.is_dir():
@@ -384,6 +406,8 @@ class Imager:
             
             if len(self.meta['resolution']) == 3:  # tests if rgb
                 image = self._rgb_replacer(image)
+                if color_brighten:
+                    image = image / np.max(image)
 
             im = ax.imshow(image, cmap=_color_map, norm=_color_norm, origin='lower')
             if label:
@@ -417,6 +441,7 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
+        color_brighten: bool = True,
         min_elevation: float = 10,
         asi_label: bool = True,
         pcolormesh_kwargs: dict = {},
@@ -444,6 +469,14 @@ class Imager:
             The ocean color. If None will not draw it.
         color_map: str
             The matplotlib colormap to use. See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
+        color_norm: str
+            Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
+            the color normalization will be taken from the ASI array (if specified), and if not
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
+        color_brighten: bool
+            If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
+            results in brighter colors. This is only applied to RGB images.
         min_elevation: float
             Masks the pixels below min_elevation degrees.
         asi_label: bool
@@ -499,12 +532,14 @@ class Imager:
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
         ax, p, _ = self._plot_mapped_image(
-            ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs
+            ax, image, min_elevation, color_map, color_norm, color_brighten, asi_label, 
+            pcolormesh_kwargs
         )
         return ax, p
 
     def _plot_mapped_image(
-        self, ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs
+        self, ax, image, min_elevation, color_map, color_norm, color_brighten, asi_label, 
+        pcolormesh_kwargs
     ):
         """
         Plot the image onto a geographic map using the modified version of plt.pcolormesh.
@@ -527,6 +562,7 @@ class Imager:
             ax,
             cmap=color_map,
             norm=color_norm,
+            color_brighten=color_brighten,
             pcolormesh_kwargs=pcolormesh_kwargs_copy,
         )
 
@@ -568,7 +604,11 @@ class Imager:
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
             the color normalization will be taken from the ASI array (if specified), and if not
-            specified it will default to logarithmic.
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
+        color_brighten: bool
+            If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
+            results in brighter colors. This is only applied to RGB images.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -620,10 +660,12 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
+        color_brighten: bool = True,
         min_elevation: float = 10,
         pcolormesh_kwargs: dict = {},
         asi_label: bool = True,
         movie_container: str = 'mp4',
+        animation_save_dir: Union[pathlib.Path, str]=None,
         ffmpeg_params={},
         overwrite: bool = False,
     ) -> Generator[
@@ -665,7 +707,11 @@ class Imager:
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
             the color normalization will be taken from the ASI array (if specified), and if not
-            specified it will default to logarithmic.
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
+        color_brighten: bool
+            If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
+            results in brighter colors. This is only applied to RGB images.
         min_elevation: float
             Masks the pixels below min_elevation degrees.
         pcolormesh_kwargs: dict
@@ -736,13 +782,18 @@ class Imager:
             )
         # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
         # not exist.
+        if animation_save_dir is None:
+            _path = asilib.config['ASI_DATA_DIR']
+        else:
+            _path = animation_save_dir
         image_save_dir = pathlib.Path(
-            asilib.config['ASI_DATA_DIR'],
+            _path,
             'animations',
             'images',
             f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_{self.meta["array"].lower()}_'
             f'{self.meta["location"].lower()}_map',
         )
+
         self.animation_name = (
             f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
             f'{self.file_info["time_range"][-1].strftime("%H%M%S")}_'
@@ -766,7 +817,8 @@ class Imager:
             _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
             ax, pcolormesh_obj, label_obj = self._plot_mapped_image(
-                ax, image, min_elevation, _color_map, _color_norm, asi_label, pcolormesh_kwargs
+                ax, image, min_elevation, _color_map, _color_norm, color_brighten, asi_label, 
+                pcolormesh_kwargs
             )
 
             # Give the user the control of the subplot, image object, and return the image time
@@ -910,6 +962,7 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
+        color_brighten: bool = True,
         pcolormesh_kwargs={},
     ) -> Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
         """
@@ -940,7 +993,11 @@ class Imager:
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
             the color normalization will be taken from the ASI array (if specified), and if not
-            specified it will default to logarithmic.
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
+        color_brighten: bool
+            If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
+            results in brighter colors. This is only applied to RGB images.
         pcolormesh_kwargs: dict
             A dictionary of keyword arguments (kwargs) to pass directly into
             plt.pcolormesh.
@@ -993,10 +1050,9 @@ class Imager:
 
         # Same as transpose, but correctly handles RGB keograms.
         _keogram = np.swapaxes(_keogram, 1, 0)
-        if len(_keogram.shape) == 3:
-            # To see anything, the channel intensities need to span 0-255
-            # _keogram*=(255/_keogram.max())
-            _keogram = _keogram.astype(np.uint8)
+        if len(_keogram.shape) == 3 and color_brighten:
+            # To see the RGB intensities clearly, the channel intensities need to span 0-1.
+            _keogram = _keogram / np.max(_keogram)
 
         pcolormesh_obj = ax.pcolormesh(
             _keogram_time,
@@ -1280,31 +1336,6 @@ class Imager:
                     )[0]
                     yield time_chunk[idt], image_chunk[idt]
         return
-
-    # def iter_chunks(self, chunk_size: int) -> Union[np.array, np.array]:
-    #     """
-    #     Chunk and iterate over the ASI data. The output data is
-    #     clipped by time_range.
-
-    #     Parameters
-    #     ----------
-    #     chunk_size: int
-    #         The number of time stamps and images to return.
-
-    #     Yields
-    #     ------
-    #     np.array:
-    #         ASI timestamps in datetine.datetime() or numpy.datetime64() format.
-    #     np.array:
-    #         ASI images.
-
-    #     Example
-    #     -------
-    #     TODO: Add
-    #     """
-    #     raise NotImplementedError
-
-    #     yield
 
     def _estimate_n_times(self):
         """
@@ -1759,10 +1790,11 @@ class Imager:
         self,
         x: np.ndarray,
         y: np.ndarray,
-        c: np.ndarray,
+        image: np.ndarray,
         ax,
         cmap=None,
         norm=None,
+        color_brighten: bool = True,
         pcolormesh_kwargs={},
     ):
         """
@@ -1815,12 +1847,14 @@ class Imager:
         y[bottom:, :] = np.nanmax(y[bottom, :])
         
         if len(self.meta['resolution']) == 3: #tests to see if the colors selected for an rgb image are rgb or rb or something else
-            c = self._rgb_replacer(c)
+            image = self._rgb_replacer(image)
+            if color_brighten:
+                image = image / np.max(image)
             
         p = ax.pcolormesh(
             x,
             y,
-            c,
+            image,
             cmap=cmap,
             shading='auto',
             norm=norm,

@@ -8,6 +8,19 @@
 ### Added
 - Animate mosaics via `asilib.Imagers.animate_map()`. This method relies on synchronous iteration of all `asilib.Imager` objects passed into `asilib.Imagers`.
 - Loop over images of all `asilib.Imager` objects passed into `asilib.Imagers` as a function of time via `asilib.Imagers__iter__()`. This method returns a valid time stamp and image for all time synchronized `asilib.Imager` images, and returns a placeholder `None` if an `asilib.Imager` is off, or the imager is not synchorized (closest time stamp is more than a cadence away in time).
+## [0.20.7] - 2024-02-19
+
+### Fixed
+- Auroral intensities resulted in an index error is the satellite was at the horizon.
+
+## [0.20.6] - 2024-02-18
+
+### Changed
+- Removed the RGB normalization in the `trex_rgb()` loader. This fixed the vertical stripes in the keograms, but made the fisheye and mapped images much darker (since the `norm` kwarg in `plt.pcolormesh` and `plt.imshow` does nothing).
+- Refactored the TREx and Imager tests reflecting the minor changes.
+
+### Added
+- A `color_brighten` kwarg to by default enhance the RGB colors when calling the following asilib.Imager methods, `plot_fisheye`, `animate_fisheye_gen`, `plot_map`, and `animate_map_gen`. Unless `color_brighten=False`, the plots remain the same.
 
 ## [0.20.5] - 2023-12-20
 
