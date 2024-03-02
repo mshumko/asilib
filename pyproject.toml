@@ -11,17 +11,17 @@ classifiers = [
     "License :: OSI Approved :: GNU GENERAL PUBLIC LICENSE v3.0",
 
     "Programming Language :: Python :: 3", 
-    "Programming Language :: Python :: 3.8", 
     "Programming Language :: Python :: 3.9", 
     "Programming Language :: Python :: 3.10", 
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     ]
 dependencies = [
     "wheel", 
     "beautifulsoup4", 
     "requests", 
     "numpy < 2.0", 
-    "scipy", 
+    "scipy >= 1.10.0", 
     "pandas", 
     "matplotlib >= 3.7, <4.0", 
     "cdflib >= 0.3.20", 
