@@ -18,7 +18,7 @@ trex-imager-readfile==1.5.1
 # in Linux. It should be pinned by trex-imager-readfile, but left here in the meanwhile.
 opencv-python >= 4.8.0
 cdflib==0.3.20  # TODO: Remove @ version 1.0.0
-h5py==3.8.0  # for LAMP.
+h5py==3.10.0  # for LAMP.
 
 # Dev
 bump2version==1.0.1
