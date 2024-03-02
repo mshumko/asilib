@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.21.0] - 2024-03-02
+
+### Changed
+- Removed support for python 3.8
+- Added support for python 3.12
+- Incremented two package versions in requirements.txt: `scipy==1.20.0` and `h5py==3.10.0`.
+
+### Added
+- Project metadata in `pyproject.toml` and removed `setup.cfg`.
+- Additional package URLs in PyPI.
+
 ## [0.20.7] - 2024-02-19
 
 ### Fixed

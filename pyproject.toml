@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aurora-asi-lib"
-version = "0.20.8"
+version = "0.21.0"
 description = "An open source package providing data access and analysis tools for the world's all-sky imager (ASI) data."
 keywords = [ "aurora", "all sky imager", "REGO", "THEMIS", "TREx",]
 classifiers = [
