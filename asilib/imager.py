@@ -548,6 +548,11 @@ class Imager:
             self.skymap['lon'], self.skymap['lat'], self.skymap['el'], min_elevation, image=image
         )
 
+        if len(self.meta['resolution']) == 3:
+            _masked_image = self._rgb_replacer(_masked_image)
+            if color_brighten:
+                image = image / np.max(image)
+
         pcolormesh_kwargs_copy = pcolormesh_kwargs.copy()
         if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
             assert 'transform' not in pcolormesh_kwargs.keys(), (
@@ -562,7 +567,6 @@ class Imager:
             ax,
             cmap=color_map,
             norm=color_norm,
-            color_brighten=color_brighten,
             pcolormesh_kwargs=pcolormesh_kwargs_copy,
         )
 
@@ -1794,7 +1798,6 @@ class Imager:
         ax,
         cmap=None,
         norm=None,
-        color_brighten: bool = True,
         pcolormesh_kwargs={},
     ):
         """
@@ -1813,44 +1816,18 @@ class Imager:
 
         Function taken from `Michael, scivision @ GitHub <https://github.com/scivision/python-matlab-examples/blob/0dd8129bda8f0ec2c46dae734d8e43628346388c/PlotPcolor/pcolormesh_NaN.py>`_.
         """
-        # mask is True when lat and lon grid values are not nan.
-        mask = np.isfinite(x) & np.isfinite(y)
-        top = None
-        bottom = None
+        invalid_rows, invalid_cols = np.where(np.isnan(x) | np.isnan(y))
+        valid_rows, valid_cols = np.where(~np.isnan(x) & ~np.isnan(y))
 
-        for i, m in enumerate(mask):
-            # A common use for nonzero is to find the indices of
-            # an array, where a condition is True (not nan or inf)
-            good = m.nonzero()[0]
+        for invalid_row, invalid_col in zip(invalid_rows, invalid_cols):
+            distances = numpy.linalg.norm(
+                np.stack((invalid_row-valid_rows, invalid_col-valid_cols)), 
+                axis=0
+                )
+            idx = np.argmin(distances)
+            x[invalid_row, invalid_col] = x[valid_rows[idx], valid_cols[idx]]
+            y[invalid_row, invalid_col] = y[valid_rows[idx], valid_cols[idx]]
 
-            if good.size == 0:  # Skip row is all columns are nans.
-                continue
-            # First row that has at least 1 valid value.
-            elif top is None:
-                top = i
-            # Bottom row that has at least 1 value value. All indices in between top and bottom
-            else:
-                bottom = i
-
-            # Reassign all lat/lon columns after good[-1] (all nans) to good[-1].
-            x[i, good[-1] :] = x[i, good[-1]]
-            y[i, good[-1] :] = y[i, good[-1]]
-            # Reassign all lat/lon columns before good[0] (all nans) to good[0].
-            x[i, : good[0]] = x[i, good[0]]
-            y[i, : good[0]] = y[i, good[0]]
-
-        # Reassign all of the fully invalid lat/lon rows above top to the the max lat/lon value.
-        x[:top, :] = np.nanmax(x[top, :])
-        y[:top, :] = np.nanmax(y[top, :])
-        # Same, but for the rows below bottom.
-        x[bottom:, :] = np.nanmax(x[bottom, :])
-        y[bottom:, :] = np.nanmax(y[bottom, :])
-        
-        if len(self.meta['resolution']) == 3: #tests to see if the colors selected for an rgb image are rgb or rb or something else
-            image = self._rgb_replacer(image)
-            if color_brighten:
-                image = image / np.max(image)
-            
         p = ax.pcolormesh(
             x,
             y,
@@ -1897,3 +1874,21 @@ def _haversine(
         )
     )
     return d
+
+if __name__ == '__main__':
+    from datetime import datetime
+    
+    import matplotlib.pyplot as plt
+    import asilib.map
+    import asilib
+    from asilib.asi.trex import trex_rgb
+    
+    time = datetime(2021, 11, 4, 7, 3, 51)
+    asi = trex_rgb('RABB', time=time, colors='rgb')
+    ax = asilib.map.create_simple_map(
+        lon_bounds=(asi.meta['lon']-7, asi.meta['lon']+7),
+        lat_bounds=(asi.meta['lat']-5, asi.meta['lat']+5)
+    )
+    asi.plot_map(ax=ax)
+    plt.tight_layout()
+    plt.show()
