@@ -8,7 +8,7 @@ version = "0.21.0"
 description = "An open source package providing data access and analysis tools for the world's all-sky imager (ASI) data."
 keywords = [ "aurora", "all sky imager", "REGO", "THEMIS", "TREx",]
 classifiers = [
-    "License :: OSI Approved :: GNU GENERAL PUBLIC LICENSE v3.0",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 
     "Programming Language :: Python :: 3", 
     "Programming Language :: Python :: 3.9", 
