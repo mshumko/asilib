@@ -1807,20 +1807,22 @@ class Imager:
         invalid_rows, invalid_cols = np.where(np.isnan(x) | np.isnan(y))
         valid_rows, valid_cols = np.where(~np.isnan(x) & ~np.isnan(y))
 
-        xx, yy = np.broadcast_arrays(
+        # Efficiently calculate distances from all the NaN vertices to all valid vertices.
+        invalid_row_grid, valid_row_grid = np.broadcast_arrays(
             invalid_rows.reshape(invalid_rows.shape[0], 1), 
-            valid_rows.reshape(valid_rows.shape[0], 1)
+            valid_rows.reshape(1, valid_rows.shape[0])
+            )
+        invalid_col_grid, valid_col_grid = np.broadcast_arrays(
+            invalid_cols.reshape(invalid_cols.shape[0], 1), 
+            valid_cols.reshape(1, valid_cols.shape[0])
             )
         
+        # Too much memory. Try the poly collection.
+        distances = np.sqrt((invalid_row_grid-valid_row_grid)**2 + (invalid_col_grid-valid_col_grid)**2)
+        min_idx = np.argmin(distances, axis=1)  # Will give the minimum valid row & col to each invalid vertex.
 
-        for invalid_row, invalid_col in zip(invalid_rows, invalid_cols):
-            distances = numpy.linalg.norm(
-                np.stack((invalid_row-valid_rows, invalid_col-valid_cols)), 
-                axis=0
-                )
-            idx = np.argmin(distances)
-            x[invalid_row, invalid_col] = x[valid_rows[idx], valid_cols[idx]]
-            y[invalid_row, invalid_col] = y[valid_rows[idx], valid_cols[idx]]
+        x[invalid_rows, invalid_cols] = x[valid_rows[min_idx], valid_cols[min_idx]]
+        y[invalid_rows, invalid_cols] = y[valid_rows[min_idx], valid_cols[min_idx]]
 
         p = ax.pcolormesh(
             x,
