@@ -1807,6 +1807,12 @@ class Imager:
         invalid_rows, invalid_cols = np.where(np.isnan(x) | np.isnan(y))
         valid_rows, valid_cols = np.where(~np.isnan(x) & ~np.isnan(y))
 
+        xx, yy = np.broadcast_arrays(
+            invalid_rows.reshape(invalid_rows.shape[0], 1), 
+            valid_rows.reshape(valid_rows.shape[0], 1)
+            )
+        
+
         for invalid_row, invalid_col in zip(invalid_rows, invalid_cols):
             distances = numpy.linalg.norm(
                 np.stack((invalid_row-valid_rows, invalid_col-valid_cols)), 
