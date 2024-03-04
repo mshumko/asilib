@@ -1818,8 +1818,16 @@ class Imager:
             )
         
         # Too much memory. Try the poly collection.
-        distances = np.sqrt((invalid_row_grid-valid_row_grid)**2 + (invalid_col_grid-valid_col_grid)**2)
-        min_idx = np.argmin(distances, axis=1)  # Will give the minimum valid row & col to each invalid vertex.
+        _zipped_obj = zip(
+            np.array_split(invalid_row_grid, 100, axis=0),
+            np.array_split(valid_row_grid, 100, axis=0),
+            np.array_split(invalid_col_grid, 100, axis=0),
+            np.array_split(valid_col_grid, 100, axis=0)
+        )
+        min_idx = np.array([])
+        for invalid_row_chunk, valid_row_chunk, invalid_row_chunk, invalid_col_chunk in _zipped_obj:
+            distances = np.sqrt((invalid_row_chunk-valid_row_chunk)**2 + (invalid_row_chunk-invalid_col_chunk)**2)
+            min_idx = np.append(min_idx, np.argmin(distances, axis=1))  # Will give the minimum valid row & col to each invalid vertex.
 
         x[invalid_rows, invalid_cols] = x[valid_rows[min_idx], valid_cols[min_idx]]
         y[invalid_rows, invalid_cols] = y[valid_rows[min_idx], valid_cols[min_idx]]
