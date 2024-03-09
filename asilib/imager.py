@@ -1819,7 +1819,15 @@ class Imager:
                 color_list.append(image[row, col])
 
         p = matplotlib.collections.PatchCollection(patch_list)
-        p.set(norm=norm, cmap=cmap, facecolor=np.array(color_list))
+
+        facecolor = np.array(color_list)
+        if len(image.shape) == 2:
+            pass
+        elif len(image.shape) == 3:
+            facecolor = facecolor / np.iinfo(image.dtype).max  # Scale to 0-1.
+        else:
+            raise NotImplementedError(f'{image.shape} images unsupported')
+        p.set(norm=norm, cmap=cmap, facecolor=facecolor, edgecolor='face')
         ax.add_collection(p)
         return p
 
