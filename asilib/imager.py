@@ -13,6 +13,7 @@ import pathlib
 import inspect
 import shutil
 import copy
+import itertools
 from collections import namedtuple
 from typing import List, Tuple, Generator, Union
 import warnings
@@ -1796,51 +1797,30 @@ class Imager:
         y: np.ndarray,
         image: np.ndarray,
         ax,
-        cmap=None,
-        norm=None,
-        pcolormesh_kwargs={},
+        cmap=None,  # TODO: Make a required argument
+        norm=None,  # TODO: Make a required argument
+        pcolormesh_kwargs={},  # TODO: Remove once this function works.
     ):
         """
-        Since pcolormesh cant handle nan lat/lon grid values, we will assign them to the
-        nearest valid lat/lon pixel vertex.
+        Plot a collection of patches on onto a map.
         """
-        invalid_rows, invalid_cols = np.where(np.isnan(x) | np.isnan(y))
-        valid_rows, valid_cols = np.where(~np.isnan(x) & ~np.isnan(y))
+        patch_list = []
+        color_list = []
 
-        # Efficiently calculate distances from all the NaN vertices to all valid vertices.
-        invalid_row_grid, valid_row_grid = np.broadcast_arrays(
-            invalid_rows.reshape(invalid_rows.shape[0], 1), 
-            valid_rows.reshape(1, valid_rows.shape[0])
-            )
-        invalid_col_grid, valid_col_grid = np.broadcast_arrays(
-            invalid_cols.reshape(invalid_cols.shape[0], 1), 
-            valid_cols.reshape(1, valid_cols.shape[0])
-            )
-        
-        # Too much memory. Try the poly collection.
-        _zipped_obj = zip(
-            np.array_split(invalid_row_grid, 100, axis=0),
-            np.array_split(valid_row_grid, 100, axis=0),
-            np.array_split(invalid_col_grid, 100, axis=0),
-            np.array_split(valid_col_grid, 100, axis=0)
-        )
-        min_idx = np.array([])
-        for invalid_row_chunk, valid_row_chunk, invalid_row_chunk, invalid_col_chunk in _zipped_obj:
-            distances = np.sqrt((invalid_row_chunk-valid_row_chunk)**2 + (invalid_row_chunk-invalid_col_chunk)**2)
-            min_idx = np.append(min_idx, np.argmin(distances, axis=1))  # Will give the minimum valid row & col to each invalid vertex.
+        for row, col in itertools.product(np.arange(0, x.shape[0]-1), np.arange(0, x.shape[1]-1)):
+            vertices = np.array([
+                [x[row, col],     y[row, col]],
+                [x[row+1, col],   y[row+1, col]],
+                [x[row+1, col+1], y[row+1, col+1]],
+                [x[row, col+1],   y[row, col+1]]
+                ])
+            if not np.any(np.isnan(vertices)):  # Skip if any vertices are NaN.
+                patch_list.append(matplotlib.patches.Polygon(vertices))
+                color_list.append(image[row, col])
 
-        x[invalid_rows, invalid_cols] = x[valid_rows[min_idx], valid_cols[min_idx]]
-        y[invalid_rows, invalid_cols] = y[valid_rows[min_idx], valid_cols[min_idx]]
-
-        p = ax.pcolormesh(
-            x,
-            y,
-            image,
-            cmap=cmap,
-            shading='auto',
-            norm=norm,
-            **pcolormesh_kwargs,
-        )
+        p = matplotlib.collections.PatchCollection(patch_list)
+        p.set(norm=norm, cmap=cmap, facecolor=np.array(color_list))
+        ax.add_collection(p)
         return p
 
 
