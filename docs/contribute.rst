@@ -5,7 +5,7 @@ We welcome community support in the form of feature request, bug reports, or dir
 
 Bug Reports and Feature Requests
 --------------------------------
-If you find a bug or you have a feature request, feel free to let us know via `GitHub's issues <https://github.com/mshumko/aurora-asi-lib/issues/new/choose>`_. Please select the appropriate issue template to help the developers quickly understand your problem or request, and determine what changes to implement in asilib. Lastly, before suggesting a feature, please read the :ref:`scope` section below to decide if the feature is aligned with the asilib goals.
+If you find a bug or you have a feature request, feel free to let us know via `GitHub's issues <https://github.com/mshumko/asilib/issues/new/choose>`_. Please select the appropriate issue template to help the developers quickly understand your problem or request, and determine what changes to implement in asilib. Lastly, before suggesting a feature, please read the :ref:`scope` section below to decide if the feature is aligned with the asilib goals.
 
 Installation
 ------------
@@ -14,7 +14,7 @@ To standardize the development packages, run the following commands to reproduce
 
 .. code-block:: shell
 
-   git clone git@github.com:mshumko/aurora-asi-lib.git
+   git clone git@github.com:mshumko/asilib.git
    cd aurora-asi-lib
    python3 -m pip install -r requirements.txt
 

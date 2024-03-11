@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.22.0] - 2024-03-11
+
+### Changed
+- Renamed `aurora-asi-lib` to `asilib` in PyPI. Now the package can be installed via `python3 -m pip install asilib`.
+
 ## [0.21.0] - 2024-03-02
 
 ### Changed
@@ -28,7 +33,7 @@
 ## [0.20.5] - 2023-12-20
 
 ### Fixed
-- A bug raised in issue #15 (https://github.com/mshumko/aurora-asi-lib/issues/15) where an `asilib.Imagers` class, initiated with a single `asilib.Imager`, would try to incorrectly index `asilib.Imager` unless it is wrapper in a tuple.
+- A bug raised in issue #15 (https://github.com/mshumko/asilib/issues/15) where an `asilib.Imagers` class, initiated with a single `asilib.Imager`, would try to incorrectly index `asilib.Imager` unless it is wrapper in a tuple.
 
 ## [0.20.4] - 2023-11-17
 

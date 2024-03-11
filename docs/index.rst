@@ -3,7 +3,7 @@
 
 **Last Built**: |today| | **Version**: |version| | **Source**: `github`_ | **Archive**: `zenodo`_.
 
-.. _github: https://github.com/mshumko/aurora-asi-lib
+.. _github: https://github.com/mshumko/asilib
 .. _zenodo: https://doi.org/10.5281/zenodo.4746446
 
 aurora-asi-lib is an open source package providing data access and analysis tools for the world's all-sky imager (ASI) data.

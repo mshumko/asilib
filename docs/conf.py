@@ -88,4 +88,4 @@ def linkcode_resolve(domain, info):
     if not info['module']:
         return None
     filename = info['module'].replace('.', '/')
-    return "https://github.com/mshumko/aurora-asi-lib/tree/main/%s.py" % filename
+    return "https://github.com/mshumko/asilib/tree/main/%s.py" % filename

@@ -3,7 +3,7 @@ requires = [ "setuptools>=61.2",]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "aurora-asi-lib"
+name = "asilib"
 version = "0.21.1"
 description = "An open source package providing data access and analysis tools for the world's all-sky imager (ASI) data."
 keywords = [ "aurora", "all sky imager", "REGO", "THEMIS", "TREx",]
@@ -46,9 +46,9 @@ content-type = "text/markdown"
 [project.urls]
 Homepage = "https://aurora-asi-lib.readthedocs.io/"
 Documentation = "https://aurora-asi-lib.readthedocs.io/"
-Source = "https://github.com/mshumko/aurora-asi-lib"
-Issues = "https://github.com/mshumko/aurora-asi-lib/issues"
-Changelog = "https://github.com/mshumko/aurora-asi-lib/blob/main/CHANGELOG.md"
+Source = "https://github.com/mshumko/asilib"
+Issues = "https://github.com/mshumko/asilib/issues"
+Changelog = "https://github.com/mshumko/asilib/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
 include-package-data = true
