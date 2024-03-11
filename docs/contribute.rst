@@ -15,7 +15,7 @@ To standardize the development packages, run the following commands to reproduce
 .. code-block:: shell
 
    git clone git@github.com:mshumko/asilib.git
-   cd aurora-asi-lib
+   cd asilib
    python3 -m pip install -r requirements.txt
 
 To develop the docs, you must install Sphinx to your operating system. For linux the command is 

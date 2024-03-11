@@ -5,8 +5,9 @@
 
 .. _github: https://github.com/mshumko/asilib
 .. _zenodo: https://doi.org/10.5281/zenodo.4746446
+.. _pypi: https://pypi.org/project/asilib/
 
-aurora-asi-lib is an open source package providing data access and analysis tools for the world's all-sky imager (ASI) data.
+asilib is an open source package providing data access and analysis tools for the world's all-sky imager (ASI) data.
 
 The purpose of this project is to combine data from numerous observational ASI arrays into a single unified framework and is thus not associated with the development and operations of all sky cameras, or the curation of ASI datasets. All data is publicly available and is provided as-is. Please give appropriate credit and coordinate with instrument teams with regards to data issues and/or interpretation. See the :ref:`acknowledgements` section for more information.
 
@@ -16,11 +17,8 @@ Supported ASI arrays
 - :ref:`themis_asi`,
 - :ref:`trex_asi`
 
-.. note::
-   While this package is named `aurora-asi-lib`, import it using the name `asilib`.
-
 .. figure:: ./_static/global_coverage.png
-   :alt: A geographic map showing the spatial coverage (field of view rings) of all imagers supported by aurora-asi-lib.
+   :alt: A geographic map showing the spatial coverage (field of view rings) of all imagers supported by asilib.
    :width: 75%
 
 .. figure:: ./_static/collage.png

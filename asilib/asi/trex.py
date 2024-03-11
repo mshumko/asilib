@@ -59,24 +59,6 @@ def trex_rgb(
 
     For more information see: https://www.ucalgary.ca/aurora/projects/trex.
 
-    .. warning::
-
-        In early October 2023 the TREx-RGB data format changed, which resulted in a "ValueError: 
-        A problematic PGM file..." exception for asilib versions <= 0.20.1. If you're having this 
-        issue, you'll need to upgrade asilib to version >= 0.20.2 and delete the outdated TREx RGB
-        image files. The code below is the simplest solution:
-
-        .. code-block:: python
-
-            import os
-            import shutil
-
-            os.system("pip install aurora-asi-lib -U")
-
-            import asilib
-
-            shutil.rmtree(asilib.config['ASI_DATA_DIR'] / 'trex' / 'rgb')
-
     Parameters
     ----------
     location_code: str
