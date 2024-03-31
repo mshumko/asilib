@@ -593,5 +593,5 @@ if __name__ == '__main__':
         [asilib.asi.trex_rgb(location_code, time_range=time_range) 
         for location_code in ['LUCK', 'PINA', 'GILL', 'RABB']]
         )
-    asis.animate_map(lon_bounds=(-140, -60), lat_bounds=(40, 82), overwrite=True)
+    asis.animate_map(lon_bounds=(-115, -85), lat_bounds=(43, 63), overwrite=True)
     print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asis.animation_name}')
