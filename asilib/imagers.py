@@ -220,7 +220,7 @@ class Imagers:
         ffmpeg_params={},
         overwrite: bool = False,
     ) -> Generator[
-        Tuple[datetime.datetime, List[datetime.datetime], List[np.ndarray], plt.Axes]
+        Tuple[datetime, list[datetime], list[np.ndarray], plt.Axes], None, None
     ]:
         """
         Animate an ASI mosaic.
@@ -563,6 +563,9 @@ class Imagers:
     
 
 if __name__ == '__main__':
+    import asilib
+    import asilib.asi
+    
     time_range = ('2023-02-24T05:10', '2023-02-24T05:15')
     time_tol = 1
     # Load all TREx imagers.
@@ -572,3 +575,4 @@ if __name__ == '__main__':
         for location_code in trex_metadata['location_code']]
         )
     asis.animate_map()
+    print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asis.animation_name}')
