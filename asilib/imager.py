@@ -181,8 +181,8 @@ class Imager:
 
     def animate_fisheye(self, **kwargs) -> None:
         """
-        A wrapper for the ```animate_fisheye_gen()``` method that animates a series of
-        fisheye images. Any kwargs are passed directly into ```animate_fisheye_gen()```.
+        A wrapper for the ```Imager.animate_fisheye_gen()``` method that animates a series of
+        fisheye images. Any kwargs are passed directly into ```Imager.animate_fisheye_gen()```.
 
         Parameters
         ----------

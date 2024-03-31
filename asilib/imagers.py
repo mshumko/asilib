@@ -145,27 +145,10 @@ class Imagers:
     # def animate_fisheye_gen(self):
     #     raise NotImplementedError
     
-    def animate_map(
-            self, 
-            lon_bounds: tuple = (-160, -50),
-            lat_bounds: tuple = (40, 82),
-            ax: Union[plt.Axes, tuple] = None,
-            coast_color: str = 'k',
-            land_color: str = 'g',
-            ocean_color: str = 'w',
-            color_map: str = None,
-            color_bounds: List[float] = None,
-            color_norm: str = None,
-            min_elevation: float = 10,
-            pcolormesh_kwargs: dict = {},
-            asi_label: bool = True,
-            movie_container: str = 'mp4',
-            ffmpeg_params={},
-            overwrite: bool = False,
-            overlap=False
-            ):
+    def animate_map(self, **kwargs):
         """
-        Animate an ASI mosaic.
+        Animate an ASI mosaic. It is a wrapper for the ```Imagers.animate_map_gen()``` method and
+        any kwargs are passed directly into ```Imagers.animate_map_gen()```.
 
         Parameters
         ----------
@@ -212,15 +195,7 @@ class Imagers:
             Overwrite the animation. If False, ffmpeg will prompt you to answer y/n if the
             animation already exists.
         """
-        if ax is None:
-            ax = asilib.map.create_map(
-                lon_bounds=lon_bounds,
-                lat_bounds=lat_bounds,
-                coast_color=coast_color,
-                land_color=land_color,
-                ocean_color=ocean_color,
-            )
-        for _ in self.animate_map_gen(ax=ax, overlap=overlap):
+        for _ in self.animate_map_gen(**kwargs):
             pass
         return
     
@@ -245,7 +220,7 @@ class Imagers:
         ffmpeg_params={},
         overwrite: bool = False,
     ) -> Generator[
-        Tuple[datetime.datetime, np.ndarray, plt.Axes, matplotlib.collections.QuadMesh], None, None
+        Tuple[datetime.datetime, List[datetime.datetime], List[np.ndarray], plt.Axes]
     ]:
         """
         Animate an ASI mosaic.
@@ -253,6 +228,21 @@ class Imagers:
         Parameters
         ----------
         TODO: Finish docs
+
+        Yields
+        ------
+        datetime.datetime
+            The guide time used to keep the images synchronized.
+        List[datetime.datetime]
+            Nearest imager time stamps to the guide time. If the difference between
+            the imager time and the guide time is greater than time_tol*imager_cadence, 
+            or the imager is off, the imager is considered unsynchronized and the 
+            returned time is datetime.min.
+        List[np.ndarray]
+            The images corresponding to the times returned above. If the that imager is
+            unsynchronized, the corresponding image value is None.
+        plt.Axes
+            The subplot object.
 
         Example
         -------
@@ -570,3 +560,15 @@ class Imagers:
             imager.skymap['lon'][far_pixels] = np.nan
         self._masked = True  # A flag to not run again.
         return
+    
+
+if __name__ == '__main__':
+    time_range = ('2023-02-24T05:10', '2023-02-24T05:15')
+    time_tol = 1
+    # Load all TREx imagers.
+    trex_metadata = asilib.asi.trex_rgb_info()
+    asis = asilib.Imagers(
+        [asilib.asi.trex_rgb(location_code, time_range=time_range) 
+        for location_code in trex_metadata['location_code']]
+        )
+    asis.animate_map()
