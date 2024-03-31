@@ -5,13 +5,17 @@ fisheye lens and mapped images. The mapped images are also called mosaics.
 
 from typing import Tuple, List, Union, Generator
 from collections import namedtuple
+import pathlib
 from datetime import datetime, timedelta
+import shutil
 
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 
 from asilib.imager import Imager, _haversine
 import asilib.map
+import asilib.utils
 
 
 class Imagers:
@@ -220,20 +224,118 @@ class Imagers:
             pass
         return
     
-    def animate_map_gen(self, ax=None, overlap=False):
+    def animate_map_gen(
+        self,
+        overlap=False,
+        lon_bounds: tuple = (-160, -50),
+        lat_bounds: tuple = (40, 82),
+        ax: Union[plt.Axes, tuple] = None,
+        coast_color: str = 'k',
+        land_color: str = 'g',
+        ocean_color: str = 'w',
+        color_map: str = None,
+        color_bounds: List[float] = None,
+        color_norm: str = None,
+        color_brighten: bool = True,
+        min_elevation: float = 10,
+        pcolormesh_kwargs: dict = {},
+        asi_label: bool = True,
+        movie_container: str = 'mp4',
+        animation_save_dir: Union[pathlib.Path, str]=None,
+        ffmpeg_params={},
+        overwrite: bool = False,
+    ) -> Generator[
+        Tuple[datetime.datetime, np.ndarray, plt.Axes, matplotlib.collections.QuadMesh], None, None
+    ]:
         """
-        A generator to animate the ASI mosaic.
+        Animate an ASI mosaic.
 
         Parameters
         ----------
         TODO: Finish docs
+
+        Example
+        -------
+        .. code-block python
+
+            >>> pass
         """
         if overlap:
             self._calc_overlap_mask()
 
-        for _time, _asi_times, _asi_images in self.__iter__():
-            yield _asi_times, _asi_images, # ax, pcolormesh_obj
+        if ax is None:
+            ax = asilib.map.create_map(
+                lon_bounds=lon_bounds,
+                lat_bounds=lat_bounds,
+                coast_color=coast_color,
+                land_color=land_color,
+                ocean_color=ocean_color,
+            )
 
+        # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
+        # not exist.
+        if animation_save_dir is None:
+            _path = asilib.config['ASI_DATA_DIR']
+        else:
+            _path = animation_save_dir
+        image_save_dir = pathlib.Path(
+            _path,
+            'animations',
+            'images',
+            f'{self.imagers[0].file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_mosaic',
+        )
+
+        self.animation_name = (
+            f'{self.imagers[0].file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
+            f'{self.imagers[0].file_info["time_range"][-1].strftime("%H%M%S")}_mosaic.'
+            f'{movie_container}'
+        )
+        movie_save_path = image_save_dir.parents[1] / self.animation_name
+        # If the image directory exists we need to first remove all of the images to avoid
+        # animating images produced by different method calls.
+        if image_save_dir.is_dir():
+            shutil.rmtree(image_save_dir)
+        image_save_dir.mkdir(parents=True)
+
+        image_paths = []
+        _progressbar = asilib.utils.progressbar(
+            enumerate(self.__iter__()),
+            iter_length=self.imagers[0]._estimate_n_times(),
+            text=self.animation_name,
+        )
+
+        for i, (_guide_time, _asi_times, _asi_images) in _progressbar:
+            asi_labels = len(self.imagers)*[None]
+            pcolormesh_objs = len(self.imagers)*[None]
+            for j, (_asi_time, _asi_image) in enumerate(zip(_asi_times, _asi_images)):
+                if _asi_time == datetime.min:
+                    continue
+                _color_map, _color_norm = self.imagers[0]._plot_params(
+                    _asi_image, color_bounds, color_map, color_norm
+                    )
+
+                ax, pcolormesh_objs[j], asi_labels[j] = self.imagers[0]._plot_mapped_image(
+                    ax, _asi_image, min_elevation, _color_map, _color_norm, color_brighten, asi_label, 
+                    pcolormesh_kwargs
+                )
+
+            # Give the user the control of the subplot, image object, and return the image time
+            # so that they can manipulate the image to add, for example, the satellite track.
+            yield _guide_time, _asi_times, _asi_images, ax
+
+            # Save the plot before the next iteration.
+            save_name = f'{str(i).zfill(6)}.png'
+            plt.savefig(image_save_dir / save_name)
+            image_paths.append(image_save_dir / save_name)
+
+            # Clean up the objects that this method generated.
+            for asi_label in asi_labels:
+                if asi_label is not None:
+                    asi_label.remove()
+            for pcolormesh_obj in pcolormesh_objs:
+                pcolormesh_obj.remove()
+        
+        self.imagers[0]._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
         return
     
     def __iter__(self) -> Generator[datetime, List, List]:

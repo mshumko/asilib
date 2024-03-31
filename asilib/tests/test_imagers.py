@@ -151,7 +151,7 @@ def test_iterate_imagers():
     
     dt[np.abs(dt) > 3600*24] = np.nan
 
-    assert np.nanmax(np.abs(dt)) == 3.297666
-    assert np.all(~np.isnan(dt[:-1, :]))
+    assert np.nanmax(np.abs(dt)) == 3.297666  # Maximum unsynchronized time difference.
+    assert np.all(~np.isnan(dt[:-1, :]))  # All 
     assert np.all(np.isnan(dt[-1, :]) == np.array([False, False, False,  True, False, False]))
     return
