@@ -250,7 +250,7 @@ class Imagers:
 
             >>> pass
         """
-        if overlap:
+        if not overlap:
             self._calc_overlap_mask()
 
         if ax is None:
@@ -300,11 +300,11 @@ class Imagers:
             for j, (_asi_time, _asi_image) in enumerate(zip(_asi_times, _asi_images)):
                 if _asi_time == datetime.min:
                     continue
-                _color_map, _color_norm = self.imagers[0]._plot_params(
+                _color_map, _color_norm = self.imagers[j]._plot_params(
                     _asi_image, color_bounds, color_map, color_norm
                     )
 
-                ax, pcolormesh_objs[j], asi_labels[j] = self.imagers[0]._plot_mapped_image(
+                ax, pcolormesh_objs[j], asi_labels[j] = self.imagers[j]._plot_mapped_image(
                     ax, _asi_image, min_elevation, _color_map, _color_norm, color_brighten, asi_label, 
                     pcolormesh_kwargs
                 )
@@ -323,7 +323,8 @@ class Imagers:
                 if asi_label is not None:
                     asi_label.remove()
             for pcolormesh_obj in pcolormesh_objs:
-                pcolormesh_obj.remove()
+                if pcolormesh_obj is not None:
+                    pcolormesh_obj.remove()
         
         self.imagers[0]._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
         return
@@ -561,12 +562,31 @@ class Imagers:
         self._masked = True  # A flag to not run again.
         return
     
+    def __str__(self):
+        names = [f'{_img.meta["array"]}-{_img.meta["location"]}' for _img in self.imagers]
+        names = 'asilib.Imagers initiated with:\n' + ', '.join(names)
+
+        if (
+                ('time' in self.imagers[0].file_info.keys()) and 
+                (self.imagers[0].file_info['time'] is not None)
+            ):
+            return (names + f'\ntime={self.imagers[0].file_info["time"]}')
+        elif (
+                ('time_range' in self.imagers[0].file_info.keys()) and 
+                (self.imagers[0].file_info['time_range'] is not None)
+            ):
+            return (names + f'\ntime_range={self.imagers[0].file_info["time_range"]}')
+        else:
+            raise ValueError(
+                'The 0th imager object does not have a "time" or a "time_range" variable.'
+                )
+    
 
 if __name__ == '__main__':
     import asilib
     import asilib.asi
-    
-    time_range = ('2023-02-24T05:10', '2023-02-24T05:15')
+
+    time_range = ('2021-11-04T06:55', '2021-11-04T07:05')
     time_tol = 1
     # Load all TREx imagers.
     trex_metadata = asilib.asi.trex_rgb_info()
