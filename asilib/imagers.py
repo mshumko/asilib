@@ -364,7 +364,7 @@ class Imagers:
             for _imager in self.imagers
             }
         future_iterators = {}
-        stopped_iterators = 0
+        stopped_iterators = []
 
         for guide_time in times:
             _asi_times = []
@@ -380,9 +380,11 @@ class Imagers:
                 except StopIteration:
                     _asi_times.append(datetime.min)
                     _asi_images.append(None)
-                    stopped_iterators += 1
-                    if len(asi_iterators) == stopped_iterators:
-                        # To avoid yielding a few all-Nan outputs.
+
+                    if _name not in stopped_iterators:
+                        stopped_iterators.append(_name)
+                    if len(asi_iterators) == len(stopped_iterators):
+                        # Stop once all iterators are exhausted.
                         return
                     continue
                 abs_dt = np.abs((guide_time-_asi_time).total_seconds())
@@ -587,12 +589,9 @@ if __name__ == '__main__':
     import asilib.asi
 
     time_range = ('2021-11-04T06:55', '2021-11-04T07:05')
-    time_tol = 1
-    # Load all TREx imagers.
-    trex_metadata = asilib.asi.trex_rgb_info()
     asis = asilib.Imagers(
         [asilib.asi.trex_rgb(location_code, time_range=time_range) 
-        for location_code in trex_metadata['location_code']]
+        for location_code in ['LUCK', 'PINA', 'GILL', 'RABB']]
         )
-    asis.animate_map()
+    asis.animate_map(lon_bounds=(-140, -60), lat_bounds=(40, 82), overwrite=True)
     print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asis.animation_name}')
