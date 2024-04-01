@@ -191,9 +191,9 @@ class Imagers:
         animation_save_dir: Union[pathlib.Path, str]=None,
         ffmpeg_params={},
         overwrite: bool = False,
-    ) -> Generator[
-        Tuple[datetime, list[datetime], list[np.ndarray], plt.Axes], None, None
-    ]:
+        ) -> Generator[
+            Tuple[datetime, list[datetime], list[np.ndarray], plt.Axes], None, None
+        ]:
         """
         Animate an ASI mosaic.
 
@@ -264,6 +264,8 @@ class Imagers:
         -------
         .. code-block:: python
 
+            >>> # Animate a TREX-RGB mosaic and print the individual time stamps
+            >>> # to confirm that the imagers are synchronized.
             >>> import asilib
             >>> import asilib.asi
             >>> 
@@ -272,7 +274,23 @@ class Imagers:
             >>>     [asilib.asi.trex_rgb(location_code, time_range=time_range) 
             >>>     for location_code in ['LUCK', 'PINA', 'GILL', 'RABB']]
             >>>     )
-            >>> asis.animate_map_gen(lon_bounds=(-115, -85), lat_bounds=(43, 63), overwrite=True)
+            >>> gen = asis.animate_map_gen(
+            >>>     lon_bounds=(-115, -85), lat_bounds=(43, 63), overwrite=True
+            >>>     )
+            >>> for guide_time, asi_times, asi_images, ax in gen:
+            >>>     if '_text_obj' in locals():
+            >>>         _text_obj.remove()
+            >>>     info_str = f'Guide: {guide_time: %Y:%m:%d %H:%M:%S}%\\n'
+            >>>     # The below for loop is possible because the imagers and 
+            >>>     # asi_times can be indexed together.
+            >>>     for _imager, _imager_time in zip(asis.imagers, asi_times):
+            >>>         info_str += f'{_imager.meta["location"]}: {_imager_time: %Y:%m:%d %H:%M:%S}%\\n'
+            >>>     info_str = info_str[:-1]  # Remove the training newline
+            >>> 
+            >>>     _text_obj = ax.text(
+            >>>         0.01, 0.99, info_str, va='top', transform=ax.transAxes, 
+            >>>         bbox=dict(facecolor='grey', edgecolor='black'))
+            
         """
         if not overlap:
             self._calc_overlap_mask()
@@ -625,7 +643,7 @@ if __name__ == '__main__':
         lon_bounds=(-115, -85), lat_bounds=(43, 63), overwrite=True
         )
     for guide_time, asi_times, asi_images, ax in gen:
-        if '_text_obj' in locals():
+        if '_text_obj' in locals(): # noqa: F821
             _text_obj.remove()
         info_str = f'Guide: {guide_time: %Y:%m:%d %H:%M:%S}\n'
         # The below for loop is possible because the imagers and 
