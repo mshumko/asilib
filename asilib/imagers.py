@@ -632,6 +632,7 @@ if __name__ == '__main__':
         # asi_times can be indexed together.
         for _imager, _imager_time in zip(asis.imagers, asi_times):
             info_str += f'{_imager.meta["location"]}: {_imager_time: %Y:%m:%d %H:%M:%S}\n'
+        info_str = info_str[:-1]  # Remove the training \n
 
         _text_obj = ax.text(
             0.01, 0.99, info_str, va='top', transform=ax.transAxes, 
