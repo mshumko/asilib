@@ -643,8 +643,8 @@ if __name__ == '__main__':
         lon_bounds=(-115, -85), lat_bounds=(43, 63), overwrite=True
         )
     for guide_time, asi_times, asi_images, ax in gen:
-        if '_text_obj' in locals(): # noqa: F821
-            _text_obj.remove()
+        if '_text_obj' in locals():
+            _text_obj.remove()  # noqa: F821
         info_str = f'Guide: {guide_time: %Y:%m:%d %H:%M:%S}\n'
         # The below for loop is possible because the imagers and 
         # asi_times can be indexed together.
