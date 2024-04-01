@@ -280,11 +280,11 @@ class Imagers:
             >>> for guide_time, asi_times, asi_images, ax in gen:
             >>>     if '_text_obj' in locals():
             >>>         _text_obj.remove()
-            >>>     info_str = f'Guide: {guide_time: %Y:%m:%d %H:%M:%S}%\\n'
+            >>>     info_str = f'Guide: {guide_time: %Y:%m:%d %H:%M:%S}\\n'
             >>>     # The below for loop is possible because the imagers and 
             >>>     # asi_times can be indexed together.
             >>>     for _imager, _imager_time in zip(asis.imagers, asi_times):
-            >>>         info_str += f'{_imager.meta["location"]}: {_imager_time: %Y:%m:%d %H:%M:%S}%\\n'
+            >>>         info_str += f'{_imager.meta["location"]}: {_imager_time: %Y:%m:%d %H:%M:%S}\\n'
             >>>     info_str = info_str[:-1]  # Remove the training newline
             >>> 
             >>>     _text_obj = ax.text(
