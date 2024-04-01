@@ -53,7 +53,7 @@ class Imagers:
         ax: Tuple[plt.Axes]
             Subplots corresponding to each fisheye lens image.
         kwargs: dict
-            Keyword arguments directly passed into each :py:meth:`~asilib.imager.Imager.plot_fisheye()`
+            Keyword arguments directly passed into each :py:meth:`~asilib.Imager.plot_fisheye`
             method.
 
         Example
@@ -101,7 +101,7 @@ class Imagers:
             If True, pixels that overlap between imager FOV's are overplotted such that only the 
             final imager's pixels are shown.
         kwargs: dict
-            Keyword arguments directly passed into each :py:meth:`~asilib.imager.Imager.plot_map()`
+            Keyword arguments directly passed into each :py:meth:`~asilib.Imager.plot_map`
             method.
 
         Example
@@ -147,11 +147,61 @@ class Imagers:
     
     def animate_map(self, **kwargs):
         """
-        Animate an ASI mosaic. It is a wrapper for the ```Imagers.animate_map_gen()``` method and
-        any kwargs are passed directly into ```Imagers.animate_map_gen()```.
+        Animate an ASI mosaic. It is a wrapper for the 
+        :py:meth:`~asilib.Imagers.animate_map_gen` method.
+
+        See :py:meth:`~asilib.Imagers.animate_map_gen` documentation for the complete 
+        list of kwargs.
+
+        Example
+        -------
+        .. code-block:: python
+
+            >>> import asilib
+            >>> import asilib.asi
+            >>> 
+            >>> time_range = ('2021-11-04T06:55', '2021-11-04T07:05')
+            >>> asis = asilib.Imagers(
+            >>>     [asilib.asi.trex_rgb(location_code, time_range=time_range) 
+            >>>     for location_code in ['LUCK', 'PINA', 'GILL', 'RABB']]
+            >>>     )
+            >>> asis.animate_map(lon_bounds=(-115, -85), lat_bounds=(43, 63), overwrite=True)
+        """
+        for _ in self.animate_map_gen(**kwargs):
+            pass
+        return
+    
+    def animate_map_gen(
+        self,
+        overlap=False,
+        lon_bounds: tuple = (-160, -50),
+        lat_bounds: tuple = (40, 82),
+        ax: Union[plt.Axes, tuple] = None,
+        coast_color: str = 'k',
+        land_color: str = 'g',
+        ocean_color: str = 'w',
+        color_map: str = None,
+        color_bounds: List[float] = None,
+        color_norm: str = None,
+        color_brighten: bool = True,
+        min_elevation: float = 10,
+        pcolormesh_kwargs: dict = {},
+        asi_label: bool = True,
+        movie_container: str = 'mp4',
+        animation_save_dir: Union[pathlib.Path, str]=None,
+        ffmpeg_params={},
+        overwrite: bool = False,
+    ) -> Generator[
+        Tuple[datetime, list[datetime], list[np.ndarray], plt.Axes], None, None
+    ]:
+        """
+        Animate an ASI mosaic.
 
         Parameters
         ----------
+        overlap: bool
+            If True, pixels that overlap between imager FOV's are overplotted such that only the 
+            final imager's pixels are shown.
         lon_bounds: tuple
             The map's longitude bounds.
         lat_bounds: tuple
@@ -194,40 +244,6 @@ class Imagers:
         overwrite: bool
             Overwrite the animation. If False, ffmpeg will prompt you to answer y/n if the
             animation already exists.
-        """
-        for _ in self.animate_map_gen(**kwargs):
-            pass
-        return
-    
-    def animate_map_gen(
-        self,
-        overlap=False,
-        lon_bounds: tuple = (-160, -50),
-        lat_bounds: tuple = (40, 82),
-        ax: Union[plt.Axes, tuple] = None,
-        coast_color: str = 'k',
-        land_color: str = 'g',
-        ocean_color: str = 'w',
-        color_map: str = None,
-        color_bounds: List[float] = None,
-        color_norm: str = None,
-        color_brighten: bool = True,
-        min_elevation: float = 10,
-        pcolormesh_kwargs: dict = {},
-        asi_label: bool = True,
-        movie_container: str = 'mp4',
-        animation_save_dir: Union[pathlib.Path, str]=None,
-        ffmpeg_params={},
-        overwrite: bool = False,
-    ) -> Generator[
-        Tuple[datetime, list[datetime], list[np.ndarray], plt.Axes], None, None
-    ]:
-        """
-        Animate an ASI mosaic.
-
-        Parameters
-        ----------
-        TODO: Finish docs
 
         Yields
         ------
@@ -246,9 +262,17 @@ class Imagers:
 
         Example
         -------
-        .. code-block python
+        .. code-block:: python
 
-            >>> pass
+            >>> import asilib
+            >>> import asilib.asi
+            >>> 
+            >>> time_range = ('2021-11-04T06:55', '2021-11-04T07:05')
+            >>> asis = asilib.Imagers(
+            >>>     [asilib.asi.trex_rgb(location_code, time_range=time_range) 
+            >>>     for location_code in ['LUCK', 'PINA', 'GILL', 'RABB']]
+            >>>     )
+            >>> asis.animate_map_gen(lon_bounds=(-115, -85), lat_bounds=(43, 63), overwrite=True)
         """
         if not overlap:
             self._calc_overlap_mask()
@@ -585,6 +609,10 @@ class Imagers:
     
 
 if __name__ == '__main__':
+    """
+    Animate a TREX-RGB mosaic and print the individual time stamps
+    to confirm that the imagers are synchronized.
+    """
     import asilib
     import asilib.asi
 
@@ -593,5 +621,15 @@ if __name__ == '__main__':
         [asilib.asi.trex_rgb(location_code, time_range=time_range) 
         for location_code in ['LUCK', 'PINA', 'GILL', 'RABB']]
         )
-    asis.animate_map(lon_bounds=(-115, -85), lat_bounds=(43, 63), overwrite=True)
-    print(f'Animation saved in {asilib.config["ASI_DATA_DIR"] / "animations" / asis.animation_name}')
+    gen = asis.animate_map_gen(
+        lon_bounds=(-115, -85), lat_bounds=(43, 63), overwrite=True
+        )
+    for guide_time, asi_times, asi_images, ax in gen:
+        if '_text_obj' in locals():
+            _text_obj.remove()
+        info_str = f'{guide_time=}\n'
+        # The imagers and asi_times can be indexed the same way.
+        for _imager, _imager_time in zip(asis.imagers, asi_times):
+            info_str += f'{_imager.meta['location']}: {_imager_time: %Y:%m:%d %H%M%S}'
+
+        _text_obj = ax.text(0.05, 0.95, info_str, va='top', transform=ax.transAxes)
