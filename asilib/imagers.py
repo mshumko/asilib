@@ -627,9 +627,11 @@ if __name__ == '__main__':
     for guide_time, asi_times, asi_images, ax in gen:
         if '_text_obj' in locals():
             _text_obj.remove()
-        info_str = f'{guide_time=}\n'
+        info_str = f'Guide time: {guide_time: %Y:%m:%d %H%M%S}\n'
         # The imagers and asi_times can be indexed the same way.
         for _imager, _imager_time in zip(asis.imagers, asi_times):
-            info_str += f'{_imager.meta['location']}: {_imager_time: %Y:%m:%d %H%M%S}'
+            info_str += f'{_imager.meta["location"]}: {_imager_time: %Y:%m:%d %H%M%S}\n'
 
-        _text_obj = ax.text(0.05, 0.95, info_str, va='top', transform=ax.transAxes)
+        _text_obj = ax.text(
+            0.01, 0.99, info_str, va='top', transform=ax.transAxes, 
+            bbox=dict(facecolor='grey', edgecolor='black'))
