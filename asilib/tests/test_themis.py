@@ -124,6 +124,27 @@ def test_themis_fisheye():
     ax.axis('off')
     return
 
+def test_themis_download_bug_fix():
+    """
+    Test a bug if an imager does not have data for that hour, and that if missing_ok is set,
+    the Imager.keogram() raises a ValueError.
+    """
+    location_code = 'KAPU'
+    time_range = (datetime(2013, 3, 17, 11), datetime(2013, 3, 17, 11, 1))
+
+    with pytest.warns(UserWarning) as warninfo:
+        asi = asilib.asi.themis(location_code, time_range=time_range)
+
+    with pytest.raises(ValueError) as excinfo:
+        asi.plot_keogram()
+    
+    # check that only one warning was raised
+    assert len(warninfo) == 1
+    # check that the message matches
+    assert 'No local or online image files found' in warninfo[0].message.args[0]
+    assert 'The keogram is empty' in str(excinfo.value)
+    return
+
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_themis_map'], tol=10, remove_text=True, extensions=['png']
