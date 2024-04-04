@@ -628,29 +628,23 @@ class Imagers:
 
 if __name__ == '__main__':
     """
-    Animate a TREX-RGB mosaic and print the individual time stamps
-    to confirm that the imagers are synchronized.
+    Animate a THEMIS ASI mosaic from Jones+2013 (https://doi.org/10.1002/jgra.50301)
     """
     import asilib
     import asilib.asi
 
-    time_range = ('2021-11-04T06:55', '2021-11-04T07:05')
-    asis = asilib.Imagers(
-        [asilib.asi.trex_rgb(location_code, time_range=time_range) 
-        for location_code in ['LUCK', 'PINA', 'GILL', 'RABB']]
-        )
-    gen = asis.animate_map_gen(
-        lon_bounds=(-115, -85), lat_bounds=(43, 63), overwrite=True
-        )
+    time_range = ('2008-02-11T03:00', '2008-02-11T05:15')
+    asi_list = []
+
+    for location_code in asilib.asi.themis_info()['location_code']:
+        asi_list.append(asilib.asi.themis(location_code, time_range=time_range))
+
+    asis = asilib.Imagers(asi_list)
+    gen = asis.animate_map_gen(overwrite=True)
     for guide_time, asi_times, asi_images, ax in gen:
         if '_text_obj' in locals():
             _text_obj.remove()  # noqa: F821
-        info_str = f'Guide: {guide_time: %Y:%m:%d %H:%M:%S}\n'
-        # The below for loop is possible because the imagers and 
-        # asi_times can be indexed together.
-        for _imager, _imager_time in zip(asis.imagers, asi_times):
-            info_str += f'{_imager.meta["location"]}: {_imager_time: %Y:%m:%d %H:%M:%S}\n'
-        info_str = info_str[:-1]  # Remove the training \n
+        info_str = f'Time: {guide_time: %Y:%m:%d %H:%M:%S}'
 
         _text_obj = ax.text(
             0.01, 0.99, info_str, va='top', transform=ax.transAxes, 
