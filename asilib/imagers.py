@@ -84,6 +84,8 @@ class Imagers:
         >>> plt.tight_layout()
         >>> plt.show()
         """
+        if not isinstance(ax, (list, tuple, np.ndarray)):
+            ax = (ax,)
         assert len(ax) == len(self.imagers), 'Number of subplots must equal the number of imagers.'
 
         for ax_i, imager_i in zip(ax, self.imagers):
@@ -133,7 +135,7 @@ class Imagers:
         >>> plt.show()
         """
         if not overlap:
-            self._calc_overlap_mask()
+            self._calc_overlap_mask()  # TODO: Put into a context manager.
 
         for imager in self.imagers:
             imager.plot_map(**kwargs)
@@ -361,9 +363,9 @@ class Imagers:
             image_paths.append(image_save_dir / save_name)
 
             # Clean up the objects that this method generated.
-            for asi_label in asi_labels:
-                if asi_label is not None:
-                    asi_label.remove()
+            for _asi_label in asi_labels:
+                if _asi_label is not None:
+                    _asi_label.remove()
             for pcolormesh_obj in pcolormesh_objs:
                 if pcolormesh_obj is not None:
                     pcolormesh_obj.remove()
@@ -407,6 +409,8 @@ class Imagers:
             }
         future_iterators = {}
         stopped_iterators = []
+
+        # TODO: Recalculate the skymaps if an imager is delayed or turned off.
 
         for guide_time in times:
             _asi_times = []
@@ -627,17 +631,41 @@ class Imagers:
     
 
 if __name__ == '__main__':
+    # """
+    # Animate a THEMIS ASI mosaic from Jones+2013 (https://doi.org/10.1002/jgra.50301)
+    # """
+    # import asilib
+    # import asilib.asi
+
+    # time_range = ('2008-02-11T04:22', '2008-02-11T04:45')
+    # asi_list = []
+
+    # for location_code in asilib.asi.themis_info()['location_code']:
+    #     asi_list.append(asilib.asi.themis(location_code, time_range=time_range))
+
+    # asis = asilib.Imagers(asi_list)
+    # gen = asis.animate_map_gen(overwrite=True)
+    # for guide_time, asi_times, asi_images, ax in gen:
+    #     if '_text_obj' in locals():
+    #         _text_obj.remove()  # noqa: F821
+    #     info_str = f'Time: {guide_time: %Y:%m:%d %H:%M:%S}'
+
+    #     _text_obj = ax.text(
+    #         0.01, 0.99, info_str, va='top', transform=ax.transAxes, 
+    #         bbox=dict(facecolor='grey', edgecolor='black'))
+
     """
-    Animate a THEMIS ASI mosaic from Jones+2013 (https://doi.org/10.1002/jgra.50301)
+    Animate a REGO ASI mosaic from Panov+2019 (https://doi.org/10.1029/2019JA026521)
     """
     import asilib
     import asilib.asi
 
-    time_range = ('2008-02-11T03:00', '2008-02-11T05:15')
+    time_range = ('2016-08-09T06:00', '2016-08-09T09:15')
     asi_list = []
 
-    for location_code in asilib.asi.themis_info()['location_code']:
-        asi_list.append(asilib.asi.themis(location_code, time_range=time_range))
+    for location_code in ['GILL', 'FSMI', 'FSIM']:
+        asi_list.append(asilib.asi.rego(location_code, time_range=time_range))
+        # Also try THEMIS-GILL, 
 
     asis = asilib.Imagers(asi_list)
     gen = asis.animate_map_gen(overwrite=True)

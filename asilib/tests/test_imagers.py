@@ -30,6 +30,29 @@ def test_donovan_arc_example():
     ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
     return
 
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_plot_bad_image'],
+    tol=10,
+    remove_text=True,
+    extensions=['png'],
+)
+def test_plot_bad_image():
+    """
+    There is a bad image in TREX-RGB data taken at PINA. This test will fail
+    once the data file is fixed, and this tests the asilib.Imagers() initialization
+    with a single asilib.Imager() instance.
+    """
+    import matplotlib.pyplot as plt
+    
+    import asilib
+    import asilib.asi
+
+    asi = asilib.asi.trex_rgb('PINA', time='2021-11-04T05:25:00')
+    asis = asilib.Imagers(asi)
+    _, ax = plt.subplots()
+    asis.plot_fisheye(ax)
+    return
+
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_plot_fisheye'],
