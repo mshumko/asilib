@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.testing.decorators
 
 import asilib
+import asilib.asi
 from asilib.asi.fake_asi import fake_asi
 
 

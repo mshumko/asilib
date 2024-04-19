@@ -43,7 +43,7 @@ def test_plot_bad_image():
     with a single asilib.Imager() instance.
     """
     import matplotlib.pyplot as plt
-    
+
     import asilib
     import asilib.asi
 
@@ -177,6 +177,19 @@ def test_iterate_imagers():
     assert np.nanmax(np.abs(dt)) == 3.297666  # Maximum unsynchronized time difference.
     assert np.all(~np.isnan(dt[:-1, :]))  # All 
     assert np.all(np.isnan(dt[-1, :]) == np.array([False, False, False,  True, False, False]))
+    return
+
+def test_animate_map_sync_bug():
+    """
+    Test Imagers.animate_map() and ensure that the images are all synchronized.
+    """
+    import asilib
+    import asilib.asi
+
+    asi_list = [asilib.asi.themis(location, time_range=('2008-02-11T03:35', '2008-02-11T03:36'))
+                for location in ['ATHA', 'FSIM', 'FSMI']]
+    asis = asilib.Imagers(asi_list)
+    asis.animate_map()
     return
 
 def test_animate_map():

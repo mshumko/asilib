@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 import shutil
 
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
 
 from asilib.imager import Imager, _haversine
@@ -638,9 +637,12 @@ if __name__ == '__main__':
     # import asilib.asi
 
     # time_range = ('2008-02-11T04:22', '2008-02-11T04:45')
+    # location_codes = [
+    #     'INUV', 'FSIM', 'PGEO', 'FSMI', 'FSIM', 'ATHA', 'RANK', 'GILL', 'SNKQ', 'KUUJ'
+    # ]
     # asi_list = []
 
-    # for location_code in asilib.asi.themis_info()['location_code']:
+    # for location_code in location_codes:
     #     asi_list.append(asilib.asi.themis(location_code, time_range=time_range))
 
     # asis = asilib.Imagers(asi_list)
@@ -657,18 +659,23 @@ if __name__ == '__main__':
     """
     Animate a REGO ASI mosaic from Panov+2019 (https://doi.org/10.1029/2019JA026521)
     """
+    import matplotlib.pyplot as plt
+
     import asilib
     import asilib.asi
+    import asilib.map
 
-    time_range = ('2016-08-09T06:00', '2016-08-09T09:15')
+    time_range = ('2016-08-09T08:00', '2016-08-09T09:00')
     asi_list = []
 
     for location_code in ['GILL', 'FSMI', 'FSIM']:
         asi_list.append(asilib.asi.rego(location_code, time_range=time_range))
-        # Also try THEMIS-GILL, 
+
+    ax = asilib.map.create_cartopy_map(lon_bounds=(-130, -87), lat_bounds=(51, 65))
+    plt.tight_layout()
 
     asis = asilib.Imagers(asi_list)
-    gen = asis.animate_map_gen(overwrite=True)
+    gen = asis.animate_map_gen(overwrite=True, ax=ax)
     for guide_time, asi_times, asi_images, ax in gen:
         if '_text_obj' in locals():
             _text_obj.remove()  # noqa: F821
