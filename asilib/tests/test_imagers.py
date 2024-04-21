@@ -143,16 +143,15 @@ def test_get_points():
     )
     return
 
-def test_iterate_imagers():
+def test_iterate_trex_imagers():
     """
-    Test the imagers (time, image) iterations are in sync, and if not, that the image is 
+    Test the TREx imagers (time, image) iterations are in sync, and if not, that the image is 
     correctly masked. 
     """
     import asilib
     import asilib.asi
 
     time_range = ('2023-02-24T05:10', '2023-02-24T05:15')
-    time_tol = 1
     # Load all TREx imagers.
     trex_metadata = asilib.asi.trex_rgb_info()
     asis = asilib.Imagers(
@@ -177,6 +176,89 @@ def test_iterate_imagers():
     assert np.nanmax(np.abs(dt)) == 3.297666  # Maximum unsynchronized time difference.
     assert np.all(~np.isnan(dt[:-1, :]))  # All 
     assert np.all(np.isnan(dt[-1, :]) == np.array([False, False, False,  True, False, False]))
+    return
+
+def test_iterate_rego_imagers():
+    """
+    Test the REGO imagers (time, image) iterations are in sync, and if not, that the image is 
+    correctly masked. 
+
+    Event from Panov+2019 https://doi.org/10.1029/2019JA026521
+    """
+    import asilib
+    import asilib.asi
+
+    time_range = ('2016-08-09T08:00', '2016-08-09T08:05')
+    
+    asis = asilib.Imagers(
+        [asilib.asi.rego(location_code, time_range=time_range) 
+        for location_code in ['GILL', 'FSMI', 'FSIM']]
+        )
+
+    _guide_times = []
+    _times = []
+    _images = [] 
+    for _guide_time, _asi_times, _asi_images in asis:
+        _guide_times.append(_guide_time)
+        _times.append(_asi_times)
+        _images.append(_asi_images)
+
+    dt = np.full(np.array(_times).shape, np.nan)
+    for i, (_guide_time, imager_times_i) in enumerate(zip(_guide_times, _times)):
+        dt[i, :] = [(_guide_time-j).total_seconds() for j in imager_times_i]
+
+    assert np.max(np.abs(dt)) == 0
+    
+    # 100 time stamps, 3 imagers, and x- and y- pixels for each image.
+    # This will fail if any images are labeled as None. The error is: 
+    # "ValueError: setting an array element with a sequence. The requested 
+    # array has an inhomogeneous shape after 2 dimensions. The detected 
+    # shape was (100, 3) + inhomogeneous part.
+    assert np.array(_images).shape == (100, 3, 512, 512)
+    return
+
+def test_iterate_themis_imagers():
+    """
+    Test the THEMIS imagers (time, image) iterations are in sync, and if not, that the image is 
+    correctly masked. 
+
+    Event from Panov+2019 https://doi.org/10.1029/2019JA026521
+    """
+    from datetime import datetime
+
+    import asilib
+    import asilib.asi
+
+    time_range = (
+        datetime(2007, 3, 13, 5, 5, 0),
+        datetime(2007, 3, 13, 5, 10, 0)
+        )
+    
+    asis = asilib.Imagers(
+        [asilib.asi.themis(location_code, time_range=time_range) 
+        for location_code in ['FSIM', 'ATHA', 'TPAS', 'SNKQ']]
+        )
+
+    _guide_times = []
+    _times = []
+    _images = [] 
+    for _guide_time, _asi_times, _asi_images in asis:
+        _guide_times.append(_guide_time)
+        _times.append(_asi_times)
+        _images.append(_asi_images)
+
+    dt = np.full(np.array(_times).shape, np.nan)
+    for i, (_guide_time, imager_times_i) in enumerate(zip(_guide_times, _times)):
+        dt[i, :] = [(_guide_time-j).total_seconds() for j in imager_times_i]
+
+    assert np.max(np.abs(dt)) == 0.075671
+    
+    # 100 time stamps, 4 imagers, and x- and y- pixels for each image.
+    # This will fail if any images are labeled as None. The error is: 
+    # "ValueError: setting an array element with a sequence. The requested 
+    # array has an inhomogeneous shape after 2 dimensions. The detected 
+    # shape was (100, 3) + inhomogeneous part.
+    assert np.array(_images).shape == (100, 4, 256, 256)
     return
 
 def test_animate_map_sync_bug():
