@@ -391,9 +391,9 @@ class Imagers:
             image is ``None``.
         """
         t0 = self.imagers[0].file_info['time_range'][0]
-
+        # TODO: Check all imagers for the quickest cadence to allow for multi-ASI array mosaics.
         times = np.array(
-            [t0+timedelta(seconds=i*self.imagers[0].meta['cadence']) 
+            [t0+timedelta(seconds=i*self.imagers[0].meta['cadence'])
             for i in range(self.imagers[0]._estimate_n_times())]
             )
         # asi_iterators keeps track of all ASIs in Imagers, with same order as passed into

@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.23.0] - 2024-04-21
+
+### Added
+- `Imagers.animate_map()` and `Imagers.animate_map_gen()` methods to animate mosaics.
+- `Imagers.__iter__()` to iterate over every imager synchronously. This won't work perfectly when you mix multiple imager arrays such as REGO and THEMIS, as their cadences are 6- and 3-seconds, respectively.
+- `Imagers.__str__()` to print details regarding each ASI imager.
+- Tests for the above methods.
+- A warning in the Calgary downloader function if there was no image data locally or online.
+- A mosaic animation example in the documentation.
+
+### Fixed
+- A bug when no data from an hour exists and `asilib.Downloader()` crashed when it did not find the folder.
+
+### Changed
+- Incremented the dependencies in `requirements.txt`.
+
 ## [0.22.0] - 2024-03-11
 
 ### Changed
