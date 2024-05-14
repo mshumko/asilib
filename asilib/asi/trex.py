@@ -59,6 +59,24 @@ def trex_rgb(
 
     For more information see: https://www.ucalgary.ca/aurora/projects/trex.
 
+    .. warning::
+
+        In early October 2023 the TREx-RGB data format changed, which resulted in a "ValueError: 
+        A problematic PGM file..." exception for asilib versions <= 0.20.1. If you're having this 
+        issue, you'll need to upgrade asilib to version >= 0.20.2 and delete the outdated TREx RGB
+        image files. The code below is the simplest solution:
+
+        .. code-block:: python
+
+            import os
+            import shutil
+
+            os.system("pip install aurora-asi-lib -U")
+
+            import asilib
+
+            shutil.rmtree(asilib.config['ASI_DATA_DIR'] / 'trex' / 'rgb')
+
     Parameters
     ----------
     location_code: str
@@ -71,12 +89,15 @@ def trex_rgb(
         the ASI data time interval.
     alt: int
         The reference skymap altitude, in kilometers.
-    custom_alt: bool
-        If True, asilib will calculate (lat, lon) skymaps assuming a spherical Earth. Otherwise, it will use the official skymaps (Courtesy of University of Calgary).
+    custom_alt: str, default None
+        When selected, there are two options for skyma's between official sky maps:
+        If 'Geodetic', asilib will calculate (lat, lon) skymaps assuming a spherical Earth. Otherwise, it will use the official skymaps (Courtesy of University of Calgary).
 
         .. note::
         
             The spherical model of Earth's surface is less accurate than the oblate spheroid geometrical representation. Therefore, there will be a small difference between these and the official skymaps.
+
+        If 'Interp', asilib will calculate the (lat,lon) sky maps assuming that the interpolation between official maps is linear. This was supported by personal conversations with Dr. Eric Donvan of the University of Calgary
     redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes
@@ -186,13 +207,18 @@ def trex_rgb(
         alt_index = alt_index[0]
         lat=_skymap['FULL_MAP_LATITUDE'][alt_index, :, :]
         lon=_skymap['FULL_MAP_LONGITUDE'][alt_index, :, :]
-    else:
+    elif custom_alt =='geodetic':
         lat,lon = asilib.skymap.geodetic_skymap(
             (float(_skymap['SITE_MAP_LATITUDE']), float(_skymap['SITE_MAP_LONGITUDE']), float(_skymap['SITE_MAP_ALTITUDE']) / 1e3),
             _skymap['FULL_AZIMUTH'],
             _skymap['FULL_ELEVATION'],
             alt
             )
+    elif custom_alt == 'interp'
+        interp_lat = utils.calculate_slope(_skymap['FULL_MAP_LATITUDE'][0, :, :], _skymap['FULL_MAP_LATITUDE'][1, :, :], _skymap['FULL_MAP_ALTITUDE'] / 1000, _skymap['FULL_MAP_ALTITUDE'] / 1000)  #Get the skymap then interp both
+        interp_lon = utils.calculate_slope(_skymap['FULL_MAP_LONGITUDE'][0, :, :], _skymap['FULL_MAP_LONGITUDE'][1, :, :], _skymap['FULL_MAP_ALTITUDE'] / 1000 , _skymap['FULL_MAP_ALTITUDE'] / 1000)  #Get the skymap then interp both
+        lat = utils.interpolate_matrix(_skymap['FULL_MAP_LATITUDE'][0, :, :], interp_lat,  _skymap['FULL_MAP_ALTITUDE'] / 1000, alt)
+        lon = utils.interpolate_matrix(_skymap['FULL_MAP_LONGITUDE'][0, :, :], interp_lon,  _skymap['FULL_MAP_ALTITUDE'] / 1000, alt)
 
     skymap = {
         'lat': lat,
@@ -215,7 +241,6 @@ def trex_rgb(
     }
     plot_settings = {'color_norm':'lin'}
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
-
 
 def _get_h5_files(
     array: str,
