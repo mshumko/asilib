@@ -145,3 +145,10 @@ def progressbar(iterator: Iterable, iter_length: int = None, text: str = None):
             yield item
     finally:
         print()  # end with a newline.
+def calculate_slope(A, B, alt1, alt2): # For skymap Interpolation
+    # Calculate the slope matrix
+    return (B - A) / (alt2 - alt1)
+
+def interpolate_matrix(A, slopes, alt1, alt): #For sky map Interpolation
+    # Interpolate or extrapolate to find the matrix at time t
+    return A + slopes * (alt - alt1)
