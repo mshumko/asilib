@@ -500,7 +500,7 @@ def trex_nir(
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
     alt: int = 110,
-    custom_alt: bool = False,
+    custom_alt: str = False,
     redownload: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
@@ -527,12 +527,15 @@ def trex_nir(
         the ASI data time interval.
     alt: int
         The reference skymap altitude, in kilometers.
-    custom_alt: bool
-        If True, asilib will calculate (lat, lon) skymaps assuming a spherical Earth. Otherwise, it will use the official skymaps (Courtesy of University of Calgary).
+    custom_alt: str, default None
+        When selected, there are two options for skyma's between official sky maps:
+        If 'Geodetic', asilib will calculate (lat, lon) skymaps assuming a spherical Earth. Otherwise, it will use the official skymaps (Courtesy of University of Calgary).
 
         .. note::
         
             The spherical model of Earth's surface is less accurate than the oblate spheroid geometrical representation. Therefore, there will be a small difference between these and the official skymaps.
+
+        If 'Interp', asilib will calculate the (lat,lon) sky maps assuming that the interpolation between official maps is linear. This was supported by personal conversations with Dr. Eric Donvan of the University of Calgary
     redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes
@@ -637,21 +640,28 @@ def trex_nir(
         _time = time_range[0]
     _skymap = trex_nir_skymap(location_code, _time, redownload=redownload)
     
-    if custom_alt==False:
-        alt_index = np.where(_skymap['FULL_MAP_ALTITUDE'] / 1000 == alt)[0] #Compares the altitudes versus the ones provided by default and chooses the correct index that correlates to the chosen alitudes
+        if custom_alt==False:
+        alt_index = np.where(_skymap['FULL_MAP_ALTITUDE'] / 1e3 == alt)[0]
         assert (
             len(alt_index) == 1
-        ), f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1000} km. If you want a custom altitude with less percision, please use the custom_alt keyword'
+        ), f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1e3} km. If you want a custom altitude with less percision, please use the custom_alt keyword'
         alt_index = alt_index[0]
-        lat=_skymap['FULL_MAP_LATITUDE'][alt_index, :, :] #selects lat lon coordinates from data provided in skymap
+        lat=_skymap['FULL_MAP_LATITUDE'][alt_index, :, :]
         lon=_skymap['FULL_MAP_LONGITUDE'][alt_index, :, :]
-    else:
-        lat,lon = asilib.skymap.geodetic_skymap( #Spherical projection for lat lon coordinates
+    elif custom_alt =='geodetic':
+        lat,lon = asilib.skymap.geodetic_skymap(
             (float(_skymap['SITE_MAP_LATITUDE']), float(_skymap['SITE_MAP_LONGITUDE']), float(_skymap['SITE_MAP_ALTITUDE']) / 1e3),
             _skymap['FULL_AZIMUTH'],
             _skymap['FULL_ELEVATION'],
             alt
             )
+    elif custom_alt == 'interp':
+        interp_lat = utils.calculate_slope(_skymap['FULL_MAP_LATITUDE'][0, :, :], _skymap['FULL_MAP_LATITUDE'][1, :, :], _skymap['FULL_MAP_ALTITUDE'][0] / 1e3, _skymap['FULL_MAP_ALTITUDE'][1] / 1e3)  #Gets the first and second sky map, figures out the slope matrix between the two
+        interp_lon = utils.calculate_slope(_skymap['FULL_MAP_LONGITUDE'][0, :, :], _skymap['FULL_MAP_LONGITUDE'][1, :, :], _skymap['FULL_MAP_ALTITUDE'][0] / 1e3 , _skymap['FULL_MAP_ALTITUDE'][1] / 1e3)  
+        lat = utils.interpolate_matrix(_skymap['FULL_MAP_LATITUDE'][0, :, :], interp_lat,  _skymap['FULL_MAP_ALTITUDE'][0] / 1e3, alt) #Uses the first sky map and the slope matrix to find the skymap at the desired output
+        lon = utils.interpolate_matrix(_skymap['FULL_MAP_LONGITUDE'][0, :, :], interp_lon,  _skymap['FULL_MAP_ALTITUDE'][0] / 1e3, alt) 
+    else:
+        raise ValueError("Please input the skymap method")
 
     skymap = {
         'lat': lat,
