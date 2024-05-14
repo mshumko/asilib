@@ -41,7 +41,7 @@ def trex_rgb(
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
     alt: int = 110,
-    custom_alt: bool = False,
+    custom_alt: str = False,
     redownload: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
@@ -71,7 +71,7 @@ def trex_rgb(
         the ASI data time interval.
     alt: int
         The reference skymap altitude, in kilometers.
-    custom_alt: str, default None
+    custom_alt: str, default False
         When selected, there are two options for skyma's between official sky maps:
         If 'Geodetic', asilib will calculate (lat, lon) skymaps assuming a spherical Earth. Otherwise, it will use the official skymaps (Courtesy of University of Calgary).
 
@@ -202,7 +202,8 @@ def trex_rgb(
         interp_lon = utils.calculate_slope(_skymap['FULL_MAP_LONGITUDE'][0, :, :], _skymap['FULL_MAP_LONGITUDE'][1, :, :], _skymap['FULL_MAP_ALTITUDE'][0] / 1e3 , _skymap['FULL_MAP_ALTITUDE'][1] / 1e3)  
         lat = utils.interpolate_matrix(_skymap['FULL_MAP_LATITUDE'][0, :, :], interp_lat,  _skymap['FULL_MAP_ALTITUDE'][0] / 1e3, alt) #Uses the first sky map and the slope matrix to find the skymap at the desired output
         lon = utils.interpolate_matrix(_skymap['FULL_MAP_LONGITUDE'][0, :, :], interp_lon,  _skymap['FULL_MAP_ALTITUDE'][0] / 1e3, alt) 
-
+    else:
+        raise ValueError("Please input the skymap method")
     skymap = {
         'lat': lat,
         'lon': lon,
