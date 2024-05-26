@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.23.1] - 2024-05-14
+
+-Added a new method for finding unofficial skymaps assuming the skymap monotically changes with height
+
 ## [0.23.0] - 2024-04-21
 
 ### Added
