@@ -561,13 +561,13 @@ class Imager:
                 f"'transform' key because it is reserved for cartopy."
             )
             pcolormesh_kwargs_copy['transform'] = ccrs.PlateCarree()
+        pcolormesh_kwargs_copy['norm'] = color_norm
+        pcolormesh_kwargs_copy['cmap'] = color_map
         p = self._pcolormesh_nan(
+            ax,
             _masked_lon_map,
             _masked_lat_map,
             _masked_image,
-            ax,
-            cmap=color_map,
-            norm=color_norm,
             pcolormesh_kwargs=pcolormesh_kwargs_copy,
         )
 
@@ -1793,43 +1793,58 @@ class Imager:
 
     def _pcolormesh_nan(
         self,
+        ax: plt.Axes,
         x: np.ndarray,
         y: np.ndarray,
         image: np.ndarray,
-        ax,
-        cmap=None,  # TODO: Make a required argument
-        norm=None,  # TODO: Make a required argument
-        pcolormesh_kwargs={},  # TODO: Remove once this function works.
+        pcolormesh_kwargs={},
     ):
         """
         Plot a collection of patches on onto a map.
         """
-        patch_list = []
-        color_list = []
+        if np.any(~np.isfinite(x)) or np.any(~np.isfinite(y)):
+            # Since pcolormesh can't handle any nan values in the x or y arrays,
+            # this algorithm removes them. It loops over grid angle pairs 
+            # (e.g. (0, 10), (10, 20), ...), finds the points in x & y that are
+            # between those angles, and reassigns those invalid values to the 
+            # valid point with the lowest elevation in that segment.
+            center_index = np.unravel_index(np.nanargmax(self.skymap['el']), self.skymap['el'].shape)
 
-        for row, col in itertools.product(np.arange(0, x.shape[0]-1), np.arange(0, x.shape[1]-1)):
-            vertices = np.array([
-                [x[row, col],     y[row, col]],
-                [x[row+1, col],   y[row+1, col]],
-                [x[row+1, col+1], y[row+1, col+1]],
-                [x[row, col+1],   y[row, col+1]]
-                ])
-            if not np.any(np.isnan(vertices)):  # Skip if any vertices are NaN.
-                patch_list.append(matplotlib.patches.Polygon(vertices))
-                color_list.append(image[row, col])
+            angles = np.linspace(0, 2*np.pi)
+            xx, yy = np.meshgrid(np.arange(x.shape[0]), np.arange(x.shape[1]))
+            for start_angle, end_angle in zip(angles[:-1], angles[1:]):
+                plt.close()  # TODO: REMOVE WHEN DONE
+                # My guess is there must be a minus sign when pi/2 < angle < 3*pi/2
+                if (start_angle < np.pi/2) or (start_angle > 3*np.pi/2):
+                    start_angle_sign = 1
+                else:
+                    start_angle_sign = -1
+                if (end_angle < np.pi/2) or (end_angle > 3*np.pi/2):
+                    end_angle_sign = 1
+                else:
+                    end_angle_sign = -1
+                start_slope = start_angle_sign*np.tan(start_angle)
+                start_y_int = center_index[1] - start_slope*center_index[0]
+                end_slope = end_angle_sign*np.tan(end_angle)
+                end_y_int = center_index[1] - end_slope*center_index[0]
 
-        p = matplotlib.collections.PatchCollection(patch_list)
-
-        facecolor = np.array(color_list)
-        if len(image.shape) == 2:
-            pass
-        elif len(image.shape) == 3:
-            facecolor = facecolor / np.iinfo(image.dtype).max  # Scale to 0-1.
-        else:
-            raise NotImplementedError(f'{image.shape} images unsupported')
-        p.set(norm=norm, cmap=cmap, facecolor=facecolor, edgecolor='face')
-        ax.add_collection(p)
-        return p
+                angular_slice_indices = np.where(
+                    (yy > start_slope*xx + start_y_int) &
+                    (yy < end_slope*xx + end_y_int)
+                )
+                test_image = np.zeros_like(xx)
+                test_image[angular_slice_indices] = 1
+                plt.pcolormesh(xx, yy, test_image)
+                plt.plot(xx[0, :], xx[0, :]*start_slope+start_y_int, c='k')
+                plt.plot(xx[0, :], xx[0, :]*end_slope+end_y_int, c='r')
+                plt.xlim(xx[0, 0], xx[0, -1])
+                plt.ylim(yy[0, 0], yy[-1, 0])
+                plt.title(f'{round(np.rad2deg(start_angle))} {round(np.rad2deg(end_angle))}')
+                plt.savefig(f'{round(np.rad2deg(start_angle))}_{round(np.rad2deg(end_angle))}_test.png')
+                pass
+        
+        ax.pcolormesh(x, y, image, **pcolormesh_kwargs)
+        return
 
 
 def _haversine(
@@ -1876,10 +1891,10 @@ if __name__ == '__main__':
     from asilib.asi.trex import trex_rgb
     
     time = datetime(2021, 11, 4, 7, 3, 51)
-    asi = trex_rgb('RABB', time=time, colors='rgb')
+    asi = trex_rgb('FSMI', time=time)
     ax = asilib.map.create_simple_map(
-        lon_bounds=(asi.meta['lon']-7, asi.meta['lon']+7),
-        lat_bounds=(asi.meta['lat']-5, asi.meta['lat']+5)
+        lon_bounds=(asi.meta['lon']-8, asi.meta['lon']+8),
+        lat_bounds=(asi.meta['lat']-6, asi.meta['lat']+6)
     )
     asi.plot_map(ax=ax)
     plt.tight_layout()
