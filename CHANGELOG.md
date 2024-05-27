@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.23.0] - 2024-04-21
+
+### Added
+- `Imagers.animate_map()` and `Imagers.animate_map_gen()` methods to animate mosaics.
+- `Imagers.__iter__()` to iterate over every imager synchronously. This won't work perfectly when you mix multiple imager arrays such as REGO and THEMIS, as their cadences are 6- and 3-seconds, respectively.
+- `Imagers.__str__()` to print details regarding each ASI imager.
+- Tests for the above methods.
+- A warning in the Calgary downloader function if there was no image data locally or online.
+- A mosaic animation example in the documentation.
+
+### Fixed
+- A bug when no data from an hour exists and `asilib.Downloader()` crashed when it did not find the folder.
+
+### Changed
+- Incremented the dependencies in `requirements.txt`.
+
+## [0.22.0] - 2024-03-11
+
+### Changed
+- Renamed `aurora-asi-lib` to `asilib` in PyPI. Now the package can be installed via `python3 -m pip install asilib`.
+
 ## [0.21.0] - 2024-03-02
 
 ### Changed
@@ -10,6 +31,15 @@
 ### Added
 - Project metadata in `pyproject.toml` and removed `setup.cfg`.
 - Additional package URLs in PyPI.
+
+## [0.21.0] - 2024-02-11
+
+### Changed
+- Edited the Acknowledgments section and clarified the source of skymap files.
+
+### Added
+- Animate mosaics via `asilib.Imagers.animate_map()`. This method relies on synchronous iteration of all `asilib.Imager` objects passed into `asilib.Imagers`.
+- Loop over images of all `asilib.Imager` objects passed into `asilib.Imagers` as a function of time via `asilib.Imagers__iter__()`. This method returns a valid time stamp and image for all time synchronized `asilib.Imager` images, and returns a placeholder `None` if an `asilib.Imager` is off, or the imager is not synchorized (closest time stamp is more than a cadence away in time).
 
 ## [0.20.7] - 2024-02-19
 
@@ -28,7 +58,7 @@
 ## [0.20.5] - 2023-12-20
 
 ### Fixed
-- A bug raised in issue #15 (https://github.com/mshumko/aurora-asi-lib/issues/15) where an `asilib.Imagers` class, initiated with a single `asilib.Imager`, would try to incorrectly index `asilib.Imager` unless it is wrapper in a tuple.
+- A bug raised in issue #15 (https://github.com/mshumko/asilib/issues/15) where an `asilib.Imagers` class, initiated with a single `asilib.Imager`, would try to incorrectly index `asilib.Imager` unless it is wrapper in a tuple.
 
 ## [0.20.4] - 2023-11-17
 

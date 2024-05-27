@@ -18,7 +18,7 @@ lon_bounds = (-110, -90)
 lat_bounds = (62, 47)
 
 msp_url = (
-    'https://github.com/mshumko/aurora-asi-lib/raw/'
+    'https://github.com/mshumko/asilib/raw/'
     '73ef9bd5220b781436aea3281c70da0f5b08ac05/asilib/data/GILL_MSP_coords.csv'
 )
 msp_df = pd.read_csv(msp_url)

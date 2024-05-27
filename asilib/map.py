@@ -163,6 +163,8 @@ def create_map(
             land_color=land_color,
             ocean_color=ocean_color,
         )
+    if fig_ax is None:
+        plt.tight_layout()
     return ax
 
 

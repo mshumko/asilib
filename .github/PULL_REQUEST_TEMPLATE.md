@@ -16,9 +16,9 @@ issue #8576".
 
 - [ ] "closes #0000" is in the body of the PR description to [link the related issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue)
 - [ ] New and changed code is tested
-- [ ] *Plotting related* features are demonstrated in an [example](https://github.com/mshumko/aurora-asi-lib/blob/main/docs/examples.rst).
+- [ ] *Plotting related* features are demonstrated in an [example](https://github.com/mshumko/asilib/blob/main/docs/examples.rst).
 - [ ] Changes are recorded in `CHANGELOG.md` and [formatted]([url](https://keepachangelog.com/)).
-- [ ] Except bugfies, the changes are [documentated](https://github.com/mshumko/aurora-asi-lib/tree/main/docs). 
+- [ ] Except bugfies, the changes are [documentated](https://github.com/mshumko/asilib/tree/main/docs). 
 
 <!--We understand that PRs can sometimes be overwhelming, especially as the
 reviews start coming in.  Please let us know if the reviews are unclear or

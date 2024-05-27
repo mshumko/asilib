@@ -53,6 +53,6 @@ ax[0, 0].axis('off')
 ax[1, 0].axis('off')
 bx.axis('off')
 
-plt.suptitle(f'aurora-asi-lib', fontsize=20)
+plt.suptitle(f'asilib', fontsize=20)
 plt.subplots_adjust(top=0.941, bottom=0.01, left=0.023, right=0.977, hspace=0.1, wspace=0.11)
 plt.show()

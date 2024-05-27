@@ -5,21 +5,21 @@ Get Started
 Install
 -------
 
-Installing aurora-asi-lib is as simple as:
+Installing asilib is as simple as:
 
 .. code-block:: shell
 
-   python3 -m pip install aurora-asi-lib 
+   python3 -m pip install asilib 
 
 
 Anaconda
 ^^^^^^^^
 
-`aurora-asi-lib` can also be installed with pip inside Anaconda. In a new environment install scipy first and then install asilib using the above instructions. 
+`asilib` can also be installed with pip inside Anaconda. In a new environment install scipy first and then install asilib using the above instructions. 
 
 
 .. note::
-   - By default, aurora-asi-lib saves the ASI data, movie images, and movies in the `~/asilib-data/` directory. To override the default directory, run aurora-asi-lib as a module, `python3 -m asilib config`. See the Configuration section below for more details.
+   - By default, asilib saves the ASI data, movie images, and movies in the `~/asilib-data/` directory. To override the default directory, run asilib as a module, `python3 -m asilib config`. See the Configuration section below for more details.
 
    - If you get the "`ERROR: Could not build wheels for pymap3d which use PEP 517 and cannot be installed directly`" error when installing, you need to upgrade your pip, setuptools, and wheel libaries via ```python3 -m pip install --upgrade pip setuptools wheel```.
 
@@ -44,7 +44,7 @@ There are three optional dependencies that you may want to install if you want t
 
 Configuration
 ^^^^^^^^^^^^^
-aurora-asi-lib writes the data and movie files to the `asilib.config['ASI_DATA_DIR']` directory. By default `ASI_DATA_DIR` is pointed at `~/asilib-data` and it is configurable. To configure `ASI_DATA_DIR`, and other asilib settings, run `python3 -m asilib config` and answer the prompts. The prompt answer in [brackets] is the default if you don't enter anything.
+asilib writes the data and movie files to the `asilib.config['ASI_DATA_DIR']` directory. By default `ASI_DATA_DIR` is pointed at `~/asilib-data` and it is configurable. To configure `ASI_DATA_DIR`, and other asilib settings, run `python3 -m asilib config` and answer the prompts. The prompt answer in [brackets] is the default if you don't enter anything.
 
 Core Concepts
 -------------

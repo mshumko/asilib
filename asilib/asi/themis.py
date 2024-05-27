@@ -15,6 +15,7 @@ from typing import Tuple, Iterable, List, Union
 import numpy as np
 import pandas as pd
 import scipy.io
+import requests
 import themis_imager_readfile
 
 import asilib
@@ -352,13 +353,25 @@ def _get_pgm_files(
                                 array, location_code, file_time, base_url, save_dir, redownload
                             )
                         )
-                    except (FileNotFoundError, AssertionError) as err:
+                    except (FileNotFoundError, AssertionError, requests.exceptions.HTTPError) as err:
                         if missing_ok and (
-                            ('does not contain any hyper references containing' in str(err))
-                            or ('Only one href is allowed' in str(err))
+                            ('does not contain any hyper references containing' in str(err)) or
+                            ('Only one href is allowed' in str(err)) or
+                            ('404 Client Error: Not Found for url:' in str(err))
                         ):
                             continue
                         raise
+            if missing_ok and len(file_paths) == 0:
+                if time_range is not None:
+                    warnings.warn(
+                        f'No local or online image files found for {array}-{location_code} '
+                        f'for {time_range=}.'
+                        )
+                else:
+                    warnings.warn(
+                        f'No local or online image files found for {array}-{location_code} '
+                        f'for {time=}.'
+                        )
             return file_paths
 
 

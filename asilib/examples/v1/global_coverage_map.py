@@ -61,6 +61,6 @@ for i, (array, (loader, info_df, color, elevation_range)) in enumerate(asi_array
         )
         ax.text(0, i/30, array, va='bottom', color=color, transform=ax.transAxes, fontsize=20)
 ax.text(0.99, 0, f'Generated on {datetime.now().date()}', va='top', ha='right', transform=ax.transAxes, fontsize=15)
-ax.set_title('Spatial Coverage of Imagers Supported by aurora-asi-lib', fontsize=25)        
+ax.set_title('Spatial Coverage of Imagers Supported by asilib', fontsize=25)        
 plt.tight_layout()
 plt.show()

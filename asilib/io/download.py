@@ -403,7 +403,7 @@ def _download_one_img_file(asi_array_code, location_code, base_url, time, redown
     return download_path
 
 
-# TODO: When cleaning up imager, remove all above
+# TODO: When cleaning up Imager, remove all above
 class Downloader:
     """
     Traverses and lists the directory structure on a server and download files.
@@ -418,20 +418,7 @@ class Downloader:
 
     Example
     -------
-    | # List all of the SAMPEX-HILT State4 files and download the first one.
-    |
-    | import sampex
-    |
-    | d = sampex.Downloader(
-    |     'https://izw1.caltech.edu/sampex/DataCenter/DATA/HILThires/State4/',
-    |     download_dir=sampex.config['data_dir']
-    | )
-    | paths = d.ls(match='*.txt*')
-    | print(f"The downloaded files are: {paths}")
-    |
-    | print(f"The first file's name is: {paths[0].name} at url {paths[0].url}")
-    | path = paths[0].download(stream=False)
-    | print(f'The file was downloaded to {path}')
+    TODO: Add an example.
     """
 
     def __init__(self, url: str, download_dir=None) -> None:
@@ -500,7 +487,8 @@ class Downloader:
             return download_path
 
         if stream:
-            r = requests.get(self.url, stream=True, timeout=5)
+            with requests.Session() as s:
+                r = s.get(self.url, stream=True, timeout=5)
             r.raise_for_status()
             file_size = int(r.headers.get('content-length'))
             downloaded_bites = 0
@@ -567,7 +555,8 @@ class Downloader:
         FileNotFoundError
             If no hyper references were found.
         """
-        request = requests.get(url, timeout=5)
+        with requests.Session() as s:
+            request = s.get(url, timeout=5)
         request.raise_for_status()
         soup = BeautifulSoup(request.content, 'html.parser')
 
