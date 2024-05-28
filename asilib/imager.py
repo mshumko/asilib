@@ -1811,10 +1811,13 @@ class Imager:
             center_index = np.unravel_index(np.nanargmax(self.skymap['el']), self.skymap['el'].shape)
 
             angles = np.linspace(0, 2*np.pi)
-            xx, yy = np.meshgrid(np.arange(x.shape[0]), np.arange(x.shape[1]))
+            xx, yy = np.meshgrid(
+                np.arange(x.shape[0]), 
+                np.arange(x.shape[1]), 
+                indexing='ij'  # So that the shapes of x, y, xx, and yy are the same.
+                )
             for start_angle, end_angle in zip(angles[:-1], angles[1:]):
                 plt.close()  # TODO: REMOVE WHEN DONE
-                # My guess is there must be a minus sign when pi/2 < angle < 3*pi/2
                 if (start_angle < np.pi/2) or (start_angle > 3*np.pi/2):
                     start_angle_sign = 1
                 else:
@@ -1828,20 +1831,30 @@ class Imager:
                 end_slope = end_angle_sign*np.tan(end_angle)
                 end_y_int = center_index[1] - end_slope*center_index[0]
 
-                angular_slice_indices = np.where(
+                angular_slice_valid_indices = np.where(
                     (yy > start_slope*xx + start_y_int) &
-                    (yy < end_slope*xx + end_y_int)
+                    (yy < end_slope*xx + end_y_int) &
+                    (np.isfinite(x) & np.isfinite(y)) 
+                )
+                lowest_valid_index = np.argmin(self.skymap['el'][angular_slice_valid_indices])
+                angular_slice_invalid_indices = np.where(
+                    (yy > start_slope*xx + start_y_int) &
+                    (yy < end_slope*xx + end_y_int) &
+                    (~np.isfinite(x) | ~np.isfinite(y))
                 )
                 test_image = np.zeros_like(xx)
-                test_image[angular_slice_indices] = 1
-                plt.pcolormesh(xx, yy, test_image)
-                plt.plot(xx[0, :], xx[0, :]*start_slope+start_y_int, c='k')
-                plt.plot(xx[0, :], xx[0, :]*end_slope+end_y_int, c='r')
-                plt.xlim(xx[0, 0], xx[0, -1])
-                plt.ylim(yy[0, 0], yy[-1, 0])
-                plt.title(f'{round(np.rad2deg(start_angle))} {round(np.rad2deg(end_angle))}')
-                plt.savefig(f'{round(np.rad2deg(start_angle))}_{round(np.rad2deg(end_angle))}_test.png')
-                pass
+                test_image[angular_slice_valid_indices] = 1
+                test_image[angular_slice_invalid_indices] = 0.5
+                x[angular_slice_invalid_indices] = x[angular_slice_valid_indices]
+                y[angular_slice_invalid_indices] = y[angular_slice_valid_indices]
+                # plt.pcolormesh(xx, yy, test_image)
+                # plt.plot(xx[:, 0], xx[:, 0]*start_slope+start_y_int, c='k')
+                # plt.plot(xx[:, 0], xx[:, 0]*end_slope+end_y_int, c='r')
+                # plt.xlim(xx.min(), xx.max())
+                # plt.ylim(yy.min(), yy.max())
+                # plt.title(f'{round(np.rad2deg(start_angle))} {round(np.rad2deg(end_angle))}')
+                # plt.savefig(f'{round(np.rad2deg(start_angle))}_{round(np.rad2deg(end_angle))}_test.png')
+                # pass
         
         ax.pcolormesh(x, y, image, **pcolormesh_kwargs)
         return
