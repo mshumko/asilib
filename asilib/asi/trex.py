@@ -25,6 +25,7 @@ from asilib.asi.themis import _get_pgm_files
 import asilib.utils as utils
 import asilib.io.download as download
 import asilib.skymap
+from asilib.acknowledge import acknowledge
 
 
 nir_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/NIR/stream0/'
@@ -49,7 +50,6 @@ def trex_rgb(
     burst: bool = False,
     imager=asilib.Imager,
 ) -> asilib.imager.Imager:
-    # TODO: Remove the warning in 2024.
     """
     Create an Imager instance using the TREX-RGB ASI images and skymaps.
 
@@ -212,8 +212,24 @@ def trex_rgb(
         'cadence': 3,
         'resolution': (480, 553, 3),
         'colors': colors,
+        'acknowledgment':(
+            'Transition Region Explorer (TREx) RGB data is courtesy of Space Environment Canada '
+            '(space-environment.ca). Use of the data must adhere to the rules of the road for '
+            'that dataset.  Please see below for the required data acknowledgement. Any questions '
+            'about the TREx instrumentation or data should be directed to the University of '
+            'Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan '
+            '(edonovan@ucalgary.ca).\n\n“The Transition Region Explorer RGB (TREx RGB) is a joint '
+            'Canada Foundation for Innovation and Canadian Space Agency project developed by the '
+            'University of Calgary. TREx-RGB is operated and maintained by Space Environment '
+            'Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”'
+        )
     }
     plot_settings = {'color_norm':'lin'}
+
+    dt = 2.628E6  # Seconds in a month  
+    if acknowledge('trex_rgb', dt=dt):
+        print(meta['acknowledgment'])
+
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
@@ -659,7 +675,21 @@ def trex_nir(
         'alt': float(_skymap['SITE_MAP_ALTITUDE']) / 1e3,
         'cadence': 6,
         'resolution': (256, 256),
+        'acknowledgment':(
+            'Transition Region Explorer (TREx) NIR data is courtesy of Space Environment Canada '
+            '(space-environment.ca). Use of the data must adhere to the rules of the road for '
+            'that dataset.  Please see below for the required data acknowledgement. Any questions '
+            'about the TREx instrumentation or data should be directed to the University of '
+            'Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan '
+            '(edonovan@ucalgary.ca).\n\n“The Transition Region Explorer NIR (TREx NIR) is a joint '
+            'Canada Foundation for Innovation and Canadian Space Agency project developed by the '
+            'University of Calgary. TREx-NIR is operated and maintained by Space Environment '
+            'Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”'
+            )
     }
+    dt = 2.628E6  # Seconds in a month  
+    if acknowledge('trex_nir', dt=dt):
+        print(meta['acknowledgment'])
     return imager(file_info, meta, skymap)
 
 
@@ -844,17 +874,3 @@ def _load_nir_pgm(path):
         ]
     )
     return times, images
-
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    import asilib.map
-    import asilib.asi
-
-    time_range = ('2023-02-24T05:30', '2023-02-24T06:30')
-
-    asi = asilib.asi.trex_rgb('RABB', time_range=time_range)
-    asi.plot_keogram()
-    # asi['2023-02-24T06:10'].plot_fisheye()
-
-    plt.show()
