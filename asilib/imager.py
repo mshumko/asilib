@@ -1804,8 +1804,6 @@ class Imager:
         """
         Plot a collection of patches on onto a map.
         """
-        #TODO: Remove when done testing.
-        plt.close()
         _, ax = plt.subplots()
         save_dir = pathlib.Path(
                     asilib.config['ASI_DATA_DIR'],
@@ -1840,25 +1838,24 @@ class Imager:
             
             for start_angle, end_angle in zip(angles[:-1], angles[1:]):
                 if (start_angle < np.pi/2) or (start_angle > 3*np.pi/2):
-                    start_angle_sign = 1
+                    start_slope_sign = 1
                 else:
-                    start_angle_sign = -1
+                    start_slope_sign = -1
                 if (end_angle < np.pi/2) or (end_angle > 3*np.pi/2):
-                    end_angle_sign = 1
+                    end_slope_sign = 1
                 else:
-                    end_angle_sign = -1
-                start_slope = start_angle_sign*np.tan(start_angle)
+                    end_slope_sign = -1
+        
+                start_slope = start_slope_sign*np.tan(start_angle)
                 start_y_int = center_index[1] - start_slope*center_index[0]
-                end_slope = end_angle_sign*np.tan(end_angle)
+                end_slope = end_slope_sign*np.tan(end_angle)
                 end_y_int = center_index[1] - end_slope*center_index[0]
 
                 geodetic_slice_invalid_indices = np.where(
-                    (yy_geodetic >= start_slope*xx_geodetic + start_y_int) &
-                    (yy_geodetic <= end_slope*xx_geodetic + end_y_int) &
-                    (np.isnan(lon_grid) | np.isnan(lat_grid))
-                )
-                if geodetic_slice_invalid_indices[0].shape[0] == 0:
-                    continue
+                        (yy_geodetic >= start_slope*xx_geodetic + start_y_int) &
+                        (yy_geodetic <= end_slope*xx_geodetic + end_y_int) &
+                        (np.isnan(lon_grid) | np.isnan(lat_grid))
+                    )
 
                 if lat_grid.shape == el_grid.shape:
                     elevation_slice_valid_indices = np.where(
@@ -1885,19 +1882,7 @@ class Imager:
                     elevation_slice_valid_indices[0][min_el_slice_index],
                     elevation_slice_valid_indices[1][min_el_slice_index]
                     ]
-                # test_image = np.zeros_like(xx)
-                # test_image[angular_slice_valid_indices] = 1
-                # test_image[geodetic_slice_invalid_indices] = 0.5
-                # plt.pcolormesh(xx, yy, test_image)
-                # plt.plot(xx[:, 0], xx[:, 0]*start_slope+start_y_int, c='g')
-                # plt.plot(xx[:, 0], xx[:, 0]*end_slope+end_y_int, c='r')
-                # plt.xlim(xx.min(), xx.max())
-                # plt.ylim(yy.min(), yy.max())
-                # plt.title(f'{round(np.rad2deg(start_angle))} {round(np.rad2deg(end_angle))}')
-
-                # file_name = f'{round(np.rad2deg(start_angle)):03}_{round(np.rad2deg(end_angle)):03}_test.png'
-                # plt.savefig(save_dir / file_name)
-            ax.imshow(lon_grid.T)
+            ax.imshow(lon_grid, origin='lower')
             plt.show()
             if np.any(~np.isfinite(lon_grid)) or np.any(~np.isfinite(lat_grid)):
                 raise ValueError(
@@ -1906,6 +1891,20 @@ class Imager:
                     )
         ax.pcolormesh(lon_grid, lat_grid, image, **pcolormesh_kwargs)
         return
+    
+    def quadrant(self, rad):
+        deg = np.rad2deg(rad)
+        if deg <= 90:
+            return 1
+        elif (deg > 90) and (deg <= 180):
+            return 2
+        elif (deg > 180) and (deg <= 270):
+            return 3
+        elif (deg > 270) and (deg <= 360):
+            return 4
+        else:
+            raise ValueError
+        
 
 
 def _haversine(
