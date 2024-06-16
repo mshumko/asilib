@@ -1,7 +1,7 @@
 import pathlib
 import configparser
 
-__version__ = '0.23.0'
+__version__ = '0.23.1'
 
 # Load the configuration settings.
 HERE = pathlib.Path(__file__).parent.resolve()
@@ -11,10 +11,15 @@ settings.read(HERE / 'config.ini')
 try:
     ASI_DATA_DIR = settings['Paths'].get('ASI_DATA_DIR', pathlib.Path.home() / 'asilib-data')
     ASI_DATA_DIR = pathlib.Path(ASI_DATA_DIR)
-except KeyError:  # Raised if config.ini does not have Paths.
+except KeyError:
     ASI_DATA_DIR = pathlib.Path.home() / 'asilib-data'
 
-config = {'ASILIB_DIR': HERE, 'ASI_DATA_DIR': ASI_DATA_DIR}
+try:
+    acknowledged_asis = settings['acknowledged_asis']
+except KeyError:
+    acknowledged_asis = []
+
+config = {'ASILIB_DIR': HERE, 'ASI_DATA_DIR': ASI_DATA_DIR, 'ACKNOWLEDGED_ASIS':acknowledged_asis}
 
 # Import download programs.
 from asilib.io.download import download_image

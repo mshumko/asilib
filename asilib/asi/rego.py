@@ -21,6 +21,7 @@ import asilib.asi.themis as themis
 import asilib.utils as utils
 import asilib.io.download as download
 import asilib.skymap
+from asilib.acknowledge import acknowledge
 
 
 pgm_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/stream0/'
@@ -191,10 +192,25 @@ def rego(
         'alt': float(_skymap['SITE_MAP_ALTITUDE']) / 1e3,
         'cadence': 3,
         'resolution': (512, 512),
+        'acknowledgment':(
+            'Redline Emission Geospace Observatory (REGO) data is courtesy of Space Environment '
+            'Canada (space-environment.ca). Use of the data must adhere to the rules of the road '
+            'for that dataset. Please see below for the required data acknowledgement. Any '
+            'questions about the REGO instrumentation or data should be directed to the University '
+            'of Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan '
+            '(edonovan@ucalgary.ca).\n\n"The Redline Emission Geospace Observatory (REGO) is a joint '
+            'Canada Foundation for Innovation and Canadian Space Agency project developed by the '
+            'University of Calgary. REGO is operated and maintained by Space Environment Canada '
+            'with the support of the Canadian Space Agency (CSA) [23SUGOSEC]."'
+            )
     }
     plot_settings = {
         'color_map': matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
     }
+    dt = 2.628E6  # Seconds in a month  
+    if acknowledge('rego', dt=dt):
+        print(meta['acknowledgment'])
+        
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 

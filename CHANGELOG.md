@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.1] - 2024-06-15
+
+### Added
+- The `asilib.acknowledge.acknowledge()` function. It should be called by each loader to print that ASI's acknowledgment statement either when 1) the first time the user calls the function, or 2) when it has been a month since it was last called.
+- Tests for `asilib.acknowledge.acknowledge()`.
+- Added the call to `asilib.acknowledge.acknowledge()` in `asilib.asi.rego()`, `asilib.asi.trex_rgb()`, and `asilib.asi.trex_nir()`.
+
 ## [0.23.0] - 2024-04-21
 
 ### Added
