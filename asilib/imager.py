@@ -1855,11 +1855,11 @@ class Imager:
                 geodetic_slice_invalid_indices = np.where(
                     (yy_geodetic >= start_slope*xx_geodetic + start_y_int) &
                     (yy_geodetic <= end_slope*xx_geodetic + end_y_int) &
-                    (~np.isfinite(lon_grid) | ~np.isfinite(lat_grid))
+                    (np.isnan(lon_grid) | np.isnan(lat_grid))
                 )
                 if geodetic_slice_invalid_indices[0].shape[0] == 0:
-                    # All (lat, lon) grid points are valid in this angular slice. 
                     continue
+
                 if lat_grid.shape == el_grid.shape:
                     elevation_slice_valid_indices = np.where(
                         (yy_elevation > start_slope*xx_elevation + start_y_int) &
@@ -1885,14 +1885,6 @@ class Imager:
                     elevation_slice_valid_indices[0][min_el_slice_index],
                     elevation_slice_valid_indices[1][min_el_slice_index]
                     ]
-                ax.text(
-                    elevation_slice_valid_indices[0][min_el_slice_index],
-                    elevation_slice_valid_indices[1][min_el_slice_index],
-                    f'{round(start_angle)}-{round(end_angle)}', 
-                    transform=ax.transAxes
-                    )
-                plt.plot(xx_geodetic[:, 0], xx_geodetic[:, 0]*start_slope+start_y_int, c='g')
-                plt.plot(xx_geodetic[:, 0], xx_geodetic[:, 0]*end_slope+end_y_int, c='r', ls=':')
                 # test_image = np.zeros_like(xx)
                 # test_image[angular_slice_valid_indices] = 1
                 # test_image[geodetic_slice_invalid_indices] = 0.5
@@ -1905,7 +1897,7 @@ class Imager:
 
                 # file_name = f'{round(np.rad2deg(start_angle)):03}_{round(np.rad2deg(end_angle)):03}_test.png'
                 # plt.savefig(save_dir / file_name)
-            plt.imshow(lon_grid)
+            ax.imshow(lon_grid.T)
             plt.show()
             if np.any(~np.isfinite(lon_grid)) or np.any(~np.isfinite(lat_grid)):
                 raise ValueError(
