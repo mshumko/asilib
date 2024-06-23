@@ -153,7 +153,7 @@ def themis(
             _skymap['FULL_ELEVATION'],
             alt
             )
-    elif custom_alt == 'interp'
+    elif isintance(custom_alt, str) and (custom_alt.lower() =='interp'):
         interp_lat = utils.calculate_slope(_skymap['FULL_MAP_LATITUDE'][0, :, :], _skymap['FULL_MAP_LATITUDE'][1, :, :], _skymap['FULL_MAP_ALTITUDE'][0] / 1e3, _skymap['FULL_MAP_ALTITUDE'][1] / 1e3)  #Gets the first and second sky map, figures out the slope matrix between the two
         interp_lon = utils.calculate_slope(_skymap['FULL_MAP_LONGITUDE'][0, :, :], _skymap['FULL_MAP_LONGITUDE'][1, :, :], _skymap['FULL_MAP_ALTITUDE'][0] / 1e3 , _skymap['FULL_MAP_ALTITUDE'][1] / 1e3)  
         lat = utils.interpolate_matrix(_skymap['FULL_MAP_LATITUDE'][0, :, :], interp_lat,  _skymap['FULL_MAP_ALTITUDE'][0] / 1e3, alt) #Uses the first sky map and the slope matrix to find the skymap at the desired output
