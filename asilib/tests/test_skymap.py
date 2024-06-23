@@ -29,6 +29,12 @@ def test_geodetic_skymap():
         )
     asi._pcolormesh_nan(asi.skymap['lon'], asi.skymap['lat'], asi.skymap['lat'], ax[1])
     return
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_interp_skymap'],
+    tol=20,
+    remove_text=True,
+    extensions=['png'],
+)
 def test_interp_skymap():
     time = '2020-01-01'
     ref_asi = asilib.asi.themis('GILL', time=time, load_images=False, alt=150)
