@@ -146,7 +146,7 @@ def themis(
         alt_index = alt_index[0]
         lat=_skymap['FULL_MAP_LATITUDE'][alt_index, :, :]
         lon=_skymap['FULL_MAP_LONGITUDE'][alt_index, :, :]
-    elif custom_alt =='geodetic':
+    elif isintance(custom_alt, str) and (custom_alt.lower() =='geodetic'):
         lat,lon = asilib.skymap.geodetic_skymap(
             (float(_skymap['SITE_MAP_LATITUDE']), float(_skymap['SITE_MAP_LONGITUDE']), float(_skymap['SITE_MAP_ALTITUDE']) / 1e3),
             _skymap['FULL_AZIMUTH'],
