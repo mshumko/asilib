@@ -232,7 +232,7 @@ def trex_rgb(
     dt = 2.628E6  # Seconds in a month  
     if acknowledge_always:
         print(meta['acknowledgment'])
-    elif acknowledge('trex_nir', dt=dt):
+    elif acknowledge('trex_rgb', dt=dt):
         print(meta['acknowledgment'])
     else:
         pass
