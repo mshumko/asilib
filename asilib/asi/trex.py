@@ -48,7 +48,7 @@ def trex_rgb(
     load_images: bool = True,
     colors: str = 'rgb',
     burst: bool = False,
-    acknowledge_always: bool= False,
+    acknowledge_always: bool = False,
     imager=asilib.Imager,
 ) -> asilib.imager.Imager:
     """
