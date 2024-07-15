@@ -38,6 +38,7 @@ def rego(
     redownload: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
+    acknowledge_always: bool = False,
     imager=asilib.Imager,
 ) -> asilib.Imager:
     """
@@ -75,6 +76,8 @@ def rego(
     load_images: bool
         Create an Imager object without images. This is useful if you need to
         calculate conjunctions and don't need to download or load unnecessary data.
+    acknowledge_always: bool
+        Allows for the acklnowledgement to always show regardless of last prompting. Useful for when the config can not be written to.
     imager: asilib.Imager
         Controls what Imager instance to return, asilib.Imager by default. This
         parameter is useful if you need to subclass asilib.Imager.
@@ -208,8 +211,12 @@ def rego(
         'color_map': matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
     }
     dt = 2.628E6  # Seconds in a month  
-    if acknowledge('rego', dt=dt):
+    if acknowledge_always:
+        print(meta['acknowledgment'], 'yay')
+    elif acknowledge('trex_nir', dt=dt):
         print(meta['acknowledgment'])
+    else:
+        pass
         
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
