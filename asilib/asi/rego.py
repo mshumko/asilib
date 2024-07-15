@@ -213,7 +213,7 @@ def rego(
     dt = 2.628E6  # Seconds in a month  
     if acknowledge_always:
         print(meta['acknowledgment'], 'yay')
-    elif acknowledge('trex_nir', dt=dt):
+    elif acknowledge('rego', dt=dt):
         print(meta['acknowledgment'])
     else:
         pass
