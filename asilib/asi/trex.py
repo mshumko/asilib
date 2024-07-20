@@ -229,7 +229,7 @@ def trex_rgb(
     }
     plot_settings = {'color_norm':'lin'}
 
-    if acknowledge_always:
+    if acknowledge:
         print(meta['acknowledgment'])
     else:
         pass
@@ -554,8 +554,8 @@ def trex_nir(
     load_images: bool
         Create an Imager object without images. This is useful if you need to
         calculate conjunctions and don't need to download or load unnecessary data.
-    acknowledge_always: bool
-        Allows for the acklnowledgement to always show regardless of last prompting. Useful for when the config can not be written to.
+    acknowledge: bool
+        Allows for the acklnowledgement to enabled and disabled. 
     imager: asilib.Imager
         Controls what Imager instance to return, asilib.Imager by default. This
         parameter is useful if you need to subclass asilib.Imager.
@@ -695,7 +695,7 @@ def trex_nir(
             )
     }
 
-    if acknowledge_always:
+    if acknowledge:
         print(meta['acknowledgment'])
     else:
         pass
