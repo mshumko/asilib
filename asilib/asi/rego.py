@@ -21,7 +21,7 @@ import asilib.asi.themis as themis
 import asilib.utils as utils
 import asilib.io.download as download
 import asilib.skymap
-from asilib.acknowledge import acknowledge
+
 
 
 pgm_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/stream0/'
@@ -38,7 +38,7 @@ def rego(
     redownload: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
-    acknowledge_always: bool = False,
+    acknowledge: bool = True,
     imager=asilib.Imager,
 ) -> asilib.Imager:
     """
@@ -76,8 +76,8 @@ def rego(
     load_images: bool
         Create an Imager object without images. This is useful if you need to
         calculate conjunctions and don't need to download or load unnecessary data.
-    acknowledge_always: bool
-        Allows for the acklnowledgement to always show regardless of last prompting. Useful for when the config can not be written to.
+    acknowledge: bool
+        Allows for the acklnowledgement to enabled and disabled. 
     imager: asilib.Imager
         Controls what Imager instance to return, asilib.Imager by default. This
         parameter is useful if you need to subclass asilib.Imager.
@@ -210,10 +210,8 @@ def rego(
     plot_settings = {
         'color_map': matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
     }
-    dt = 2.628E6  # Seconds in a month  
-    if acknowledge_always:
-        print(meta['acknowledgment'], 'yay')
-    elif acknowledge('rego', dt=dt):
+
+    if acknowledge:
         print(meta['acknowledgment'])
     else:
         pass
