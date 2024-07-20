@@ -25,7 +25,7 @@ from asilib.asi.themis import _get_pgm_files
 import asilib.utils as utils
 import asilib.io.download as download
 import asilib.skymap
-from asilib.acknowledge import acknowledge
+
 
 
 nir_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/NIR/stream0/'
@@ -48,7 +48,7 @@ def trex_rgb(
     load_images: bool = True,
     colors: str = 'rgb',
     burst: bool = False,
-    acknowledge_always: bool = False,
+    acknowledge: bool = True,
     imager=asilib.Imager,
 ) -> asilib.imager.Imager:
     """
@@ -93,8 +93,8 @@ def trex_rgb(
         by "r", "g", "b" (or any combination of them).
     burst: bool
         Sometimes Trex-rgb uses a burst mode with higher resolution.
-    acknowledge_always: bool
-        Allows for the acklnowledgement to always show regardless of last prompting. Useful for when the config can not be written to.
+    acknowledge: bool
+        Allows for the acklnowledgement to enabled and disabled. 
     imager: :py:meth:`~asilib.imager.Imager`
         Controls what Imager instance to return, asilib.Imager by default. This
         parameter is useful if you need to subclass asilib.Imager.
@@ -229,10 +229,7 @@ def trex_rgb(
     }
     plot_settings = {'color_norm':'lin'}
 
-    dt = 2.628E6  # Seconds in a month  
     if acknowledge_always:
-        print(meta['acknowledgment'])
-    elif acknowledge('trex_rgb', dt=dt):
         print(meta['acknowledgment'])
     else:
         pass
@@ -517,7 +514,7 @@ def trex_nir(
     redownload: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
-    acknowledgements_always: bool = False,
+    acknowledgement: bool = True,
     imager=asilib.Imager,
 ) -> asilib.Imager:
     """
@@ -697,13 +694,12 @@ def trex_nir(
             'Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”'
             )
     }
-    dt = 2.628E6  # Seconds in a month
+
     if acknowledge_always:
-        print(meta['acknowledgment'])
-    elif acknowledge('trex_nir', dt=dt):
         print(meta['acknowledgment'])
     else:
         pass
+        
     return imager(file_info, meta, skymap)
 
 
