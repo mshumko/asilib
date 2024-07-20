@@ -514,7 +514,7 @@ def trex_nir(
     redownload: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
-    acknowledgement: bool = True,
+    acknowledge: bool = True,
     imager=asilib.Imager,
 ) -> asilib.Imager:
     """
