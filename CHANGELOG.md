@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.23.2] - 2024-06-15
+## [0.23.2] - 2024-07-20
 
 ### Added
 - Added a kwarg to `asilib.asi.rego()`, `asilib.asi.trex_rgb()`, and `asilib.asi.trex_nir()`: acknowledge, which prints the acknowledgement everytime a new imager is loaded rather than once a month.
