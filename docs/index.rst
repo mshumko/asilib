@@ -69,6 +69,5 @@ Lastly, asilib will not be possible without 1) everyone involved with designing,
    get_started
    examples
    tutorials
-   imager_api
-   function_api
+   api
    contribute
