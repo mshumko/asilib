@@ -228,8 +228,9 @@ def trex_rgb(
     }
     plot_settings = {'color_norm':'lin'}
 
-    if acknowledge:
+    if acknowledge and ('trex_rgb' not in asilib.config['ACKNOWLEDGED_ASIS']):
         print(meta['acknowledgment'])
+        asilib.config['ACKNOWLEDGED_ASIS'].append('trex_rgb')
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
@@ -691,8 +692,9 @@ def trex_nir(
             )
     }
 
-    if acknowledge:
-        print(meta['acknowledgment'])   
+    if acknowledge and ('trex_nir' not in asilib.config['ACKNOWLEDGED_ASIS']):
+        print(meta['acknowledgment'])
+        asilib.config['ACKNOWLEDGED_ASIS'].append('trex_nir')
     return imager(file_info, meta, skymap)
 
 

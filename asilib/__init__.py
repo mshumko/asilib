@@ -14,12 +14,7 @@ try:
 except KeyError:
     ASI_DATA_DIR = pathlib.Path.home() / 'asilib-data'
 
-try:
-    acknowledged_asis = settings['acknowledged_asis']
-except KeyError:
-    acknowledged_asis = []
-
-config = {'ASILIB_DIR': HERE, 'ASI_DATA_DIR': ASI_DATA_DIR, 'ACKNOWLEDGED_ASIS':acknowledged_asis}
+config = {'ASILIB_DIR': HERE, 'ASI_DATA_DIR': ASI_DATA_DIR, 'ACKNOWLEDGED_ASIS':[]}
 
 # Import download programs.
 from asilib.io.download import download_image

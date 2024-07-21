@@ -210,8 +210,9 @@ def rego(
         'color_map': matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
     }
 
-    if acknowledge:
-        print(meta['acknowledgment'])       
+    if acknowledge and ('rego' not in asilib.config['ACKNOWLEDGED_ASIS']):
+        print(meta['acknowledgment'])
+        asilib.config['ACKNOWLEDGED_ASIS'].append('rego')   
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
