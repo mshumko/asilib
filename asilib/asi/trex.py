@@ -27,7 +27,6 @@ import asilib.io.download as download
 import asilib.skymap
 
 
-
 nir_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/NIR/stream0/'
 nir_skymap_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/NIR/skymaps/'
 rgb_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/RGB/stream0/'
@@ -94,7 +93,7 @@ def trex_rgb(
     burst: bool
         Sometimes Trex-rgb uses a burst mode with higher resolution.
     acknowledge: bool
-        Allows for the acklnowledgement to enabled and disabled. 
+        If True, prints the acknowledgment statement for TREx-RGB.
     imager: :py:meth:`~asilib.imager.Imager`
         Controls what Imager instance to return, asilib.Imager by default. This
         parameter is useful if you need to subclass asilib.Imager.
@@ -231,9 +230,6 @@ def trex_rgb(
 
     if acknowledge:
         print(meta['acknowledgment'])
-    else:
-        pass
-
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
@@ -555,7 +551,7 @@ def trex_nir(
         Create an Imager object without images. This is useful if you need to
         calculate conjunctions and don't need to download or load unnecessary data.
     acknowledge: bool
-        Allows for the acklnowledgement to enabled and disabled. 
+        If True, prints the acknowledgment statement for TREx-NIR.
     imager: asilib.Imager
         Controls what Imager instance to return, asilib.Imager by default. This
         parameter is useful if you need to subclass asilib.Imager.
@@ -696,10 +692,7 @@ def trex_nir(
     }
 
     if acknowledge:
-        print(meta['acknowledgment'])
-    else:
-        pass
-        
+        print(meta['acknowledgment'])   
     return imager(file_info, meta, skymap)
 
 

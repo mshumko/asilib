@@ -23,7 +23,6 @@ import asilib.io.download as download
 import asilib.skymap
 
 
-
 pgm_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/stream0/'
 skymap_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/skymap/'
 local_base_dir = asilib.config['ASI_DATA_DIR'] / 'rego'
@@ -77,7 +76,7 @@ def rego(
         Create an Imager object without images. This is useful if you need to
         calculate conjunctions and don't need to download or load unnecessary data.
     acknowledge: bool
-        Allows for the acklnowledgement to enabled and disabled. 
+        If True, prints the acknowledgment statement for REGO. 
     imager: asilib.Imager
         Controls what Imager instance to return, asilib.Imager by default. This
         parameter is useful if you need to subclass asilib.Imager.
@@ -212,10 +211,7 @@ def rego(
     }
 
     if acknowledge:
-        print(meta['acknowledgment'])
-    else:
-        pass
-        
+        print(meta['acknowledgment'])       
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
