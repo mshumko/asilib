@@ -1,7 +1,6 @@
 """
 Tests the asilib's Downloader class.
 """
-import pathlib
 import os
 import tempfile
 from datetime import datetime
@@ -10,7 +9,7 @@ import pytest
 import requests
 
 import asilib
-from asilib.io.download import Downloader
+from asilib.download import Downloader
 
 
 def test_bad_url():

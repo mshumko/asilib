@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 import asilib
 import asilib.utils as utils
-import asilib.io.download as download
+import asilib.download as download
 
 
 image_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/lamp/sav_img/'
