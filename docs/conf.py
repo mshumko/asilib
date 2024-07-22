@@ -21,7 +21,7 @@ import asilib
 # -- Project information -----------------------------------------------------
 
 project = 'asilib'
-copyright = '2023, Mykhaylo Shumko'
+copyright = '2024, Mykhaylo Shumko'
 author = 'Mykhaylo Shumko'
 version = str(asilib.__version__)
 

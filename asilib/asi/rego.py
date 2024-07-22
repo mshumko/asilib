@@ -19,7 +19,7 @@ import rego_imager_readfile
 import asilib
 import asilib.asi.themis as themis
 import asilib.utils as utils
-import asilib.io.download as download
+import asilib.download as download
 import asilib.skymap
 
 

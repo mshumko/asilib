@@ -23,7 +23,7 @@ import trex_imager_readfile
 import asilib
 from asilib.asi.themis import _get_pgm_files
 import asilib.utils as utils
-import asilib.io.download as download
+import asilib.download as download
 import asilib.skymap
 
 

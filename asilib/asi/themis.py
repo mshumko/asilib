@@ -20,7 +20,7 @@ import themis_imager_readfile
 
 import asilib
 import asilib.utils as utils
-import asilib.io.download as download
+import asilib.download as download
 import asilib.skymap
 
 
