@@ -1,5 +1,4 @@
 beautifulsoup4==4.9.3
-cdflib==0.3.20
 matplotlib==3.7.1
 numpy==1.24.1
 pandas==2.2.2
