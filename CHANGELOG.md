@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.24.0] - 2024-07-22
+
+### Changed
+- Removed all deprecated asilib functions and their documentation.
+- Incremented the pandas version on `docs/requirements.txt` to fix an issue with readthedocs not compiling.
+
 ## [0.23.2] - 2024-07-20
 
 ### Added
