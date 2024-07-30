@@ -4,7 +4,7 @@
 
 ### Changed
 - Removed color_brighten kwarg
-- Added a function called _rgb_normalization to normalize rgb images
+- Added a function called _rgb_normalization in imager.py to normalize rgb images
   
 ## [0.24.0] - 2024-07-22
 
