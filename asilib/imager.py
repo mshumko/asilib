@@ -163,8 +163,7 @@ class Imager:
 
         if len(self.meta['resolution']) == 3:  # tests if rgb
             image = self._rgb_replacer(image)
-            if color_brighten:
-                image = image / np.max(image)
+            image = self._rgb_normalization(image, color_norm)
 
         im = ax.imshow(image, cmap=color_map, norm=color_norm, origin="lower")
         if label:
@@ -395,8 +394,7 @@ class Imager:
             
             if len(self.meta['resolution']) == 3:  # tests if rgb
                 image = self._rgb_replacer(image)
-                if color_brighten:
-                    image = image / np.max(image)
+                image = self._rgb_normalization(image, color_norm)
 
             im = ax.imshow(image, cmap=_color_map, norm=_color_norm, origin='lower')
             if label:
@@ -517,13 +515,13 @@ class Imager:
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
         ax, p, _ = self._plot_mapped_image(
-            ax, image, min_elevation, color_map, color_norm, color_brighten, asi_label, 
+            ax, image, min_elevation, color_map, color_norm, asi_label, 
             pcolormesh_kwargs
         )
         return ax, p
 
     def _plot_mapped_image(
-        self, ax, image, min_elevation, color_map, color_norm, color_brighten, asi_label, 
+        self, ax, image, min_elevation, color_map, color_norm, asi_label, 
         pcolormesh_kwargs
     ):
         """
@@ -547,7 +545,6 @@ class Imager:
             ax,
             cmap=color_map,
             norm=color_norm,
-            color_brighten=color_brighten,
             pcolormesh_kwargs=pcolormesh_kwargs_copy,
         )
 
@@ -795,7 +792,7 @@ class Imager:
             _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
             ax, pcolormesh_obj, label_obj = self._plot_mapped_image(
-                ax, image, min_elevation, _color_map, _color_norm, color_brighten, asi_label, 
+                ax, image, min_elevation, _color_map, _color_norm, asi_label, 
                 pcolormesh_kwargs
             )
 
@@ -1024,9 +1021,8 @@ class Imager:
 
         # Same as transpose, but correctly handles RGB keograms.
         _keogram = np.swapaxes(_keogram, 1, 0)
-        if len(_keogram.shape) == 3 and color_brighten:
-            # To see the RGB intensities clearly, the channel intensities need to span 0-1.
-            _keogram = _keogram / np.max(_keogram)
+        if len(_keogram.shape) == 3:
+            _keogram =  self._rgb_normalization(_keogram, _color_norm)
 
         pcolormesh_obj = ax.pcolormesh(
             _keogram_time,
@@ -1822,9 +1818,7 @@ class Imager:
         
         if len(self.meta['resolution']) == 3: #tests to see if the colors selected for an rgb image are rgb or rb or something else
             image = self._rgb_replacer(image)
-            #Now we need to normalize the rgb image since it can't do it
-            temp_img = np.clip(image, norm.vmin, norm.vmax) #Normalizes data
-            image = (temp_img - norm.vmin) / (norm.vmax - norm.vmin) #Scales data from 0-1
+            image=  self._rgb_normalization(image, norm)
 
         p = ax.pcolormesh(
             x,
@@ -1837,6 +1831,15 @@ class Imager:
         )
         return p
 
+    def _rgb_normalization(rgbarray,norm):
+        """
+        rgbarray, np.array
+            Takes an array of rgb values
+        norm, mcolors.Normalize
+            Normalization object that is used for min and max values
+        """
+        temp_img = np.clip(rgbarray, norm.vmin, norm.vmax) #Normalizes data
+        return (temp_img - norm.vmin) / (norm.vmax - norm.vmin) #Scales data from 0-1
 
 def _haversine(
     lat1: np.array, lon1: np.array, lat2: np.array, lon2: np.array, r: float = 1
