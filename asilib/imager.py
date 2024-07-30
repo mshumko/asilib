@@ -86,7 +86,6 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        color_brighten: bool = True,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
@@ -112,9 +111,6 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        color_brighten: bool
-            If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
-            results in brighter colors. This is only applied to RGB images.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -201,9 +197,6 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        color_brighten: bool
-            If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
-            results in brighter colors. This is only applied to RGB images.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -260,7 +253,6 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        color_brighten: bool = True,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
@@ -299,9 +291,6 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        color_brighten: bool
-            If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
-            results in brighter colors. This is only applied to RGB images.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -441,7 +430,6 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        color_brighten: bool = True,
         min_elevation: float = 10,
         asi_label: bool = True,
         pcolormesh_kwargs: dict = {},
@@ -474,9 +462,6 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        color_brighten: bool
-            If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
-            results in brighter colors. This is only applied to RGB images.
         min_elevation: float
             Masks the pixels below min_elevation degrees.
         asi_label: bool
@@ -606,9 +591,6 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        color_brighten: bool
-            If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
-            results in brighter colors. This is only applied to RGB images.
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -660,7 +642,6 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        color_brighten: bool = True,
         min_elevation: float = 10,
         pcolormesh_kwargs: dict = {},
         asi_label: bool = True,
@@ -709,9 +690,6 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        color_brighten: bool
-            If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
-            results in brighter colors. This is only applied to RGB images.
         min_elevation: float
             Masks the pixels below min_elevation degrees.
         pcolormesh_kwargs: dict
@@ -962,7 +940,6 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        color_brighten: bool = True,
         pcolormesh_kwargs={},
     ) -> Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
         """
@@ -995,9 +972,6 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        color_brighten: bool
-            If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
-            results in brighter colors. This is only applied to RGB images.
         pcolormesh_kwargs: dict
             A dictionary of keyword arguments (kwargs) to pass directly into
             plt.pcolormesh.
@@ -1455,6 +1429,7 @@ class Imager:
         """
         # Check the plot_settings dict and fall back to a default if user did not specify
         # color_bounds in the method call.
+
         if color_bounds is None:
             # Is it part of the plot_settings generated by the ASI data loader?
             if 'color_bounds' in self.plot_settings.keys():
@@ -1794,7 +1769,6 @@ class Imager:
         ax,
         cmap=None,
         norm=None,
-        color_brighten: bool = True,
         pcolormesh_kwargs={},
     ):
         """
@@ -1848,9 +1822,10 @@ class Imager:
         
         if len(self.meta['resolution']) == 3: #tests to see if the colors selected for an rgb image are rgb or rb or something else
             image = self._rgb_replacer(image)
-            if color_brighten:
-                image = image / np.max(image)
-            
+            #Now we need to normalize the rgb image since it can't do it
+            temp_img = np.clip(image, norm.vmin, norm.vmax) #Normalizes data
+            image = (temp_img - norm.vmin) / (norm.vmax - norm.vmin) #Scales data from 0-1
+
         p = ax.pcolormesh(
             x,
             y,
