@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.25.0] - 2024-07-30
+
+### Changed
+- Removed color_brighten kwarg
+- Added rgb normalization to images
+  
 ## [0.24.0] - 2024-07-22
 
 ### Changed
