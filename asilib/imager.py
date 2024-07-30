@@ -163,7 +163,7 @@ class Imager:
 
         if len(self.meta['resolution']) == 3:  # tests if rgb
             image = self._rgb_replacer(image)
-            image = self._rgb_normalization(image, color_norm)
+            image = self._rgb_normalization(image, color_norm.vmin, color_norm.vmax)
 
         im = ax.imshow(image, cmap=color_map, norm=color_norm, origin="lower")
         if label:
@@ -394,7 +394,7 @@ class Imager:
             
             if len(self.meta['resolution']) == 3:  # tests if rgb
                 image = self._rgb_replacer(image)
-                image = self._rgb_normalization(image, color_norm)
+                image = self._rgb_normalization(image, _color_norm.vmin, _color_norm.vmax)
 
             im = ax.imshow(image, cmap=_color_map, norm=_color_norm, origin='lower')
             if label:
@@ -1022,7 +1022,7 @@ class Imager:
         # Same as transpose, but correctly handles RGB keograms.
         _keogram = np.swapaxes(_keogram, 1, 0)
         if len(_keogram.shape) == 3:
-            _keogram =  self._rgb_normalization(_keogram, _color_norm)
+            _keogram =  self._rgb_normalization(_keogram, _color_norm.vmin, _color_norm.vmax)
 
         pcolormesh_obj = ax.pcolormesh(
             _keogram_time,
@@ -1818,7 +1818,7 @@ class Imager:
         
         if len(self.meta['resolution']) == 3: #tests to see if the colors selected for an rgb image are rgb or rb or something else
             image = self._rgb_replacer(image)
-            image=  self._rgb_normalization(image, norm)
+            image = self._rgb_normalization(image, norm.vmin, norm.vmax)
 
         p = ax.pcolormesh(
             x,
@@ -1831,15 +1831,17 @@ class Imager:
         )
         return p
 
-    def _rgb_normalization(rgbarray,norm):
+    def _rgb_normalization(self, rgbarray,vmin, vmax):
         """
         rgbarray, np.array
             Takes an array of rgb values
-        norm, mcolors.Normalize
-            Normalization object that is used for min and max values
+        vmin, float
+            Minimum for normalization
+        vmax, float
+            maximum for normalization
         """
-        temp_img = np.clip(rgbarray, norm.vmin, norm.vmax) #Normalizes data
-        return (temp_img - norm.vmin) / (norm.vmax - norm.vmin) #Scales data from 0-1
+        temp_img = np.clip(rgbarray, vmin, vmax) #Normalizes data
+        return (temp_img - vmin) / (vmax - vmin) #Scales data from 0-1
 
 def _haversine(
     lat1: np.array, lon1: np.array, lat2: np.array, lon2: np.array, r: float = 1
