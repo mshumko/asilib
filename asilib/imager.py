@@ -412,6 +412,10 @@ class Imager:
                 if color_brighten:
                     image = image / np.max(image)
 
+            if isinstance(color_norm, matplotlib.colors.LogNorm):
+                # Increase the corner pixels with 0 counts to 1 count so 
+                # it shows up black in log-scale.
+                image[np.where(np.isnan(image))] = 1
             im = ax.imshow(image, cmap=_color_map, norm=_color_norm, origin='lower')
             if label:
                 self._add_fisheye_label(image_time, ax)
