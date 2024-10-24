@@ -11,12 +11,14 @@ import copy
 import os
 from typing import Tuple, Iterable, List, Union
 
+import requests
 import matplotlib.colors
 import pandas as pd
 import h5py
 import numpy as np
 
 import asilib
+import asilib.map
 import asilib.utils as utils
 import asilib.download as download
 
@@ -367,13 +369,19 @@ def _load_h5_meta(file_path):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    time=datetime(2021, 11, 4, 10, 30)
-    location_code='cfs'
-    asi = mango(location_code, 'redline', time=time)
-    asi.plot_fisheye()
-    plt.show()
+    time_range=(datetime(2021, 11, 4, 1, 0), datetime(2021, 11, 4, 12, 24))
+    location_code='CFS'
+    asi = mango(location_code, 'greenline', time_range=time_range)
+    ax = asilib.map.create_map(lat_bounds=(30, 45), lon_bounds=(-125, -100))
 
-    # time_range=(datetime(2021, 11, 4, 1, 0), datetime(2021, 11, 4, 12, 24))
-    # location_code='cfs'
-    # asi = mango(location_code, 'redline', time_range=time_range)
-    # asi.animate_fisheye(overwrite=True)
+    gen = asi.animate_map_gen(ax=ax, asi_label=True, overwrite=True)
+
+    for image_time, image, _, im in gen:
+        # Add your code that modifies each image here...
+        # To demonstrate, lets annotate each frame with the timestamp.
+        # We will need to delete the prior text object, otherwise the current one
+        # will overplot on the prior one---clean up after yourself!
+        if 'text_obj' in locals():
+            text_obj.remove()
+        text_obj = ax.text(0.05, 0.99, f'MANGO-{location_code} | {image_time:%F %T}', va='top',
+            transform=ax.transAxes, color='orange', fontsize=15)
