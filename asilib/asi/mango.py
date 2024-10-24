@@ -260,7 +260,7 @@ def _get_image_files(
             file_paths = []
             for file_time in file_times:
                 file_search_str = (
-                    f'mango-{location_code.lower()}-{channel}-level1-{time:%Y%m%d}.hdf5'
+                    f'mango-{location_code.lower()}-{channel}-level1-{file_time:%Y%m%d}.hdf5'
                 )
                 local_file_paths = list(pathlib.Path(save_dir).rglob(file_search_str))
                 if len(local_file_paths) == 1:
@@ -362,8 +362,13 @@ def _load_h5_meta(file_path):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    time=datetime(2021, 11, 4, 10, 30)
+    # time=datetime(2021, 11, 4, 10, 30)
+    # location_code='cfs'
+    # asi = mango(location_code, 'redline', time=time)
+    # asi.plot_fisheye()
+    # plt.show()
+
+    time_range=(datetime(2021, 11, 4, 1, 0), datetime(2021, 11, 4, 12, 24))
     location_code='cfs'
-    asi = mango(location_code, 'redline', time=time)
-    asi.plot_fisheye()
-    plt.show()
+    asi = mango(location_code, 'redline', time_range=time_range)
+    asi.animate_fisheye()
