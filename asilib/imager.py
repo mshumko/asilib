@@ -1856,7 +1856,7 @@ class Imager:
             y,
             image,
             cmap=cmap,
-            shading='auto',
+            shading='flat',
             norm=norm,
             **pcolormesh_kwargs,
         )

@@ -1,0 +1,8 @@
+[run]
+omit = 
+    tests/*
+    examples/*
+
+[report]
+show_missing=true
+skip-covered=true
