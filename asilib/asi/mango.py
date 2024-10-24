@@ -3,19 +3,18 @@ The Mid-latitude All-sky-imaging Network for Geophysical Observations (MANGO) em
 
 Instrument paper: https://doi.org/10.1029/2023JA031589
 """
-from datetime import datetime, timedelta
-from multiprocessing import Pool
+from datetime import datetime, timedelta, timezone
 import re
 import warnings
 import pathlib
 import copy
 import os
-import dateutil.parser
 from typing import Tuple, Iterable, List, Union
 
 import matplotlib.colors
 import pandas as pd
 import h5py
+import numpy as np
 
 import asilib
 import asilib.utils as utils
@@ -42,7 +41,7 @@ def mango(
     Parameters
     ----------
     location_code: str
-        The ASI's location code (four letters).
+        The three-letter ASI location code.
     channel: str
         The color channel. Could be "redline", "greenline", "r", or "g". Case insensitive. 
     time: str or datetime.datetime
@@ -78,6 +77,18 @@ def mango(
     channel = channel.lower()
     assert channel[0] in ['r', 'g'], (f"{channel} is an invalid MANGO color channel. "
                                       f"Try either 'redline' or 'greenline'.")
+    if channel[0] == 'r':
+        channel = 'redline'
+    else:
+        channel = 'greenline'
+
+    mango_site_info = mango_info()
+    mango_site_info = mango_site_info[
+        mango_site_info['location_code'] == location_code.upper()
+        ].reset_index()
+    assert mango_site_info.shape[0] == 1, (
+        f"MANGO-{location_code.upper()} is an invalid location. Try one of these: "
+        f"{list(mango_info()['location_code'])}.")
 
     file_paths = _get_image_files(
         location_code,
@@ -93,30 +104,42 @@ def mango(
     start_times = len(file_paths) * [None]
     end_times = len(file_paths) * [None]
     for i, file_path in enumerate(file_paths):
-        date_match = re.search(r'\d{8}_\d{4}', file_path.name)
-        start_times[i] = datetime.strptime(date_match.group(), '%Y%m%d_%H%M')
-        end_times[i] = start_times[i] + timedelta(minutes=1)
+        date_match = re.search(r'\d{8}', file_path.name)
+        start_times[i] = datetime.strptime(date_match.group(), '%Y%m%d')
+        end_times[i] = start_times[i] + timedelta(days=1)
     file_info = {
         'path': file_paths,
         'start_time': start_times,
         'end_time': end_times,
         'loader': _load_h5,
     }
-    # meta = _load_h5_meta(file_paths[0])
+
+    mango_meta = _load_h5_meta(file_paths[0])
+    
     meta = {
         'array': 'MANGO',
+        'channel':channel,
         'location': location_code.upper(),
-        'lat': None,
-        'lon': None,
+        'lat': mango_site_info.loc[0, 'latitude'],
+        'lon': mango_site_info.loc[0, 'longitude'],
         'alt': None,
-        'cadence': None,
-        'resolution': (None, None),
+        'cadence': mango_meta['cadence'],
+        'resolution': mango_meta['resolution'],
         'acknowledgment': ''
     }
+
     plot_settings = {
         'color_map': matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', channel[0]])
     }
-    skymap = {}
+
+    skymap = {
+        mango_meta['lat'],
+        mango_meta['lon'],
+        mango_meta['az'],
+        mango_meta['el'],
+        mango_meta['alt'],
+        mango_meta['path']
+    }
     # if acknowledge and ('mango' not in asilib.config['ACKNOWLEDGED_ASIS']):
     #     print(meta['acknowledgment'])
     #     asilib.config['ACKNOWLEDGED_ASIS'].append('mango')
@@ -153,7 +176,7 @@ def _get_image_files(
     Parameters
     ----------
     location_code:str
-        The MANGO location code.
+        The three-letter ASI location code.
     channel: str
         The color channel. Could be "redline", "greenline", "r", or "g".
     time: datetime.datetime
@@ -187,7 +210,9 @@ def _get_image_files(
         # Option 1/4: Download one minute of data regardless if it is already saved
         if time is not None:
             return [
-                _download_one_file(location_code, channel, time, base_url, save_dir, redownload)
+                _download_one_file(
+                    location_code, channel, time, base_url, save_dir, redownload
+                        )
             ]
 
         # Option 2/4: Download the data in time range regardless if it is already saved.
@@ -213,25 +238,25 @@ def _get_image_files(
     else:
         # Option 3/4: Download one minute of data if it is not already saved.
         if time is not None:
-            file_search_str = f'{time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}*.pgm.gz'
+            file_search_str = f'mango-{location_code.lower()}-{channel}-level1-{time:%Y%m%d}.hdf5'
             local_file_paths = list(pathlib.Path(save_dir).rglob(file_search_str))
             if len(local_file_paths) == 1:
                 return local_file_paths
             else:
                 return [
                     _download_one_file(
-                        array, location_code, time, base_url, save_dir, redownload
+                        location_code, channel, time, base_url, save_dir, redownload
                     )
                 ]
 
         # Option 4/4: Download the data in time range if they don't exist locally.
         elif time_range is not None:
             time_range = utils.validate_time_range(time_range)
-            file_times = utils.get_filename_times(time_range, dt='minutes')
+            file_times = utils.get_filename_times(time_range, dt='days')
             file_paths = []
             for file_time in file_times:
                 file_search_str = (
-                    f'{file_time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}*.pgm.gz'
+                    f'mango-{location_code.lower()}-{channel}-level1-{time:%Y%m%d}.hdf5'
                 )
                 local_file_paths = list(pathlib.Path(save_dir).rglob(file_search_str))
                 if len(local_file_paths) == 1:
@@ -240,7 +265,7 @@ def _get_image_files(
                     try:
                         file_paths.append(
                             _download_one_file(
-                                array, location_code, file_time, base_url, save_dir, redownload
+                                location_code, channel, file_time, base_url, save_dir, redownload
                             )
                         )
                     except (FileNotFoundError, AssertionError, requests.exceptions.HTTPError) as err:
@@ -266,22 +291,22 @@ def _get_image_files(
     return
 
 def _download_one_file(
-    array: str,
     location_code: str,
+    channel:str,
     time: datetime,
     base_url: str,
     save_dir: Union[str, pathlib.Path],
     redownload: bool,
 ) -> pathlib.Path:
     """
-    Download one PGM file.
+    Download one h5 file.
 
     Parameters
     ----------
-    array: str
-        The ASI array name.
     location_code: str
-        The ASI four-letter location code.
+        The ASI three-letter location code.
+    channel: str
+        The ASI channel
     time: str or datetime.datetime
         A time to look for the ASI data at.
     base_url: str
@@ -296,25 +321,45 @@ def _download_one_file(
     pathlib.Path
         Local path to file.
     """
-    start_url = base_url + f'{time.year}/{time.month:02}/{time.day:02}/'
+    start_url = base_url + f'{location_code.lower()}/{channel}/level1/{time.year}/{time:%j}/'
+    file_search_str = f'mango-{location_code.lower()}-{channel}-level1-{time:%Y%m%d}.hdf5'
     d = download.Downloader(start_url)
-    # Find the unique directory
-    matched_downloaders = d.ls(f'{location_code.lower()}_{array}*')
+    matched_downloaders = d.ls(file_search_str)
     assert len(matched_downloaders) == 1
-    # Search that directory for the file and donload it.
-    d2 = download.Downloader(matched_downloaders[0].url + f'ut{time.hour:02}/')
-    file_search_str = f'{time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}*{array}*.pgm.gz'
-    matched_downloaders2 = d2.ls(file_search_str)
-    assert len(matched_downloaders2) == 1
-    return matched_downloaders2[0].download(save_dir, redownload=redownload)
+    return matched_downloaders[0].download(save_dir, redownload=redownload)
 
 
 def _load_h5(file_path):
     with h5py.File(file_path, 'r') as file:
-        return file['Time'], file['ImageData']
-            
-    return
+        # Assigning timezone.utc and immediately removing it is necessary to correctly convert 
+        # to the UTC datetime objects. 
+        start_exposure_times = np.array([
+            datetime.fromtimestamp(ti, tz=timezone.utc).replace(tzinfo=None) 
+            for ti in file['UnixTime'][0, :]
+            ])
+        return start_exposure_times, file['ImageData'][...]
 
 def _load_h5_meta(file_path):
     with h5py.File(file_path, 'r') as file:
-        return file['Longitude'], file['Latitude']
+        dt = file['UnixTime'][0, 1:]-file['UnixTime'][0, :-1]
+        assert np.all(dt==dt[0])
+        meta_dict = {
+            'lon':file['Longitude'][:], 
+            'lat':file['Latitude'][:],
+            'az':file['Azimuth'][:],
+            'el':file['Elevation'][:],
+            'alt':None,  # TODO ask Leslie what altitude they mapped to.
+            'resolution':file['ImageData'].shape[1:],
+            'cadence':dt[0],
+            'path':file_path
+        }
+        return meta_dict
+    
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
+    time=datetime(2021, 11, 4, 10, 30)
+    location_code='cfs'
+    asi = mango(location_code, 'redline', time=time)
+    asi.plot_fisheye()
+    plt.show
