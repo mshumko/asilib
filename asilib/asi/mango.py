@@ -288,12 +288,12 @@ def _get_image_files(
             if missing_ok and len(file_paths) == 0:
                 if time_range is not None:
                     warnings.warn(
-                        f'No local or online image files found for {array}-{location_code} '
+                        f'No local or online image files found for MANGO-{location_code.upper()} '
                         f'for {time_range=}.'
                         )
                 else:
                     warnings.warn(
-                        f'No local or online image files found for {array}-{location_code} '
+                        f'No local or online image files found for MANGO-{location_code.upper()} '
                         f'for {time=}.'
                         )
             return file_paths
