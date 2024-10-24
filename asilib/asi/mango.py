@@ -113,6 +113,10 @@ def mango(
         'end_time': end_times,
         'loader': _load_h5,
     }
+    if time_range is not None:
+        file_info['time_range'] = time_range
+    else:
+        file_info['time'] = time
 
     mango_meta = _load_h5_meta(file_paths[0])
     
@@ -133,12 +137,12 @@ def mango(
     }
 
     skymap = {
-        mango_meta['lat'],
-        mango_meta['lon'],
-        mango_meta['az'],
-        mango_meta['el'],
-        mango_meta['alt'],
-        mango_meta['path']
+        'lat':mango_meta['lat'],
+        'lon':mango_meta['lon'],
+        'az':mango_meta['az'],
+        'el':mango_meta['el'],
+        'alt':mango_meta['alt'],
+        'path':mango_meta['path']
     }
     # if acknowledge and ('mango' not in asilib.config['ACKNOWLEDGED_ASIS']):
     #     print(meta['acknowledgment'])
@@ -362,4 +366,4 @@ if __name__ == '__main__':
     location_code='cfs'
     asi = mango(location_code, 'redline', time=time)
     asi.plot_fisheye()
-    plt.show
+    plt.show()
