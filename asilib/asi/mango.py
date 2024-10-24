@@ -133,7 +133,10 @@ def mango(
     }
 
     plot_settings = {
-        'color_map': matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', channel[0]])
+        'color_map': matplotlib.colors.LinearSegmentedColormap.from_list(
+            'black_to_red', ['k', channel[0]]
+            ),
+        'color_bounds':(50, 250)
     }
 
     skymap = {
@@ -341,7 +344,9 @@ def _load_h5(file_path):
             datetime.fromtimestamp(ti, tz=timezone.utc).replace(tzinfo=None) 
             for ti in file['UnixTime'][0, :]
             ])
-        return start_exposure_times, file['ImageData'][...]
+        images = file['ImageData'][...].astype(float)
+        images[np.where(images == 0)] = np.nan
+        return start_exposure_times, images
 
 def _load_h5_meta(file_path):
     with h5py.File(file_path, 'r') as file:
@@ -362,13 +367,13 @@ def _load_h5_meta(file_path):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    # time=datetime(2021, 11, 4, 10, 30)
-    # location_code='cfs'
-    # asi = mango(location_code, 'redline', time=time)
-    # asi.plot_fisheye()
-    # plt.show()
-
-    time_range=(datetime(2021, 11, 4, 1, 0), datetime(2021, 11, 4, 12, 24))
+    time=datetime(2021, 11, 4, 10, 30)
     location_code='cfs'
-    asi = mango(location_code, 'redline', time_range=time_range)
-    asi.animate_fisheye()
+    asi = mango(location_code, 'redline', time=time)
+    asi.plot_fisheye()
+    plt.show()
+
+    # time_range=(datetime(2021, 11, 4, 1, 0), datetime(2021, 11, 4, 12, 24))
+    # location_code='cfs'
+    # asi = mango(location_code, 'redline', time_range=time_range)
+    # asi.animate_fisheye(overwrite=True)
