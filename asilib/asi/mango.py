@@ -13,6 +13,7 @@ import os
 import dateutil.parser
 from typing import Tuple, Iterable, List, Union
 
+import matplotlib.colors
 import pandas as pd
 import h5py
 
@@ -30,6 +31,7 @@ def mango(
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
     alt: int = 110,
+    acknowledge: bool = True,
     redownload: bool = False,
     missing_ok: bool = True,
     imager=asilib.Imager,
@@ -51,6 +53,8 @@ def mango(
         the ASI data time interval.
     alt: int
         The reference skymap altitude, in kilometers.
+    acknowledge: bool
+        If True, prints the acknowledgment statement for REGO. 
     redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes
@@ -98,8 +102,25 @@ def mango(
         'end_time': end_times,
         'loader': _load_h5,
     }
-    meta = _load_h5_meta(file_paths[0])
-    return
+    # meta = _load_h5_meta(file_paths[0])
+    meta = {
+        'array': 'MANGO',
+        'location': location_code.upper(),
+        'lat': None,
+        'lon': None,
+        'alt': None,
+        'cadence': None,
+        'resolution': (None, None),
+        'acknowledgment': ''
+    }
+    plot_settings = {
+        'color_map': matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', channel[0]])
+    }
+    skymap = {}
+    # if acknowledge and ('mango' not in asilib.config['ACKNOWLEDGED_ASIS']):
+    #     print(meta['acknowledgment'])
+    #     asilib.config['ACKNOWLEDGED_ASIS'].append('mango')
+    return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
 def mango_info() -> pd.DataFrame:
