@@ -367,14 +367,27 @@ def _load_h5_meta(file_path):
         return meta_dict
     
 if __name__ == '__main__':
+    import cdasws
     import matplotlib.pyplot as plt
 
     time_range=(datetime(2021, 11, 4, 1, 0), datetime(2021, 11, 4, 12, 24))
     location_code='CFS'
     asi = mango(location_code, 'greenline', time_range=time_range)
+
+    fig = plt.figure
     ax = asilib.map.create_map(lat_bounds=(30, 45), lon_bounds=(-125, -100))
 
     gen = asi.animate_map_gen(ax=ax, asi_label=True, overwrite=True)
+
+    cdas = cdasws.CdasWs()
+    time_range = cdasws.TimeInterval(
+        datetime.fromisoformat(str(time_range[0]-timedelta(days=0.5))).replace(tzinfo=timezone.utc), 
+        datetime.fromisoformat(str(time_range[1]+timedelta(days=0.5))).replace(tzinfo=timezone.utc)
+        )
+    _, data = cdas.get_data(
+                    'OMNI_HRO_5MIN', ['SYM_H'], time_range
+                    )
+    symh = pd.DataFrame(index=data['SYM_H'].Epoch.data, data={'SYM_H':data['SYM_H']})
 
     for image_time, image, _, im in gen:
         # Add your code that modifies each image here...
@@ -382,6 +395,6 @@ if __name__ == '__main__':
         # We will need to delete the prior text object, otherwise the current one
         # will overplot on the prior one---clean up after yourself!
         if 'text_obj' in locals():
-            text_obj.remove()
+            text_obj.remove()  # noqa: F821
         text_obj = ax.text(0.05, 0.99, f'MANGO-{location_code} | {image_time:%F %T}', va='top',
             transform=ax.transAxes, color='orange', fontsize=15)
