@@ -353,7 +353,9 @@ def _load_h5(file_path):
 def _load_h5_meta(file_path):
     with h5py.File(file_path, 'r') as file:
         dt = file['UnixTime'][0, 1:]-file['UnixTime'][0, :-1]
-        assert np.all(dt==dt[0])
+        assert np.all(dt-dt[0] < dt), (
+            f'There is a timestamp jump in file {file_path}. {min(dt)}<dt<{max(dt)}.'
+            )
         meta_dict = {
             'lon':file['Longitude'][:], 
             'lat':file['Latitude'][:],
