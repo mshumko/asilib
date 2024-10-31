@@ -1825,6 +1825,15 @@ class Imager:
         top = None
         bottom = None
 
+        invalid = ~(
+            np.isfinite(x[1:, 1:]) & np.isfinite(y[1:, 1:]) &
+            np.isfinite(x[1:, 1:]) & np.isfinite(y[:-1, :-1]) & 
+            np.isfinite(x[:-1, :-1]) & np.isfinite(y[:-1, :-1]) &
+            np.isfinite(x[:-1, :-1]) & np.isfinite(y[1:, 1:])
+            )
+        image = image.astype(float)
+        image[invalid, ...] = np.nan
+
         for i, m in enumerate(mask):
             # A common use for nonzero is to find the indices of
             # an array, where a condition is True (not nan or inf)
