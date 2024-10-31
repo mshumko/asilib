@@ -1853,6 +1853,10 @@ class Imager:
         x[bottom:, :] = np.nanmax(x[bottom, :])
         y[bottom:, :] = np.nanmax(y[bottom, :])
         
+        # Testing the odd pixel
+        distances = np.argmin(_haversine(y, x, 55.650982*np.ones_like(y), -106.013275*np.ones_like(y)))
+        idx = np.unravel_index(distances, x.shape)
+
         if len(self.meta['resolution']) == 3: #tests to see if the colors selected for an rgb image are rgb or rb or something else
             image = self._rgb_replacer(image)
             if color_brighten:
@@ -1866,7 +1870,11 @@ class Imager:
             shading='auto',
             norm=norm,
             **pcolormesh_kwargs,
+            snap=True,
+            edgecolors='r',
         )
+
+        ax.scatter(x[idx], y[idx], c='b', marker='X', s=100, transform=ccrs.PlateCarree())
         return p
 
 
@@ -1904,3 +1912,19 @@ def _haversine(
         )
     )
     return d
+
+if __name__ == '__main__':
+    import asilib.asi 
+
+    time = '2022-04-10T05:23:00'
+    location_code = 'LUCK'
+    trex = asilib.asi.trex_rgb(location_code, time=time)
+
+    fig = plt.figure(figsize=(5, 5))
+    gs = matplotlib.gridspec.GridSpec(1, 1, fig)
+    lon_bounds = (-114, -100)
+    lat_bounds = (46, 56)
+    ax = asilib.map.create_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds, fig_ax=(fig, gs))
+
+    trex.plot_map(ax=ax, asi_label=False)
+    plt.show()
