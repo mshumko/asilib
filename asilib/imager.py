@@ -1831,8 +1831,10 @@ class Imager:
             np.isfinite(x[:-1, :-1]) & np.isfinite(y[:-1, :-1]) &
             np.isfinite(x[:-1, :-1]) & np.isfinite(y[1:, 1:])
             )
-        image = image.astype(float)
-        image[invalid, ...] = np.nan
+        if len(image.shape) == 3:  # RGB
+            invalid = np.tile(invalid[..., None], image.shape[-1])
+        # image = image.astype(float)
+        # image[invalid, ...] = np.nan
 
         for i, m in enumerate(mask):
             # A common use for nonzero is to find the indices of
@@ -1870,11 +1872,11 @@ class Imager:
             image = self._rgb_replacer(image)
             if color_brighten:
                 image = image / np.max(image)
-            
+
         p = ax.pcolormesh(
             x,
             y,
-            image,
+            np.ma.masked_where(invalid, image),
             cmap=cmap,
             shading='auto',
             norm=norm,
