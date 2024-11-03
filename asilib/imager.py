@@ -545,12 +545,12 @@ class Imager:
         """
         Plot the image onto a geographic map using the modified version of plt.pcolormesh.
         """
-        _masked_lon_map, _masked_lat_map = self._prep_skymap(
+        _masked_lon_grid, _masked_lat_grid = self._prep_skymap(
             self.skymap['lon'], self.skymap['lat'], self.skymap['el'], min_elevation
         )
 
         if len(self.meta['resolution']) == 3:
-            _masked_image = self._rgb_replacer(_masked_image)
+            image = self._rgb_replacer(image)
             if color_brighten:
                 image = image / np.max(image)
 
@@ -563,14 +563,7 @@ class Imager:
             pcolormesh_kwargs_copy['transform'] = ccrs.PlateCarree()
         pcolormesh_kwargs_copy['norm'] = color_norm
         pcolormesh_kwargs_copy['cmap'] = color_map
-        p = self._pcolormesh_nan(
-            ax,
-            _masked_lon_map,
-            _masked_lat_map,
-            self.skymap['el'],
-            _masked_image,
-            pcolormesh_kwargs=pcolormesh_kwargs_copy,
-        )
+        p = ax.pcolormesh(_masked_lon_grid, _masked_lat_grid, image, **pcolormesh_kwargs)
 
         if asi_label:
             if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
@@ -1674,34 +1667,35 @@ class Imager:
 
         return rise, run
 
-    def _prep_skymap(self, lon_map, lat_map, el_map, min_elevation):
+    def _prep_skymap(self, lon_grid, lat_grid, el_grid, min_elevation):
         """
-        Mask the image, skymap['lon'], skymap['lat'] arrays with np.nans
-        where the skymap['el'] < min_elevation or is nan.
+        Prepare the skymap by applying two steps: 1) Mask the lon_grid and lat_grid
+        variables with np.nan if they are below min_elevation, and 2) replace all
+        np.nan values in lon_grid, lat_grid with the closest valid value.
         """
-        idh = np.where(np.isnan(el_map) | (el_map < min_elevation))
+        idh = np.where(np.isnan(el_grid) | (el_grid < min_elevation))
         # Copy variables to not modify original np.arrays.
-        lon_map_copy = lon_map.copy()
-        lat_map_copy = lat_map.copy()
-        lon_map_copy[idh] = np.nan
-        lat_map_copy[idh] = np.nan
+        lon_grid_copy = lon_grid.copy()
+        lat_grid_copy = lat_grid.copy()
+        lon_grid_copy[idh] = np.nan
+        lat_grid_copy[idh] = np.nan
 
-        if (lon_map.shape[0] == el_map.shape[0] + 1) and (lon_map.shape[1] == el_map.shape[1] + 1):
+        if (lon_grid.shape[0] == el_grid.shape[0] + 1) and (lon_grid.shape[1] == el_grid.shape[1] + 1):
             # TODO: This is REGO/THEMIS specific. Remove here and add this to the themis() function?
-            # For some reason the THEMIS & REGO lat/lon_map arrays are one size larger than el_map, so
-            # here we mask the boundary indices in el_map by adding 1 to both the rows
+            # For some reason the THEMIS & REGO lat/lon_grid arrays are one size larger than el_grid, so
+            # here we mask the boundary indices in el_grid by adding 1 to both the rows
             # and columns.
             idh_boundary_bottom = (
                 idh[0] + 1,
                 idh[1],
             )  # idh is a tuple so we have to create a new one.
             idh_boundary_right = (idh[0], idh[1] + 1)
-            lon_map_copy[idh_boundary_bottom] = np.nan
-            lat_map_copy[idh_boundary_bottom] = np.nan
-            lon_map_copy[idh_boundary_right] = np.nan
-            lat_map_copy[idh_boundary_right] = np.nan
+            lon_grid_copy[idh_boundary_bottom] = np.nan
+            lat_grid_copy[idh_boundary_bottom] = np.nan
+            lon_grid_copy[idh_boundary_right] = np.nan
+            lat_grid_copy[idh_boundary_right] = np.nan
 
-        if np.any(~np.isfinite(lon_grid)) or np.any(~np.isfinite(lat_grid)):
+        if np.any(~np.isfinite(lon_grid_copy)) or np.any(~np.isfinite(lat_grid_copy)):
             # Since pcolormesh can't handle any nan values in the x or y arrays,
             # this algorithm removes them. It loops over grid angle pairs 
             # (e.g. (0, 10), (10, 20), ...), finds the points in x & y that are
@@ -1713,8 +1707,8 @@ class Imager:
             # We need to set up 2 sets of grids since U Calgary's (lat, lon) skymap
             # dimentions are 1 greater than the (elevation, azimuth) skymaps.
             xx_geodetic, yy_geodetic = np.meshgrid(
-                np.arange(lon_grid.shape[0]), 
-                np.arange(lon_grid.shape[1]), 
+                np.arange(lon_grid_copy.shape[0]), 
+                np.arange(lon_grid_copy.shape[1]), 
                 indexing='ij'  # So that the shapes of x, y, xx, and yy are the same.
                 )
             xx_elevation, yy_elevation = np.meshgrid(
@@ -1743,39 +1737,39 @@ class Imager:
                 geodetic_slice_invalid_indices = np.where(
                         (yy_geodetic >= start_slope*xx_geodetic + start_y_int) &
                         (yy_geodetic <= end_slope*xx_geodetic + end_y_int) &
-                        (np.isnan(lon_grid) | np.isnan(lat_grid))
+                        (np.isnan(lon_grid_copy) | np.isnan(lat_grid_copy))
                     )
 
-                if lat_grid.shape == el_grid.shape:
+                if lat_grid_copy.shape == el_grid.shape:
                     elevation_slice_valid_indices = np.where(
                         (yy_elevation > start_slope*xx_elevation + start_y_int) &
                         (yy_elevation < end_slope*xx_elevation + end_y_int) &
                         np.isfinite(el_grid) & 
-                        np.isfinite(lon_grid) &
-                        np.isfinite(lat_grid)
+                        np.isfinite(lon_grid_copy) &
+                        np.isfinite(lat_grid_copy)
                     )
                 else:
                     elevation_slice_valid_indices = np.where(
                         (yy_elevation > start_slope*xx_elevation + start_y_int) &
                         (yy_elevation < end_slope*xx_elevation + end_y_int) &
                         np.isfinite(el_grid) & 
-                        np.isfinite(lon_grid[:-1, :-1]) &
-                        np.isfinite(lat_grid[:-1, :-1])
+                        np.isfinite(lon_grid_copy[:-1, :-1]) &
+                        np.isfinite(lat_grid_copy[:-1, :-1])
                     )
                 min_el_slice_index = np.argmin(el_grid[elevation_slice_valid_indices])
-                lon_grid[geodetic_slice_invalid_indices] = lon_grid[
+                lon_grid_copy[geodetic_slice_invalid_indices] = lon_grid_copy[
                     elevation_slice_valid_indices[0][min_el_slice_index],
                     elevation_slice_valid_indices[1][min_el_slice_index]
                     ]
-                lat_grid[geodetic_slice_invalid_indices] = lat_grid[
+                lat_grid_copy[geodetic_slice_invalid_indices] = lat_grid_copy[
                     elevation_slice_valid_indices[0][min_el_slice_index],
                     elevation_slice_valid_indices[1][min_el_slice_index]
                     ]
             # The following section is a patch for the small angular sliver of points
             # that the method misses. I am trying a quick and dirty approach first to determine 
             # if this approach even works.
-            invalid_idxs = np.where(np.isnan(lon_grid) | np.isnan(lat_grid))
-            valid_indices = np.where(np.isfinite(lon_grid) & np.isfinite(lat_grid))
+            invalid_idxs = np.where(np.isnan(lon_grid_copy) | np.isnan(lat_grid_copy))
+            valid_indices = np.where(np.isfinite(lon_grid_copy) & np.isfinite(lat_grid_copy))
             for invalid_idx in zip(*invalid_idxs):
                 min_valid_idx_flattened = np.nanargmin(
                     (invalid_idx[0]-xx_geodetic[valid_indices])**2 + (invalid_idx[1]-yy_geodetic[valid_indices])**2
@@ -1784,15 +1778,15 @@ class Imager:
                     valid_indices[0][min_valid_idx_flattened], 
                     valid_indices[1][min_valid_idx_flattened]
                     )
-                lat_grid[invalid_idx] = lat_grid[closest_valid_idx]
-                lon_grid[invalid_idx] = lon_grid[closest_valid_idx]
+                lat_grid_copy[invalid_idx] = lat_grid_copy[closest_valid_idx]
+                lon_grid_copy[invalid_idx] = lon_grid_copy[closest_valid_idx]
                     
-            if np.any(~np.isfinite(lon_grid)) or np.any(~np.isfinite(lat_grid)):
+            if np.any(~np.isfinite(lon_grid_copy)) or np.any(~np.isfinite(lat_grid_copy)):
                 raise ValueError(
                     'Either the lat or lon skymap still contains invalid values '
                     '(nans are not allowed).'
                     )
-        return lon_map_copy, lat_map_copy
+        return lon_grid_copy, lat_grid_copy
 
     def _create_animation(
         self,
@@ -1876,30 +1870,22 @@ class Imager:
                     np.shape(image)[:-1], np.nan)
         return image
 
-    def _pcolormesh_nan(
-        self,
-        ax: plt.Axes,
-        lon_grid: np.ndarray,
-        lat_grid: np.ndarray,
-        el_grid: np.ndarray,
-        image: np.ndarray,
-        pcolormesh_kwargs={},
-    ):
-        """
-        Plot a collection of patches on onto a map.
-        """
-        save_dir = pathlib.Path(
-                    asilib.config['ASI_DATA_DIR'],
-                    'animations',
-                    'pcolormesh_test',
-        )
-        if save_dir.is_dir():
-            shutil.rmtree(save_dir)  
-        save_dir.mkdir(parents=True)
+    # def _pcolormesh_nan(
+    #     self,
+    #     ax: plt.Axes,
+    #     lon_grid: np.ndarray,
+    #     lat_grid: np.ndarray,
+    #     el_grid: np.ndarray,
+    #     image: np.ndarray,
+    #     pcolormesh_kwargs={},
+    # ):
+    #     """
+    #     Plot a collection of patches on onto a map.
+    #     """
 
         
-        ax.pcolormesh(lon_grid, lat_grid, image, **pcolormesh_kwargs)
-        return
+        
+    #     return
     
     def quadrant(self, rad):
         deg = np.rad2deg(rad)
@@ -1962,7 +1948,7 @@ if __name__ == '__main__':
     time = datetime(2021, 11, 4, 7, 3, 51)
     asi = trex_rgb('FSMI', time=time)
     ax = asilib.map.create_simple_map(
-        lon_bounds=(asi.meta['lon']-8, asi.meta['lon']+8),
+        lon_bounds=(asi.meta['lon']-10, asi.meta['lon']+10),
         lat_bounds=(asi.meta['lat']-6, asi.meta['lat']+6)
     )
     asi.plot_map(ax=ax)
