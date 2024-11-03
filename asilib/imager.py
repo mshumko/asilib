@@ -1804,7 +1804,7 @@ class Imager:
         """
         Plot a collection of patches on onto a map.
         """
-        _, ax = plt.subplots()
+        _, ax = plt.subplots()  # TODO: Remove after I implement the new algorithm 
         save_dir = pathlib.Path(
                     asilib.config['ASI_DATA_DIR'],
                     'animations',
@@ -1822,7 +1822,7 @@ class Imager:
             # valid point with the lowest elevation in that segment.
             center_index = np.unravel_index(np.nanargmax(el_grid), el_grid.shape)
 
-            angles = np.linspace(0, 2*np.pi)
+            angles = np.linspace(0, 2*np.pi, num=100)
             # We need to set up 2 sets of grids since U Calgary's (lat, lon) skymap
             # dimentions are 1 greater than the (elevation, azimuth) skymaps.
             xx_geodetic, yy_geodetic = np.meshgrid(
