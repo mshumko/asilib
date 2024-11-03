@@ -545,8 +545,8 @@ class Imager:
         """
         Plot the image onto a geographic map using the modified version of plt.pcolormesh.
         """
-        _masked_lon_map, _masked_lat_map, _masked_image = self._mask_low_horizon(
-            self.skymap['lon'], self.skymap['lat'], self.skymap['el'], min_elevation, image=image
+        _masked_lon_map, _masked_lat_map = self._prep_skymap(
+            self.skymap['lon'], self.skymap['lat'], self.skymap['el'], min_elevation
         )
 
         if len(self.meta['resolution']) == 3:
@@ -1674,7 +1674,7 @@ class Imager:
 
         return rise, run
 
-    def _mask_low_horizon(self, lon_map, lat_map, el_map, min_elevation, image=None):
+    def _prep_skymap(self, lon_map, lat_map, el_map, min_elevation):
         """
         Mask the image, skymap['lon'], skymap['lat'] arrays with np.nans
         where the skymap['el'] < min_elevation or is nan.
@@ -1685,14 +1685,6 @@ class Imager:
         lat_map_copy = lat_map.copy()
         lon_map_copy[idh] = np.nan
         lat_map_copy[idh] = np.nan
-
-        # if image is not None:
-        #     image_copy = image.copy()
-        #     original_dtype = image.dtype
-        #     image_copy = image_copy.astype(float)  # Can't mask image unless it is a float array.
-        #     image_copy[idh] = np.nan
-        # else:
-        #     image_copy = None
 
         if (lon_map.shape[0] == el_map.shape[0] + 1) and (lon_map.shape[1] == el_map.shape[1] + 1):
             # TODO: This is REGO/THEMIS specific. Remove here and add this to the themis() function?
@@ -1708,7 +1700,99 @@ class Imager:
             lat_map_copy[idh_boundary_bottom] = np.nan
             lon_map_copy[idh_boundary_right] = np.nan
             lat_map_copy[idh_boundary_right] = np.nan
-        return lon_map_copy, lat_map_copy, image
+
+        if np.any(~np.isfinite(lon_grid)) or np.any(~np.isfinite(lat_grid)):
+            # Since pcolormesh can't handle any nan values in the x or y arrays,
+            # this algorithm removes them. It loops over grid angle pairs 
+            # (e.g. (0, 10), (10, 20), ...), finds the points in x & y that are
+            # between those angles, and reassigns those invalid values to the 
+            # valid point with the lowest elevation in that segment.
+            center_index = np.unravel_index(np.nanargmax(el_grid), el_grid.shape)
+
+            angles = np.linspace(0, 2*np.pi, num=300)
+            # We need to set up 2 sets of grids since U Calgary's (lat, lon) skymap
+            # dimentions are 1 greater than the (elevation, azimuth) skymaps.
+            xx_geodetic, yy_geodetic = np.meshgrid(
+                np.arange(lon_grid.shape[0]), 
+                np.arange(lon_grid.shape[1]), 
+                indexing='ij'  # So that the shapes of x, y, xx, and yy are the same.
+                )
+            xx_elevation, yy_elevation = np.meshgrid(
+                np.arange(el_grid.shape[0]), 
+                np.arange(el_grid.shape[1]), 
+                indexing='ij'  # So that the shapes of x, y, xx, and yy are the same.
+                )
+            
+            for start_angle, end_angle in zip(angles[:-1], angles[1:]):
+                # These if-else blocks are probably causing the angular sliver bug which is 
+                # patched below.
+                if (start_angle < np.pi/2) or (start_angle > 3*np.pi/2):
+                    start_slope_sign = 1
+                else:
+                    start_slope_sign = -1
+                if (end_angle < np.pi/2) or (end_angle > 3*np.pi/2):
+                    end_slope_sign = 1
+                else:
+                    end_slope_sign = -1
+        
+                start_slope = start_slope_sign*np.tan(start_angle)
+                start_y_int = center_index[1] - start_slope*center_index[0]
+                end_slope = end_slope_sign*np.tan(end_angle)
+                end_y_int = center_index[1] - end_slope*center_index[0]
+
+                geodetic_slice_invalid_indices = np.where(
+                        (yy_geodetic >= start_slope*xx_geodetic + start_y_int) &
+                        (yy_geodetic <= end_slope*xx_geodetic + end_y_int) &
+                        (np.isnan(lon_grid) | np.isnan(lat_grid))
+                    )
+
+                if lat_grid.shape == el_grid.shape:
+                    elevation_slice_valid_indices = np.where(
+                        (yy_elevation > start_slope*xx_elevation + start_y_int) &
+                        (yy_elevation < end_slope*xx_elevation + end_y_int) &
+                        np.isfinite(el_grid) & 
+                        np.isfinite(lon_grid) &
+                        np.isfinite(lat_grid)
+                    )
+                else:
+                    elevation_slice_valid_indices = np.where(
+                        (yy_elevation > start_slope*xx_elevation + start_y_int) &
+                        (yy_elevation < end_slope*xx_elevation + end_y_int) &
+                        np.isfinite(el_grid) & 
+                        np.isfinite(lon_grid[:-1, :-1]) &
+                        np.isfinite(lat_grid[:-1, :-1])
+                    )
+                min_el_slice_index = np.argmin(el_grid[elevation_slice_valid_indices])
+                lon_grid[geodetic_slice_invalid_indices] = lon_grid[
+                    elevation_slice_valid_indices[0][min_el_slice_index],
+                    elevation_slice_valid_indices[1][min_el_slice_index]
+                    ]
+                lat_grid[geodetic_slice_invalid_indices] = lat_grid[
+                    elevation_slice_valid_indices[0][min_el_slice_index],
+                    elevation_slice_valid_indices[1][min_el_slice_index]
+                    ]
+            # The following section is a patch for the small angular sliver of points
+            # that the method misses. I am trying a quick and dirty approach first to determine 
+            # if this approach even works.
+            invalid_idxs = np.where(np.isnan(lon_grid) | np.isnan(lat_grid))
+            valid_indices = np.where(np.isfinite(lon_grid) & np.isfinite(lat_grid))
+            for invalid_idx in zip(*invalid_idxs):
+                min_valid_idx_flattened = np.nanargmin(
+                    (invalid_idx[0]-xx_geodetic[valid_indices])**2 + (invalid_idx[1]-yy_geodetic[valid_indices])**2
+                    )
+                closest_valid_idx = (
+                    valid_indices[0][min_valid_idx_flattened], 
+                    valid_indices[1][min_valid_idx_flattened]
+                    )
+                lat_grid[invalid_idx] = lat_grid[closest_valid_idx]
+                lon_grid[invalid_idx] = lon_grid[closest_valid_idx]
+                    
+            if np.any(~np.isfinite(lon_grid)) or np.any(~np.isfinite(lat_grid)):
+                raise ValueError(
+                    'Either the lat or lon skymap still contains invalid values '
+                    '(nans are not allowed).'
+                    )
+        return lon_map_copy, lat_map_copy
 
     def _create_animation(
         self,
@@ -1804,7 +1888,6 @@ class Imager:
         """
         Plot a collection of patches on onto a map.
         """
-        _, ax = plt.subplots()  # TODO: Remove after I implement the new algorithm 
         save_dir = pathlib.Path(
                     asilib.config['ASI_DATA_DIR'],
                     'animations',
@@ -1814,81 +1897,7 @@ class Imager:
             shutil.rmtree(save_dir)  
         save_dir.mkdir(parents=True)
 
-        if np.any(~np.isfinite(lon_grid)) or np.any(~np.isfinite(lat_grid)):
-            # Since pcolormesh can't handle any nan values in the x or y arrays,
-            # this algorithm removes them. It loops over grid angle pairs 
-            # (e.g. (0, 10), (10, 20), ...), finds the points in x & y that are
-            # between those angles, and reassigns those invalid values to the 
-            # valid point with the lowest elevation in that segment.
-            center_index = np.unravel_index(np.nanargmax(el_grid), el_grid.shape)
-
-            angles = np.linspace(0, 2*np.pi, num=100)
-            # We need to set up 2 sets of grids since U Calgary's (lat, lon) skymap
-            # dimentions are 1 greater than the (elevation, azimuth) skymaps.
-            xx_geodetic, yy_geodetic = np.meshgrid(
-                np.arange(lon_grid.shape[0]), 
-                np.arange(lon_grid.shape[1]), 
-                indexing='ij'  # So that the shapes of x, y, xx, and yy are the same.
-                )
-            xx_elevation, yy_elevation = np.meshgrid(
-                np.arange(el_grid.shape[0]), 
-                np.arange(el_grid.shape[1]), 
-                indexing='ij'  # So that the shapes of x, y, xx, and yy are the same.
-                )
-            
-            for start_angle, end_angle in zip(angles[:-1], angles[1:]):
-                if (start_angle < np.pi/2) or (start_angle > 3*np.pi/2):
-                    start_slope_sign = 1
-                else:
-                    start_slope_sign = -1
-                if (end_angle < np.pi/2) or (end_angle > 3*np.pi/2):
-                    end_slope_sign = 1
-                else:
-                    end_slope_sign = -1
         
-                start_slope = start_slope_sign*np.tan(start_angle)
-                start_y_int = center_index[1] - start_slope*center_index[0]
-                end_slope = end_slope_sign*np.tan(end_angle)
-                end_y_int = center_index[1] - end_slope*center_index[0]
-
-                geodetic_slice_invalid_indices = np.where(
-                        (yy_geodetic >= start_slope*xx_geodetic + start_y_int) &
-                        (yy_geodetic <= end_slope*xx_geodetic + end_y_int) &
-                        (np.isnan(lon_grid) | np.isnan(lat_grid))
-                    )
-
-                if lat_grid.shape == el_grid.shape:
-                    elevation_slice_valid_indices = np.where(
-                        (yy_elevation > start_slope*xx_elevation + start_y_int) &
-                        (yy_elevation < end_slope*xx_elevation + end_y_int) &
-                        np.isfinite(el_grid) & 
-                        np.isfinite(lon_grid) &
-                        np.isfinite(lat_grid)
-                    )
-                else:
-                    elevation_slice_valid_indices = np.where(
-                        (yy_elevation > start_slope*xx_elevation + start_y_int) &
-                        (yy_elevation < end_slope*xx_elevation + end_y_int) &
-                        np.isfinite(el_grid) & 
-                        np.isfinite(lon_grid[:-1, :-1]) &
-                        np.isfinite(lat_grid[:-1, :-1])
-                    )
-                min_el_slice_index = np.argmin(el_grid[elevation_slice_valid_indices])
-                lon_grid[geodetic_slice_invalid_indices] = lon_grid[
-                    elevation_slice_valid_indices[0][min_el_slice_index],
-                    elevation_slice_valid_indices[1][min_el_slice_index]
-                    ]
-                lat_grid[geodetic_slice_invalid_indices] = lat_grid[
-                    elevation_slice_valid_indices[0][min_el_slice_index],
-                    elevation_slice_valid_indices[1][min_el_slice_index]
-                    ]
-            ax.imshow(lon_grid, origin='lower')
-            plt.show()
-            if np.any(~np.isfinite(lon_grid)) or np.any(~np.isfinite(lat_grid)):
-                raise ValueError(
-                    'Either the lat or lon skymap still contains invalid values '
-                    '(nans are not allowed).'
-                    )
         ax.pcolormesh(lon_grid, lat_grid, image, **pcolormesh_kwargs)
         return
     
