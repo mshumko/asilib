@@ -11,8 +11,18 @@ import shutil
 
 import numpy as np
 import matplotlib.pyplot as plt
+try:
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+    import cartopy.mpl.geoaxes
 
-from asilib.imager import Imager, _haversine
+    cartopy_imported = True
+except ImportError as err:
+    # You can also get a ModuleNotFoundError if cartopy is not installed
+    # (as compared to failed to import), but it is a subclass of ImportError.
+    cartopy_imported = False
+
+from asilib.imager import Imager, _haversine, _prep_skymap
 import asilib.map
 import asilib.utils
 
@@ -40,6 +50,10 @@ class Imagers:
         if isinstance(self.imagers, Imager):
             self.imagers = (self.imagers, )
         self.iter_tol = iter_tol
+        self.skymaps = {
+            f'{_imager.meta["array"]}-{_imager.meta["location"]}':_imager.skymap.copy() 
+            for _imager in self.imagers
+            }
         return
     
     def plot_fisheye(self, ax:Tuple[plt.Axes], **kwargs):
@@ -91,19 +105,61 @@ class Imagers:
             imager_i.plot_fisheye(ax=ax_i, **kwargs)
         return
     
-    def plot_map(self, overlap=False, **kwargs):
+    def plot_map(
+            self,
+            lon_bounds: tuple = (-160, -50),
+            lat_bounds: tuple = (40, 82),
+            ax: Union[plt.Axes, tuple] = None,
+            coast_color: str = 'k',
+            land_color: str = 'g',
+            ocean_color: str = 'w',
+            color_map: str = None,
+            color_bounds: List[float] = None,
+            color_norm: str = None,
+            color_brighten: bool = True,
+            overlap=False, 
+            min_elevation: float = 10, 
+            asi_label: bool = True,
+            pcolormesh_kwargs: dict = {},
+            ):
         """
         Projects multiple ASI images onto a map at an altitude that is defined in the skymap 
         calibration file.
 
         Parameters
         ----------
+        lon_bounds: tuple
+            The map's longitude bounds.
+        lat_bounds: tuple
+            The map's latitude bounds.
+        ax: plt.Axes, tuple
+            The subplot to put the map on. If cartopy is installed, ```ax``` must be
+            a two element tuple specifying the ``plt.Figure`` object and subplot position
+            passed directly as ``args`` into
+            `fig.add_subplot() <https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure.add_subplot>`_.
+        coast_color: str
+            The coast color. If None will not draw it.
+        land_color: str
+            The land color. If None will not draw it.
+        ocean_color: str
+            The ocean color. If None will not draw it.
+        color_map: str
+            The matplotlib colormap to use. See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
+        color_norm: str
+            Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
+            the color normalization will be taken from the ASI array (if specified), and if not
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
         overlap: bool
             If True, pixels that overlap between imager FOV's are overplotted such that only the 
             final imager's pixels are shown.
-        kwargs: dict
-            Keyword arguments directly passed into each :py:meth:`~asilib.Imager.plot_map`
-            method.
+        min_elevation: float
+            Masks the pixels below min_elevation degrees.
+        asi_label: bool
+            Annotates the map with the ASI code in the center of the mapped image.
+        pcolormesh_kwargs: dict
+            A dictionary of keyword arguments (kwargs) to pass directly into
+            plt.pcolormesh.
 
         Example
         -------
@@ -133,11 +189,31 @@ class Imagers:
         >>> ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
         >>> plt.show()
         """
+        if ax is None:
+            ax = asilib.map.create_map(
+                lon_bounds=lon_bounds,
+                lat_bounds=lat_bounds,
+                coast_color=coast_color,
+                land_color=land_color,
+                ocean_color=ocean_color,
+            )
         if not overlap:
-            self._calc_overlap_mask()  # TODO: Put into a context manager.
+            imager_names = [f'{_imager.meta["array"]}-{_imager.meta["location"]}' for _imager in self.imagers]
+            self._calc_overlap_mask(imager_names)
 
-        for imager in self.imagers:
-            imager.plot_map(**kwargs)
+        for imager, skymap in zip(self.imagers, self.skymaps.values()):
+            lon_grid, lat_grid = _prep_skymap(
+                skymap['lon'], skymap['lat'], skymap['el'], min_elevation
+            )            
+
+            self_copy = imager.__getitem__(imager.file_info['time'])
+            _, image = self_copy.data
+            color_map, color_norm = imager._plot_params(image, color_bounds, color_map, color_norm)
+
+            self._plot_mapped_image(
+                imager, ax, lon_grid, lat_grid, image, color_map, color_norm, color_brighten, asi_label, 
+                pcolormesh_kwargs
+            )
         return
     
     # def animate_fisheye(self):
@@ -409,8 +485,6 @@ class Imagers:
         future_iterators = {}
         stopped_iterators = []
 
-        # TODO: Recalculate the skymaps if an imager is delayed or turned off.
-
         for guide_time in times:
             _asi_times = []
             _asi_images = []
@@ -449,6 +523,48 @@ class Imagers:
                     future_iterators.pop(_name)
             yield guide_time, _asi_times, _asi_images
         return
+
+    def _plot_mapped_image(
+        self, imager, ax, lon_grid, lat_grid, image, color_map, color_norm, color_brighten, asi_label, 
+        pcolormesh_kwargs
+    ):
+        """
+        Plot the image onto a geographic map using the modified version of plt.pcolormesh.
+        """
+
+        if len(imager.meta['resolution']) == 3:
+            image = imager._rgb_replacer(image)
+            if color_brighten:
+                image = image / np.max(image)
+
+        pcolormesh_kwargs_copy = pcolormesh_kwargs.copy()
+        if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
+            assert 'transform' not in pcolormesh_kwargs.keys(), (
+                f"The pcolormesh_kwargs in Imager.plot_map() can't contain "
+                f"'transform' key because it is reserved for cartopy."
+            )
+            pcolormesh_kwargs_copy['transform'] = ccrs.PlateCarree()
+        pcolormesh_kwargs_copy['norm'] = color_norm
+        pcolormesh_kwargs_copy['cmap'] = color_map
+        p = ax.pcolormesh(lon_grid, lat_grid, image, **pcolormesh_kwargs_copy)
+
+        if asi_label:
+            if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
+                transform = ccrs.PlateCarree()
+            else:
+                transform = ax.transData
+            label = ax.text(
+                imager.meta['lon'],
+                imager.meta['lat'],
+                imager.meta['location'].upper(),
+                color='r',
+                transform=transform,
+                va='center',
+                ha='center',
+            )
+        else:
+            label = None
+        return ax, p, label
 
     def get_points(self, min_elevation:float=10)->Tuple[np.ndarray, np.ndarray]:
         """
@@ -564,7 +680,7 @@ class Imagers:
                 ))
         return lat_lon_points, intensities
     
-    def _calc_overlap_mask(self):
+    def _calc_overlap_mask(self, imager_names):
         """
         Calculate which pixels to plot for overlapping imagers by the criteria that the ith 
         imager's pixel must be closest to that imager (and not a neighboring one).
@@ -577,13 +693,16 @@ class Imagers:
         5. For all pixels in ith imager, calculate the haversine distance to jth imager and 
         assign it to distance[..., j].
         6. For all pixels calculate the nearest imager out of all j's.
-        7. If the minimum j is not the ith imager, mask the imager.skymap['lat'] and 
-        imager.skymap['lon'] as np.nan.
+        7. If the minimum j is not the ith imager, mask the self.skymap['lat'] and 
+        self.skymap['lon'] as np.nan.
         """
-        if hasattr(self, '_masked'):
-            return
+        if (
+            hasattr(self, '_masked_imager_skymaps') and 
+            np.all(imager_names == self._masked_imager_skymaps)
+            ):
+            return 
 
-        for i, imager in enumerate(self.imagers):
+        for i, (imager, skymap_key) in enumerate(zip(self.imagers, self.skymaps)):
             _distances = np.nan*np.ones((*imager.skymap['lat'].shape, len(self.imagers)))
             for j, other_imager in enumerate(self.imagers):
                 # Calculate the distance between all imager pixels and every other imager 
@@ -604,9 +723,9 @@ class Imagers:
             # method then won't plot that pixel.
             min_distances = np.argmin(_distances, axis=2)
             far_pixels = np.where(min_distances != i)
-            imager.skymap['lat'][far_pixels] = np.nan
-            imager.skymap['lon'][far_pixels] = np.nan
-        self._masked = True  # A flag to not run again.
+            self.skymaps[skymap_key]['lat'][far_pixels] = np.nan
+            self.skymaps[skymap_key]['lon'][far_pixels] = np.nan
+        self._masked_imager_skymaps = imager_names
         return
     
     def __str__(self):
