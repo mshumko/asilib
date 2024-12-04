@@ -134,10 +134,14 @@ class Imagers:
         >>> plt.show()
         """
         if not overlap:
-            self._calc_overlap_mask()  # TODO: Put into a context manager.
+            self._calc_overlap_mask()
 
         for imager in self.imagers:
-            imager.plot_map(**kwargs)
+            imager.plot_map(
+                **kwargs, 
+                lon_grid=self.overlap_mask_skymaps[imager.meta['location']]['lon'],
+                lat_grid=self.overlap_mask_skymaps[imager.meta['location']]['lat']
+                )
         return
     
     # def animate_fisheye(self):
@@ -580,8 +584,10 @@ class Imagers:
         7. If the minimum j is not the ith imager, mask the imager.skymap['lat'] and 
         imager.skymap['lon'] as np.nan.
         """
-        if hasattr(self, '_masked'):
+        if hasattr(self, 'overlap_mask_skymaps'):
             return
+        
+        self.overlap_mask_skymaps = {}
 
         for i, imager in enumerate(self.imagers):
             _distances = np.nan*np.ones((*imager.skymap['lat'].shape, len(self.imagers)))
@@ -604,9 +610,14 @@ class Imagers:
             # method then won't plot that pixel.
             min_distances = np.argmin(_distances, axis=2)
             far_pixels = np.where(min_distances != i)
-            imager.skymap['lat'][far_pixels] = np.nan
-            imager.skymap['lon'][far_pixels] = np.nan
-        self._masked = True  # A flag to not run again.
+            # Do not modify orginal skymaps.
+            self.overlap_mask_skymaps[imager.meta['location']] = {
+                'lon':imager.skymap['lon'].copy(), 
+                'lat':imager.skymap['lat'].copy()
+            }
+
+            self.overlap_mask_skymaps[imager.meta['location']]['lat'][far_pixels] = np.nan
+            self.overlap_mask_skymaps[imager.meta['location']]['lon'][far_pixels] = np.nan
         return
     
     def __str__(self):
