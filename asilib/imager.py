@@ -586,7 +586,7 @@ class Imager:
             pcolormesh_kwargs_copy['transform'] = ccrs.PlateCarree()
         pcolormesh_kwargs_copy['norm'] = color_norm
         pcolormesh_kwargs_copy['cmap'] = color_map
-        p = ax.pcolormesh(_cleaned_lon_grid, _cleaned_lat_grid, image, **pcolormesh_kwargs)
+        p = ax.pcolormesh(_cleaned_lon_grid, _cleaned_lat_grid, image, **pcolormesh_kwargs_copy)
 
         if asi_label:
             if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
@@ -1779,20 +1779,6 @@ class Imager:
                 image[:, :, 2] = np.full(
                     np.shape(image)[:-1], np.nan)
         return image
-    
-    def quadrant(self, rad):
-        deg = np.rad2deg(rad)
-        if deg <= 90:
-            return 1
-        elif (deg > 90) and (deg <= 180):
-            return 2
-        elif (deg > 180) and (deg <= 270):
-            return 3
-        elif (deg > 270) and (deg <= 360):
-            return 4
-        else:
-            raise ValueError
-
 
 class Skymap_Cleaner:
     def __init__(self, lon_grid, lat_grid, el_grid, min_elevation=None):
@@ -1954,22 +1940,3 @@ def _haversine(
         )
     )
     return d
-
-
-if __name__ == '__main__':
-    from datetime import datetime
-    
-    import matplotlib.pyplot as plt
-    import asilib.map
-    import asilib
-    from asilib.asi.trex import trex_rgb
-    
-    time = datetime(2021, 11, 4, 7, 3, 51)
-    asi = trex_rgb('RABB', time=time)
-    ax = asilib.map.create_simple_map(
-        lon_bounds=(asi.meta['lon']-10, asi.meta['lon']+10),
-        lat_bounds=(asi.meta['lat']-6, asi.meta['lat']+6)
-    )
-    asi.plot_map(ax=ax)
-    plt.tight_layout()
-    plt.show()
