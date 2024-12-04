@@ -1821,11 +1821,13 @@ class Skymap_Cleaner:
 
     def remove_nans(self):
         """
-        Since pcolormesh can't handle any nan values in the x or y arrays,
-        this algorithm removes them. It loops over grid angle pairs 
-        (e.g. (0, 10), (10, 20), ...), finds the points in x & y that are
-        between those angles, and reassigns those invalid values to the 
-        valid point with the lowest elevation in that segment.
+        Remove any NaN values from the lat and lon skymaps. We need to do this
+        since pcolormesh can't handle any nan values in the x or y arrays.
+         
+        This method segments the skymaps in angular coordinates, (e.g. (0, 10), 
+        (10, 20), ...), finds the points in x & y that are between those angles, 
+        and reassigns those invalid values to the valid point with the lowest 
+        elevation in that segment.
         """
         if np.all(np.isfinite(self._lon_grid)) and np.all(np.isfinite(self._lat_grid)):
             return self._lon_grid, self._lat_grid
@@ -1848,7 +1850,7 @@ class Skymap_Cleaner:
             indexing='ij'  # So that the shapes of x, y, xx, and yy are the same.
             )
         
-        for i, (start_angle, end_angle) in enumerate(zip(angles[:-1], angles[1:])):
+        for (start_angle, end_angle) in zip(angles[:-1], angles[1:]):
             start_slope = np.tan(start_angle)
             start_y_int = center_index[1] - start_slope*center_index[0]
 
