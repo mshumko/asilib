@@ -12,7 +12,7 @@ import shutil
 import numpy as np
 import matplotlib.pyplot as plt
 
-from asilib.imager import Imager, _haversine
+from asilib.imager import Imager, _haversine, Skymap_Cleaner
 import asilib.map
 import asilib.utils
 
@@ -133,15 +133,24 @@ class Imagers:
         >>> ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
         >>> plt.show()
         """
+        if 'ax' not in kwargs:
+            kwargs['ax'] = asilib.map.create_map()
+
+        # If overlap=False, each skymap first has nans in the imager overlapping region,
+        # and then the skymap cleaner nans everything below min_elevation, which is then
+        # immediately followed by the reassignment of all nans to the nearest valid value.
         if not overlap:
             self._calc_overlap_mask()
 
         for imager in self.imagers:
-            imager.plot_map(
-                **kwargs, 
-                lon_grid=self.overlap_mask_skymaps[imager.meta['location']]['lon'],
-                lat_grid=self.overlap_mask_skymaps[imager.meta['location']]['lat']
-                )
+            _skymap_cleaner = Skymap_Cleaner(
+                self.overlap_mask_skymaps[imager.meta['location']]['lon'], 
+                self.overlap_mask_skymaps[imager.meta['location']]['lat'], 
+                imager.skymap['el'], 
+                min_elevation=kwargs.get('min_elevation', 10)
+            )
+            _cleaned_lon_grid, _cleaned_lat_grid = _skymap_cleaner.remove_nans()
+            imager.plot_map(**kwargs, lon_grid=_cleaned_lon_grid, lat_grid=_cleaned_lat_grid)
         return
     
     # def animate_fisheye(self):
@@ -676,13 +685,33 @@ if __name__ == '__main__':
     import asilib.asi
     import asilib.map
 
-    time_range = ('2016-08-09T08:00', '2016-08-09T09:00')
+    # time_range = ('2016-08-09T08:00', '2016-08-09T09:00')
+    # asi_list = []
+
+    # for location_code in ['GILL', 'FSMI', 'FSIM']:
+    #     asi_list.append(asilib.asi.rego(location_code, time_range=time_range))
+
+    # ax = asilib.map.create_cartopy_map(lon_bounds=(-130, -87), lat_bounds=(51, 65))
+    # plt.tight_layout()
+
+    # asis = asilib.Imagers(asi_list)
+    # gen = asis.animate_map_gen(overwrite=True, ax=ax)
+    # for guide_time, asi_times, asi_images, ax in gen:
+    #     if '_text_obj' in locals():
+    #         _text_obj.remove()  # noqa: F821
+    #     info_str = f'Time: {guide_time: %Y:%m:%d %H:%M:%S}'
+
+    #     _text_obj = ax.text(
+    #         0.01, 0.99, info_str, va='top', transform=ax.transAxes, 
+    #         bbox=dict(facecolor='grey', edgecolor='black'))
+
+    time_range = ('2021-11-04T06:55', '2021-11-04T07:10')
     asi_list = []
 
-    for location_code in ['GILL', 'FSMI', 'FSIM']:
-        asi_list.append(asilib.asi.rego(location_code, time_range=time_range))
+    for location_code in ['GILL', 'RABB', 'PINA', 'LUCK']:
+        asi_list.append(asilib.asi.trex_rgb(location_code, time_range=time_range))
 
-    ax = asilib.map.create_cartopy_map(lon_bounds=(-130, -87), lat_bounds=(51, 65))
+    ax = asilib.map.create_cartopy_map(lon_bounds=(-115, -83), lat_bounds=(43, 63))
     plt.tight_layout()
 
     asis = asilib.Imagers(asi_list)
