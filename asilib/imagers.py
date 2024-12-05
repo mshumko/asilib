@@ -336,8 +336,7 @@ class Imagers:
             _skymap_cleaner = Skymap_Cleaner(
                 self.overlap_mask_skymaps[imager.meta['location']]['lon'], 
                 self.overlap_mask_skymaps[imager.meta['location']]['lat'], 
-                imager.skymap['el'], 
-                min_elevation=min_elevation
+                imager.skymap['el'],
             )
             _skymap_cleaner.mask_elevation(min_elevation=min_elevation)
             _cleaned_lon_grid, _cleaned_lat_grid = _skymap_cleaner.remove_nans()
