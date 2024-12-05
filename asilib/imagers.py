@@ -141,14 +141,21 @@ class Imagers:
         # immediately followed by the reassignment of all nans to the nearest valid value.
         if not overlap:
             self._calc_overlap_mask()
+        else:
+            self.overlap_mask_skymaps = {}
+            for imager in self.imagers:
+                self.overlap_mask_skymaps[imager.meta['location']] = {
+                    'lon':imager.skymap['lon'].copy(), 
+                    'lat':imager.skymap['lat'].copy()
+                }
 
         for imager in self.imagers:
             _skymap_cleaner = Skymap_Cleaner(
                 self.overlap_mask_skymaps[imager.meta['location']]['lon'], 
                 self.overlap_mask_skymaps[imager.meta['location']]['lat'], 
                 imager.skymap['el'], 
-                min_elevation=kwargs.get('min_elevation', 10)
             )
+            _skymap_cleaner.mask_elevation(kwargs.get('min_elevation', 10))
             _cleaned_lon_grid, _cleaned_lat_grid = _skymap_cleaner.remove_nans()
             imager.plot_map(**kwargs, lon_grid=_cleaned_lon_grid, lat_grid=_cleaned_lat_grid)
         return
@@ -306,9 +313,6 @@ class Imagers:
             >>>         bbox=dict(facecolor='grey', edgecolor='black'))
             
         """
-        if not overlap:
-            self._calc_overlap_mask()
-
         if ax is None:
             ax = asilib.map.create_map(
                 lon_bounds=lon_bounds,
@@ -317,6 +321,28 @@ class Imagers:
                 land_color=land_color,
                 ocean_color=ocean_color,
             )
+
+        if not overlap:
+            self._calc_overlap_mask()
+        else:
+            self.overlap_mask_skymaps = {}
+            for imager in self.imagers:
+                self.overlap_mask_skymaps[imager.meta['location']] = {
+                    'lon':imager.skymap['lon'].copy(), 
+                    'lat':imager.skymap['lat'].copy()
+                }
+
+        for imager in self.imagers:
+            _skymap_cleaner = Skymap_Cleaner(
+                self.overlap_mask_skymaps[imager.meta['location']]['lon'], 
+                self.overlap_mask_skymaps[imager.meta['location']]['lat'], 
+                imager.skymap['el'], 
+                min_elevation=min_elevation
+            )
+            _skymap_cleaner.mask_elevation(min_elevation=min_elevation)
+            _cleaned_lon_grid, _cleaned_lat_grid = _skymap_cleaner.remove_nans()
+            self.overlap_mask_skymaps[imager.meta['location']]['lon'] = _cleaned_lon_grid
+            self.overlap_mask_skymaps[imager.meta['location']]['lat'] = _cleaned_lat_grid
 
         # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
         # not exist.
@@ -355,14 +381,24 @@ class Imagers:
             pcolormesh_objs = len(self.imagers)*[None]
             for j, (_asi_time, _asi_image) in enumerate(zip(_asi_times, _asi_images)):
                 if _asi_time == datetime.min:
+                    # TODO: Add the overlap mask + Skymap_Cleaner calls here to 
+                    # recalculate the skymaps after an imager turned on or off.
                     continue
                 _color_map, _color_norm = self.imagers[j]._plot_params(
                     _asi_image, color_bounds, color_map, color_norm
                     )
 
                 ax, pcolormesh_objs[j], asi_labels[j] = self.imagers[j]._plot_mapped_image(
-                    ax, _asi_image, min_elevation, _color_map, _color_norm, color_brighten, asi_label, 
-                    pcolormesh_kwargs
+                    ax, 
+                    _asi_image, 
+                    min_elevation, 
+                    _color_map, 
+                    _color_norm, 
+                    color_brighten, 
+                    asi_label, 
+                    pcolormesh_kwargs, 
+                    lon_grid=self.overlap_mask_skymaps[self.imagers[j].meta['location']]['lon'], 
+                    lat_grid=self.overlap_mask_skymaps[self.imagers[j].meta['location']]['lat']
                 )
 
             # Give the user the control of the subplot, image object, and return the image time
@@ -705,22 +741,35 @@ if __name__ == '__main__':
     #         0.01, 0.99, info_str, va='top', transform=ax.transAxes, 
     #         bbox=dict(facecolor='grey', edgecolor='black'))
 
-    time_range = ('2021-11-04T06:55', '2021-11-04T07:10')
+    # time_range = ('2021-11-04T06:55', '2021-11-04T07:10')
+    # asi_list = []
+
+    # for location_code in ['GILL', 'RABB', 'PINA', 'LUCK']:
+    #     asi_list.append(asilib.asi.trex_rgb(location_code, time_range=time_range))
+
+    # ax = asilib.map.create_cartopy_map(lon_bounds=(-115, -83), lat_bounds=(43, 63))
+    # plt.tight_layout()
+
+    # asis = asilib.Imagers(asi_list)
+    # gen = asis.animate_map_gen(overwrite=True, ax=ax)
+    # for guide_time, asi_times, asi_images, _ax in gen:
+    #     if '_text_obj' in locals():
+    #         _text_obj.remove()  # noqa: F821
+    #     info_str = f'Time: {guide_time: %Y:%m:%d %H:%M:%S}'
+
+    #     _text_obj = ax.text(
+    #         0.01, 0.99, info_str, va='top', transform=ax.transAxes, 
+    #         bbox=dict(facecolor='grey', edgecolor='black'))
+
+    time = '2021-11-04T07:00'
     asi_list = []
 
     for location_code in ['GILL', 'RABB', 'PINA', 'LUCK']:
-        asi_list.append(asilib.asi.trex_rgb(location_code, time_range=time_range))
+        asi_list.append(asilib.asi.trex_rgb(location_code, time=time))
 
     ax = asilib.map.create_cartopy_map(lon_bounds=(-115, -83), lat_bounds=(43, 63))
     plt.tight_layout()
 
     asis = asilib.Imagers(asi_list)
-    gen = asis.animate_map_gen(overwrite=True, ax=ax)
-    for guide_time, asi_times, asi_images, ax in gen:
-        if '_text_obj' in locals():
-            _text_obj.remove()  # noqa: F821
-        info_str = f'Time: {guide_time: %Y:%m:%d %H:%M:%S}'
-
-        _text_obj = ax.text(
-            0.01, 0.99, info_str, va='top', transform=ax.transAxes, 
-            bbox=dict(facecolor='grey', edgecolor='black'))
+    asis.plot_map(ax=ax, min_elevation=5)
+    plt.show()

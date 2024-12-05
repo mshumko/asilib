@@ -567,6 +567,7 @@ class Imager:
                 self.skymap['el'], 
                 min_elevation=min_elevation
             )
+            _skymap_cleaner.mask_elevation()
             _cleaned_lon_grid, _cleaned_lat_grid = _skymap_cleaner.remove_nans()
         else:
             _cleaned_lon_grid, _cleaned_lat_grid = lon_grid, lat_grid
@@ -1781,7 +1782,7 @@ class Imager:
         return image
 
 class Skymap_Cleaner:
-    def __init__(self, lon_grid, lat_grid, el_grid, min_elevation=None):
+    def __init__(self, lon_grid, lat_grid, el_grid):
         """
         Clean the skymap by applying two steps: 1) Mask the lon_grid and lat_grid
         variables with np.nan if they are below min_elevation, and 2) replace all
@@ -1791,12 +1792,9 @@ class Skymap_Cleaner:
         self._lon_grid = lon_grid.copy()
         self._lat_grid = lat_grid.copy()
         self._el_grid = el_grid
-        self.min_elevation = min_elevation
-        if self.min_elevation is not None:
-            self._mask_elevation()
         return
     
-    def _mask_elevation(self):
+    def mask_elevation(self, min_elevation):
         """
         Mask low elevation pixels.
         """
@@ -1814,10 +1812,10 @@ class Skymap_Cleaner:
                 f'the elevation skymap shape {self._el_grid.shape}. The shapes must be equal or the '
                 f'elevation skymap must be one less than the lon_grid.'
                 )
-        idh = np.where(np.isnan(_el_grid) | (_el_grid < self.min_elevation))
+        idh = np.where(np.isnan(_el_grid) | (_el_grid < min_elevation))
         self._lon_grid[idh] = np.nan
         self._lat_grid[idh] = np.nan
-        return
+        return self._lon_grid, self._lat_grid
 
     def remove_nans(self):
         """
