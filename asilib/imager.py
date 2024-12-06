@@ -1815,7 +1815,8 @@ class Skymap_Cleaner:
         idh = np.where(np.isnan(_el_grid) | (_el_grid < min_elevation))
         self._lon_grid[idh] = np.nan
         self._lat_grid[idh] = np.nan
-        return self._lon_grid, self._lat_grid
+        _el_grid[idh] = np.nan
+        return self._lon_grid, self._lat_grid, _el_grid
 
     def remove_nans(self):
         """
