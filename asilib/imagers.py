@@ -599,14 +599,13 @@ class Imagers:
                 f'Imagers.get_points() only works with single images.'
                 )
             _skymap_cleaner = Skymap_Cleaner(
-                _skymaps[imager.meta['location']]['lon'], 
-                _skymaps[imager.meta['location']]['lat'], 
-                imager.skymap['el'],
+                _skymaps[_imager.meta['location']]['lon'], 
+                _skymaps[_imager.meta['location']]['lat'], 
+                _imager.skymap['el'],
             )
-            _skymap_cleaner.mask_elevation(min_elevation=min_elevation)
-            _masked_lon_map, _masked_lat_map = _skymap_cleaner.remove_nans()
-            _skymaps[imager.meta['location']]['lon'] = _masked_lon_map
-            _skymaps[imager.meta['location']]['lat'] = _masked_lat_map
+            _masked_lon_map, _masked_lat_map, _ = _skymap_cleaner.mask_elevation(
+                min_elevation=min_elevation
+                )
 
             if _imager.skymap['lon'].shape[0] == _imager.data.image.shape[0] + 1:
                 # Skymap defines vertices. We look for NaNs at either of the pixel edges.
