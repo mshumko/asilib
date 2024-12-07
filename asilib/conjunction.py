@@ -108,10 +108,10 @@ class Conjunction:
 
         # Search LLA for times when it was inside the map box
         conjunction_idx = np.where(
-            (self.sat['lat'] > np.nanmin(self._lat_map))
-            & (self.sat['lat'] < np.nanmax(self._lat_map))
-            & (self.sat['lon'] > np.nanmin(self._lon_map))
-            & (self.sat['lon'] < np.nanmax(self._lon_map))
+            (self.sat['lat'] >= np.nanmin(self._lat_map)) &
+            (self.sat['lat'] <= np.nanmax(self._lat_map)) &
+            (self.sat['lon'] >= np.nanmin(self._lon_map)) &
+            (self.sat['lon'] <= np.nanmax(self._lon_map))
         )[0]
         if conjunction_idx.shape[0] == 0:
             return pd.DataFrame(columns=['start_time', 'end_time', 'start_index', 'end_index'])

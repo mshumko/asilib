@@ -698,8 +698,7 @@ class Imagers:
             # Need a masked array so that np.nanargmin correctly handles all NaN slices.
             _distances = np.ma.masked_array(_distances, np.isnan(_distances))
             # For each pixel, calculate the nearest imager. If the pixel is not closest to 
-            # the imager that it's from, mask it as np.nan. Then the Imager._pcolormesh_nan() 
-            # method then won't plot that pixel.
+            # the imager that it's from, mask it as np.nan.
             min_distances = np.argmin(_distances, axis=2)
             far_pixels = np.where(min_distances != i)
 

@@ -24,6 +24,7 @@ except ImportError as err:
 import asilib
 import asilib.asi.fake_asi
 import asilib.asi
+from asilib.imager import Skymap_Cleaner
 from asilib.tests.mock_footprint import footprint
 
 
@@ -57,114 +58,62 @@ def test_conjunction_find_multiple():
         df.to_numpy()
         == np.array(
             [
-                [
-                    pd.Timestamp('2015-01-01 01:44:48'),
-                    pd.Timestamp('2015-01-01 01:45:42'),
-                    1048,
-                    1057,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 02:11:48'),
-                    pd.Timestamp('2015-01-01 02:12:42'),
-                    1318,
-                    1327,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 03:19:48'),
-                    pd.Timestamp('2015-01-01 03:20:42'),
-                    1998,
-                    2007,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 03:46:48'),
-                    pd.Timestamp('2015-01-01 03:47:42'),
-                    2268,
-                    2277,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 04:54:48'),
-                    pd.Timestamp('2015-01-01 04:55:42'),
-                    2948,
-                    2957,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 05:21:48'),
-                    pd.Timestamp('2015-01-01 05:22:42'),
-                    3218,
-                    3227,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 06:29:48'),
-                    pd.Timestamp('2015-01-01 06:30:42'),
-                    3898,
-                    3907,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 06:56:48'),
-                    pd.Timestamp('2015-01-01 06:57:42'),
-                    4168,
-                    4177,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 08:04:48'),
-                    pd.Timestamp('2015-01-01 08:05:42'),
-                    4848,
-                    4857,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 08:31:48'),
-                    pd.Timestamp('2015-01-01 08:32:42'),
-                    5118,
-                    5127,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 09:39:48'),
-                    pd.Timestamp('2015-01-01 09:40:42'),
-                    5798,
-                    5807,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 10:06:48'),
-                    pd.Timestamp('2015-01-01 10:07:42'),
-                    6068,
-                    6077,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 11:14:48'),
-                    pd.Timestamp('2015-01-01 11:15:42'),
-                    6748,
-                    6757,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 11:41:48'),
-                    pd.Timestamp('2015-01-01 11:42:42'),
-                    7018,
-                    7027,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 12:49:48'),
-                    pd.Timestamp('2015-01-01 12:50:42'),
-                    7698,
-                    7707,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 13:16:48'),
-                    pd.Timestamp('2015-01-01 13:17:42'),
-                    7968,
-                    7977,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 14:24:48'),
-                    pd.Timestamp('2015-01-01 14:25:42'),
-                    8648,
-                    8657,
-                ],
-                [
-                    pd.Timestamp('2015-01-01 14:51:48'),
-                    pd.Timestamp('2015-01-01 14:52:42'),
-                    8918,
-                    8927,
-                ],
+            [
+                pd.Timestamp('2015-01-01 01:44:42'),
+                pd.Timestamp('2015-01-01 01:45:42'), 1047, 1057
+            ],
+            [   pd.Timestamp('2015-01-01 02:11:48'),
+                pd.Timestamp('2015-01-01 02:12:48'), 1318, 1328
+            ],
+            [   pd.Timestamp('2015-01-01 03:19:42'),
+                pd.Timestamp('2015-01-01 03:20:42'), 1997, 2007
+            ],
+            [   pd.Timestamp('2015-01-01 03:46:48'),
+                pd.Timestamp('2015-01-01 03:47:48'), 2268, 2278
+            ],
+            [   pd.Timestamp('2015-01-01 04:54:42'),
+                pd.Timestamp('2015-01-01 04:55:42'), 2947, 2957
+            ],
+            [   pd.Timestamp('2015-01-01 05:21:48'),
+                pd.Timestamp('2015-01-01 05:22:48'), 3218, 3228
+            ],
+            [   pd.Timestamp('2015-01-01 06:29:42'),
+                pd.Timestamp('2015-01-01 06:30:42'), 3897, 3907
+            ],
+            [   pd.Timestamp('2015-01-01 06:56:48'),
+                pd.Timestamp('2015-01-01 06:57:48'), 4168, 4178
+            ],
+            [   pd.Timestamp('2015-01-01 08:04:42'),
+                pd.Timestamp('2015-01-01 08:05:42'), 4847, 4857
+            ],
+            [   pd.Timestamp('2015-01-01 08:31:48'),
+                pd.Timestamp('2015-01-01 08:32:48'), 5118, 5128
+            ],
+            [   pd.Timestamp('2015-01-01 09:39:42'),
+                pd.Timestamp('2015-01-01 09:40:42'), 5797, 5807
+            ],
+            [   pd.Timestamp('2015-01-01 10:06:48'),
+                pd.Timestamp('2015-01-01 10:07:48'), 6068, 6078
+            ],
+            [   pd.Timestamp('2015-01-01 11:14:42'),
+                pd.Timestamp('2015-01-01 11:15:42'), 6747, 6757
+            ],
+            [   pd.Timestamp('2015-01-01 11:41:48'),
+                pd.Timestamp('2015-01-01 11:42:48'), 7018, 7028
+            ],
+            [   pd.Timestamp('2015-01-01 12:49:42'),
+                pd.Timestamp('2015-01-01 12:50:42'), 7697, 7707
+            ],
+            [   pd.Timestamp('2015-01-01 13:16:48'),
+                pd.Timestamp('2015-01-01 13:17:48'), 7968, 7978
+            ],
+            [   pd.Timestamp('2015-01-01 14:24:42'),
+                pd.Timestamp('2015-01-01 14:25:42'), 8647, 8657
+            ],
+            [
+                pd.Timestamp('2015-01-01 14:51:48'),
+                pd.Timestamp('2015-01-01 14:52:48'), 8918, 8928
+            ]
             ],
             dtype=object,
         )
@@ -188,8 +137,12 @@ def test_plot_conjunction_find_multiple():
     c = asilib.Conjunction(asi, (times, lla))
     df = c.find(min_elevation=20)
 
-    _, ax = plt.subplots()
-    asi._pcolormesh_nan(c._lon_map, c._lat_map, np.ones_like(c._lat_map), ax)
+    _cleaner = Skymap_Cleaner(asi.skymap['lon'], asi.skymap['lat'], asi.skymap['el'])
+    _cleaner.mask_elevation(20)
+    _lon_map, _lat_map = _cleaner.remove_nans()
+
+    _, ax = plt.subplots()    
+    ax.pcolormesh(_lon_map, _lat_map, np.ones_like(_lat_map))
     ax.plot(lla[:, 1], lla[:, 0], 'k')
     ax.scatter(lla[df['start_index'], 1], lla[df['start_index'], 0], c='g', s=100)
     ax.scatter(lla[df['end_index'], 1], lla[df['end_index'], 0], c='c', s=100)
