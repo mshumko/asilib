@@ -21,7 +21,8 @@ Supported ASI arrays
 --------------------   
 - :ref:`rego_asi`,
 - :ref:`themis_asi`,
-- :ref:`trex_asi`
+- :ref:`trex_asi`,
+- :ref:`mango_asi`
 
 .. figure:: ./_static/global_coverage.png
    :alt: A geographic map showing the spatial coverage (field of view rings) of all imagers supported by asilib.

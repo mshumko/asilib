@@ -50,6 +50,15 @@ Transition Region Explorer (TREx)
    :undoc-members:
    :show-inheritance:
 
+.. _mango_asi:
+
+Mid-latitude All-sky-imaging Network for Geophysical Observations (MANGO)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. automodule:: asilib.asi
+   :members: mango, mango_info
+   :undoc-members:
+   :show-inheritance:
+
 Class Interface
 ===============
 

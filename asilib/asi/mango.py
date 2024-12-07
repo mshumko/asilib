@@ -55,7 +55,7 @@ def mango(
     alt: int
         The reference skymap altitude, in kilometers.
     acknowledge: bool
-        If True, prints the acknowledgment statement for REGO. 
+        If True, prints the acknowledgment statement for MANGO. 
     redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes
@@ -63,6 +63,50 @@ def mango(
     imager: asilib.Imager
         Controls what Imager instance to return, asilib.Imager by default. This
         parameter is useful if you need to subclass asilib.Imager.
+
+    Examples
+    --------
+    >>> # Animate a MANGO map with a SAR arc, as well as the SymH index.
+    >>> # You will need to install cdasws to run this example (python -m pip install cdasws)
+    >>>
+    >>> import cdasws
+    >>> import matplotlib.pyplot as plt
+    >>> import matplotlib.dates
+    >>> 
+    >>> time_range=(datetime(2021, 11, 4, 1, 0), datetime(2021, 11, 4, 12, 24))
+    >>> location_code='CFS'
+    >>> asi = mango(location_code, 'redline', time_range=time_range)
+    >>> 
+    >>> fig = plt.figure(layout='constrained', figsize=(6, 6.5))
+    >>> gs = matplotlib.gridspec.GridSpec(2, 1, fig, height_ratios=(3, 1))
+    >>> ax = asilib.map.create_map(lat_bounds=(30, 45), lon_bounds=(-125, -100), fig_ax=(fig, gs[0]))
+    >>> bx = fig.add_subplot(gs[1])
+    >>> bx.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%H:%M'))
+    >>> 
+    >>> gen = asi.animate_map_gen(ax=ax, asi_label=True, overwrite=True)
+    >>> 
+    >>> cdas = cdasws.CdasWs()
+    >>> time_range = cdasws.TimeInterval(
+    >>>     datetime.fromisoformat(str(time_range[0]-timedelta(days=0.5))).replace(tzinfo=timezone.utc), 
+    >>>     datetime.fromisoformat(str(time_range[1]+timedelta(days=0.5))).replace(tzinfo=timezone.utc)
+    >>>     )
+    >>> _, data = cdas.get_data(
+    >>>                 'OMNI_HRO_5MIN', ['SYM_H'], time_range
+    >>>                 )
+    >>> symh = pd.DataFrame(index=data['SYM_H'].Epoch.data, data={'SYM_H':data['SYM_H']})
+    >>> bx.plot(symh.index, symh['SYM_H'], c='k')
+    >>> bx.set(xlabel='Time [HH:MM]', ylabel='Sym-H [nT]')
+    >>> 
+    >>> for image_time, image, _, im in gen:
+    >>>     # Add your code that modifies each image here...
+    >>>     # To demonstrate, lets annotate each frame with the timestamp.
+    >>>     # We will need to delete the prior text object, otherwise the current one
+    >>>     # will overplot on the prior one---clean up after yourself!
+    >>>     if 'text_obj' in locals():
+    >>>         # text_obj.remove()  # noqa: F821
+    >>>         _time_guide.remove()  # noqa: F821
+    >>>     text_obj = plt.suptitle(f'MANGO-{location_code} | {image_time:%F %T}', fontsize=15)
+    >>>     _time_guide = bx.axvline(image_time, c='k', ls='--')
         
     Returns
     -------
@@ -131,7 +175,12 @@ def mango(
         'alt': None,
         'cadence': mango_meta['cadence'],
         'resolution': mango_meta['resolution'],
-        'acknowledgment': ''
+        'acknowledgment': (
+            'The imaging data are obtained through the MANGO network and operated by SRI with '
+            'support from US National Science Foundation award AGS-1933013. Please reach out '
+            'to the PI Asti Bhatt asti.bhatt@sri.com before using the data for publication. '
+            'Cite https://doi.org/10.1029/2023JA031589 for the description of the MANGO network.'
+            )
     }
 
     plot_settings = {
@@ -149,9 +198,9 @@ def mango(
         'alt':mango_meta['alt'],
         'path':mango_meta['path']
     }
-    # if acknowledge and ('mango' not in asilib.config['ACKNOWLEDGED_ASIS']):
-    #     print(meta['acknowledgment'])
-    #     asilib.config['ACKNOWLEDGED_ASIS'].append('mango')
+    if acknowledge and ('mango' not in asilib.config['ACKNOWLEDGED_ASIS']):
+        print(meta['acknowledgment'])
+        asilib.config['ACKNOWLEDGED_ASIS'].append('mango')
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
