@@ -565,9 +565,8 @@ class Imager:
                 self.skymap['lon'], 
                 self.skymap['lat'], 
                 self.skymap['el'], 
-                min_elevation=min_elevation
             )
-            _skymap_cleaner.mask_elevation()
+            _skymap_cleaner.mask_elevation(min_elevation)
             _cleaned_lon_grid, _cleaned_lat_grid = _skymap_cleaner.remove_nans()
         else:
             _cleaned_lon_grid, _cleaned_lat_grid = lon_grid, lat_grid

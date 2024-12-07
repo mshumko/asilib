@@ -586,32 +586,43 @@ class Imagers:
         else:  # single-color (or white light)
             intensities  = np.zeros(0, dtype=float)
 
-        self._calc_overlap_mask()
+        _skymaps = {}
+        for imager in self.imagers:
+            _skymaps[imager.meta['location']] = {
+                'lon':imager.skymap['lon'].copy(), 
+                'lat':imager.skymap['lat'].copy()
+            }
+        _skymaps = self._calc_overlap_mask(_skymaps)
 
         for _imager in self.imagers:
             assert 'time' in _imager.file_info.keys(), (
                 f'Imagers.get_points() only works with single images.'
                 )
-            image = _imager.data.image
-            _masked_lon_map, _masked_lat_map, _masked_image = _imager._mask_low_horizon(
-                _imager.skymap['lon'], _imager.skymap['lat'], _imager.skymap['el'], min_elevation, 
-                image=image
+            _skymap_cleaner = Skymap_Cleaner(
+                _skymaps[imager.meta['location']]['lon'], 
+                _skymaps[imager.meta['location']]['lat'], 
+                imager.skymap['el'],
             )
-            if _imager.skymap['lon'].shape[0] == image.shape[0] + 1:
+            _skymap_cleaner.mask_elevation(min_elevation=min_elevation)
+            _masked_lon_map, _masked_lat_map = _skymap_cleaner.remove_nans()
+            _skymaps[imager.meta['location']]['lon'] = _masked_lon_map
+            _skymaps[imager.meta['location']]['lat'] = _masked_lat_map
+
+            if _imager.skymap['lon'].shape[0] == _imager.data.image.shape[0] + 1:
                 # Skymap defines vertices. We look for NaNs at either of the pixel edges.
                 _valid_idx = np.where(
                     ~np.isnan(_masked_lon_map[1:, 1:]-_masked_lon_map[:-1, :-1])
                     )
-            elif _imager.skymap['lon'].shape[0] == image.shape[0]:
+            elif _imager.skymap['lon'].shape[0] == _imager.data.image.shape[0]:
                 # Skymap defines pixel centers
                 _valid_idx = np.where(~np.isnan(_masked_lon_map))
             else:
                 raise ValueError(f'The skymap shape: {_imager.skymap["lon"].shape} and image '
-                                 f'shape: {image.shape} are incompatible.')
+                                 f'shape: {_imager.data.image.shape} are incompatible.')
 
             lat_grid = _masked_lat_map[_valid_idx[0], _valid_idx[1]]
             lon_grid = _masked_lon_map[_valid_idx[0], _valid_idx[1]]
-            intensity = _masked_image[_valid_idx[0], _valid_idx[1], ...]
+            intensity = _imager.data.image[_valid_idx[0], _valid_idx[1], ...]
 
             # Concatenate joins arrays along an existing axis, while stack joins arrays
             # along a new axis. 
@@ -697,6 +708,8 @@ class Imagers:
 
             _skymaps[imager.meta['location']]['lat'][far_pixels] = np.nan
             _skymaps[imager.meta['location']]['lon'][far_pixels] = np.nan
+
+            # TODO: Add an option to return the skymaps with just the overlapping part.
         return _skymaps
     
     def _valid_far_pixels(self, imager_id, _skymaps, far_pixels):

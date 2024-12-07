@@ -51,7 +51,7 @@ def test_conjunction_find_multiple():
     times, lla = footprint(asi.meta['lon'], alt=110)
 
     c = asilib.Conjunction(asi, (times, lla))
-    df = c.find(min_el=20)
+    df = c.find(min_elevation=20)
     assert df.shape == (18, 4)
     assert np.all(
         df.to_numpy()
@@ -186,7 +186,7 @@ def test_plot_conjunction_find_multiple():
     times, lla = footprint(asi.meta['lon'], alt=110)
 
     c = asilib.Conjunction(asi, (times, lla))
-    df = c.find(min_el=20)
+    df = c.find(min_elevation=20)
 
     _, ax = plt.subplots()
     asi._pcolormesh_nan(c._lon_map, c._lat_map, np.ones_like(c._lat_map), ax)
