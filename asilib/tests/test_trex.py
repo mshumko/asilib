@@ -189,7 +189,7 @@ def test_trex_rgb_map():
     from asilib.asi.trex import trex_rgb
     
     time = datetime(2021, 11, 4, 7, 3, 51)
-    asi = trex_rgb('PINA', time=time, colors='rgb')
+    asi = trex_rgb('RABB', time=time, colors='rgb')
     ax = asilib.map.create_simple_map(
         lon_bounds=(asi.meta['lon']-7, asi.meta['lon']+7),
         lat_bounds=(asi.meta['lat']-5, asi.meta['lat']+5)

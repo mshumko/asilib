@@ -16,7 +16,7 @@ except ImportError:
     pass  # make sure that asilb.__init__ fully loads and crashes if the user calls asilib.lla2footprint()
 
 import asilib
-from asilib.imager import _haversine
+from asilib.imager import _haversine, Skymap_Cleaner
 
 earth_radius_km = 6371
 
@@ -88,7 +88,7 @@ class Conjunction:
         df = df.rename(columns={lon_keys[0]: 'lon', lat_keys[0]: 'lat', alt_keys[0]: 'alt'})
         return df
 
-    def find(self, min_el=20, time_gap_s=60):
+    def find(self, min_elevation=20, time_gap_s=60):
         """
         Finds the start and end times of conjunctions defined by a minimum elevation.
 
@@ -97,22 +97,21 @@ class Conjunction:
         min_el: float
             The minimum elevation of the conjunction.
         """
-        assert 0 < min_el < 90, "The minimum elevation must be between 0 and 90 degrees."
+        assert 0 < min_elevation < 90, "The minimum elevation must be between 0 and 90 degrees."
 
-        # # Filter the elevation map to values > min_el
-        self._lon_map, self._lat_map, _ = self.imager._mask_low_horizon(
-            self.imager.skymap['lon'],
-            self.imager.skymap['lat'],
-            self.imager.skymap['el'],
-            min_elevation=min_el,
-        )
+        _skymap_cleaner = Skymap_Cleaner(
+                self.imager.skymap['lon'], 
+                self.imager.skymap['lat'], 
+                self.imager.skymap['el'], 
+            )
+        self._lon_map, self._lat_map, _ = _skymap_cleaner.mask_elevation(min_elevation)
 
         # Search LLA for times when it was inside the map box
         conjunction_idx = np.where(
-            (self.sat['lat'] > np.nanmin(self._lat_map))
-            & (self.sat['lat'] < np.nanmax(self._lat_map))
-            & (self.sat['lon'] > np.nanmin(self._lon_map))
-            & (self.sat['lon'] < np.nanmax(self._lon_map))
+            (self.sat['lat'] >= np.nanmin(self._lat_map)) &
+            (self.sat['lat'] <= np.nanmax(self._lat_map)) &
+            (self.sat['lon'] >= np.nanmin(self._lon_map)) &
+            (self.sat['lon'] <= np.nanmax(self._lon_map))
         )[0]
         if conjunction_idx.shape[0] == 0:
             return pd.DataFrame(columns=['start_time', 'end_time', 'start_index', 'end_index'])

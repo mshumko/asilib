@@ -12,7 +12,7 @@ import shutil
 import numpy as np
 import matplotlib.pyplot as plt
 
-from asilib.imager import Imager, _haversine
+from asilib.imager import Imager, _haversine, Skymap_Cleaner
 import asilib.map
 import asilib.utils
 
@@ -133,11 +133,42 @@ class Imagers:
         >>> ax.set_title('Donovan et al. 2008 | First breakup of an auroral arc')
         >>> plt.show()
         """
+        if 'ax' not in kwargs:
+            kwargs['ax'] = asilib.map.create_map()
+
+        self._skymaps = {
+            _imager.meta['location']:{
+                'lon':_imager.skymap['lon'].copy(), 
+                'lat':_imager.skymap['lat'].copy(),
+                'el':_imager.skymap['el'].copy()
+                } for _imager in self.imagers
+            }
+        for _imager in self.imagers:
+            _skymap_cleaner = Skymap_Cleaner(
+                self._skymaps[_imager.meta['location']]['lon'], 
+                self._skymaps[_imager.meta['location']]['lat'], 
+                self._skymaps[_imager.meta['location']]['el'], 
+            )
+            _lon, _lat, _el = _skymap_cleaner.mask_elevation(kwargs.get('min_elevation', 10))
+            self._skymaps[_imager.meta['location']]['lon'] = _lon
+            self._skymaps[_imager.meta['location']]['lat'] = _lat
+            self._skymaps[_imager.meta['location']]['el'] = _el
+
+        # If overlap=False, each skymap first has nans in the imager overlapping region,
+        # and then the skymap cleaner nans everything below min_elevation, which is then
+        # immediately followed by the reassignment of all nans to the nearest valid value.
         if not overlap:
-            self._calc_overlap_mask()  # TODO: Put into a context manager.
+            self._skymaps = self._calc_overlap_mask(self._skymaps)
 
         for imager in self.imagers:
-            imager.plot_map(**kwargs)
+            _skymap_cleaner = Skymap_Cleaner(
+                self._skymaps[imager.meta['location']]['lon'], 
+                self._skymaps[imager.meta['location']]['lat'], 
+                self._skymaps[_imager.meta['location']]['el'], 
+            )
+            # _skymap_cleaner.mask_elevation(kwargs.get('min_elevation', 10))
+            _cleaned_lon_grid, _cleaned_lat_grid = _skymap_cleaner.remove_nans()
+            imager.plot_map(**kwargs, lon_grid=_cleaned_lon_grid, lat_grid=_cleaned_lat_grid)
         return
     
     # def animate_fisheye(self):
@@ -293,9 +324,6 @@ class Imagers:
             >>>         bbox=dict(facecolor='grey', edgecolor='black'))
             
         """
-        if not overlap:
-            self._calc_overlap_mask()
-
         if ax is None:
             ax = asilib.map.create_map(
                 lon_bounds=lon_bounds,
@@ -304,6 +332,26 @@ class Imagers:
                 land_color=land_color,
                 ocean_color=ocean_color,
             )
+        self._skymaps = {}
+        for imager in self.imagers:
+            self._skymaps[imager.meta['location']] = {
+                'lon':imager.skymap['lon'].copy(), 
+                'lat':imager.skymap['lat'].copy()
+            }
+
+        if not overlap:
+            self._calc_overlap_mask(self._skymaps)
+
+        for imager in self.imagers:
+            _skymap_cleaner = Skymap_Cleaner(
+                self._skymaps[imager.meta['location']]['lon'], 
+                self._skymaps[imager.meta['location']]['lat'], 
+                imager.skymap['el'],
+            )
+            _skymap_cleaner.mask_elevation(min_elevation=min_elevation)
+            _cleaned_lon_grid, _cleaned_lat_grid = _skymap_cleaner.remove_nans()
+            self._skymaps[imager.meta['location']]['lon'] = _cleaned_lon_grid
+            self._skymaps[imager.meta['location']]['lat'] = _cleaned_lat_grid
 
         # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
         # not exist.
@@ -342,14 +390,24 @@ class Imagers:
             pcolormesh_objs = len(self.imagers)*[None]
             for j, (_asi_time, _asi_image) in enumerate(zip(_asi_times, _asi_images)):
                 if _asi_time == datetime.min:
+                    # TODO: Add the overlap mask + Skymap_Cleaner calls here to 
+                    # recalculate the skymaps after an imager turned on or off.
                     continue
                 _color_map, _color_norm = self.imagers[j]._plot_params(
                     _asi_image, color_bounds, color_map, color_norm
                     )
 
                 ax, pcolormesh_objs[j], asi_labels[j] = self.imagers[j]._plot_mapped_image(
-                    ax, _asi_image, min_elevation, _color_map, _color_norm, color_brighten, asi_label, 
-                    pcolormesh_kwargs
+                    ax, 
+                    _asi_image, 
+                    min_elevation, 
+                    _color_map, 
+                    _color_norm, 
+                    color_brighten, 
+                    asi_label, 
+                    pcolormesh_kwargs, 
+                    lon_grid=self._skymaps[self.imagers[j].meta['location']]['lon'], 
+                    lat_grid=self._skymaps[self.imagers[j].meta['location']]['lat']
                 )
 
             # Give the user the control of the subplot, image object, and return the image time
@@ -528,32 +586,42 @@ class Imagers:
         else:  # single-color (or white light)
             intensities  = np.zeros(0, dtype=float)
 
-        self._calc_overlap_mask()
+        _skymaps = {}
+        for imager in self.imagers:
+            _skymaps[imager.meta['location']] = {
+                'lon':imager.skymap['lon'].copy(), 
+                'lat':imager.skymap['lat'].copy()
+            }
+        _skymaps = self._calc_overlap_mask(_skymaps)
 
         for _imager in self.imagers:
             assert 'time' in _imager.file_info.keys(), (
                 f'Imagers.get_points() only works with single images.'
                 )
-            image = _imager.data.image
-            _masked_lon_map, _masked_lat_map, _masked_image = _imager._mask_low_horizon(
-                _imager.skymap['lon'], _imager.skymap['lat'], _imager.skymap['el'], min_elevation, 
-                image=image
+            _skymap_cleaner = Skymap_Cleaner(
+                _skymaps[_imager.meta['location']]['lon'], 
+                _skymaps[_imager.meta['location']]['lat'], 
+                _imager.skymap['el'],
             )
-            if _imager.skymap['lon'].shape[0] == image.shape[0] + 1:
+            _masked_lon_map, _masked_lat_map, _ = _skymap_cleaner.mask_elevation(
+                min_elevation=min_elevation
+                )
+
+            if _imager.skymap['lon'].shape[0] == _imager.data.image.shape[0] + 1:
                 # Skymap defines vertices. We look for NaNs at either of the pixel edges.
                 _valid_idx = np.where(
                     ~np.isnan(_masked_lon_map[1:, 1:]-_masked_lon_map[:-1, :-1])
                     )
-            elif _imager.skymap['lon'].shape[0] == image.shape[0]:
+            elif _imager.skymap['lon'].shape[0] == _imager.data.image.shape[0]:
                 # Skymap defines pixel centers
                 _valid_idx = np.where(~np.isnan(_masked_lon_map))
             else:
                 raise ValueError(f'The skymap shape: {_imager.skymap["lon"].shape} and image '
-                                 f'shape: {image.shape} are incompatible.')
+                                 f'shape: {_imager.data.image.shape} are incompatible.')
 
             lat_grid = _masked_lat_map[_valid_idx[0], _valid_idx[1]]
             lon_grid = _masked_lon_map[_valid_idx[0], _valid_idx[1]]
-            intensity = _masked_image[_valid_idx[0], _valid_idx[1], ...]
+            intensity = _imager.data.image[_valid_idx[0], _valid_idx[1], ...]
 
             # Concatenate joins arrays along an existing axis, while stack joins arrays
             # along a new axis. 
@@ -564,7 +632,7 @@ class Imagers:
                 ))
         return lat_lon_points, intensities
     
-    def _calc_overlap_mask(self):
+    def _calc_overlap_mask(self, _skymaps):
         """
         Calculate which pixels to plot for overlapping imagers by the criteria that the ith 
         imager's pixel must be closest to that imager (and not a neighboring one).
@@ -580,34 +648,111 @@ class Imagers:
         7. If the minimum j is not the ith imager, mask the imager.skymap['lat'] and 
         imager.skymap['lon'] as np.nan.
         """
-        if hasattr(self, '_masked'):
-            return
+        # This variable keeps track of all imagers in case their field of view is clipped
+        # by the CCD (TREx-RGB, for example has this). If at least one imager's FOV is 
+        # clipped, it will run an additional step to check if some of the pixels to be removed
+        # from one imager are not in the clipped region of the other imager.
+        clipped_fov=False
+        for imager in self.imagers:
+            merged_edges = np.concatenate((
+                _skymaps[imager.meta['location']]['lat'][0, :], 
+                _skymaps[imager.meta['location']]['lat'][-1, :], 
+                _skymaps[imager.meta['location']]['lat'][:, 0], 
+                _skymaps[imager.meta['location']]['lat'][:, -1]
+                ))
+            if not np.all(np.isnan(merged_edges)):
+                clipped_fov=True
+                # Save the clipped (lats, lon) to compare with here.
 
         for i, imager in enumerate(self.imagers):
-            _distances = np.nan*np.ones((*imager.skymap['lat'].shape, len(self.imagers)))
+            _distances = np.nan*np.ones(
+                (*_skymaps[imager.meta['location']]['lat'].shape, len(self.imagers))
+                )
             for j, other_imager in enumerate(self.imagers):
                 # Calculate the distance between all imager pixels and every other imager 
                 # location (including itself).
-                _distances[:, :, j] = _haversine(
-                    imager.skymap['lat'], imager.skymap['lon'],
-                    np.broadcast_to(other_imager.meta['lat'], imager.skymap['lat'].shape), 
-                    np.broadcast_to(other_imager.meta['lon'], imager.skymap['lat'].shape)
+                _other_lon = np.broadcast_to(
+                    other_imager.meta['lon'], 
+                    _skymaps[imager.meta['location']]['lat'].shape
                     )
+                _other_lat = np.broadcast_to(
+                    other_imager.meta['lat'], 
+                    _skymaps[imager.meta['location']]['lat'].shape
+                    )
+
+                _distances[:, :, j] = _haversine(
+                    _skymaps[imager.meta['location']]['lat'], 
+                    _skymaps[imager.meta['location']]['lon'],
+                    _other_lat, 
+                    _other_lon
+                    )
+                
+                # _distances[:, :, i] = 0
             # Without this small reduction in the distance of pixels to its own imager,
             # there are gaps between the imager boundaries. In other words, this scaling
             # slightly biases to plotting pixels nearest to the imager. 
             _distances[:, :, i] *= 0.95
+            # TODO: Set the _distances[:, :, i] values to 0 (not masked out) if they are 
+            # #closer to the other imager but the other imager's pixels are nans.
             # Need a masked array so that np.nanargmin correctly handles all NaN slices.
             _distances = np.ma.masked_array(_distances, np.isnan(_distances))
             # For each pixel, calculate the nearest imager. If the pixel is not closest to 
-            # the imager that it's from, mask it as np.nan. Then the Imager._pcolormesh_nan() 
-            # method then won't plot that pixel.
+            # the imager that it's from, mask it as np.nan.
             min_distances = np.argmin(_distances, axis=2)
             far_pixels = np.where(min_distances != i)
-            imager.skymap['lat'][far_pixels] = np.nan
-            imager.skymap['lon'][far_pixels] = np.nan
-        self._masked = True  # A flag to not run again.
-        return
+
+            # if clipped_fov and (far_pixels[0].shape[0] > 0):
+            #     far_pixels = self._valid_far_pixels(i, _skymaps, far_pixels)
+
+            _skymaps[imager.meta['location']]['lat'][far_pixels] = np.nan
+            _skymaps[imager.meta['location']]['lon'][far_pixels] = np.nan
+
+            # TODO: Add an option to return the skymaps with just the overlapping part.
+        return _skymaps
+    
+    def _valid_far_pixels(self, imager_id, _skymaps, far_pixels):
+        """
+        Sometimes for imagers with clipped FOV the far pixel from the main imager falls inside 
+        the clipped region. This loop checks that these far pixels are not in the clipped FOV.
+        """
+        imager = self.imagers[imager_id]
+        valid_far_pixels = []
+
+        _progressbar = asilib.utils.progressbar(
+            enumerate(zip(far_pixels[0], far_pixels[1])),
+            iter_length=far_pixels[0].shape[0],
+            text='Processing clipped FOV pixels',
+        )
+        for i, far_pixel in _progressbar:
+            _lon = _skymaps[imager.meta['location']]['lon'][far_pixel]
+            _lat = _skymaps[imager.meta['location']]['lat'][far_pixel]
+            
+            for k, other_imager in enumerate(self.imagers):
+                if k==i:
+                    continue
+                _lon_arr = np.broadcast_to(
+                    _lon, 
+                    _skymaps[other_imager.meta['location']]['lon'].shape
+                )
+                _lat_arr = np.broadcast_to(
+                    _lat, 
+                    _skymaps[other_imager.meta['location']]['lat'].shape
+                )
+                _other_lon_arr = _skymaps[other_imager.meta['location']]['lon']
+                _other_lat_arr = _skymaps[other_imager.meta['location']]['lat']
+                _distances_other_imager = _haversine(
+                    _other_lon_arr,
+                    _other_lat_arr,
+                    _lat_arr,
+                    _lon_arr
+                    )
+                idx_other = np.unravel_index(
+                    np.argmin(_distances_other_imager), 
+                    _skymaps[other_imager.meta['location']]['lon'].shape
+                    )
+                if _distances_other_imager[idx_other] < 100:
+                    valid_far_pixels.append(far_pixel)
+        return np.array(valid_far_pixels).astype(int)
     
     def __str__(self):
         names = [f'{_img.meta["array"]}-{_img.meta["location"]}' for _img in self.imagers]
@@ -630,57 +775,21 @@ class Imagers:
     
 
 if __name__ == '__main__':
-    # """
-    # Animate a THEMIS ASI mosaic from Jones+2013 (https://doi.org/10.1002/jgra.50301)
-    # """
-    # import asilib
-    # import asilib.asi
-
-    # time_range = ('2008-02-11T04:22', '2008-02-11T04:45')
-    # location_codes = [
-    #     'INUV', 'FSIM', 'PGEO', 'FSMI', 'FSIM', 'ATHA', 'RANK', 'GILL', 'SNKQ', 'KUUJ'
-    # ]
-    # asi_list = []
-
-    # for location_code in location_codes:
-    #     asi_list.append(asilib.asi.themis(location_code, time_range=time_range))
-
-    # asis = asilib.Imagers(asi_list)
-    # gen = asis.animate_map_gen(overwrite=True)
-    # for guide_time, asi_times, asi_images, ax in gen:
-    #     if '_text_obj' in locals():
-    #         _text_obj.remove()  # noqa: F821
-    #     info_str = f'Time: {guide_time: %Y:%m:%d %H:%M:%S}'
-
-    #     _text_obj = ax.text(
-    #         0.01, 0.99, info_str, va='top', transform=ax.transAxes, 
-    #         bbox=dict(facecolor='grey', edgecolor='black'))
-
-    """
-    Animate a REGO ASI mosaic from Panov+2019 (https://doi.org/10.1029/2019JA026521)
-    """
     import matplotlib.pyplot as plt
 
     import asilib
     import asilib.asi
     import asilib.map
 
-    time_range = ('2016-08-09T08:00', '2016-08-09T09:00')
+    time = '2021-11-04T07:00'
     asi_list = []
 
-    for location_code in ['GILL', 'FSMI', 'FSIM']:
-        asi_list.append(asilib.asi.rego(location_code, time_range=time_range))
+    for location_code in ['RABB', 'GILL', 'PINA', 'LUCK']:
+        asi_list.append(asilib.asi.trex_rgb(location_code, time=time))
 
-    ax = asilib.map.create_cartopy_map(lon_bounds=(-130, -87), lat_bounds=(51, 65))
+    ax = asilib.map.create_cartopy_map(lon_bounds=(-115, -83), lat_bounds=(43, 63))
     plt.tight_layout()
 
     asis = asilib.Imagers(asi_list)
-    gen = asis.animate_map_gen(overwrite=True, ax=ax)
-    for guide_time, asi_times, asi_images, ax in gen:
-        if '_text_obj' in locals():
-            _text_obj.remove()  # noqa: F821
-        info_str = f'Time: {guide_time: %Y:%m:%d %H:%M:%S}'
-
-        _text_obj = ax.text(
-            0.01, 0.99, info_str, va='top', transform=ax.transAxes, 
-            bbox=dict(facecolor='grey', edgecolor='black'))
+    asis.plot_map(ax=ax, min_elevation=5)
+    plt.show()

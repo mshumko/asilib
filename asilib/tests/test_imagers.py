@@ -106,21 +106,21 @@ def test_get_points():
     
     asis = asilib.Imagers(_imagers)
     lat_lon_points, intensities = asis.get_points(min_elevation=min_elevation)
-    assert lat_lon_points.shape == (174411, 2)
-    assert intensities.shape == (174411,)
+    assert lat_lon_points.shape == (175386, 2)
+    assert intensities.shape == (175386,)
     np.testing.assert_almost_equal(
         lat_lon_points[:10, :],
         np.array([
+            [53.75814056, -127.23962402],
+            [53.73650742, -127.38140869],
+            [53.70986938, -127.52734375],
+            [53.67815399, -127.67758179],
+            [53.64126968, -127.83236694],
+            [53.59912491, -127.99194336],
+            [53.55160904, -128.15655518],
             [54.36151505, -126.16152954],
-            [54.36903,    -126.27648926],
-            [54.37219238, -126.39419556],
-            [54.37098694, -126.51489258],
-            [54.36539459, -126.63867188],
-            [54.35538483, -126.76580811],
-            [54.34091568, -126.89642334],
-            [54.32193756, -127.0307312 ],
-            [54.29838562, -127.16894531],
-            [54.27019119, -127.31124878]])
+            [54.36903   , -126.27648926],
+            [54.37219238, -126.39419556]])
        )
     np.testing.assert_almost_equal(
         lat_lon_points[-10:, :],
@@ -139,7 +139,7 @@ def test_get_points():
        )
     np.testing.assert_equal(
         intensities[:10],
-        np.array([2930., 2949., 2954., 2881., 2865., 2823., 2752., 2738., 2738., 2746.])
+        np.array([2609., 2571., 2612., 2628., 2577., 2590., 2552., 2930., 2949., 2954.])
     )
     return
 
@@ -271,7 +271,7 @@ def test_animate_map_sync_bug():
     asi_list = [asilib.asi.themis(location, time_range=('2008-02-11T03:35', '2008-02-11T03:36'))
                 for location in ['ATHA', 'FSIM', 'FSMI']]
     asis = asilib.Imagers(asi_list)
-    asis.animate_map()
+    asis.animate_map(overwrite=True)
     return
 
 def test_animate_map():
