@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.24.1] - 2024-12-07
+
+### Changed
+- The `_pcolormesh_nan()` function in the imager.py module. This function incorrectly handled skymaps whose FOV was clipped by the CCD at one or more edges (e.g., TREx-RGB). The new implementation includes a `Skymap_Cleaner()` class that handles both: the low elevation masking, as well as removing NaNs from the (lat, lon) skymaps. Removing NaNs is similar to the old implementation, but is now done in polar coordinates. This change necessitated numerous minor refactoring changes in `imager.py` and `imagers.py`.
+
 ## [0.24.0] - 2024-07-22
 
 ### Changed
