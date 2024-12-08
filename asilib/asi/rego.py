@@ -298,7 +298,7 @@ def rego_skymap(location_code: str, time: utils._time_type, redownload: bool = F
 
 
 def _download_all_skymaps(location_code, url, save_dir, redownload):
-    d = download.Downloader(url)
+    d = download.Downloader(url, headers={'User-Agent':'asilib'})
     # Find the dated subdirectories
     ds = d.ls(f'{location_code.lower()}')
 

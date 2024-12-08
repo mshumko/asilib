@@ -25,9 +25,10 @@ class Downloader:
     TODO: Add an example.
     """
 
-    def __init__(self, url: str, download_dir=None) -> None:
+    def __init__(self, url: str, download_dir=None, headers={}) -> None:
         self.url = url
         self.download_dir = download_dir
+        self.headers = headers
         return
 
     def ls(self, match: str = '*') -> List[Downloader]:
@@ -92,7 +93,7 @@ class Downloader:
 
         if stream:
             with requests.Session() as s:
-                r = s.get(self.url, stream=True, timeout=5)
+                r = s.get(self.url, stream=True, timeout=5, headers=self.headers)
             r.raise_for_status()
             file_size = int(r.headers.get('content-length'))
             downloaded_bites = 0
@@ -117,7 +118,7 @@ class Downloader:
                     f'Download interrupted. Partially downloaded file ' f'{download_path} deleted.'
                 ) from err
         else:
-            r = requests.get(self.url, timeout=5)
+            r = requests.get(self.url, timeout=5, headers=self.headers)
             with open(download_path, 'wb') as f:
                 f.write(r.content)
             print(f'Downloaded {file_name}.')
@@ -160,7 +161,7 @@ class Downloader:
             If no hyper references were found.
         """
         with requests.Session() as s:
-            request = s.get(url, timeout=5)
+            request = s.get(url, timeout=5, headers=self.headers)
         request.raise_for_status()
         soup = BeautifulSoup(request.content, 'html.parser')
 

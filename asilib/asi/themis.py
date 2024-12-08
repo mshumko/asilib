@@ -407,12 +407,15 @@ def _download_one_pgm_file(
         Local path to file.
     """
     start_url = base_url + f'{time.year}/{time.month:02}/{time.day:02}/'
-    d = download.Downloader(start_url)
+    d = download.Downloader(start_url, headers={'User-Agent':'asilib'})
     # Find the unique directory
     matched_downloaders = d.ls(f'{location_code.lower()}_{array}*')
     assert len(matched_downloaders) == 1
     # Search that directory for the file and donload it.
-    d2 = download.Downloader(matched_downloaders[0].url + f'ut{time.hour:02}/')
+    d2 = download.Downloader(
+        matched_downloaders[0].url + f'ut{time.hour:02}/', 
+        headers={'User-Agent':'asilib'}
+        )
     file_search_str = f'{time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}*{array}*.pgm.gz'
     matched_downloaders2 = d2.ls(file_search_str)
     assert len(matched_downloaders2) == 1
@@ -420,7 +423,7 @@ def _download_one_pgm_file(
 
 
 def _download_all_skymaps(location_code, url, save_dir, redownload):
-    d = download.Downloader(url)
+    d = download.Downloader(url, headers={'User-Agent':'asilib'})
     # Find the dated subdirectories
     ds = d.ls(f'{location_code.lower()}')
 
