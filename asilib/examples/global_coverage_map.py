@@ -16,9 +16,9 @@ from asilib.imager import Skymap_Cleaner
 
 asi_arrays = {
     'THEMIS':(asilib.asi.themis, asilib.asi.themis_info, 'k', 10),
-    'REGO':(asilib.asi.rego, asilib.asi.rego_info, 'pink', 10),
+    'REGO':(asilib.asi.rego, asilib.asi.rego_info, 'blue', 10),
     'TREx-NIR':(asilib.asi.trex_nir, asilib.asi.trex_nir_info, 'c', 12),
-    'TREx-RGB':(asilib.asi.trex_rgb, asilib.asi.trex_rgb_info, 'purple', 15),
+    'TREx-RGB':(asilib.asi.trex_rgb, asilib.asi.trex_rgb_info, 'purple', 13),
     }
 
 mango_sations = [
@@ -26,7 +26,8 @@ mango_sations = [
     ['CFS', datetime(2024, 10, 25, 5, 28), 'r'],
     ['MTO', datetime(2024, 10, 25, 5, 28), 'r'],
     ['EIO', datetime(2024, 10, 25, 5, 28), 'r'],
-    ['PAR', datetime(2024, 10, 25, 5, 28), 'r']
+    ['PAR', datetime(2024, 10, 25, 5, 28), 'r'],
+    ['MDK', datetime(2023, 10, 14, 6, 44), 'r']
 ]
 
 time = datetime(2022, 1, 1)
@@ -42,14 +43,13 @@ ax.gridlines()
 
 for mango_station in mango_sations:
     asi = asilib.asi.mango(mango_station[0], 'redline', time=mango_station[1])
-
     ax.contour(
         asi.skymap['lon'], asi.skymap['lat'], asi.skymap['el'], levels=[16],
         transform=ccrs.PlateCarree(), colors=mango_station[2]
         )
 ax.text(0, 4/30, 'MANGO-redline', va='bottom', color=mango_station[2], transform=ax.transAxes, fontsize=20)
 
-for i, (array, (loader, info_df, color, elevation_range)) in enumerate(asi_arrays.items()):
+for i, (array, (loader, info_df, color, elevation)) in enumerate(asi_arrays.items()):
     asi_array_info = info_df()
     for location in asi_array_info['location_code']:
         try:
@@ -67,7 +67,7 @@ for i, (array, (loader, info_df, color, elevation_range)) in enumerate(asi_array
             )
         _lon, _lat = _skymap_cleaner.remove_nans()
         ax.contour(
-            _lon[:-1, :-1], _lat[:-1, :-1], asi.skymap['el'], levels=[10],
+            _lon[:-1, :-1], _lat[:-1, :-1], asi.skymap['el'], levels=[elevation],
             transform=ccrs.PlateCarree(), colors=color
         )
         ax.text(0, i/30, array, va='bottom', color=color, transform=ax.transAxes, fontsize=20)
