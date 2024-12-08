@@ -18,7 +18,7 @@ asi_arrays = {
     'THEMIS':(asilib.asi.themis, asilib.asi.themis_info, 'k', 10),
     'REGO':(asilib.asi.rego, asilib.asi.rego_info, 'blue', 10),
     'TREx-NIR':(asilib.asi.trex_nir, asilib.asi.trex_nir_info, 'c', 12),
-    'TREx-RGB':(asilib.asi.trex_rgb, asilib.asi.trex_rgb_info, 'purple', 13),
+    'TREx-RGB':(asilib.asi.trex_rgb, asilib.asi.trex_rgb_info, 'purple', 15),
     }
 
 mango_sations = [
@@ -32,7 +32,7 @@ mango_sations = [
 
 time = datetime(2022, 1, 1)
 
-fig = plt.figure(figsize=(10, 8))
+fig = plt.figure(figsize=(8, 6))
 ax = fig.add_subplot(projection=ccrs.Orthographic(-100, 50))
 
 ax.add_feature(cartopy.feature .LAND, color='g')
@@ -60,7 +60,10 @@ for mango_station in mango_sations:
         )
         plotted_locations.append(mango_station[0])
 
-ax.text(0, 4/30, 'MANGO-redline', va='bottom', color=mango_station[2], transform=ax.transAxes, fontsize=20)
+ax.text(
+    0, 4/30, 'MANGO-redline', va='bottom', color=mango_station[2], 
+    transform=ax.transAxes, fontsize=18
+    )
 
 for i, (array, (loader, info_df, color, elevation)) in enumerate(asi_arrays.items()):
     asi_array_info = info_df()
@@ -68,7 +71,7 @@ for i, (array, (loader, info_df, color, elevation)) in enumerate(asi_arrays.item
         try:
             asi = loader(location, time=time, load_images=False)
         except requests.exceptions.HTTPError as err:
-            if 'Not Found for url' in str(err):
+            if ('Not Found for url' in str(err)) or ('Precondition Failed for url' in str(err)):
                 print(err)
                 continue
             else:
@@ -94,8 +97,8 @@ for i, (array, (loader, info_df, color, elevation)) in enumerate(asi_arrays.item
                 ha='center',
             )
             plotted_locations.append(location)
-    ax.text(0, i/30, array, va='bottom', color=color, transform=ax.transAxes, fontsize=20)
+    ax.text(0, i/30, array, va='bottom', color=color, transform=ax.transAxes, fontsize=18)
 
-ax.set_title(f'Imagers Supported by asilib as of {datetime.now().date()}', fontsize=25)        
+ax.set_title(f'Imagers Supported by asilib as of {datetime.now().date()}', fontsize=22)        
 plt.tight_layout()
 plt.show()
