@@ -74,28 +74,29 @@ def mango(
 
     Examples
     --------
-    >>> # Animate a MANGO map with a SAR arc, as well as the SymH index.
+    # Animate a MANGO map with a SAR arc, as well as the SymH index.
     >>> # You will need to install cdasws to run this example (python -m pip install cdasws)
-    >>>
+    >>> from datetime import datetime, timedelta, timezone
+    >>> 
     >>> import cdasws
     >>> import matplotlib.pyplot as plt
     >>> import matplotlib.dates
+    >>> import pandas as pd
+    >>> import asilib.asi
     >>> 
     >>> time_range=(datetime(2021, 11, 4, 1, 0), datetime(2021, 11, 4, 12, 24))
     >>> location_code='CFS'
-    >>> asi = mango(location_code, 'redline', time_range=time_range)
-    >>> 
+    >>> asi = asilib.asi.mango(location_code, 'redline', time_range=time_range)
     >>> fig = plt.figure(layout='constrained', figsize=(6, 6.5))
     >>> gs = matplotlib.gridspec.GridSpec(2, 1, fig, height_ratios=(3, 1))
     >>> ax = asilib.map.create_map(lat_bounds=(30, 45), lon_bounds=(-125, -100), fig_ax=(fig, gs[0]))
     >>> bx = fig.add_subplot(gs[1])
     >>> bx.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%H:%M'))
-    >>> 
     >>> gen = asi.animate_map_gen(ax=ax, asi_label=True, overwrite=True)
-    >>> 
+    >>>
     >>> cdas = cdasws.CdasWs()
     >>> time_range = cdasws.TimeInterval(
-    >>>     datetime.fromisoformat(str(time_range[0]-timedelta(days=0.5))).replace(tzinfo=timezone.utc), 
+    >>>     datetime.fromisoformat(str(time_range[0]-timedelta(days=0.5))).replace(tzinfo=timezone.utc),
     >>>     datetime.fromisoformat(str(time_range[1]+timedelta(days=0.5))).replace(tzinfo=timezone.utc)
     >>>     )
     >>> _, data = cdas.get_data(
@@ -104,7 +105,7 @@ def mango(
     >>> symh = pd.DataFrame(index=data['SYM_H'].Epoch.data, data={'SYM_H':data['SYM_H']})
     >>> bx.plot(symh.index, symh['SYM_H'], c='k')
     >>> bx.set(xlabel='Time [HH:MM]', ylabel='Sym-H [nT]')
-    >>> 
+    >>>
     >>> for image_time, image, _, im in gen:
     >>>     # Add your code that modifies each image here...
     >>>     # To demonstrate, lets annotate each frame with the timestamp.
@@ -114,8 +115,8 @@ def mango(
     >>>         # text_obj.remove()  # noqa: F821
     >>>         _time_guide.remove()  # noqa: F821
     >>>     text_obj = plt.suptitle(f'MANGO-{location_code} | {image_time:%F %T}', fontsize=15)
-    >>>     _time_guide = bx.axvline(image_time, c='k', ls='--')
-        
+    >>>     _time_guide = bx.axvline(image_time, c='k', ls='--')  
+    
     Returns
     -------
     :py:meth:`~asilib.imager.Imager`

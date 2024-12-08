@@ -12,6 +12,7 @@ The purpose of this project is to combine data from numerous observational ASI a
 * [Red-line Emission Geospace Observatory (REGO)](https://aurora-asi-lib.readthedocs.io/en/latest/imager_api.html#rego-asi)
 * [Time History of Events and Macroscale Interactions during Substorms (THEMIS)](https://aurora-asi-lib.readthedocs.io/en/latest/imager_api.html#module-asilib.asi.themis)
 * [Transition Region Explorer (TREx)](https://aurora-asi-lib.readthedocs.io/en/latest/imager_api.html#module-asilib.asi.trex)
+* [Mid-latitude All-sky-imaging Network for Geophysical Observations (MANGO)](https://aurora-asi-lib.readthedocs.io/en/latest/api.html#mango-asi)
 
 [Documentation](https://aurora-asi-lib.readthedocs.io/) | [Code on GitHub](https://github.com/mshumko/asilib) | [PyPI archive](https://pypi.org/project/asilib/) | [Zenodo archive](https://doi.org/10.5281/zenodo.4746446)
 
