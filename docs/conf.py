@@ -60,7 +60,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '../asilib/tests']
 #
 html_theme = "furo" # Tried these themes: sphinx_rtd_theme, pydata_sphinx_theme, furo
 
-html_logo = './_static/aurora-asi-lib_logo.png'
+html_logo = './_static/asilib_logo.png'
 
 html_theme_options = {
     # Toc options

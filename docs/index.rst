@@ -1,4 +1,4 @@
-.. image:: ./_static/aurora-asi-lib_logo.png
+.. image:: ./_static/asilib_logo.png
   :alt: Alternative text
 
 **Last Built**: |today| | **Version**: |version| | **Source**: `github`_ | **Archive**: `zenodo`_.
