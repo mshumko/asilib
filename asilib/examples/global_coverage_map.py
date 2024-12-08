@@ -38,8 +38,9 @@ ax = fig.add_subplot(projection=ccrs.Orthographic(-100, 50))
 ax.add_feature(cartopy.feature .LAND, color='g')
 ax.add_feature(cartopy.feature .OCEAN, color='w')
 ax.add_feature(cartopy.feature .COASTLINE, edgecolor='k')
-
 ax.gridlines()
+
+plotted_locations = []
 
 for mango_station in mango_sations:
     asi = asilib.asi.mango(mango_station[0], 'redline', time=mango_station[1])
@@ -47,6 +48,18 @@ for mango_station in mango_sations:
         asi.skymap['lon'], asi.skymap['lat'], asi.skymap['el'], levels=[16],
         transform=ccrs.PlateCarree(), colors=mango_station[2]
         )
+    if mango_station[0] not in plotted_locations:
+        ax.text(
+            asi.meta['lon'],
+            asi.meta['lat'],
+            asi.meta['location'].upper(),
+            color='k',
+            transform = ccrs.PlateCarree(),
+            va='center',
+            ha='center',
+        )
+        plotted_locations.append(mango_station[0])
+
 ax.text(0, 4/30, 'MANGO-redline', va='bottom', color=mango_station[2], transform=ax.transAxes, fontsize=20)
 
 for i, (array, (loader, info_df, color, elevation)) in enumerate(asi_arrays.items()):
@@ -70,9 +83,19 @@ for i, (array, (loader, info_df, color, elevation)) in enumerate(asi_arrays.item
             _lon[:-1, :-1], _lat[:-1, :-1], asi.skymap['el'], levels=[elevation],
             transform=ccrs.PlateCarree(), colors=color
         )
-        ax.text(0, i/30, array, va='bottom', color=color, transform=ax.transAxes, fontsize=20)
+        if location not in plotted_locations:
+            ax.text(
+                asi.meta['lon'],
+                asi.meta['lat'],
+                asi.meta['location'].upper(),
+                color='k',
+                transform = ccrs.PlateCarree(),
+                va='center',
+                ha='center',
+            )
+            plotted_locations.append(location)
+    ax.text(0, i/30, array, va='bottom', color=color, transform=ax.transAxes, fontsize=20)
 
-# ax.text(0.99, 0.02, f'As of {datetime.now().date()}', va='bottom', ha='right', transform=ax.transAxes, fontsize=15)
 ax.set_title(f'Imagers Supported by asilib as of {datetime.now().date()}', fontsize=25)        
 plt.tight_layout()
 plt.show()
