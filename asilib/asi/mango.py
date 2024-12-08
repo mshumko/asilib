@@ -40,6 +40,14 @@ def mango(
     """
     Create an Imager instance with the MANGO ASI images and skymaps.
 
+    The imaging data are obtained through the MANGO network and operated by SRI with 
+    support from US National Science Foundation award AGS-1933013. Please reach out
+    to the PI Asti Bhatt (asti.bhatt@sri.com) before using the data for publication.
+    Cite the `instrument paper <https://doi.org/10.1029/2023JA031589>`_ for the 
+    description of the MANGO network.
+
+    For more information see: https://www.mangonetwork.org/
+
     Parameters
     ----------
     location_code: str
@@ -178,7 +186,7 @@ def mango(
         'acknowledgment': (
             'The imaging data are obtained through the MANGO network and operated by SRI with '
             'support from US National Science Foundation award AGS-1933013. Please reach out '
-            'to the PI Asti Bhatt asti.bhatt@sri.com before using the data for publication. '
+            'to the PI Asti Bhatt (asti.bhatt@sri.com) before using the data for publication. '
             'Cite https://doi.org/10.1029/2023JA031589 for the description of the MANGO network.'
             )
     }
