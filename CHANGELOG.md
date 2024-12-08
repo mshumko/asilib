@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.25.0] - 2024-12-08
+
+### Added
+- The Mid-latitude All-sky-imaging Network for Geophysical Observations (MANGO) ASI array data loader.
+- MANGO tests and documentation
+
+### Changed
+- Updated the global coverage map with MANGO.
+
 ## [0.24.1] - 2024-12-07
 
 ### Changed
