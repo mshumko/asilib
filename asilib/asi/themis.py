@@ -1,7 +1,6 @@
 """
 The THEMIS ground-based All-Sky Imager (ASI) array observes the white light aurora over the North American continent from Canada to Alaska. The ASI array consists of 20 cameras covering a large section of the auroral oval with one-kilometer resolution. The all-sky imagers are time synchronized and have an image repetition rate of three seconds. During northern winter, continuous coverage is available from about 00:00-15:00 UT covering approximately 17-07 MLT for each individual site. Geographic locations and more details are available using asilib.asi.themis.themis_info(). The full-resolution 256x256 pixel images are transferred via hard-disk swap and become available approximately 3-5 months after data collection.
 """
-
 from datetime import datetime, timedelta
 from multiprocessing import Pool
 import re
@@ -407,14 +406,14 @@ def _download_one_pgm_file(
         Local path to file.
     """
     start_url = base_url + f'{time.year}/{time.month:02}/{time.day:02}/'
-    d = download.Downloader(start_url, headers={'User-Agent':'asilib'})
+    d = download.Downloader(start_url, headers={'User-Agent':'random'})
     # Find the unique directory
     matched_downloaders = d.ls(f'{location_code.lower()}_{array}*')
     assert len(matched_downloaders) == 1
     # Search that directory for the file and donload it.
     d2 = download.Downloader(
         matched_downloaders[0].url + f'ut{time.hour:02}/', 
-        headers={'User-Agent':'asilib'}
+        headers={'User-Agent':'random'}
         )
     file_search_str = f'{time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}*{array}*.pgm.gz'
     matched_downloaders2 = d2.ls(file_search_str)
@@ -423,7 +422,7 @@ def _download_one_pgm_file(
 
 
 def _download_all_skymaps(location_code, url, save_dir, redownload):
-    d = download.Downloader(url, headers={'User-Agent':'asilib'})
+    d = download.Downloader(url, headers={'User-Agent':'random'})
     # Find the dated subdirectories
     ds = d.ls(f'{location_code.lower()}')
 
