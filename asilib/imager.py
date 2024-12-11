@@ -574,6 +574,7 @@ class Imager:
 
         if len(self.meta['resolution']) == 3:
             image = self._rgb_replacer(image)
+            # TODO: Standardize the min/max.
             if color_brighten:
                 image = image / np.max(image)
 
@@ -1082,7 +1083,8 @@ class Imager:
         _keogram = np.swapaxes(_keogram, 1, 0)
         if len(_keogram.shape) == 3 and color_brighten:
             # To see the RGB intensities clearly, the channel intensities need to span 0-1.
-            _keogram = _keogram / np.max(_keogram)
+            _keogram -= np.nanmin(_keogram)
+            _keogram = _keogram / np.nanmax(_keogram)
 
         pcolormesh_obj = ax.pcolormesh(
             _keogram_time,
@@ -1169,7 +1171,13 @@ class Imager:
         valid_pixels = np.where(np.isfinite(nearest_pixels[:, 0]))[0]
         if valid_pixels.shape[0] == 0:
             raise ValueError('The keogram path is completely outside of the skymap.')
-        return nearest_pixels[valid_pixels, :].astype(int)
+        output = nearest_pixels[valid_pixels, :].astype(int)
+        # If the image.shape[0] = lat_skymap.shape[0]-1 as for the Calgary's skymaps
+        # that are defined at pixel edges, we need to check and remove nearest_pixels
+        # that equal self.meta['resolution'][0].
+        if self.meta['resolution'][0] == self.skymap['lat'].shape[0]-1:
+            output[np.where(output[:, 0]==self.meta['resolution'][0])[0], 0] -= 1
+        return output
 
     def _keogram_latitude(self, aacgm):
         """
