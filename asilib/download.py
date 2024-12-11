@@ -3,17 +3,9 @@ from typing import List
 import pathlib
 import urllib
 import re
-import string
-import random
 
 from bs4 import BeautifulSoup
 import requests
-
-
-def id_generator(size=None, chars=string.ascii_uppercase + string.digits):
-    if size is None:
-        size=random.randint(5,10)
-    return ''.join(random.choice(chars) for _ in range(size))
 
 
 class Downloader:
@@ -101,10 +93,7 @@ class Downloader:
 
         if stream:
             with requests.Session() as s:
-                if self.headers.get('User-Agent', None) == 'random':
-                    _headers = self.headers.copy()
-                    _headers['User-Agent']=id_generator()
-                r = s.get(self.url, stream=True, timeout=5, headers=_headers)
+                r = s.get(self.url, stream=True, timeout=5, headers=self.headers)
             r.raise_for_status()
             file_size = int(r.headers.get('content-length'))
             downloaded_bites = 0
@@ -129,10 +118,7 @@ class Downloader:
                     f'Download interrupted. Partially downloaded file ' f'{download_path} deleted.'
                 ) from err
         else:
-            if self.headers.get('User-Agent', None) == 'random':
-                _headers = self.headers.copy()
-                _headers['User-Agent']=id_generator()
-            r = requests.get(self.url, timeout=5, headers=_headers)
+            r = requests.get(self.url, timeout=5, headers=self.headers)
             with open(download_path, 'wb') as f:
                 f.write(r.content)
             print(f'Downloaded {file_name}.')
@@ -175,10 +161,7 @@ class Downloader:
             If no hyper references were found.
         """
         with requests.Session() as s:
-            if self.headers.get('User-Agent', None) == 'random':
-                _headers = self.headers.copy()
-                _headers['User-Agent']=id_generator()
-            request = s.get(url, timeout=5, headers=_headers)
+            request = s.get(url, timeout=5, headers=self.headers)
         request.raise_for_status()
         soup = BeautifulSoup(request.content, 'html.parser')
 
