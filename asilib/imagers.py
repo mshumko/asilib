@@ -332,26 +332,6 @@ class Imagers:
                 land_color=land_color,
                 ocean_color=ocean_color,
             )
-        self._skymaps = {}
-        for imager in self.imagers:
-            self._skymaps[imager.meta['location']] = {
-                'lon':imager.skymap['lon'].copy(), 
-                'lat':imager.skymap['lat'].copy()
-            }
-
-        if not overlap:
-            self._calc_overlap_mask(self._skymaps)
-
-        for imager in self.imagers:
-            _skymap_cleaner = Skymap_Cleaner(
-                self._skymaps[imager.meta['location']]['lon'], 
-                self._skymaps[imager.meta['location']]['lat'], 
-                imager.skymap['el'],
-            )
-            _skymap_cleaner.mask_elevation(min_elevation=min_elevation)
-            _cleaned_lon_grid, _cleaned_lat_grid = _skymap_cleaner.remove_nans()
-            self._skymaps[imager.meta['location']]['lon'] = _cleaned_lon_grid
-            self._skymaps[imager.meta['location']]['lat'] = _cleaned_lat_grid
 
         # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
         # not exist.
@@ -384,14 +364,41 @@ class Imagers:
             iter_length=self.imagers[0]._estimate_n_times(),
             text=self.animation_name,
         )
+        operating_asis = np.array([])
 
         for i, (_guide_time, _asi_times, _asi_images) in _progressbar:
             asi_labels = len(self.imagers)*[None]
             pcolormesh_objs = len(self.imagers)*[None]
+
+            # Determine if an imager turned off/on and we need to recalculate overlapping skymaps.
+            currently_on_asis = np.where(np.array(_asi_times) != datetime.min)[0].astype(int)
+            if np.any(currently_on_asis != operating_asis):
+                _skymaps = {}
+                for j in currently_on_asis:
+                    imager = self.imagers[j]
+                    _skymaps[imager.meta['location']] = {
+                        'lon':imager.skymap['lon'].copy(), 
+                        'lat':imager.skymap['lat'].copy()
+                    }
+
+                if not overlap:
+                    _skymaps = self._calc_overlap_mask(_skymaps, idx=currently_on_asis)
+
+                for j in currently_on_asis:
+                    imager = self.imagers[j]
+                    _skymap_cleaner = Skymap_Cleaner(
+                        _skymaps[imager.meta['location']]['lon'], 
+                        _skymaps[imager.meta['location']]['lat'], 
+                        imager.skymap['el'],
+                    )
+                    _skymap_cleaner.mask_elevation(min_elevation=min_elevation)
+                    _cleaned_lon_grid, _cleaned_lat_grid = _skymap_cleaner.remove_nans()
+                    _skymaps[imager.meta['location']]['lon'] = _cleaned_lon_grid
+                    _skymaps[imager.meta['location']]['lat'] = _cleaned_lat_grid
+                operating_asis = currently_on_asis
+
             for j, (_asi_time, _asi_image) in enumerate(zip(_asi_times, _asi_images)):
                 if _asi_time == datetime.min:
-                    # TODO: Add the overlap mask + Skymap_Cleaner calls here to 
-                    # recalculate the skymaps after an imager turned on or off.
                     continue
                 _color_map, _color_norm = self.imagers[j]._plot_params(
                     _asi_image, color_bounds, color_map, color_norm
@@ -406,8 +413,8 @@ class Imagers:
                     color_brighten, 
                     asi_label, 
                     pcolormesh_kwargs, 
-                    lon_grid=self._skymaps[self.imagers[j].meta['location']]['lon'], 
-                    lat_grid=self._skymaps[self.imagers[j].meta['location']]['lat']
+                    lon_grid=_skymaps[self.imagers[j].meta['location']]['lon'], 
+                    lat_grid=_skymaps[self.imagers[j].meta['location']]['lat']
                 )
 
             # Give the user the control of the subplot, image object, and return the image time
@@ -632,7 +639,7 @@ class Imagers:
                 ))
         return lat_lon_points, intensities
     
-    def _calc_overlap_mask(self, _skymaps):
+    def _calc_overlap_mask(self, _skymaps, idx=None):
         """
         Calculate which pixels to plot for overlapping imagers by the criteria that the ith 
         imager's pixel must be closest to that imager (and not a neighboring one).
@@ -653,7 +660,13 @@ class Imagers:
         # clipped, it will run an additional step to check if some of the pixels to be removed
         # from one imager are not in the clipped region of the other imager.
         clipped_fov=False
-        for imager in self.imagers:
+
+        if idx is None:
+            _imagers = self.imagers
+        else:
+            _imagers = [self.imagers[i] for i in idx]
+
+        for imager in _imagers:
             merged_edges = np.concatenate((
                 _skymaps[imager.meta['location']]['lat'][0, :], 
                 _skymaps[imager.meta['location']]['lat'][-1, :], 
@@ -664,11 +677,11 @@ class Imagers:
                 clipped_fov=True
                 # Save the clipped (lats, lon) to compare with here.
 
-        for i, imager in enumerate(self.imagers):
+        for i, imager in enumerate(_imagers):
             _distances = np.nan*np.ones(
-                (*_skymaps[imager.meta['location']]['lat'].shape, len(self.imagers))
+                (*_skymaps[imager.meta['location']]['lat'].shape, len(_imagers))
                 )
-            for j, other_imager in enumerate(self.imagers):
+            for j, other_imager in enumerate(_imagers):
                 # Calculate the distance between all imager pixels and every other imager 
                 # location (including itself).
                 _other_lon = np.broadcast_to(
@@ -691,7 +704,7 @@ class Imagers:
             # Without this small reduction in the distance of pixels to its own imager,
             # there are gaps between the imager boundaries. In other words, this scaling
             # slightly biases to plotting pixels nearest to the imager. 
-            _distances[:, :, i] *= 0.95
+            _distances[:, :, i] *= 0.98
             # TODO: Set the _distances[:, :, i] values to 0 (not masked out) if they are 
             # #closer to the other imager but the other imager's pixels are nans.
             # Need a masked array so that np.nanargmin correctly handles all NaN slices.

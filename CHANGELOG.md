@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.25.1] - 
+
+### Added
+- The `User-Agent` HTTP request header with the name `asilib` made to U. Calgary servers.
+
+### Changed
+- `Imagers.animate_map_gen()` will now recalculate overlapping skyamps if one of the imagers turns on or off sometime in `time_range`.
+- Fixed a bug with a custom keogram. If the (lat, lon) skymaps define the image edges, the nearest pixels at the edge will give an index out of bounds error.
+- Fixed the broken README links.
+
 ## [0.25.0] - 2024-12-08
 
 ### Added

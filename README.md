@@ -9,9 +9,9 @@ asilib is an open source package providing data access and analysis tools for th
 > 2. `python3 -m pip install asilib`.
 
 The purpose of this project is to combine data from numerous observational ASI arrays into a single unified framework and is thus not associated with the development and operations of all sky cameras, or the curation of ASI datasets. All data is publicly available and is provided as-is. Please give appropriate credit and coordinate with instrument teams with regards to data issues and/or interpretation. See the [Acknowledgements](https://aurora-asi-lib.readthedocs.io/en/latest/index.html#acknowledgements) section for more information. Currently the supported camera systems (arrays) are: 
-* [Red-line Emission Geospace Observatory (REGO)](https://aurora-asi-lib.readthedocs.io/en/latest/imager_api.html#rego-asi)
-* [Time History of Events and Macroscale Interactions during Substorms (THEMIS)](https://aurora-asi-lib.readthedocs.io/en/latest/imager_api.html#module-asilib.asi.themis)
-* [Transition Region Explorer (TREx)](https://aurora-asi-lib.readthedocs.io/en/latest/imager_api.html#module-asilib.asi.trex)
+* [Red-line Emission Geospace Observatory (REGO)](https://aurora-asi-lib.readthedocs.io/en/latest/api.html#themis-asi)
+* [Time History of Events and Macroscale Interactions during Substorms (THEMIS)](https://aurora-asi-lib.readthedocs.io/en/latest/api.html#module-asilib.asi)
+* [Transition Region Explorer (TREx)](https://aurora-asi-lib.readthedocs.io/en/latest/api.html#trex-asi)
 * [Mid-latitude All-sky-imaging Network for Geophysical Observations (MANGO)](https://aurora-asi-lib.readthedocs.io/en/latest/api.html#mango-asi)
 
 [Documentation](https://aurora-asi-lib.readthedocs.io/) | [Code on GitHub](https://github.com/mshumko/asilib) | [PyPI archive](https://pypi.org/project/asilib/) | [Zenodo archive](https://doi.org/10.5281/zenodo.4746446)
