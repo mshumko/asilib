@@ -576,7 +576,7 @@ class Imager:
             image = self._rgb_replacer(image)
             # TODO: Standardize the min/max.
             if color_brighten:
-                image = image / np.max(image)
+                image = image / np.max(image)  # TODO: Standardize color min/max values for all imagers.
 
         pcolormesh_kwargs_copy = pcolormesh_kwargs.copy()
         if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
@@ -1502,6 +1502,7 @@ class Imager:
                 else:
                     color_bounds = self.plot_settings['color_bounds']
             else:
+                # TODO: Load a few data files here to calculate the color_bounds for all images.
                 lower, upper = np.quantile(image, (0.25, 0.98))
                 color_bounds = [lower, np.min([upper, lower * 10])]
         else:
