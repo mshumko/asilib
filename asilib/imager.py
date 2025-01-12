@@ -400,9 +400,6 @@ class Imager:
         )
 
         for i, (image_time, image) in _progressbar:
-            # # If the image is all 0s we have a bad image and we need to skip it.
-            # if np.all(image == 0):
-            #     continue
             ax.clear()
             ax.axis('off')
             # Use an underscore so the original method parameters are not overwritten.
