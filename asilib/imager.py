@@ -14,7 +14,7 @@ import inspect
 import shutil
 import copy
 from collections import namedtuple
-from typing import List, Tuple, Generator, Union
+from typing import List, Tuple, Generator, Union, Iterable
 import warnings
 import operator
 
@@ -1101,6 +1101,22 @@ class Imager:
                 f'{self.file_info["time_range"][0].date()} | {self.meta["array"]}-{self.meta["location"]} keogram'
             )
         return ax, pcolormesh_obj
+    
+    def set_color_bounds(self, color_bounds:Iterable):
+        """
+        Sets the default color bounds for all subsequent calls to plotting functions, unless
+        later overwritten by the color_bounds kawarg in each plotting/animating method. 
+
+        Parameters
+        ----------
+        color_bounds: Iterable
+            A list or a tuple of length two that defines the lower- and upper- color limits.
+        """
+        assert len(color_bounds) == 2, (
+            f'{len(color_bounds)} != 2 length color bounds is unsupported.'
+            )
+        self.plot_settings['color_bounds'] = color_bounds
+        return
 
     def _keogram_pixels(self, path, minimum_elevation=20):
         """
@@ -1502,7 +1518,21 @@ class Imager:
                 else:
                     color_bounds = self.plot_settings['color_bounds']
             else:
-                # TODO: Load a few data files here to calculate the color_bounds for all images.
+                if (self.file_info['time_range'] is not None):
+                    # Determine the vmin-vmax color range automatically for the entire time 
+                    # range.
+                    num = min(len(self.file_info['start_time']), 3)
+                    file_indicies = np.arange(
+                        0, 
+                        len(self.file_info['start_time']), 
+                        len(self.file_info['start_time'])//(num-1)
+                        ).astype(int)
+                    image = np.array([])
+
+                    for path in np.array(self.file_info['path'])[file_indicies]:
+                        _, _file_images = self.file_info['loader'](path)
+                        image = np.append(image, _file_images.flatten())
+
                 lower, upper = np.quantile(image, (0.25, 0.98))
                 color_bounds = [lower, np.min([upper, lower * 10])]
         else:

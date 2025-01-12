@@ -372,7 +372,7 @@ class Imagers:
 
             # Determine if an imager turned off/on and we need to recalculate overlapping skymaps.
             currently_on_asis = np.where(np.array(_asi_times) != datetime.min)[0].astype(int)
-            if np.any(currently_on_asis != operating_asis):
+            if (currently_on_asis.shape != operating_asis.shape) or np.any(currently_on_asis != operating_asis):
                 _skymaps = {}
                 for j in currently_on_asis:
                     imager = self.imagers[j]
@@ -473,8 +473,6 @@ class Imagers:
             }
         future_iterators = {}
         stopped_iterators = []
-
-        # TODO: Recalculate the skymaps if an imager is delayed or turned off.
 
         for guide_time in times:
             _asi_times = []
