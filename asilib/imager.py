@@ -1099,20 +1099,17 @@ class Imager:
             )
         return ax, pcolormesh_obj
     
-    def set_color_bounds(self, color_bounds:Iterable):
+    def set_color_bounds(self, lower, upper):
         """
         Sets the default color bounds for all subsequent calls to plotting functions, unless
         later overwritten by the color_bounds kawarg in each plotting/animating method. 
 
         Parameters
         ----------
-        color_bounds: Iterable
-            A list or a tuple of length two that defines the lower- and upper- color limits.
+        lower, upper: float
+            The lower and upper color limits. 
         """
-        assert len(color_bounds) == 2, (
-            f'{len(color_bounds)} != 2 length color bounds is unsupported.'
-            )
-        self.plot_settings['color_bounds'] = color_bounds
+        self.plot_settings['color_bounds'] = (lower, upper)
         return
     
     def get_color_bounds(self):
@@ -1122,6 +1119,10 @@ class Imager:
         """
         if 'color_bounds' in self.plot_settings:
             return self.plot_settings['color_bounds']
+        if hasattr(self, '_color_bounds_data'):
+            # Avoid recalculating if already calculated.
+            return self._color_bounds_data
+        
         num = min(len(self.file_info['start_time']), 3)
         file_indicies = np.arange(
             0, 
@@ -1135,7 +1136,8 @@ class Imager:
             images = np.append(images, _file_images.flatten())
 
         lower, upper = np.quantile(images, (0.25, 0.98))
-        return [lower, np.min([upper, lower * 10])]
+        self._color_bounds_data = [lower, np.min([upper, lower * 10])]
+        return self._color_bounds_data
     
     def _keogram_pixels(self, path, minimum_elevation=20):
         """

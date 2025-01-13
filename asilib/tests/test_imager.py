@@ -273,7 +273,21 @@ def test_plot_keogram_magnetic_path_example():
     plt.colorbar(p)
     return
 
-# TODO: Add keogram tests for latitudes and values.
+def test_get_set_color_bounds():
+    """
+    Test that we can get and set the color bounds.
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import asilib.asi
+
+    time_range = ['2008-01-16T10', '2008-01-16T12']
+
+    asi = asilib.asi.themis('GILL', time_range=time_range)
+    assert np.all(np.array(asi.get_color_bounds()).round() == np.array([4034., 6887.]))
+    asi.set_color_bounds(4000, 7000)
+    assert np.all(asi.get_color_bounds() == (4000, 7000))
+    return
 
 
 def test_getitem():
