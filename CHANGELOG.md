@@ -10,6 +10,7 @@
 - `Imagers.animate_map_gen()` will now recalculate overlapping skyamps if one of the imagers turns on or off sometime in `time_range`.
 - Fixed a bug with a custom keogram. If the (lat, lon) skymaps define the image edges, the nearest pixels at the edge will give an index out of bounds error.
 - Fixed the broken README links.
+- Renamed `color_brighten` kwarg to `max_contrast` as it is the correct term for the processing algorithm.
 
 ## [0.25.0] - 2024-12-08
 

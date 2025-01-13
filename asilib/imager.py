@@ -87,7 +87,7 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        color_brighten: bool = True,
+        max_contrast: bool = True,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
@@ -113,7 +113,7 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        color_brighten: bool
+        max_contrast: bool
             If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
             results in brighter colors. This is only applied to RGB images.
         azel_contours: bool
@@ -167,9 +167,15 @@ class Imager:
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
         if len(self.meta['resolution']) == 3:  # tests if rgb
+            vmin, vmax = self.get_color_bounds()
             image = self._rgb_replacer(image)
-            if color_brighten:
-                image = image / np.max(image)
+            if max_contrast:
+                # This is a good enough scaling, but there may be some >1 values.
+                image = (image-vmin)/(vmax-vmin)
+                image[image > 1] = 1
+                image[image < 0] = 0
+            else:
+                image = image/np.nanmax(image)
         if isinstance(color_norm, matplotlib.colors.LogNorm):
             # Increase the corner pixels with 0 counts to 1 count so 
             # it shows up black in log-scale.
@@ -205,7 +211,7 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        color_brighten: bool
+        max_contrast: bool
             If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
             results in brighter colors. This is only applied to RGB images.
         azel_contours: bool
@@ -264,7 +270,7 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        color_brighten: bool = True,
+        max_contrast: bool = True,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
@@ -303,7 +309,7 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        color_brighten: bool
+        max_contrast: bool
             If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
             results in brighter colors. This is only applied to RGB images.
         azel_contours: bool
@@ -406,9 +412,15 @@ class Imager:
             _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
             
             if len(self.meta['resolution']) == 3:  # tests if rgb
+                vmin, vmax = self.get_color_bounds()
                 image = self._rgb_replacer(image)
-                if color_brighten:
-                    image = image / np.max(image)
+                if max_contrast:
+                    # This is a good enough scaling, but there may be some >1 values.
+                    image = (image-vmin)/(vmax-vmin)
+                    image[image > 1] = 1
+                    image[image < 0] = 0
+                else:
+                    image = image/np.nanmax(image)
 
             if isinstance(color_norm, matplotlib.colors.LogNorm):
                 # Increase the corner pixels with 0 counts to 1 count so 
@@ -446,7 +458,7 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        color_brighten: bool = True,
+        max_contrast: bool = True,
         min_elevation: float = 10,
         asi_label: bool = True,
         pcolormesh_kwargs: dict = {},
@@ -481,7 +493,7 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        color_brighten: bool
+        max_contrast: bool
             If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
             results in brighter colors. This is only applied to RGB images.
         min_elevation: float
@@ -545,13 +557,13 @@ class Imager:
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
         ax, p, _ = self._plot_mapped_image(
-            ax, image, min_elevation, color_map, color_norm, color_brighten, asi_label, 
+            ax, image, min_elevation, color_map, color_norm, max_contrast, asi_label, 
             pcolormesh_kwargs, lon_grid=lon_grid, lat_grid=lat_grid
         )
         return ax, p
 
     def _plot_mapped_image(
-        self, ax, image, min_elevation, color_map, color_norm, color_brighten, asi_label, 
+        self, ax, image, min_elevation, color_map, color_norm, max_contrast, asi_label, 
         pcolormesh_kwargs, lon_grid=None, lat_grid=None
     ):
         """
@@ -573,10 +585,11 @@ class Imager:
             vmin, vmax = self.get_color_bounds()
             image = self._rgb_replacer(image)
             
-            if color_brighten:
+            if max_contrast:
                 # This is a good enough scaling, but there may be some >1 values.
                 image = (image-vmin)/vmax
                 image[image > 1] = 1
+                image[image < 0] = 0
 
         pcolormesh_kwargs_copy = pcolormesh_kwargs.copy()
         if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
@@ -629,7 +642,7 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        color_brighten: bool
+        max_contrast: bool
             If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
             results in brighter colors. This is only applied to RGB images.
         azel_contours: bool
@@ -683,7 +696,7 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        color_brighten: bool = True,
+        max_contrast: bool = True,
         min_elevation: float = 10,
         pcolormesh_kwargs: dict = {},
         asi_label: bool = True,
@@ -734,7 +747,7 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        color_brighten: bool
+        max_contrast: bool
             If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
             results in brighter colors. This is only applied to RGB images.
         min_elevation: float
@@ -848,7 +861,7 @@ class Imager:
             _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
             ax, pcolormesh_obj, label_obj = self._plot_mapped_image(
-                ax, image, min_elevation, _color_map, _color_norm, color_brighten, asi_label, 
+                ax, image, min_elevation, _color_map, _color_norm, max_contrast, asi_label, 
                 pcolormesh_kwargs, lon_grid=lon_grid, lat_grid=lat_grid
             )
 
@@ -993,7 +1006,7 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        color_brighten: bool = True,
+        max_contrast: bool = True,
         pcolormesh_kwargs={},
     ) -> Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
         """
@@ -1026,7 +1039,7 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        color_brighten: bool
+        max_contrast: bool
             If True, scales the RGB intensities from min(image)-max(image) to 0-1 range. This 
             results in brighter colors. This is only applied to RGB images.
         pcolormesh_kwargs: dict
@@ -1081,7 +1094,7 @@ class Imager:
 
         # Same as transpose, but correctly handles RGB keograms.
         _keogram = np.swapaxes(_keogram, 1, 0)
-        if len(_keogram.shape) == 3 and color_brighten:
+        if len(_keogram.shape) == 3 and max_contrast:
             # To see the RGB intensities clearly, the channel intensities need to span 0-1.
             _keogram -= np.nanmin(_keogram)
             _keogram = _keogram / np.nanmax(_keogram)
@@ -1820,6 +1833,7 @@ class Imager:
             return image
 
         else:
+            image = image.astype(float)
             # tests if color is selected, if not selected, then add nan values to array in lieu of color
             if 'r' not in (*self.meta['colors'],):
                 # takes the shape of c, excluding the last index (-1) and replaces that matrix with nans

@@ -150,6 +150,30 @@ def test_trex_rgb_fisheye():
 
 
 @matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_trex_rgb_fisheye_contrast'],
+    tol=20,
+    remove_text=True,
+    extensions=['png'],
+)
+def test_trex_rgb_fisheye_contrast():
+    """
+    Plot one fisheye lens image with and one without max_contrast.
+    """
+    from datetime import datetime
+    
+    import matplotlib.pyplot as plt
+    import asilib
+    from asilib.asi.trex import trex_rgb
+    
+    fig, ax = plt.subplots(1, 2, sharex=True, sharey=True)
+    time = datetime(2021, 11, 4, 7, 3, 51)
+    asi = trex_rgb('PINA', time=time, colors='rgb')
+    asi.plot_fisheye(ax=ax[0])
+    asi.plot_fisheye(ax=ax[1], max_contrast=False)
+    plt.tight_layout()
+
+
+@matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_g_fisheye'],
     tol=20,
     remove_text=True,
