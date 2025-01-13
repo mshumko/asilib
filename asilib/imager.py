@@ -570,10 +570,13 @@ class Imager:
 
 
         if len(self.meta['resolution']) == 3:
+            vmin, vmax = self.get_color_bounds()
             image = self._rgb_replacer(image)
-            # TODO: Standardize the min/max.
+            
             if color_brighten:
-                image = image / np.max(image)  # TODO: Standardize color min/max values for all imagers.
+                # This is a good enough scaling, but there may be some >1 values.
+                image = (image-vmin)/vmax
+                image[image > 1] = 1
 
         pcolormesh_kwargs_copy = pcolormesh_kwargs.copy()
         if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
@@ -1082,6 +1085,8 @@ class Imager:
             # To see the RGB intensities clearly, the channel intensities need to span 0-1.
             _keogram -= np.nanmin(_keogram)
             _keogram = _keogram / np.nanmax(_keogram)
+            _color_norm.vmin = 0
+            _color_norm.vmax = 1
 
         pcolormesh_obj = ax.pcolormesh(
             _keogram_time,
@@ -1112,11 +1117,22 @@ class Imager:
         self.plot_settings['color_bounds'] = (lower, upper)
         return
     
-    def get_color_bounds(self):
+    def get_color_bounds(self, images:np.ndarray=None):
         """
-        Calculate the (vmin, vmax) color range automatically by loading in a subset of the 
+        Calculate the (vmin, vmax) color bounds automatically by loading in a subset of the 
         image data, or return the pre-defined color bounds in the imager.plot_settings dict.
+
+        Parameters
+        ----------
+        images: np.ndarray
+            If None, will calculate the bounds range automatically by loading in a subset of the 
+            image data, or return the pre-defined color bounds in the imager.plot_settings dict.
+            If a np.array, will calculate the color bounds directly from the images.
         """
+        if images is not None:
+            lower, upper = np.quantile(images, (0.25, 0.98))
+            return [lower, np.min([upper, lower * 10])]
+
         if 'color_bounds' in self.plot_settings:
             return self.plot_settings['color_bounds']
         if hasattr(self, '_color_bounds_data'):
@@ -1129,13 +1145,17 @@ class Imager:
             len(self.file_info['start_time']), 
             len(self.file_info['start_time'])//num
             ).astype(int)
-        images = np.array([])
+        flattened_images = np.array([])
 
         for path in np.array(self.file_info['path'])[file_indicies]:
             _, _file_images = self.file_info['loader'](path)
-            images = np.append(images, _file_images.flatten())
-
-        lower, upper = np.quantile(images, (0.25, 0.98))
+            if len(self.meta['resolution']) == 3:
+                _file_images = self._rgb_replacer(_file_images)
+            flattened_images = np.append(flattened_images, _file_images.flatten())
+        
+        # You get nans if we're working with a subset of the RGB channels.
+        valid_idx = np.where(~np.isnan(flattened_images))[0]
+        lower, upper = np.quantile(flattened_images[valid_idx], (0.25, 0.98))
         self._color_bounds_data = [lower, np.min([upper, lower * 10])]
         return self._color_bounds_data
     
@@ -1344,7 +1364,6 @@ class Imager:
         np.array
             image.
         """
-        # TODO: Add a self._accumulate_n option.
         if hasattr(self, '_times') and hasattr(self, '_images'):
             for time_i, image_i in zip(self._times, self._images):
                 yield time_i, image_i
@@ -1794,26 +1813,21 @@ class Imager:
 
         #https://www.tutorialspoint.com/How-to-check-if-a-string-only-contains-certain-characters-in-Python
 
-        if set(self.meta['colors']).issubset('rgb'): #Checks if the colors selected are a subset of 'rgb', if there is a character not 'r' 'g' or 'b', it will raise an error
-            pass
-        else:
+        if not set(self.meta['colors']).issubset('rgb'):
             raise ValueError(" The only valid characters for the colors kwarg are 'r', 'g', 'b' ")
         
-        if (*self.meta['colors'],) == ['r', 'g', 'b ']: #Passes colour removal if all colors are present, no logic required
-            pass
+        if (*self.meta['colors'],) == ['r', 'g', 'b']:
+            return image
 
         else:
             # tests if color is selected, if not selected, then add nan values to array in lieu of color
             if 'r' not in (*self.meta['colors'],):
                 # takes the shape of c, excluding the last index (-1) and replaces that matrix with nans
-                image[:, :, 0] = np.full(np.shape(image)[:-1], np.nan)
-
+                image[..., 0] = np.full(np.shape(image)[:-1], np.nan)
             if 'g' not in (*self.meta['colors'],):
-                image[:, :, 1] = np.full(np.shape(image)[:-1], np.nan)
-
+                image[..., 1] = np.full(np.shape(image)[:-1], np.nan)
             if 'b' not in (*self.meta['colors'],):
-                image[:, :, 2] = np.full(
-                    np.shape(image)[:-1], np.nan)
+                image[..., 2] = np.full(np.shape(image)[:-1], np.nan)
         return image
 
 class Skymap_Cleaner:

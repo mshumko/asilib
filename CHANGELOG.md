@@ -1,9 +1,10 @@
 # Changelog
 
-## [0.25.1] - 
+## [0.25.1] - 2025-01-13
 
 ### Added
 - The `User-Agent` HTTP request header with the name `asilib` made to U. Calgary servers.
+- `Imager.get_color_bounds()` and `Imager.set_color_bounds()` methods. Now the color bounds are set for all images within a time_range using a subset of images.
 
 ### Changed
 - `Imagers.animate_map_gen()` will now recalculate overlapping skyamps if one of the imagers turns on or off sometime in `time_range`.
