@@ -36,7 +36,7 @@ def test_ls_and_download():
         f'https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/stream0/'
         f'{date.year}/{date.month:02}/{date.day:02}/'
     )
-    d = Downloader(base_url)
+    d = Downloader(base_url, headers={'User-Agent':'asilib'})
 
     # Check that Downloader.ls finds the unique online subdirectory
     matched_downloaders = d.ls(f'{location.lower()}_themis*')
@@ -47,7 +47,7 @@ def test_ls_and_download():
     )
 
     # Navigate further down the subdirectory structure and find the file.
-    d2 = Downloader(matched_downloaders[0].url + f'ut{date.hour:02}/')
+    d2 = Downloader(matched_downloaders[0].url + f'ut{date.hour:02}/', headers={'User-Agent':'asilib'})
     file_search_str = f'{date.strftime("%Y%m%d_%H%M")}_{location.lower()}*.pgm.gz'
     matched_downloaders2 = d2.ls(file_search_str)
 
@@ -73,7 +73,8 @@ def test_download_file_no_subdirectories():
     """
     d = Downloader(
         'https://data.phys.ucalgary.ca/sort_by_project/THEMIS/asi/stream0/'
-        '2014/05/05/gill_themis19/ut08/20140505_0807_gill_themis19_full.pgm.gz'
+        '2014/05/05/gill_themis19/ut08/20140505_0807_gill_themis19_full.pgm.gz',
+        headers={'User-Agent':'asilib'}
     )
     with tempfile.TemporaryDirectory() as tmp:
         download_path = d.download(tmp, redownload=True)
