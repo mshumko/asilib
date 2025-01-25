@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.25.1] - 2025-01-13
+## [0.25.1] - 2025-01-25
 
 ### Added
 - The `User-Agent` HTTP request header with the name `asilib` made to U. Calgary servers.
