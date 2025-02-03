@@ -136,6 +136,31 @@ class Imagers:
         if 'ax' not in kwargs:
             kwargs['ax'] = asilib.map.create_map()
 
+        # If the kwarg is not specified, or is None, then it should just be None for all imagers.
+        # Below will be True if the kwarg['color_bounds'] is set as None, or if the key is missing.
+        if kwargs.get('color_bounds', None) is None:
+            color_bounds = np.full(len(self.imagers), None)
+        elif len(np.array(kwargs['color_bounds']).shape) == 1:  # Same color_bounds for all imagers.
+            color_bounds = np.repeat(
+                np.array(kwargs['color_bounds'])[:, np.newaxis], 
+                len(self.imagers), 
+                axis=-1
+                ).T
+        elif len(np.array(kwargs['color_bounds']).shape) == 2:
+            assert np.array(kwargs['color_bounds']).shape == (len(self.imagers), 2), (
+                "A unique color_bounds must be specified for each imager."
+                )
+            color_bounds = kwargs['color_bounds']
+        else:
+            raise ValueError(
+                f'The shape of color_bounds must be (1, 2), or '
+                f'({len(self.imagers)}, 2), not {np.array(kwargs["color_bounds"]).shape}'
+                )
+        # Must remove the color_bounds variable, if the kwargs dict contains it, 
+        # so the call to imager.plot_map() doesn't raise an error because of
+        # duplicate keyword arguments. 
+        kwargs.pop('color_bounds', None)
+
         self._skymaps = {
             _imager.meta['location']:{
                 'lon':_imager.skymap['lon'].copy(), 
@@ -143,32 +168,26 @@ class Imagers:
                 'el':_imager.skymap['el'].copy()
                 } for _imager in self.imagers
             }
-        for _imager in self.imagers:
-            _skymap_cleaner = Skymap_Cleaner(
-                self._skymaps[_imager.meta['location']]['lon'], 
-                self._skymaps[_imager.meta['location']]['lat'], 
-                self._skymaps[_imager.meta['location']]['el'], 
-            )
-            _lon, _lat, _el = _skymap_cleaner.mask_elevation(kwargs.get('min_elevation', 10))
-            self._skymaps[_imager.meta['location']]['lon'] = _lon
-            self._skymaps[_imager.meta['location']]['lat'] = _lat
-            self._skymaps[_imager.meta['location']]['el'] = _el
-
         # If overlap=False, each skymap first has nans in the imager overlapping region,
         # and then the skymap cleaner nans everything below min_elevation, which is then
         # immediately followed by the reassignment of all nans to the nearest valid value.
         if not overlap:
-            self._skymaps = self._calc_overlap_mask(self._skymaps)
+            self._skymaps = self._calc_overlap_mask(self._skymaps, shrink_distance_to_self=0.96)
 
-        for imager in self.imagers:
+        for imager, _color_bounds in zip(self.imagers, color_bounds):
             _skymap_cleaner = Skymap_Cleaner(
                 self._skymaps[imager.meta['location']]['lon'], 
                 self._skymaps[imager.meta['location']]['lat'], 
-                self._skymaps[_imager.meta['location']]['el'], 
+                self._skymaps[imager.meta['location']]['el'], 
             )
-            # _skymap_cleaner.mask_elevation(kwargs.get('min_elevation', 10))
+            _skymap_cleaner.mask_elevation(kwargs.get('min_elevation', 5))
             _cleaned_lon_grid, _cleaned_lat_grid = _skymap_cleaner.remove_nans()
-            imager.plot_map(**kwargs, lon_grid=_cleaned_lon_grid, lat_grid=_cleaned_lat_grid)
+            imager.plot_map(
+                **kwargs, 
+                color_bounds=_color_bounds, 
+                lon_grid=_cleaned_lon_grid, 
+                lat_grid=_cleaned_lat_grid
+                )
         return
     
     # def animate_fisheye(self):
@@ -333,6 +352,25 @@ class Imagers:
                 ocean_color=ocean_color,
             )
 
+        # Handle manual color_bounds for none, all, or each imager.
+        if color_bounds is None:
+            color_bounds = np.full(len(self.imagers), None)
+        elif len(np.array(color_bounds).shape) == 1:  # Same color_bounds for all imagers.
+            color_bounds = np.repeat(
+                np.array(color_bounds)[:, np.newaxis], 
+                len(self.imagers), 
+                axis=-1
+                ).T
+        elif len(np.array(color_bounds).shape) == 2:
+            assert np.array(color_bounds).shape == (len(self.imagers), 2), (
+                "A unique color_bounds must be specified for each imager."
+                )
+        else:
+            raise ValueError(
+                f'The shape of color_bounds must be (1, 2), or '
+                f'({len(self.imagers)}, 2), not {np.array(color_bounds).shape}'
+                )
+
         # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
         # not exist.
         if animation_save_dir is None:
@@ -401,7 +439,7 @@ class Imagers:
                 if _asi_time == datetime.min:
                     continue
                 _color_map, _color_norm = self.imagers[j]._plot_params(
-                    _asi_image, color_bounds, color_map, color_norm
+                    _asi_image, color_bounds[j], color_map, color_norm
                     )
 
                 ax, pcolormesh_objs[j], asi_labels[j] = self.imagers[j]._plot_mapped_image(
@@ -637,7 +675,7 @@ class Imagers:
                 ))
         return lat_lon_points, intensities
     
-    def _calc_overlap_mask(self, _skymaps, idx=None):
+    def _calc_overlap_mask(self, _skymaps, idx=None, shrink_distance_to_self=0.98):
         """
         Calculate which pixels to plot for overlapping imagers by the criteria that the ith 
         imager's pixel must be closest to that imager (and not a neighboring one).
@@ -702,7 +740,7 @@ class Imagers:
             # Without this small reduction in the distance of pixels to its own imager,
             # there are gaps between the imager boundaries. In other words, this scaling
             # slightly biases to plotting pixels nearest to the imager. 
-            _distances[:, :, i] *= 0.98
+            _distances[:, :, i] *= shrink_distance_to_self
             # TODO: Set the _distances[:, :, i] values to 0 (not masked out) if they are 
             # #closer to the other imager but the other imager's pixels are nans.
             # Need a masked array so that np.nanargmin correctly handles all NaN slices.

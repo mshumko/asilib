@@ -3,6 +3,7 @@ As part of the Canadian Space Agency's Geospace Observatory (GO) Canada initiati
 """
 
 from datetime import datetime, timedelta
+import functools
 import re
 import warnings
 import pathlib
@@ -38,6 +39,7 @@ def rego(
     missing_ok: bool = True,
     load_images: bool = True,
     acknowledge: bool = True,
+    dark: bool = False,
     imager=asilib.Imager,
 ) -> asilib.Imager:
     """
@@ -116,6 +118,8 @@ def rego(
         time_range = utils.validate_time_range(time_range)
 
     local_pgm_dir = local_base_dir / 'images' / location_code.lower()
+    
+    file_search_str = functools.partial(_glob_filename, dark=dark)
 
     if load_images:
         # Download and find image data
@@ -128,6 +132,7 @@ def rego(
             local_pgm_dir,
             redownload,
             missing_ok,
+            file_search_str=file_search_str
         )
 
         start_times = len(file_paths) * [None]
@@ -207,7 +212,8 @@ def rego(
             )
     }
     plot_settings = {
-        'color_map': matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
+        'color_map': matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r']),
+        'color_bounds':(300, 1000)
     }
 
     if acknowledge and ('rego' not in asilib.config['ACKNOWLEDGED_ASIS']):
@@ -368,3 +374,12 @@ def _load_rego_pgm(path):
         ]
     )
     return times, images
+
+def _glob_filename(time, location_code, _, dark=False):
+    """
+    Return a file search string to pass into asilib.Downloader.
+    """
+    if dark:
+        return f'{time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}_rego*6300_dark.pgm.gz'
+    else:
+        return f'{time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}_rego*6300.pgm.gz'
