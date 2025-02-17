@@ -1092,14 +1092,18 @@ class Imager:
 
         _color_map, _color_norm = self._plot_params(_keogram, color_bounds, color_map, color_norm)
 
-        # Same as transpose, but correctly handles RGB keograms.
-        _keogram = np.swapaxes(_keogram, 1, 0)
-        if len(_keogram.shape) == 3 and max_contrast:
-            # To see the RGB intensities clearly, the channel intensities need to span 0-1.
-            _keogram -= np.nanmin(_keogram)
-            _keogram = _keogram / np.nanmax(_keogram)
-            _color_norm.vmin = 0
-            _color_norm.vmax = 1
+        _keogram = np.moveaxis(_keogram, 0, 1)  # Transpose 0th and 1st axes for pcolormesh. 
+        if len(self.meta['resolution']) == 3:  # tests if rgb
+            _keogram = self._rgb_replacer(_keogram)
+            vmin, vmax = self.get_color_bounds(images=_keogram)
+            if max_contrast:
+                # This is a good enough scaling, but there may be some >1 values.
+                _keogram = (_keogram-vmin)/(vmax-vmin)
+                _keogram[_keogram > 1] = 1
+                _keogram[_keogram < 0] = 0
+            else:
+                _keogram = _keogram/np.nanmax(_keogram)
+            
 
         pcolormesh_obj = ax.pcolormesh(
             _keogram_time,
