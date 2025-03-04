@@ -226,7 +226,10 @@ def trex_rgb(
             'Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”'
         )
     }
-    plot_settings = {'color_norm':'lin'}
+    plot_settings = {
+        'color_norm':'lin',  # Needed for to be compatible with plt.pcolormesh.
+        'color_bounds':(15, 80)
+        }
 
     if acknowledge and ('trex_rgb' not in asilib.config['ACKNOWLEDGED_ASIS']):
         print(meta['acknowledgment'])

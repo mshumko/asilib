@@ -87,7 +87,6 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        stretch_contrast: bool = True,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
@@ -113,10 +112,6 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        stretch_contrast: bool
-            If True, increases the RGB image contrast with (image-vmin)/(vmax-vmin) (see 
-            `Normalization <https://en.wikipedia.org/wiki/Normalization_(image_processing)>`_ wiki 
-            page for more details).
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -170,13 +165,7 @@ class Imager:
         if len(self.meta['resolution']) == 3:  # tests if rgb
             vmin, vmax = self.get_color_bounds()
             image = self._rgb_replacer(image)
-            if stretch_contrast:
-                # This is a good enough scaling, but there may be some >1 values.
-                image = (image-vmin)/(vmax-vmin)
-                image[image > 1] = 1
-                image[image < 0] = 0
-            else:
-                image = image/np.nanmax(image)
+            image = self._stretch_contrast(image, vmin, vmax)
         if isinstance(color_norm, matplotlib.colors.LogNorm):
             # Increase the corner pixels with 0 counts to 1 count so 
             # it shows up black in log-scale.
@@ -212,10 +201,6 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        stretch_contrast: bool
-            If True, increases the RGB image contrast with (image-vmin)/(vmax-vmin) (see 
-            `Normalization <https://en.wikipedia.org/wiki/Normalization_(image_processing)>`_ wiki 
-            page for more details).
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -272,7 +257,6 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        stretch_contrast: bool = True,
         azel_contours: bool = False,
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
@@ -311,10 +295,6 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        stretch_contrast: bool
-            If True, increases the RGB image contrast with (image-vmin)/(vmax-vmin) (see 
-            `Normalization <https://en.wikipedia.org/wiki/Normalization_(image_processing)>`_ wiki 
-            page for more details).
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -417,13 +397,7 @@ class Imager:
             if len(self.meta['resolution']) == 3:  # tests if rgb
                 vmin, vmax = self.get_color_bounds()
                 image = self._rgb_replacer(image)
-                if stretch_contrast:
-                    # This is a good enough scaling, but there may be some >1 values.
-                    image = (image-vmin)/(vmax-vmin)
-                    image[image > 1] = 1
-                    image[image < 0] = 0
-                else:
-                    image = image/np.nanmax(image)
+                image = self._stretch_contrast(image, vmin, vmax)
 
             if isinstance(color_norm, matplotlib.colors.LogNorm):
                 # Increase the corner pixels with 0 counts to 1 count so 
@@ -461,7 +435,6 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        stretch_contrast: bool = True,
         min_elevation: float = 10,
         asi_label: bool = True,
         pcolormesh_kwargs: dict = {},
@@ -496,10 +469,6 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        stretch_contrast: bool
-            If True, increases the RGB image contrast with (image-vmin)/(vmax-vmin) (see 
-            `Normalization <https://en.wikipedia.org/wiki/Normalization_(image_processing)>`_ wiki 
-            page for more details).
         min_elevation: float
             Masks the pixels below min_elevation degrees.
         asi_label: bool
@@ -588,12 +557,7 @@ class Imager:
         if len(self.meta['resolution']) == 3:
             vmin, vmax = self.get_color_bounds()
             image = self._rgb_replacer(image)
-            
-            if stretch_contrast:
-                # This is a good enough scaling, but there may be some >1 values.
-                image = (image-vmin)/vmax
-                image[image > 1] = 1
-                image[image < 0] = 0
+            image = self._stretch_contrast(image, vmin, vmax)
 
         pcolormesh_kwargs_copy = pcolormesh_kwargs.copy()
         if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
@@ -646,10 +610,6 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        stretch_contrast: bool
-            If True, increases the RGB image contrast with (image-vmin)/(vmax-vmin) (see 
-            `Normalization <https://en.wikipedia.org/wiki/Normalization_(image_processing)>`_ wiki 
-            page for more details).
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -701,7 +661,6 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        stretch_contrast: bool = True,
         min_elevation: float = 10,
         pcolormesh_kwargs: dict = {},
         asi_label: bool = True,
@@ -752,10 +711,6 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        stretch_contrast: bool
-            If True, increases the RGB image contrast with (image-vmin)/(vmax-vmin) (see 
-            `Normalization <https://en.wikipedia.org/wiki/Normalization_(image_processing)>`_ wiki 
-            page for more details).
         min_elevation: float
             Masks the pixels below min_elevation degrees.
         pcolormesh_kwargs: dict
@@ -1012,7 +967,6 @@ class Imager:
         color_map: str = None,
         color_bounds: List[float] = None,
         color_norm: str = None,
-        stretch_contrast: bool = True,
         pcolormesh_kwargs={},
     ) -> Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
         """
@@ -1045,10 +999,6 @@ class Imager:
             the color normalization will be taken from the ASI array (if specified), and if not
             specified it will default to logarithmic. The norm is not applied to RGB images (see 
             `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
-        stretch_contrast: bool
-            If True, increases the RGB image contrast with (image-vmin)/(vmax-vmin) (see 
-            `Normalization <https://en.wikipedia.org/wiki/Normalization_(image_processing)>`_ wiki 
-            page for more details).
         pcolormesh_kwargs: dict
             A dictionary of keyword arguments (kwargs) to pass directly into
             plt.pcolormesh.
@@ -1102,18 +1052,8 @@ class Imager:
         _keogram = np.moveaxis(_keogram, 0, 1)  # Transpose 0th and 1st axes for pcolormesh. 
         if len(self.meta['resolution']) == 3:  # tests if rgb
             _keogram = self._rgb_replacer(_keogram)
-            vmin, vmax = self.get_color_bounds(images=_keogram)
-            if stretch_contrast:
-                # This is a good enough scaling, but there may be some >1 values since vmin, vmax 
-                # are percentiles (it better handles cases when part of the image is saturated by 
-                # moonlight, for example). For more information see 
-                # https://en.wikipedia.org/wiki/Normalization_(image_processing), and
-                # https://stackoverflow.com/a/71835553
-                _keogram = (_keogram-vmin)/(vmax-vmin)
-                _keogram[_keogram > 1] = 1
-                _keogram[_keogram < 0] = 0
-            else:
-                _keogram = _keogram/np.nanmax(_keogram)
+            vmin, vmax = self.get_color_bounds()
+            _keogram = self._stretch_contrast(_keogram, vmin, vmax)
             
 
         pcolormesh_obj = ax.pcolormesh(
@@ -1145,10 +1085,16 @@ class Imager:
         self.plot_settings['color_bounds'] = (lower, upper)
         return
     
-    def get_color_bounds(self, images:np.ndarray=None):
+    def get_color_bounds(self):
+        """
+        Get the default (vmin, vmax) color bounds for the imager.
+        """
+        return self.plot_settings['color_bounds']
+    
+    def auto_color_bounds(self, images:np.ndarray=None):
         """
         Calculate the (vmin, vmax) color bounds automatically by loading in a subset of the 
-        image data, or return the pre-defined color bounds in the imager.plot_settings dict.
+        image data.
 
         Parameters
         ----------
@@ -1160,12 +1106,6 @@ class Imager:
         if images is not None:
             lower, upper = np.quantile(images, (0.25, 0.98))
             return [lower, np.min([upper, lower * 10])]
-
-        if 'color_bounds' in self.plot_settings:
-            return self.plot_settings['color_bounds']
-        if hasattr(self, '_color_bounds_data'):
-            # Avoid recalculating if already calculated.
-            return self._color_bounds_data
         
         num = min(len(self.file_info['start_time']), 3)
         file_indicies = np.arange(
@@ -1184,15 +1124,16 @@ class Imager:
         # You get nans if we're working with a subset of the RGB channels.
         valid_idx = np.where(~np.isnan(flattened_images))[0]
         lower, upper = np.quantile(flattened_images[valid_idx], (0.25, 0.98))
-        self._color_bounds_data = [lower, np.min([upper, lower * 10])]
-        return self._color_bounds_data
+        return lower, np.min([upper, lower * 10])
     
     def _stretch_contrast(self, image, vmin, vmax):
         """
         This function performs Normalization, also called contrast stretching to an image
         given min/max values. For more information see 
         https://en.wikipedia.org/wiki/Normalization_(image_processing), and
-        https://stackoverflow.com/a/71835553
+        https://stackoverflow.com/a/71835553.
+
+        To not apply this algorithm use vmin=0 and vmax=256 for 8-bit images (i.e., TREx).
         """
         image = (image-vmin)/(vmax-vmin)
         # Above is a good enough scaling, but there may be some >1 values since vmin, vmax 
