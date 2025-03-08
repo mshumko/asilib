@@ -157,7 +157,7 @@ def test_trex_rgb_fisheye():
 )
 def test_trex_rgb_fisheye_contrast():
     """
-    Plot one fisheye lens image with and one without max_contrast.
+    Plot one fisheye lens image with and one without contrast.
     """
     from datetime import datetime
     
@@ -169,7 +169,8 @@ def test_trex_rgb_fisheye_contrast():
     time = datetime(2021, 11, 4, 7, 3, 51)
     asi = trex_rgb('PINA', time=time, colors='rgb')
     asi.plot_fisheye(ax=ax[0])
-    asi.plot_fisheye(ax=ax[1], max_contrast=False)
+    asi.set_color_bounds(10, 80)
+    asi.plot_fisheye(ax=ax[1])
     plt.tight_layout()
 
 

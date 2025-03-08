@@ -698,10 +698,14 @@ def trex_nir(
             )
     }
 
+    plot_settings = {
+        'color_bounds':(350, 1500)
+        }
+
     if acknowledge and ('trex_nir' not in asilib.config['ACKNOWLEDGED_ASIS']):
         print(meta['acknowledgment'])
         asilib.config['ACKNOWLEDGED_ASIS'].append('trex_nir')
-    return imager(file_info, meta, skymap)
+    return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
 def trex_nir_info() -> pd.DataFrame:

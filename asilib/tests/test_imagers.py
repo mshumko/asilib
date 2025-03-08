@@ -282,7 +282,7 @@ def test_animate_map():
     import asilib
     import asilib.asi
 
-    time_range = ('2021-11-04T06:55', '2021-11-04T07:05')
+    time_range = ('2021-11-04T06:59', '2021-11-04T07:10')
     asis = asilib.Imagers(
         [asilib.asi.trex_rgb(location_code, time_range=time_range) 
         for location_code in ['LUCK', 'PINA', 'GILL', 'RABB']]

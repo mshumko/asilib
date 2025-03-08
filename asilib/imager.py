@@ -530,13 +530,13 @@ class Imager:
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
         ax, p, _ = self._plot_mapped_image(
-            ax, image, min_elevation, color_map, color_norm, stretch_contrast, asi_label, 
+            ax, image, min_elevation, color_map, color_norm, asi_label, 
             pcolormesh_kwargs, lon_grid=lon_grid, lat_grid=lat_grid
         )
         return ax, p
 
     def _plot_mapped_image(
-        self, ax, image, min_elevation, color_map, color_norm, stretch_contrast, asi_label, 
+        self, ax, image, min_elevation, color_map, color_norm, asi_label, 
         pcolormesh_kwargs, lon_grid=None, lat_grid=None
     ):
         """
@@ -822,7 +822,7 @@ class Imager:
             _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
             ax, pcolormesh_obj, label_obj = self._plot_mapped_image(
-                ax, image, min_elevation, _color_map, _color_norm, stretch_contrast, asi_label, 
+                ax, image, min_elevation, _color_map, _color_norm, asi_label, 
                 pcolormesh_kwargs, lon_grid=lon_grid, lat_grid=lat_grid
             )
 

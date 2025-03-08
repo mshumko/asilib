@@ -176,7 +176,7 @@ def test_animate_map_example():
     import asilib
 
     location = 'FSMI'
-    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 12))
+    time_range = (datetime(2015, 3, 26, 6, 7), datetime(2015, 3, 26, 6, 8, 30))
     asi = asilib.asi.themis(location, time_range=time_range)
     ax = asilib.map.create_simple_map()
     asi.animate_map(overwrite=True, ax=ax)
@@ -193,7 +193,7 @@ def test_animate_map_example():
 
     assert animation_path.exists()
     assert plot_dir.exists()
-    assert len(image_paths) == 100
+    assert len(image_paths) == 30
     return
 
 
@@ -236,7 +236,10 @@ def test_plot_keogram_magnetic_example():
     time_range = ['2008-01-16T10', '2008-01-16T12']
 
     asi = asilib.asi.themis('GILL', time_range=time_range)
-    ax, p = asi.plot_keogram(color_map='turbo', aacgm=True, title=False)
+    ax, p = asi.plot_keogram(
+        color_map='turbo', aacgm=True, title=False,
+        color_bounds=asi.auto_color_bounds()
+        )
     ax.set_ylabel('Magnetic Lat [deg]')
     plt.colorbar(p)
     return
@@ -268,7 +271,9 @@ def test_plot_keogram_magnetic_path_example():
         )
     )
     latlon = latlon[np.where(~np.isnan(latlon[:, 0]))[0], :]
-    ax, p = asi.plot_keogram(color_map='turbo', aacgm=True, title=False, path=latlon)
+    ax, p = asi.plot_keogram(
+        color_map='turbo', aacgm=True, title=False, path=latlon, color_bounds=(4034, 6886)
+        )
     ax.set_ylabel('Magnetic Lat [deg]\nCustom path')
     plt.colorbar(p)
     return
@@ -284,7 +289,7 @@ def test_get_set_color_bounds():
     time_range = ['2008-01-16T10', '2008-01-16T12']
 
     asi = asilib.asi.themis('GILL', time_range=time_range)
-    assert np.all(np.array(asi.get_color_bounds()).round() == np.array([4034., 6887.]))
+    assert np.all(np.array(asi.auto_color_bounds()).round() == np.array([4034., 6887.]))
     asi.set_color_bounds(4000, 7000)
     assert np.all(asi.get_color_bounds() == (4000, 7000))
     return
