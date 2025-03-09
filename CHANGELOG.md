@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.25.2] - 2025-03-08
+
+### Added
+- TREx-RGB default `color_bounds`.
+- Added `Imager.auto_color_bounds()` to automatically calculate the color bounds based on a few images. This can be combined with `Imager.set_color_bounds()` to adjust the color bounds for a particular event.
+
+### Changed
+- Removed the `max_contrast` kwarg and now the contrast stretching algorithm is applied to all RGB images. It can be effectively turned off by setting `color_bounds=(0, 255)`.
+- Keograms are also contrast stretched
+- Simplified `Imager.get_color_bounds()` to return the default color bounds (`self.plot_settings['color_bounds']`).
+- Updated baseline images with the new color bounds.
+
+
 ## [0.25.1] - 2025-01-25
 
 ### Added
