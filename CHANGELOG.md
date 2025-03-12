@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.25.3] - 2025-03-08
+## [0.25.3] - 2025-03-12
 
 ### Changed
 - Moved tests and examples into the top-level directory.
