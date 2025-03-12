@@ -145,3 +145,20 @@ def progressbar(iterator: Iterable, iter_length: int = None, text: str = None):
             yield item
     finally:
         print()  # end with a newline.
+
+def stretch_contrast(image, vmin, vmax):
+    """
+    This function performs Normalization, also called Contrast Stretching to an image
+    given min/max values. For more information see 
+    https://en.wikipedia.org/wiki/Normalization_(image_processing), and
+    https://stackoverflow.com/a/71835553.
+
+    To not apply this algorithm use vmin=0 and vmax=256 for 8-bit images (i.e., TREx).
+    """
+    image = (image-vmin)/(vmax-vmin)
+    # Above is a good enough scaling, but there may be some >1 values since vmin, vmax 
+    # are percentiles (it better handles cases when part of the image is saturated by 
+    # moonlight, for example).
+    image[image > 1] = 1
+    image[image < 0] = 0
+    return image

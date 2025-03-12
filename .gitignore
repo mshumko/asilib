@@ -11,7 +11,7 @@ build/
 dist/
 docs/_build/
 .vscode/settings.json
-asilib/tests/.coverage
+tests/.coverage
 .vscode/launch.json
 *.~vsdx
 
@@ -20,4 +20,9 @@ asilib-env/*
 asilib/config.ini
 asilib/config.backup
 docs/reference/api/*
-asilib/tests/result_images/*
+tests/result_images/*
+.coverage
+
+# Whitelist the baseline images folder so any changes are tracked.
+!tests/baseline_images/
+!tests/baseline_images/**

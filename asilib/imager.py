@@ -165,7 +165,7 @@ class Imager:
         if len(self.meta['resolution']) == 3:  # tests if rgb
             vmin, vmax = self.get_color_bounds()
             image = self._rgb_replacer(image)
-            image = self._stretch_contrast(image, vmin, vmax)
+            image = utils.stretch_contrast(image, vmin, vmax)
         if isinstance(color_norm, matplotlib.colors.LogNorm):
             # Increase the corner pixels with 0 counts to 1 count so 
             # it shows up black in log-scale.
@@ -397,7 +397,7 @@ class Imager:
             if len(self.meta['resolution']) == 3:  # tests if rgb
                 vmin, vmax = self.get_color_bounds()
                 image = self._rgb_replacer(image)
-                image = self._stretch_contrast(image, vmin, vmax)
+                image = utils.stretch_contrast(image, vmin, vmax)
 
             if isinstance(color_norm, matplotlib.colors.LogNorm):
                 # Increase the corner pixels with 0 counts to 1 count so 
@@ -557,7 +557,7 @@ class Imager:
         if len(self.meta['resolution']) == 3:
             vmin, vmax = self.get_color_bounds()
             image = self._rgb_replacer(image)
-            image = self._stretch_contrast(image, vmin, vmax)
+            image = utils.stretch_contrast(image, vmin, vmax)
 
         pcolormesh_kwargs_copy = pcolormesh_kwargs.copy()
         if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
@@ -1053,7 +1053,7 @@ class Imager:
         if len(self.meta['resolution']) == 3:  # tests if rgb
             _keogram = self._rgb_replacer(_keogram)
             vmin, vmax = self.get_color_bounds()
-            _keogram = self._stretch_contrast(_keogram, vmin, vmax)
+            _keogram = utils.stretch_contrast(_keogram, vmin, vmax)
             
 
         pcolormesh_obj = ax.pcolormesh(
@@ -1125,23 +1125,6 @@ class Imager:
         valid_idx = np.where(~np.isnan(flattened_images))[0]
         lower, upper = np.quantile(flattened_images[valid_idx], (0.25, 0.98))
         return lower, np.min([upper, lower * 10])
-    
-    def _stretch_contrast(self, image, vmin, vmax):
-        """
-        This function performs Normalization, also called contrast stretching to an image
-        given min/max values. For more information see 
-        https://en.wikipedia.org/wiki/Normalization_(image_processing), and
-        https://stackoverflow.com/a/71835553.
-
-        To not apply this algorithm use vmin=0 and vmax=256 for 8-bit images (i.e., TREx).
-        """
-        image = (image-vmin)/(vmax-vmin)
-        # Above is a good enough scaling, but there may be some >1 values since vmin, vmax 
-        # are percentiles (it better handles cases when part of the image is saturated by 
-        # moonlight, for example).
-        image[image > 1] = 1
-        image[image < 0] = 0
-        return image
     
     def _keogram_pixels(self, path, minimum_elevation=20):
         """

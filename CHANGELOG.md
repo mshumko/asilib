@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.25.3] - 2025-03-12
+
+### Changed
+- Moved tests and examples into the top-level directory.
+- Updated `pyproject.toml` to automatically run pytest-cov. 
+
 ## [0.25.2] - 2025-03-08
 
 ### Added
@@ -11,7 +17,6 @@
 - Keograms are also contrast stretched
 - Simplified `Imager.get_color_bounds()` to return the default color bounds (`self.plot_settings['color_bounds']`).
 - Updated baseline images with the new color bounds.
-
 
 ## [0.25.1] - 2025-01-25
 
