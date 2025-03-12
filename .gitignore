@@ -21,6 +21,7 @@ asilib/config.ini
 asilib/config.backup
 docs/reference/api/*
 tests/result_images/*
+.coverage
 
 # Whitelist the baseline images folder so any changes are tracked.
 !tests/baseline_images/

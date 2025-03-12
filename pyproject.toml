@@ -57,3 +57,14 @@ asilib = [ "*.csv", "*.zip",]
 
 [tool.setuptools.packages.find]
 namespaces = false
+
+[tool.pytest.ini_options]
+addopts = "--cov=asilib --cov-report term:skip-covered"
+
+[tool.coverage.run]
+omit = [
+    "tests/*",
+    "examples/*",
+    "__main__.py",
+    "setup.py",
+    ]
