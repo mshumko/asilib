@@ -3,7 +3,7 @@ The Imagers class handles multiple Imager objects and coordinates plotting and a
 fisheye lens and mapped images. The mapped images are also called mosaics.
 """
 
-from typing import Tuple, List, Union, Generator
+from typing import Tuple, List, Union, Generator, Callable
 from collections import namedtuple
 import pathlib
 from datetime import datetime, timedelta
@@ -11,6 +11,17 @@ import shutil
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors
+import matplotlib.collections
+import matplotlib.patches
+import scipy.interpolate
+from scipy.interpolate.interpnd import _ndim_coords_from_arrays
+from scipy.spatial import cKDTree
+try:
+    import IRBEM
+    _irbem_imported = True
+except ImportError:
+    _irbem_imported = False
 
 from asilib.imager import Imager, _haversine, Skymap_Cleaner
 import asilib.map
@@ -472,6 +483,116 @@ class Imagers:
         
         self.imagers[0]._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
         return
+    
+    def map_eq(self, b_model: Callable='IGRF') -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Maps geographic coordinates to magnetic equator coordinates using IGRF implemented in IRBEM
+        or a user-defined magnetic field model.
+
+        Parameters
+        ----------
+        b_model: Callable
+            A function that takes in a datetime object and a (lat, lon, alt) tuple and returns the
+            magnetic equator position in the Geocentric Solar Magnetospheric (GSM) coordinates.
+
+        Returns
+        -------
+        numpy.ndarray:
+            Mapped locations in the Geocentric Solar Magnetospheric (GSM) coordinates.
+        numpy.ndarray:
+            Auroral pixel intensities.
+        """
+        if b_model == 'IGRF':
+            b_model = self._igrf_model_wrapper
+            if not _irbem_imported:
+                raise ImportError(
+                    'IRBEM is not installed. Please install it to use the IGRF model, '
+                    'or supply a custom b_model.'
+                    )
+            
+        lats_lons, intensities = self.get_points()
+        equator_sm = np.zeros((lats_lons[:, 0].shape[0], 3))
+
+        _progressbar = asilib.utils.progressbar(
+            enumerate(zip(lats_lons[:, 0], lats_lons[:, 1])),
+            iter_length=lats_lons[:, 0].shape[0],
+            text='Mapping to magnetic equator'
+            )
+
+        for i, (lat, lon) in _progressbar:
+            equator_sm[i, :] = b_model(self.imagers[0].file_info['time'], (lat, lon, self.imagers[0].skymap['alt']))
+        return equator_sm, intensities
+    
+    def plot_map_eq(
+            self, 
+            ax=None, 
+            b_model="IGRF",
+            max_valid_grid_distance=0.03,
+            x_grid=None, 
+            y_grid=None, 
+            color_bounds: List[float] = None,
+            color_norm: str = None,
+            color_map: str = None,
+            pcolormesh_kwargs={},
+            ) -> Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
+        """
+        TODO: Add docstring
+        
+        """
+        if ax is None:
+            _, ax = plt.subplots()
+        if (x_grid is None) and (y_grid is None):
+            x_grid, y_grid = np.meshgrid(np.linspace(-12, 1.1, num=1000), np.linspace(-5, 5, num=1001))
+
+        equator_sm, intensities = self.map_eq(b_model=b_model)
+
+        gridded_eq_data = scipy.interpolate.griddata(
+            equator_sm[:, :2], 
+            intensities, 
+            (x_grid, y_grid), 
+            method='nearest'
+            )
+        # https://stackoverflow.com/a/31189177
+        tree = cKDTree(equator_sm[:, :2])
+        xi = _ndim_coords_from_arrays((x_grid, y_grid), ndim=2)
+        dists, indexes = tree.query(xi)
+        gridded_eq_data[dists > max_valid_grid_distance, :] = np.nan  # Mask any gridded point > 0.1 Re from the mapped point as NaN
+
+        color_map, color_norm = self.imagers[0]._plot_params(gridded_eq_data, color_bounds, color_map, color_norm)
+
+        vmin, vmax = self.imagers[0].plot_settings['color_bounds']
+        if len(self.imagers[0].meta['resolution']) == 3:
+            vmin, vmax = self.imagers[0].get_color_bounds()
+            gridded_eq_data = self.imagers[0]._rgb_replacer(gridded_eq_data)
+            gridded_eq_data = asilib.utils.stretch_contrast(gridded_eq_data, vmin, vmax)
+
+            # Add a transprancy channel so that the NaN RGB values show up as transparent instead of black.
+            gridded_eq_data = np.concatenate(
+                (gridded_eq_data, np.ones(gridded_eq_data.shape[:2]).reshape(*gridded_eq_data.shape[:2], 1))
+                , axis=-1
+                )
+            gridded_eq_data[np.isnan(gridded_eq_data.sum(axis=-1)), -1] = 0
+
+        pcolormesh_kwargs['norm'] = color_norm
+        pcolormesh_kwargs['cmap'] = color_map
+        gridded_eq_data = np.ma.array(gridded_eq_data, mask=np.isnan(gridded_eq_data))
+        p = ax.pcolormesh(x_grid, y_grid, gridded_eq_data, **pcolormesh_kwargs)
+
+        # Draw Earth circle
+        ax.add_artist(matplotlib.patches.Wedge((0, 0), 1, -90, 90, fc='w', ec='k'))
+        ax.add_artist(matplotlib.patches.Wedge((0, 0), 1, 90, 270, fc='k', ec='k'))
+        return ax, p
+
+    def _igrf_model_wrapper(self, time, lla):
+        if not hasattr(self, '_irbem_obj'):
+            self._irbem_obj = IRBEM.MagFields(kext=0)
+            self._coords_obj = IRBEM.Coords()
+        output_dictionary = self._irbem_obj.find_magequator(
+            {'datetime':time, 'x1':lla[2], 'x2':lla[0], 'x3':lla[1]},
+            {}
+            )
+        equator_sm = self._coords_obj.transform(time, output_dictionary['XGEO'], 1, 2)  # Convert to GSM coordinates
+        return equator_sm
     
     def __iter__(self) -> Generator[datetime, List, List]:
         """
