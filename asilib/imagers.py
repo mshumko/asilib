@@ -487,14 +487,14 @@ class Imagers:
     
     def map_eq(self, b_model: Callable='IGRF') -> Tuple[np.ndarray, np.ndarray]:
         """
-        Maps geographic coordinates to magnetic equator coordinates using IGRF implemented in IRBEM
-        or a user-defined magnetic field model.
+        Map an auroral image to the magnetic equator using IGRF or a user-defined magnetic field model.
 
         Parameters
         ----------
         b_model: Callable
-            A function that takes in a datetime object and a (lat, lon, alt) tuple and returns the
-            magnetic equator position in the Geocentric Solar Magnetospheric (GSM) coordinates.
+            A function with the (time, lla) arguments where time is a single time stamp, 
+            and lla is one (lat, lon, alt) point. If ``b_model='IGRF'``, IRBEM's IGRF model is used
+            in the default GSM coordinates.
 
         Returns
         -------
@@ -503,6 +503,9 @@ class Imagers:
         numpy.ndarray:
             Auroral pixel intensities.
         """
+        warnings.warn(
+            'This is an experimental method. Its functionality or interface stability is not guaranteed.'
+            )
         if b_model == 'IGRF':
             b_model = self._igrf_model_wrapper
             if not _irbem_imported:
@@ -526,23 +529,46 @@ class Imagers:
     
     def plot_map_eq(
             self, 
-            ax=None, 
-            b_model="IGRF",
-            max_valid_grid_distance=0.03,
-            x_grid=None, 
-            y_grid=None, 
+            ax:plt.Axes=None, 
+            b_model:Callable="IGRF",
+            max_valid_grid_distance:float=0.03,
+            x_grid:np.ndarray=None, 
+            y_grid:np.ndarray=None, 
             color_bounds: List[float] = None,
             color_norm: str = None,
             color_map: str = None,
-            pcolormesh_kwargs={},
+            pcolormesh_kwargs:dict={},
             ) -> Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
         """
-        TODO: Add docstring
-        
+        Plot the equatorial projection of an auroral image, mapped using IGRF or a user-defined 
+        magnetic field model.
+
+        Parameters
+        ----------
+        ax: plt.Axes
+            The subplot to put the map on. If None, one will be created.
+        b_model: Callable
+            A function with the (time, lla) arguments where time is a single time stamp, 
+            and lla is one (lat, lon, alt) point. If ``b_model='IGRF'``, IRBEM's IGRF model is used
+            in the default GSM coordinates.
+        max_valid_grid_distance: float
+            The maximum distance from the mapped point to the grid point. If the distance is greater
+            than this value, the mapped grid point will be masked as NaN. The distance is in units of Re.
+        x_grid, x_grid: np.ndarray
+            The x and y grid points to plot the mapped image. If None, a grid of 1000x1001 points spanning 
+            -12 < x < 1.1 and -5 < y < 5 is generated.
+        color_bounds: List[float]
+            The ASI image color bounds.
+        color_map: str
+            The matplotlib colormap to use. See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_
+            for supported colormaps.
+        color_norm: str
+            Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
+            the color normalization will be taken from the ASI array (log for black & white images 
+            and linear for RGB images).
+        pcolormesh_kwargs: dict
+            Keyword arguments directly passed into plt.pcolormesh.
         """
-        warnings.warn(
-            'This is an experimental method. Its functionality or interface stability is not guaranteed.'
-            )
         if ax is None:
             _, ax = plt.subplots()
         if (x_grid is None) and (y_grid is None):

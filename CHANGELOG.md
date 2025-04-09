@@ -1,11 +1,11 @@
 # Changelog
 
-## [0.26.0] - 
+## [0.26.0] - 2025-04-09
 
 ### Added
-- `Imagers.map_eq()` method maps images to the magnetic equator using a default IRBEM's IGRF model, or a custom magnetoc field model. 
+- `Imagers.map_eq()` method maps images to the magnetic equator using a default IRBEM's IGRF model, or a custom magnetic field model. 
 - `Imagers.plot_map_eq()` method calls `Imagers.map_eq()` and plots the image.
-- A `magnetic_equator.ipynb` tutorial
+- A `magnetic_equator.ipynb` tutorial to the documentation.
 
 ## [0.25.3] - 2025-03-12
 
