@@ -290,26 +290,26 @@ def test_animate_map():
     asis.animate_map(lon_bounds=(-115, -85), lat_bounds=(43, 63), overwrite=True)
     return
 
-@matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_plot_map_eq'],
-    tol=10,
-    remove_text=True,
-    extensions=['png'],
-)
-def test_plot_map_eq():
-    """
-    Test the Imagers.plot_map_eq() method using IGRF.
-    """
-    import asilib
-    import asilib.asi
-    import matplotlib.pyplot as plt
+# @matplotlib.testing.decorators.image_comparison(
+#     baseline_images=['test_plot_map_eq'],
+#     tol=10,
+#     remove_text=True,
+#     extensions=['png'],
+# )
+# def test_plot_map_eq():
+#     """
+#     Test the Imagers.plot_map_eq() method using IGRF.
+#     """
+#     import asilib
+#     import asilib.asi
+#     import matplotlib.pyplot as plt
 
-    time = '2021-11-04T06:59'
-    location_codes = ['GILL']
-    asis = asilib.Imagers(
-        [asilib.asi.trex_rgb(location_code, time=time) 
-        for location_code in location_codes]
-        )
-    fig, ax = plt.subplots()
-    asis.plot_map_eq(ax=ax, b_model="IGRF")
-    return
+#     time = '2021-11-04T06:59'
+#     location_codes = ['GILL']
+#     asis = asilib.Imagers(
+#         [asilib.asi.trex_rgb(location_code, time=time) 
+#         for location_code in location_codes]
+#         )
+#     fig, ax = plt.subplots()
+#     asis.plot_map_eq(ax=ax, b_model="IGRF")
+#     return

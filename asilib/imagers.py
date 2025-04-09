@@ -8,6 +8,7 @@ from collections import namedtuple
 import pathlib
 from datetime import datetime, timedelta
 import shutil
+import warnings
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -539,6 +540,9 @@ class Imagers:
         TODO: Add docstring
         
         """
+        warnings.warn(
+            'This is an experimental method. Its functionality or interface stability is not guaranteed.'
+            )
         if ax is None:
             _, ax = plt.subplots()
         if (x_grid is None) and (y_grid is None):
@@ -555,7 +559,7 @@ class Imagers:
         # https://stackoverflow.com/a/31189177
         tree = cKDTree(equator_sm[:, :2])
         xi = _ndim_coords_from_arrays((x_grid, y_grid), ndim=2)
-        dists, indexes = tree.query(xi)
+        dists, _ = tree.query(xi)
         gridded_eq_data[dists > max_valid_grid_distance, :] = np.nan  # Mask any gridded point > 0.1 Re from the mapped point as NaN
 
         color_map, color_norm = self.imagers[0]._plot_params(gridded_eq_data, color_bounds, color_map, color_norm)
@@ -591,8 +595,8 @@ class Imagers:
             {'datetime':time, 'x1':lla[2], 'x2':lla[0], 'x3':lla[1]},
             {}
             )
-        equator_sm = self._coords_obj.transform(time, output_dictionary['XGEO'], 1, 2)  # Convert to GSM coordinates
-        return equator_sm
+        equator_gsm = self._coords_obj.transform(time, output_dictionary['XGEO'], 1, 2)  # Convert to GSM coordinates
+        return equator_gsm
     
     def __iter__(self) -> Generator[datetime, List, List]:
         """
