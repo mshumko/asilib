@@ -16,7 +16,6 @@ import matplotlib.colors
 import matplotlib.collections
 import matplotlib.patches
 import scipy.interpolate
-from scipy.interpolate.interpnd import _ndim_coords_from_arrays
 from scipy.spatial import cKDTree
 try:
     import IRBEM
@@ -504,7 +503,8 @@ class Imagers:
             Auroral pixel intensities.
         """
         warnings.warn(
-            'This is an experimental method. Its functionality or interface stability is not guaranteed.'
+            'asilib.Imagers.map_eq() is an experimental method. Its functionality or interface '
+            'stability is not guaranteed.'
             )
         if b_model == 'IGRF':
             b_model = self._igrf_model_wrapper
@@ -584,8 +584,7 @@ class Imagers:
             )
         # https://stackoverflow.com/a/31189177
         tree = cKDTree(equator_sm[:, :2])
-        xi = _ndim_coords_from_arrays((x_grid, y_grid), ndim=2)
-        dists, _ = tree.query(xi)
+        dists, _ = tree.query(np.stack((x_grid, y_grid), axis=-1))
         gridded_eq_data[dists > max_valid_grid_distance, :] = np.nan  # Mask any gridded point > 0.1 Re from the mapped point as NaN
 
         color_map, color_norm = self.imagers[0]._plot_params(gridded_eq_data, color_bounds, color_map, color_norm)
@@ -970,24 +969,3 @@ class Imagers:
             raise ValueError(
                 'The 0th imager object does not have a "time" or a "time_range" variable.'
                 )
-    
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-
-    import asilib
-    import asilib.asi
-    import asilib.map
-
-    time = '2021-11-04T07:00'
-    asi_list = []
-
-    for location_code in ['RABB', 'GILL', 'PINA', 'LUCK']:
-        asi_list.append(asilib.asi.trex_rgb(location_code, time=time))
-
-    ax = asilib.map.create_cartopy_map(lon_bounds=(-115, -83), lat_bounds=(43, 63))
-    plt.tight_layout()
-
-    asis = asilib.Imagers(asi_list)
-    asis.plot_map(ax=ax, min_elevation=5)
-    plt.show()

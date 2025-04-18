@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.26.1] - 2025-04-18
+
+### Changed 
+- Removed the `scipy.interpolate.interpnd._ndim_coords_from_arrays()` dependency since the latest version of scipy not longer has it.
+
 ## [0.26.0] - 2025-04-09
 
 ### Added
