@@ -1,6 +1,11 @@
 # Changelog
 
-## [0.26.1] - 2025-05-22
+## [0.26.3] - 2025-05-22
+
+### Changed
+- Updated license metadata.
+
+## [0.26.2] - 2025-05-22
 
 ### Changed
 - The license from GNU to BSD-3-Clause.
