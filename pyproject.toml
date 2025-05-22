@@ -7,9 +7,8 @@ name = "asilib"
 version = "0.26.2"
 description = "An open source package providing data access and analysis tools for the world's all-sky imager (ASI) data."
 keywords = [ "aurora", "all sky imager", "REGO", "THEMIS", "TREx",]
+license = {text = "BSD 3-Clause"}
 classifiers = [
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-
     "Programming Language :: Python :: 3", 
     "Programming Language :: Python :: 3.9", 
     "Programming Language :: Python :: 3.10", 
