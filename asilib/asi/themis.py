@@ -327,10 +327,11 @@ def _get_pgm_files(
                             file_search_str=_file_search_str
                         )
                     )
-                except (FileNotFoundError, AssertionError) as err:
+                except (FileNotFoundError, AssertionError, requests.exceptions.HTTPError) as err:
                     if missing_ok and (
-                        ('does not contain any hyper references containing' in str(err))
-                        or ('Only one href is allowed' in str(err))
+                        ('does not contain any hyper references containing' in str(err)) or
+                        ('Only one href is allowed' in str(err)) or
+                        ('404 Client Error: Not Found for url:' in str(err))
                     ):
                         continue
                     raise

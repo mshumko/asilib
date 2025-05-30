@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.26.4] - 2025-05-30
+
+### Changed
+- Standardized download exception handling.
+
 ## [0.26.3] - 2025-05-22
 
 ### Changed

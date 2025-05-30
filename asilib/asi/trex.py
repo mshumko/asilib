@@ -18,6 +18,7 @@ from typing import Iterable, List, Union
 import numpy as np
 import pandas as pd
 import scipy.io
+import requests
 import trex_imager_readfile
 
 import asilib
@@ -305,10 +306,11 @@ def _get_h5_files(
                             array, location_code, file_time, base_url, save_dir, redownload
                         )
                     )
-                except (FileNotFoundError, AssertionError) as err:
+                except (FileNotFoundError, AssertionError, requests.exceptions.HTTPError) as err:
                     if missing_ok and (
-                        ('does not contain any hyper references containing' in str(err))
-                        or ('Only one href is allowed' in str(err))
+                        ('does not contain any hyper references containing' in str(err)) or
+                        ('Only one href is allowed' in str(err)) or
+                        ('404 Client Error: Not Found for url:' in str(err))
                     ):
                         continue
                     raise
@@ -348,11 +350,11 @@ def _get_h5_files(
                                 array, location_code, file_time, base_url, save_dir, redownload
                             )
                         )
-                    except (FileNotFoundError, AssertionError) as err:
+                    except (FileNotFoundError, AssertionError, requests.exceptions.HTTPError) as err:
                         if missing_ok and (
-                            ('does not contain any hyper references containing' in str(
-                                err))
-                            or ('Only one href is allowed' in str(err))
+                            ('does not contain any hyper references containing' in str(err)) or
+                            ('Only one href is allowed' in str(err)) or
+                            ('404 Client Error: Not Found for url:' in str(err))
                         ):
                             continue
                         raise
