@@ -3,7 +3,7 @@ REGO,ATHA,Athabasca,54.71,-113.28
 REGO,FSIM,Fort Simpson,61.756,-121.23
 REGO,FSMI,Fort Smith,60.017,-111.95
 REGO,GILL,Gillam,56.376,-94.64
-REGO,KAKT,Kaktovik,70.13, -143.62
+REGO,KAKT,Kaktovik,70.13,-143.62
 REGO,LUCK,Lucky Lake,51.15,-107.1
 REGO,LYRN,Longyearbyen,78.15,16.04
 REGO,RANK,Rankin Inlet,62.82,-92.11
@@ -57,3 +57,15 @@ psa_project,C4,Tjautjas,,
 psa_project,C6,Kevo,,
 psa_project,C7,Gakona,,
 psa_project,C8,Poker Flat,,
+MANGO,BDR,Big Dog Ranch,31.020278,-98.314722
+MANGO,BLO,Bear Lake Observatory,41.933611,-111.420556
+MANGO,CVO,Christmas Valley Observatory,43.7811,-120.9376
+MANGO,CFS,Capitol Reef Field Station,38.185000,-111.178889
+MANGO,EIO,Eastern Iowa Observatory,41.88884,-91.499
+MANGO,HCO,Hat Creek Observatory,40.8,-121.47
+MANGO,LOW,Lowell Observatory,34.752500,-111.423056
+MANGO,MRO,Magdalena Ridge Observatory,33.976667,-107.185000
+MANGO,MTO,Martens Observatory,48.162269,-97.682944
+MANGO,NEW,Newport Geophysical Observatory,48.2643,-117.1226
+MANGO,MDK,Madison,38.117778,-96.090278
+MANGO,PAR,Pisgah Astronomical Research Institute,35.199,-82.872

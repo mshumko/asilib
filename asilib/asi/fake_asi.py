@@ -51,7 +51,8 @@ def fake_asi(
     meta = get_meta(_location)
     skymap = get_skymap(meta, alt=alt, pixel_center=pixel_center)
     file_info = get_file_info(meta, time=time, time_range=time_range)
-    return asilib.Imager(file_info, meta, skymap)
+    plot_settings = {'color_bounds':(1, 255)}
+    return asilib.Imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
 def asi_info() -> pd.DataFrame:

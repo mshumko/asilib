@@ -3,6 +3,7 @@ As part of the Canadian Space Agency's Geospace Observatory (GO) Canada initiati
 """
 
 from datetime import datetime, timedelta
+import functools
 import re
 import warnings
 import pathlib
@@ -19,7 +20,8 @@ import rego_imager_readfile
 import asilib
 import asilib.asi.themis as themis
 import asilib.utils as utils
-import asilib.io.download as download
+import asilib.download as download
+import asilib.skymap
 
 
 pgm_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/GO-Canada/REGO/stream0/'
@@ -32,13 +34,20 @@ def rego(
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
     alt: int = 110,
+    custom_alt: bool = False,
     redownload: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
+    acknowledge: bool = True,
+    dark: bool = False,
     imager=asilib.Imager,
 ) -> asilib.Imager:
     """
     Create an Imager instance with the REGO ASI images and skymaps.
+
+    Redline Emission Geospace Observatory (REGO) data is courtesy of Space Environment Canada (space-environment.ca). Use of the data must adhere to the rules of the road for that dataset. Please see below for the required data acknowledgement. Any questions about the REGO instrumentation or data should be directed to the University of Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan (edonovan@ucalgary.ca).
+
+    “The Redline Emission Geospace Observatory (REGO) is a joint Canada Foundation for Innovation and Canadian Space Agency project developed by the University of Calgary. REGO is operated and maintained by Space Environment Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”
 
     Parameters
     ----------
@@ -52,6 +61,12 @@ def rego(
         the ASI data time interval.
     alt: int
         The reference skymap altitude, in kilometers.
+    custom_alt: bool
+        If True, asilib will calculate (lat, lon) skymaps assuming a spherical Earth. Otherwise, it will use the official skymaps (Courtesy of University of Calgary).
+
+        .. note::
+        
+            The spherical model of Earth's surface is less accurate than the oblate spheroid geometrical representation. Therefore, there will be a small difference between these and the official skymaps.
     redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes
@@ -62,6 +77,8 @@ def rego(
     load_images: bool
         Create an Imager object without images. This is useful if you need to
         calculate conjunctions and don't need to download or load unnecessary data.
+    acknowledge: bool
+        If True, prints the acknowledgment statement for REGO. 
     imager: asilib.Imager
         Controls what Imager instance to return, asilib.Imager by default. This
         parameter is useful if you need to subclass asilib.Imager.
@@ -76,7 +93,7 @@ def rego(
     >>> # Plot a single image.
     >>> from datetime import datetime
     >>> import matplotlib.pyplot as plt
-    >>> import asilib
+    >>> import asilib.asi
     >>> import asilib.map
     >>> location_code = 'RANK'
     >>> time = datetime(2017, 9, 15, 2, 34, 0)
@@ -84,7 +101,7 @@ def rego(
     >>> fig = plt.figure(figsize=(10, 6))
     >>> ax = fig.add_subplot(121)
     >>> bx = asilib.map.create_map(fig_ax=(fig, 122), lon_bounds = (-102, -82), lat_bounds = (58, 68))
-    >>> asi = asilib.rego(location_code, time=time, alt=alt_km)
+    >>> asi = asilib.asi.rego(location_code, time=time, alt=alt_km)
     >>> asi.plot_fisheye(ax=ax)
     >>> asi.plot_map(ax=bx)
     >>> plt.tight_layout()
@@ -101,6 +118,8 @@ def rego(
         time_range = utils.validate_time_range(time_range)
 
     local_pgm_dir = local_base_dir / 'images' / location_code.lower()
+    
+    file_search_str = functools.partial(_glob_filename, dark=dark)
 
     if load_images:
         # Download and find image data
@@ -113,6 +132,7 @@ def rego(
             local_pgm_dir,
             redownload,
             missing_ok,
+            file_search_str=file_search_str
         )
 
         start_times = len(file_paths) * [None]
@@ -145,15 +165,27 @@ def rego(
     else:
         _time = time_range[0]
     _skymap = rego_skymap(location_code, _time, redownload=redownload)
-    alt_index = np.where(_skymap['FULL_MAP_ALTITUDE'] / 1000 == alt)[0]
-    assert (
-        len(alt_index) == 1
-    ), f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1000} km.'
-    alt_index = alt_index[0]
+    
+    if custom_alt==False:
+        alt_index = np.where(_skymap['FULL_MAP_ALTITUDE'] / 1000 == alt)[0] #Compares the altitudes versus the ones provided by default and chooses the correct index that correlates to the chosen alitudes
+        assert (
+            len(alt_index) == 1
+        ), f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1000} km. If you want a custom altitude with less percision, please use the custom_alt keyword'
+        alt_index = alt_index[0]
+        lat=_skymap['FULL_MAP_LATITUDE'][alt_index, :, :] #selects lat lon coordinates from data provided in skymap
+        lon=_skymap['FULL_MAP_LONGITUDE'][alt_index, :, :]
+    else:
+        lat,lon = asilib.skymap.geodetic_skymap( #Spherical projection for lat lon coordinates
+            (float(_skymap['SITE_MAP_LATITUDE']), float(_skymap['SITE_MAP_LONGITUDE']), float(_skymap['SITE_MAP_ALTITUDE']) / 1e3),
+            _skymap['FULL_AZIMUTH'],
+            _skymap['FULL_ELEVATION'],
+            alt
+            )
+
     skymap = {
-        'lat': _skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
-        'lon': _skymap['FULL_MAP_LONGITUDE'][alt_index, :, :],
-        'alt': _skymap['FULL_MAP_ALTITUDE'][alt_index] / 1e3,
+        'lat': lat,
+        'lon': lon,
+        'alt': alt,
         'el': _skymap['FULL_ELEVATION'],
         'az': _skymap['FULL_AZIMUTH'],
         'path': _skymap['PATH'],
@@ -167,10 +199,26 @@ def rego(
         'alt': float(_skymap['SITE_MAP_ALTITUDE']) / 1e3,
         'cadence': 3,
         'resolution': (512, 512),
+        'acknowledgment':(
+            'Redline Emission Geospace Observatory (REGO) data is courtesy of Space Environment '
+            'Canada (space-environment.ca). Use of the data must adhere to the rules of the road '
+            'for that dataset. Please see below for the required data acknowledgement. Any '
+            'questions about the REGO instrumentation or data should be directed to the University '
+            'of Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan '
+            '(edonovan@ucalgary.ca).\n\n"The Redline Emission Geospace Observatory (REGO) is a joint '
+            'Canada Foundation for Innovation and Canadian Space Agency project developed by the '
+            'University of Calgary. REGO is operated and maintained by Space Environment Canada '
+            'with the support of the Canadian Space Agency (CSA) [23SUGOSEC]."'
+            )
     }
     plot_settings = {
-        'color_map': matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r'])
+        'color_map': matplotlib.colors.LinearSegmentedColormap.from_list('black_to_red', ['k', 'r']),
+        'color_bounds':(300, 1000)
     }
+
+    if acknowledge and ('rego' not in asilib.config['ACKNOWLEDGED_ASIS']):
+        print(meta['acknowledgment'])
+        asilib.config['ACKNOWLEDGED_ASIS'].append('rego')   
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
@@ -256,7 +304,7 @@ def rego_skymap(location_code: str, time: utils._time_type, redownload: bool = F
 
 
 def _download_all_skymaps(location_code, url, save_dir, redownload):
-    d = download.Downloader(url)
+    d = download.Downloader(url, headers={'User-Agent':'asilib'})
     # Find the dated subdirectories
     ds = d.ls(f'{location_code.lower()}')
 
@@ -326,3 +374,12 @@ def _load_rego_pgm(path):
         ]
     )
     return times, images
+
+def _glob_filename(time, location_code, _, dark=False):
+    """
+    Return a file search string to pass into asilib.Downloader.
+    """
+    if dark:
+        return f'{time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}_rego*6300_dark.pgm.gz'
+    else:
+        return f'{time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}_rego*6300.pgm.gz'

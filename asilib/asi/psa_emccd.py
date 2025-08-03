@@ -3,6 +3,9 @@ The `Pulsating Aurora (PsA) project <http://www.psa-research.org>`_ operated hig
 """
 from datetime import datetime, timedelta
 from typing import Union, Iterable, List
+import functools
+import re
+import warnings
 import pathlib
 import warnings
 import bz2
@@ -10,13 +13,13 @@ import os
 import re
 
 import numpy as np
-import pandas as pd
-import rawpy  # TODO: Add to package requirements
+import scipy.io
+import matplotlib.pyplot as plt
 
 import asilib
 import asilib.skymap
 import asilib.utils as utils
-import asilib.io.download as download
+import asilib.download as download
 
 
 image_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/raw/'

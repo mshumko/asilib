@@ -16,13 +16,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4.1.1
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5.3.0
       with:
         python-version: ${{ matrix.python-version }}
     # - name: Setup PROJ
@@ -36,6 +36,8 @@ jobs:
 
         # python -m pip install --upgrade pip
         python -m pip install flake8 pytest cartopy
+        yes | python -m pip uninstall shapely  # https://stackoverflow.com/a/52399943
+        python -m pip install --no-binary :all: shapely
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |

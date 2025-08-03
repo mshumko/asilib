@@ -1,9 +1,191 @@
 # Changelog
 
-## [unreleased]
+## [0.26.4] - 2025-05-30
+
+### Changed
+- Standardized download exception handling.
+
+## [0.26.3] - 2025-05-22
+
+### Changed
+- Updated license metadata.
+
+## [0.26.2] - 2025-05-22
+
+### Changed
+- The license from GNU to BSD-3-Clause.
+
+## [0.26.1] - 2025-04-18
+
+### Changed 
+- Removed the `scipy.interpolate.interpnd._ndim_coords_from_arrays()` dependency since the latest version of scipy not longer has it.
+
+## [0.26.0] - 2025-04-09
+
+### Added
+- `Imagers.map_eq()` method maps images to the magnetic equator using a default IRBEM's IGRF model, or a custom magnetic field model. 
+- `Imagers.plot_map_eq()` method calls `Imagers.map_eq()` and plots the image.
+- A `magnetic_equator.ipynb` tutorial to the documentation.
+
+## [0.25.3] - 2025-03-12
+
+### Changed
+- Moved tests and examples into the top-level directory.
+- Updated `pyproject.toml` to automatically run pytest-cov. 
+
+## [0.25.2] - 2025-03-08
+
+### Added
+- TREx-RGB default `color_bounds`.
+- Added `Imager.auto_color_bounds()` to automatically calculate the color bounds based on a few images. This can be combined with `Imager.set_color_bounds()` to adjust the color bounds for a particular event.
+
+### Changed
+- Removed the `max_contrast` kwarg and now the contrast stretching algorithm is applied to all RGB images. It can be effectively turned off by setting `color_bounds=(0, 255)`.
+- Keograms are also contrast stretched
+- Simplified `Imager.get_color_bounds()` to return the default color bounds (`self.plot_settings['color_bounds']`).
+- Updated baseline images with the new color bounds.
+
+## [0.25.1] - 2025-01-25
+
+### Added
+- The `User-Agent` HTTP request header with the name `asilib` made to U. Calgary servers.
+- `Imager.get_color_bounds()` and `Imager.set_color_bounds()` methods. Now the color bounds are set for all images within a time_range using a subset of images.
+
+### Changed
+- `Imagers.animate_map_gen()` will now recalculate overlapping skyamps if one of the imagers turns on or off sometime in `time_range`.
+- Fixed a bug with a custom keogram. If the (lat, lon) skymaps define the image edges, the nearest pixels at the edge will give an index out of bounds error.
+- Fixed the broken README links.
+- Renamed `color_brighten` kwarg to `max_contrast` as it is the correct term for the processing algorithm.
+
+## [0.25.0] - 2024-12-08
+
+### Added
+- The Mid-latitude All-sky-imaging Network for Geophysical Observations (MANGO) ASI array data loader.
+- MANGO tests and documentation
+
+### Changed
+- Updated the global coverage map with MANGO.
+
+## [0.24.1] - 2024-12-07
+
+### Changed
+- The `_pcolormesh_nan()` function in the imager.py module. This function incorrectly handled skymaps whose FOV was clipped by the CCD at one or more edges (e.g., TREx-RGB). The new implementation includes a `Skymap_Cleaner()` class that handles both: the low elevation masking, as well as removing NaNs from the (lat, lon) skymaps. Removing NaNs is similar to the old implementation, but is now done in polar coordinates. This change necessitated numerous minor refactoring changes in `imager.py` and `imagers.py`.
+
+## [0.24.0] - 2024-07-22
+
+### Changed
+- Removed all deprecated asilib functions and their documentation.
+- Incremented the pandas version on `docs/requirements.txt` to fix an issue with readthedocs not compiling.
+
+## [0.23.2] - 2024-07-20
+
+### Added
+- Added a kwarg to `asilib.asi.rego()`, `asilib.asi.trex_rgb()`, and `asilib.asi.trex_nir()`: acknowledge, which prints the acknowledgement everytime a new imager is loaded rather than once a month.
+- Removed acknowledge.py
+- Changed tests for acknowledgements
+
+## [0.23.1] - 2024-06-15
+
+### Added
+- The `asilib.acknowledge.acknowledge()` function. It should be called by each loader to print that ASI's acknowledgment statement either when 1) the first time the user calls the function, or 2) when it has been a month since it was last called.
+- Tests for `asilib.acknowledge.acknowledge()`.
+- Added the call to `asilib.acknowledge.acknowledge()` in `asilib.asi.rego()`, `asilib.asi.trex_rgb()`, and `asilib.asi.trex_nir()`.
+
+## [0.23.0] - 2024-04-21
+
+### Added
+- `Imagers.animate_map()` and `Imagers.animate_map_gen()` methods to animate mosaics.
+- `Imagers.__iter__()` to iterate over every imager synchronously. This won't work perfectly when you mix multiple imager arrays such as REGO and THEMIS, as their cadences are 6- and 3-seconds, respectively.
+- `Imagers.__str__()` to print details regarding each ASI imager.
+- Tests for the above methods.
+- A warning in the Calgary downloader function if there was no image data locally or online.
+- A mosaic animation example in the documentation.
+
+### Fixed
+- A bug when no data from an hour exists and `asilib.Downloader()` crashed when it did not find the folder.
+
+### Changed
+- Incremented the dependencies in `requirements.txt`.
+
+## [0.22.0] - 2024-03-11
+
+### Changed
+- Renamed `aurora-asi-lib` to `asilib` in PyPI. Now the package can be installed via `python3 -m pip install asilib`.
+
+## [0.21.0] - 2024-03-02
+
+### Changed
+- Removed support for python 3.8
+- Added support for python 3.12
+- Incremented two package versions in requirements.txt: `scipy==1.20.0` and `h5py==3.10.0`.
+
+### Added
+- Project metadata in `pyproject.toml` and removed `setup.cfg`.
+- Additional package URLs in PyPI.
+
+## [0.21.0] - 2024-02-11
+
+### Changed
+- Edited the Acknowledgments section and clarified the source of skymap files.
+
+### Added
+- Animate mosaics via `asilib.Imagers.animate_map()`. This method relies on synchronous iteration of all `asilib.Imager` objects passed into `asilib.Imagers`.
+- Loop over images of all `asilib.Imager` objects passed into `asilib.Imagers` as a function of time via `asilib.Imagers__iter__()`. This method returns a valid time stamp and image for all time synchronized `asilib.Imager` images, and returns a placeholder `None` if an `asilib.Imager` is off, or the imager is not synchorized (closest time stamp is more than a cadence away in time).
+
+## [0.20.7] - 2024-02-19
+
+### Fixed
+- Auroral intensities resulted in an index error is the satellite was at the horizon.
+
+## [0.20.6] - 2024-02-18
+
+### Changed
+- Removed the RGB normalization in the `trex_rgb()` loader. This fixed the vertical stripes in the keograms, but made the fisheye and mapped images much darker (since the `norm` kwarg in `plt.pcolormesh` and `plt.imshow` does nothing).
+- Refactored the TREx and Imager tests reflecting the minor changes.
+
+### Added
+- A `color_brighten` kwarg to by default enhance the RGB colors when calling the following asilib.Imager methods, `plot_fisheye`, `animate_fisheye_gen`, `plot_map`, and `animate_map_gen`. Unless `color_brighten=False`, the plots remain the same.
+
+## [0.20.5] - 2023-12-20
+
+### Fixed
+- A bug raised in issue #15 (https://github.com/mshumko/asilib/issues/15) where an `asilib.Imagers` class, initiated with a single `asilib.Imager`, would try to incorrectly index `asilib.Imager` unless it is wrapper in a tuple.
+
+## [0.20.4] - 2023-11-17
+
+### Added
+- The `n_avg` and `imager` kawrgs to the `psa_emccd()` function. These kwargs allow for custom Imager instance, as well as average the images over `n_avg` times.
+
+## [0.20.3] - 2023-10-10
+
+### Added
+- `custom_alt` kwarg to the THEMIS, REGO, and TREx loaders. Credit: Cassandra M.
+- A test for the `custom_alt` functionality.
+- Tests for the custom colors.
+
+### Changed
+- How RGB color channels are loaded. By picking one or multiple color channels, the underlying data for the unselected channels is masked as NaNs. matplotlib handles these images well.
+
+
+## [0.20.2] - 2023-10-09
+
+### Added
+- An advertisement figure and script. The script in `examples/global_coverage_map.py` plots a geographic map showing the spatial coverage (low-elevation field of view rings) of all imagers supported by aurora-asi-lib. The resulting plot is located in `docs/_static/global_coverage.png` and is shown in the `README.md` and `index.rst` files. 
+
+### Fixed
+- A bug with TREx RGB which resulted in a `ValueError: A problematic PGM file…` error when new data files are downloaded. I added a Warning block to the documentation to instruct users to update asilib
+
+### Changed
+- Incremented the minimum `trex-imager-readfile` version to 1.5.1 to work with the updated TREx-RGB image files.
+
+## [0.20.1] - 2023-08-23
 
 ### Fixed
 - A bug in `Imager._calc_cardinal_direction()` method that manifested in non-orthogonal directions when the ASI (az, el) skymaps are offset such that the low elevations are outside of the field of view. 
+- A bug in the REGO example.
+
+### Changed
+- Shortened the namespace paths in the Imager API Reference page. Their namespace is the same as it would be imported.
 
 ## [0.20.0] - 2023-08-20
 

@@ -1,5 +1,3 @@
-env*
-asilib-env/*
 __pycache__/
 *.egg-info/
 .DS_Store
@@ -11,11 +9,20 @@ de421.bsp
 movies/
 build/
 dist/
-asilib/config.ini
 docs/_build/
 .vscode/settings.json
-asilib/tests/.coverage
+tests/.coverage
 .vscode/launch.json
-docs/reference/api/*
-asilib/tests/result_images/*
 *.~vsdx
+
+env*
+asilib-env/*
+asilib/config.ini
+asilib/config.backup
+docs/reference/api/*
+tests/result_images/*
+.coverage
+
+# Whitelist the baseline images folder so any changes are tracked.
+!tests/baseline_images/
+!tests/baseline_images/**

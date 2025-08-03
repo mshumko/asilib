@@ -14,8 +14,9 @@ import inspect
 import shutil
 import copy
 from collections import namedtuple
-from typing import List, Tuple, Generator, Union
+from typing import List, Tuple, Generator, Union, Iterable
 import warnings
+import operator
 
 import numpy as np
 import numpy.linalg
@@ -109,7 +110,8 @@ class Imager:
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
             the color normalization will be taken from the ASI array (if specified), and if not
-            specified it will default to logarithmic.
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -160,6 +162,14 @@ class Imager:
 
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
+        if len(self.meta['resolution']) == 3:  # tests if rgb
+            vmin, vmax = self.get_color_bounds()
+            image = self._rgb_replacer(image)
+            image = utils.stretch_contrast(image, vmin, vmax)
+        if isinstance(color_norm, matplotlib.colors.LogNorm):
+            # Increase the corner pixels with 0 counts to 1 count so 
+            # it shows up black in log-scale.
+            image[np.where(np.isnan(image))] = 1
         im = ax.imshow(image, cmap=color_map, norm=color_norm, origin="lower")
         if label:
             self._add_fisheye_label(time, ax)
@@ -171,8 +181,8 @@ class Imager:
 
     def animate_fisheye(self, **kwargs) -> None:
         """
-        A wrapper for the ```animate_fisheye_gen()``` method that animates a series of
-        fisheye images. Any kwargs are passed directly into ```animate_fisheye_gen()```.
+        A wrapper for the ```Imager.animate_fisheye_gen()``` method that animates a series of
+        fisheye images. Any kwargs are passed directly into ```Imager.animate_fisheye_gen()```.
 
         Parameters
         ----------
@@ -189,7 +199,8 @@ class Imager:
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
             the color normalization will be taken from the ASI array (if specified), and if not
-            specified it will default to logarithmic.
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -251,6 +262,7 @@ class Imager:
         cardinal_directions: str = 'NE',
         origin: tuple = (0.8, 0.1),
         movie_container: str = 'mp4',
+        animation_save_dir: Union[pathlib.Path, str]=None,
         ffmpeg_params={},
         overwrite: bool = False,
     ) -> Generator[
@@ -281,7 +293,8 @@ class Imager:
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
             the color normalization will be taken from the ASI array (if specified), and if not
-            specified it will default to logarithmic.
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -344,8 +357,12 @@ class Imager:
 
         # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
         # not exist.
+        if animation_save_dir is None:
+            _path = asilib.config['ASI_DATA_DIR']
+        else:
+            _path = animation_save_dir
         image_save_dir = pathlib.Path(
-            asilib.config['ASI_DATA_DIR'],
+            _path,
             'animations',
             'images',
             f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_{self.meta["array"].lower()}_'
@@ -357,6 +374,7 @@ class Imager:
             f'{self.meta["array"].lower()}_{self.meta["location"].lower()}_fisheye.{movie_container}'
         )
         movie_save_path = image_save_dir.parents[1] / self.animation_name
+
         # If the image directory exists we need to first remove all of the images to avoid
         # animating images from different method calls.
         if image_save_dir.is_dir():
@@ -371,14 +389,20 @@ class Imager:
         )
 
         for i, (image_time, image) in _progressbar:
-            # # If the image is all 0s we have a bad image and we need to skip it.
-            # if np.all(image == 0):
-            #     continue
             ax.clear()
             ax.axis('off')
             # Use an underscore so the original method parameters are not overwritten.
             _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
+            
+            if len(self.meta['resolution']) == 3:  # tests if rgb
+                vmin, vmax = self.get_color_bounds()
+                image = self._rgb_replacer(image)
+                image = utils.stretch_contrast(image, vmin, vmax)
 
+            if isinstance(color_norm, matplotlib.colors.LogNorm):
+                # Increase the corner pixels with 0 counts to 1 count so 
+                # it shows up black in log-scale.
+                image[np.where(np.isnan(image))] = 1
             im = ax.imshow(image, cmap=_color_map, norm=_color_norm, origin='lower')
             if label:
                 self._add_fisheye_label(image_time, ax)
@@ -414,6 +438,8 @@ class Imager:
         min_elevation: float = 10,
         asi_label: bool = True,
         pcolormesh_kwargs: dict = {},
+        lon_grid:np.ndarray = None,
+        lat_grid:np.ndarray = None,
     ) -> Tuple[plt.Axes, matplotlib.collections.QuadMesh]:
         """
         Projects an ASI image onto a map at an altitude that is defined in the skymap calibration 
@@ -438,6 +464,11 @@ class Imager:
             The ocean color. If None will not draw it.
         color_map: str
             The matplotlib colormap to use. See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
+        color_norm: str
+            Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
+            the color normalization will be taken from the ASI array (if specified), and if not
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
         min_elevation: float
             Masks the pixels below min_elevation degrees.
         asi_label: bool
@@ -453,6 +484,12 @@ class Imager:
         pcolormesh_kwargs: dict
             A dictionary of keyword arguments (kwargs) to pass directly into
             plt.pcolormesh.
+        lon_grid:np.ndarray
+            Map the image onto a custom longitude grid. Both lon_grid and lat_grid must 
+            be specified.
+        lat_grid:np.ndarray
+            Map the image onto a custom latitude grid. Both lon_grid and lat_grid must 
+            be specified.
 
         Returns
         -------
@@ -493,19 +530,34 @@ class Imager:
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
         ax, p, _ = self._plot_mapped_image(
-            ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs
+            ax, image, min_elevation, color_map, color_norm, asi_label, 
+            pcolormesh_kwargs, lon_grid=lon_grid, lat_grid=lat_grid
         )
         return ax, p
 
     def _plot_mapped_image(
-        self, ax, image, min_elevation, color_map, color_norm, asi_label, pcolormesh_kwargs
+        self, ax, image, min_elevation, color_map, color_norm, asi_label, 
+        pcolormesh_kwargs, lon_grid=None, lat_grid=None
     ):
         """
         Plot the image onto a geographic map using the modified version of plt.pcolormesh.
         """
-        _masked_lon_map, _masked_lat_map, _masked_image = self._mask_low_horizon(
-            self.skymap['lon'], self.skymap['lat'], self.skymap['el'], min_elevation, image=image
-        )
+        if (lon_grid is None) and (lat_grid is None):
+            _skymap_cleaner = Skymap_Cleaner(
+                self.skymap['lon'], 
+                self.skymap['lat'], 
+                self.skymap['el'], 
+            )
+            _skymap_cleaner.mask_elevation(min_elevation)
+            _cleaned_lon_grid, _cleaned_lat_grid = _skymap_cleaner.remove_nans()
+        else:
+            _cleaned_lon_grid, _cleaned_lat_grid = lon_grid, lat_grid
+
+
+        if len(self.meta['resolution']) == 3:
+            vmin, vmax = self.get_color_bounds()
+            image = self._rgb_replacer(image)
+            image = utils.stretch_contrast(image, vmin, vmax)
 
         pcolormesh_kwargs_copy = pcolormesh_kwargs.copy()
         if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
@@ -514,15 +566,9 @@ class Imager:
                 f"'transform' key because it is reserved for cartopy."
             )
             pcolormesh_kwargs_copy['transform'] = ccrs.PlateCarree()
-        p = self._pcolormesh_nan(
-            _masked_lon_map,
-            _masked_lat_map,
-            _masked_image,
-            ax,
-            cmap=color_map,
-            norm=color_norm,
-            pcolormesh_kwargs=pcolormesh_kwargs_copy,
-        )
+        pcolormesh_kwargs_copy['norm'] = color_norm
+        pcolormesh_kwargs_copy['cmap'] = color_map
+        p = ax.pcolormesh(_cleaned_lon_grid, _cleaned_lat_grid, image, **pcolormesh_kwargs_copy)
 
         if asi_label:
             if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
@@ -562,7 +608,8 @@ class Imager:
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
             the color normalization will be taken from the ASI array (if specified), and if not
-            specified it will default to logarithmic.
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
         azel_contours: bool
             Superpose azimuth and elevation contours on or off.
         azel_contour_color: str
@@ -617,7 +664,10 @@ class Imager:
         min_elevation: float = 10,
         pcolormesh_kwargs: dict = {},
         asi_label: bool = True,
+        lon_grid:np.ndarray = None,
+        lat_grid:np.ndarray = None,
         movie_container: str = 'mp4',
+        animation_save_dir: Union[pathlib.Path, str]=None,
         ffmpeg_params={},
         overwrite: bool = False,
     ) -> Generator[
@@ -659,7 +709,8 @@ class Imager:
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
             the color normalization will be taken from the ASI array (if specified), and if not
-            specified it will default to logarithmic.
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
         min_elevation: float
             Masks the pixels below min_elevation degrees.
         pcolormesh_kwargs: dict
@@ -667,6 +718,12 @@ class Imager:
             plt.pcolormesh.
         asi_label: bool
             Annotates the map with the ASI code in the center of the mapped image.
+        lon_grid:np.ndarray
+            Map the image onto a custom longitude grid. Both lon_grid and lat_grid must 
+            be specified.
+        lat_grid:np.ndarray
+            Map the image onto a custom latitude grid. Both lon_grid and lat_grid must 
+            be specified.
         movie_container: str
             The movie container: mp4 has better compression but avi was determined
             to be the official container for preserving digital video by the
@@ -730,13 +787,18 @@ class Imager:
             )
         # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
         # not exist.
+        if animation_save_dir is None:
+            _path = asilib.config['ASI_DATA_DIR']
+        else:
+            _path = animation_save_dir
         image_save_dir = pathlib.Path(
-            asilib.config['ASI_DATA_DIR'],
+            _path,
             'animations',
             'images',
             f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_{self.meta["array"].lower()}_'
             f'{self.meta["location"].lower()}_map',
         )
+
         self.animation_name = (
             f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
             f'{self.file_info["time_range"][-1].strftime("%H%M%S")}_'
@@ -760,7 +822,8 @@ class Imager:
             _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
             ax, pcolormesh_obj, label_obj = self._plot_mapped_image(
-                ax, image, min_elevation, _color_map, _color_norm, asi_label, pcolormesh_kwargs
+                ax, image, min_elevation, _color_map, _color_norm, asi_label, 
+                pcolormesh_kwargs, lon_grid=lon_grid, lat_grid=lat_grid
             )
 
             # Give the user the control of the subplot, image object, and return the image time
@@ -934,7 +997,8 @@ class Imager:
         color_norm: str
             Set the 'lin' (linear) or 'log' (logarithmic) color normalization. If color_norm=None,
             the color normalization will be taken from the ASI array (if specified), and if not
-            specified it will default to logarithmic.
+            specified it will default to logarithmic. The norm is not applied to RGB images (see 
+            `matplotlib.pyplot.imshow <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>`_)
         pcolormesh_kwargs: dict
             A dictionary of keyword arguments (kwargs) to pass directly into
             plt.pcolormesh.
@@ -985,12 +1049,12 @@ class Imager:
 
         _color_map, _color_norm = self._plot_params(_keogram, color_bounds, color_map, color_norm)
 
-        # Same as transpose, but correctly handles RGB keograms.
-        _keogram = np.swapaxes(_keogram, 1, 0)
-        if len(_keogram.shape) == 3:
-            # To see anything, the channel intensities need to span 0-255
-            # _keogram*=(255/_keogram.max())
-            _keogram = _keogram.astype(np.uint8)
+        _keogram = np.moveaxis(_keogram, 0, 1)  # Transpose 0th and 1st axes for pcolormesh. 
+        if len(self.meta['resolution']) == 3:  # tests if rgb
+            _keogram = self._rgb_replacer(_keogram)
+            vmin, vmax = self.get_color_bounds()
+            _keogram = utils.stretch_contrast(_keogram, vmin, vmax)
+            
 
         pcolormesh_obj = ax.pcolormesh(
             _keogram_time,
@@ -1007,7 +1071,61 @@ class Imager:
                 f'{self.file_info["time_range"][0].date()} | {self.meta["array"]}-{self.meta["location"]} keogram'
             )
         return ax, pcolormesh_obj
+    
+    def set_color_bounds(self, lower, upper):
+        """
+        Sets the default color bounds for all subsequent calls to plotting functions, unless
+        later overwritten by the color_bounds kawarg in each plotting/animating method. 
 
+        Parameters
+        ----------
+        lower, upper: float
+            The lower and upper color limits. 
+        """
+        self.plot_settings['color_bounds'] = (lower, upper)
+        return
+    
+    def get_color_bounds(self):
+        """
+        Get the default (vmin, vmax) color bounds for the imager.
+        """
+        return self.plot_settings['color_bounds']
+    
+    def auto_color_bounds(self, images:np.ndarray=None):
+        """
+        Calculate the (vmin, vmax) color bounds automatically by loading in a subset of the 
+        image data.
+
+        Parameters
+        ----------
+        images: np.ndarray
+            If None, will calculate the bounds range automatically by loading in a subset of the 
+            image data, or return the pre-defined color bounds in the imager.plot_settings dict.
+            If a np.array, will calculate the color bounds directly from the images.
+        """
+        if images is not None:
+            lower, upper = np.quantile(images, (0.25, 0.98))
+            return [lower, np.min([upper, lower * 10])]
+        
+        num = min(len(self.file_info['start_time']), 3)
+        file_indicies = np.arange(
+            0, 
+            len(self.file_info['start_time']), 
+            len(self.file_info['start_time'])//num
+            ).astype(int)
+        flattened_images = np.array([])
+
+        for path in np.array(self.file_info['path'])[file_indicies]:
+            _, _file_images = self.file_info['loader'](path)
+            if len(self.meta['resolution']) == 3:
+                _file_images = self._rgb_replacer(_file_images)
+            flattened_images = np.append(flattened_images, _file_images.flatten())
+        
+        # You get nans if we're working with a subset of the RGB channels.
+        valid_idx = np.where(~np.isnan(flattened_images))[0]
+        lower, upper = np.quantile(flattened_images[valid_idx], (0.25, 0.98))
+        return lower, np.min([upper, lower * 10])
+    
     def _keogram_pixels(self, path, minimum_elevation=20):
         """
         Find what pixels to index and reshape the keogram.
@@ -1077,7 +1195,13 @@ class Imager:
         valid_pixels = np.where(np.isfinite(nearest_pixels[:, 0]))[0]
         if valid_pixels.shape[0] == 0:
             raise ValueError('The keogram path is completely outside of the skymap.')
-        return nearest_pixels[valid_pixels, :].astype(int)
+        output = nearest_pixels[valid_pixels, :].astype(int)
+        # If the image.shape[0] = lat_skymap.shape[0]-1 as for the Calgary's skymaps
+        # that are defined at pixel edges, we need to check and remove nearest_pixels
+        # that equal self.meta['resolution'][0].
+        if self.meta['resolution'][0] == self.skymap['lat'].shape[0]-1:
+            output[np.where(output[:, 0]==self.meta['resolution'][0])[0], 0] -= 1
+        return output
 
     def _keogram_latitude(self, aacgm):
         """
@@ -1207,7 +1331,6 @@ class Imager:
         np.array
             image.
         """
-        # TODO: Add a self._accumulate_n option.
         if hasattr(self, '_times') and hasattr(self, '_images'):
             for time_i, image_i in zip(self._times, self._images):
                 yield time_i, image_i
@@ -1274,31 +1397,6 @@ class Imager:
                     )[0]
                     yield time_chunk[idt], image_chunk[idt]
         return
-
-    # def iter_chunks(self, chunk_size: int) -> Union[np.array, np.array]:
-    #     """
-    #     Chunk and iterate over the ASI data. The output data is
-    #     clipped by time_range.
-
-    #     Parameters
-    #     ----------
-    #     chunk_size: int
-    #         The number of time stamps and images to return.
-
-    #     Yields
-    #     ------
-    #     np.array:
-    #         ASI timestamps in datetine.datetime() or numpy.datetime64() format.
-    #     np.array:
-    #         ASI images.
-
-    #     Example
-    #     -------
-    #     TODO: Add
-    #     """
-    #     raise NotImplementedError
-
-    #     yield
 
     def _estimate_n_times(self):
         """
@@ -1418,17 +1516,8 @@ class Imager:
         """
         # Check the plot_settings dict and fall back to a default if user did not specify
         # color_bounds in the method call.
-        if color_bounds is None:
-            # Is it part of the plot_settings generated by the ASI data loader?
-            if 'color_bounds' in self.plot_settings.keys():
-                # Is it a function?
-                if callable(self.plot_settings['color_bounds']):
-                    color_bounds = self.plot_settings['color_bounds'](image)
-                else:
-                    color_bounds = self.plot_settings['color_bounds']
-            else:
-                lower, upper = np.quantile(image, (0.25, 0.98))
-                color_bounds = [lower, np.min([upper, lower * 10])]
+        if color_bounds is None:            
+            color_bounds = self.get_color_bounds()
         else:
             if callable(color_bounds):  # function that ouputs vmin, vmax
                 color_bounds = color_bounds(image)
@@ -1631,42 +1720,6 @@ class Imager:
 
         return rise, run
 
-    def _mask_low_horizon(self, lon_map, lat_map, el_map, min_elevation, image=None):
-        """
-        Mask the image, skymap['lon'], skymap['lat'] arrays with np.nans
-        where the skymap['el'] < min_elevation or is nan.
-        """
-        idh = np.where(np.isnan(el_map) | (el_map < min_elevation))
-        # Copy variables to not modify original np.arrays.
-        lon_map_copy = lon_map.copy()
-        lat_map_copy = lat_map.copy()
-        lon_map_copy[idh] = np.nan
-        lat_map_copy[idh] = np.nan
-
-        # if image is not None:
-        #     image_copy = image.copy()
-        #     original_dtype = image.dtype
-        #     image_copy = image_copy.astype(float)  # Can't mask image unless it is a float array.
-        #     image_copy[idh] = np.nan
-        # else:
-        #     image_copy = None
-
-        if (lon_map.shape[0] == el_map.shape[0] + 1) and (lon_map.shape[1] == el_map.shape[1] + 1):
-            # TODO: This is REGO/THEMIS specific. Remove here and add this to the themis() function?
-            # For some reason the THEMIS & REGO lat/lon_map arrays are one size larger than el_map, so
-            # here we mask the boundary indices in el_map by adding 1 to both the rows
-            # and columns.
-            idh_boundary_bottom = (
-                idh[0] + 1,
-                idh[1],
-            )  # idh is a tuple so we have to create a new one.
-            idh_boundary_right = (idh[0], idh[1] + 1)
-            lon_map_copy[idh_boundary_bottom] = np.nan
-            lat_map_copy[idh_boundary_bottom] = np.nan
-            lon_map_copy[idh_boundary_right] = np.nan
-            lat_map_copy[idh_boundary_right] = np.nan
-        return lon_map_copy, lat_map_copy, image
-
     def _create_animation(
         self,
         image_paths: List[pathlib.Path],
@@ -1723,76 +1776,152 @@ class Imager:
         )
         return f'{self.__class__.__qualname__}(' + params + ')'
 
-    def _pcolormesh_nan(
-        self,
-        x: np.ndarray,
-        y: np.ndarray,
-        c: np.ndarray,
-        ax,
-        cmap=None,
-        norm=None,
-        pcolormesh_kwargs={},
-    ):
+    def _rgb_replacer(self, image):
+
+        #https://www.tutorialspoint.com/How-to-check-if-a-string-only-contains-certain-characters-in-Python
+
+        if not set(self.meta['colors']).issubset('rgb'):
+            raise ValueError(" The only valid characters for the colors kwarg are 'r', 'g', 'b' ")
+        
+        if (*self.meta['colors'],) == ['r', 'g', 'b']:
+            return image
+
+        else:
+            image = image.astype(float)
+            # tests if color is selected, if not selected, then add nan values to array in lieu of color
+            if 'r' not in (*self.meta['colors'],):
+                # takes the shape of c, excluding the last index (-1) and replaces that matrix with nans
+                image[..., 0] = np.full(np.shape(image)[:-1], np.nan)
+            if 'g' not in (*self.meta['colors'],):
+                image[..., 1] = np.full(np.shape(image)[:-1], np.nan)
+            if 'b' not in (*self.meta['colors'],):
+                image[..., 2] = np.full(np.shape(image)[:-1], np.nan)
+        return image
+
+class Skymap_Cleaner:
+    def __init__(self, lon_grid, lat_grid, el_grid):
         """
-        Since pcolormesh cant handle nan lat/lon grid values, we will compress them to the
-        nearest valid lat/lon grid. There are two main steps:
-
-        1) All nan values to the left of the first valid value are
-        reassigned to the first valid value. Likewise, all nan values to the
-        right of the last valid value are reassigned to it.
-
-        2) All nan-filled rows above the first valid row are assigned to the
-        maximum value in the first row, likewise for the bottom rows.
-
-        Essentially this is a reassignment (or a compression) of all nan values in the periphery
-        to the valid grid values in the center.
-
-        Function taken from `Michael, scivision @ GitHub <https://github.com/scivision/python-matlab-examples/blob/0dd8129bda8f0ec2c46dae734d8e43628346388c/PlotPcolor/pcolormesh_NaN.py>`_.
+        Clean the skymap by applying two steps: 1) Mask the lon_grid and lat_grid
+        variables with np.nan if they are below min_elevation, and 2) replace all
+        np.nan values in lon_grid, lat_grid with the closest valid value.
         """
-        # mask is True when lat and lon grid values are not nan.
-        mask = np.isfinite(x) & np.isfinite(y)
-        top = None
-        bottom = None
+        # Copy variables to not modify original np.arrays.
+        self._lon_grid = lon_grid.copy()
+        self._lat_grid = lat_grid.copy()
+        self._el_grid = el_grid
+        return
+    
+    def mask_elevation(self, min_elevation):
+        """
+        Mask low elevation pixels.
+        """
+        if self._el_grid.shape == self._lon_grid.shape:
+            _el_grid = self._el_grid.copy()
+        elif (self._el_grid.shape[0]+1 == self._lon_grid.shape[0]) and (self._el_grid.shape[1]+1 == self._lon_grid.shape[1]):
+            # If the lat/lon grid is defined at pixel vertices while the el grid defines the pixel centers.
+            # Here we will pretend that the el_grid is defined at pixel vertices by appending one row and column
+            _el_grid = self._el_grid.copy()
+            _el_grid = np.concatenate((_el_grid, _el_grid[-1, :].reshape(1, _el_grid.shape[1])), axis=0)
+            _el_grid = np.concatenate((_el_grid, _el_grid[:, -1].reshape(_el_grid.shape[0], 1)), axis=1)
+        else:
+            raise ValueError(
+                f'Can not apply elevation mask to lat/lon skymap with shape {self._lon_grid.shape} and'
+                f'the elevation skymap shape {self._el_grid.shape}. The shapes must be equal or the '
+                f'elevation skymap must be one less than the lon_grid.'
+                )
+        idh = np.where(np.isnan(_el_grid) | (_el_grid < min_elevation))
+        self._lon_grid[idh] = np.nan
+        self._lat_grid[idh] = np.nan
+        _el_grid[idh] = np.nan
+        return self._lon_grid, self._lat_grid, _el_grid
 
-        for i, m in enumerate(mask):
-            # A common use for nonzero is to find the indices of
-            # an array, where a condition is True (not nan or inf)
-            good = m.nonzero()[0]
+    def remove_nans(self):
+        """
+        Remove any NaN values from the lat and lon skymaps. We need to do this
+        since pcolormesh can't handle any nan values in the x or y arrays.
+         
+        This method segments the skymaps in angular coordinates, (e.g. (0, 10), 
+        (10, 20), ...), finds the points in x & y that are between those angles, 
+        and reassigns those invalid values to the valid point with the lowest 
+        elevation in that segment.
+        """
+        if np.all(np.isfinite(self._lon_grid)) and np.all(np.isfinite(self._lat_grid)):
+            return self._lon_grid, self._lat_grid
+            
+        # The angular slices rotate around this point. 
+        center_index = np.unravel_index(np.nanargmax(self._el_grid), self._el_grid.shape)
+        num=100
 
-            if good.size == 0:  # Skip row is all columns are nans.
-                continue
-            # First row that has at least 1 valid value.
-            elif top is None:
-                top = i
-            # Bottom row that has at least 1 value value. All indices in between top and bottom
+        angles = np.linspace(0, 2*np.pi, num=num)
+        # We need to set up 2 sets of grids since U Calgary's (lat, lon) skymap
+        # dimentions are 1 greater than the (elevation, azimuth) skymaps.
+        xx_geodetic, yy_geodetic = np.meshgrid(
+            np.arange(self._lon_grid.shape[0]), 
+            np.arange(self._lon_grid.shape[1]), 
+            indexing='ij'  # So that the shapes of x, y, xx, and yy are the same.
+            )
+        xx_elevation, yy_elevation = np.meshgrid(
+            np.arange(self._el_grid.shape[0]), 
+            np.arange(self._el_grid.shape[1]), 
+            indexing='ij'  # So that the shapes of x, y, xx, and yy are the same.
+            )
+        
+        for (start_angle, end_angle) in zip(angles[:-1], angles[1:]):
+            start_slope = np.tan(start_angle)
+            start_y_int = center_index[1] - start_slope*center_index[0]
+
+            end_slope = np.tan(end_angle)
+            end_y_int = center_index[1] - end_slope*center_index[0]
+
+            if (start_angle < np.pi/2) or (start_angle > 3*np.pi/2):
+                start_op = operator.le
             else:
-                bottom = i
+                start_op = operator.ge
+            
+            if (end_angle < np.pi/2) or (end_angle > 3*np.pi/2):
+                end_op = operator.ge
+            else:
+                end_op = operator.le
 
-            # Reassign all lat/lon columns after good[-1] (all nans) to good[-1].
-            x[i, good[-1] :] = x[i, good[-1]]
-            y[i, good[-1] :] = y[i, good[-1]]
-            # Reassign all lat/lon columns before good[0] (all nans) to good[0].
-            x[i, : good[0]] = x[i, good[0]]
-            y[i, : good[0]] = y[i, good[0]]
+            geodetic_slice_invalid_indices = np.where(
+                    start_op(yy_geodetic, start_slope*xx_geodetic + start_y_int) &
+                    end_op(yy_geodetic, end_slope*xx_geodetic + end_y_int) &
+                    (np.isnan(self._lon_grid) | np.isnan(self._lat_grid))
+                )
 
-        # Reassign all of the fully invalid lat/lon rows above top to the the max lat/lon value.
-        x[:top, :] = np.nanmax(x[top, :])
-        y[:top, :] = np.nanmax(y[top, :])
-        # Same, but for the rows below bottom.
-        x[bottom:, :] = np.nanmax(x[bottom, :])
-        y[bottom:, :] = np.nanmax(y[bottom, :])
-
-        # old masked c code: np.ma.masked_where(~mask[:-1, :-1], c)[::-1, ::-1]
-        p = ax.pcolormesh(
-            x,
-            y,
-            c,
-            cmap=cmap,
-            shading='auto',
-            norm=norm,
-            **pcolormesh_kwargs,
-        )
-        return p
+            if self._lat_grid.shape == self._el_grid.shape:
+                elevation_slice_valid_indices = np.where(
+                    start_op(yy_elevation, start_slope*xx_elevation + start_y_int) &
+                    end_op(yy_elevation, end_slope*xx_elevation + end_y_int) &
+                    np.isfinite(self._el_grid) & 
+                    np.isfinite(self._lon_grid) &
+                    np.isfinite(self._lat_grid)
+                )
+            else:
+                elevation_slice_valid_indices = np.where(
+                    start_op(yy_elevation, start_slope*xx_elevation + start_y_int) &
+                    end_op(yy_elevation, end_slope*xx_elevation + end_y_int) &
+                    np.isfinite(self._el_grid) & 
+                    np.isfinite(self._lon_grid[:-1, :-1]) &
+                    np.isfinite(self._lat_grid[:-1, :-1])
+                )
+            min_el_slice_index = np.argmin(self._el_grid[elevation_slice_valid_indices])
+            self._lon_grid[geodetic_slice_invalid_indices] = self._lon_grid[
+                elevation_slice_valid_indices[0][min_el_slice_index],
+                elevation_slice_valid_indices[1][min_el_slice_index]
+                ]
+            self._lat_grid[geodetic_slice_invalid_indices] = self._lat_grid[
+                elevation_slice_valid_indices[0][min_el_slice_index],
+                elevation_slice_valid_indices[1][min_el_slice_index]
+                ]
+               
+        if np.any(~np.isfinite(self._lon_grid)) or np.any(~np.isfinite(self._lat_grid)):
+            raise ValueError(
+                'Either the lat or lon skymap still contain nan values '
+                'which are not allowed. Please submit a GitHub bug report if you '
+                'encounter this in the wild'
+                )
+        return self._lon_grid, self._lat_grid
 
 
 def _haversine(

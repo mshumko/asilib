@@ -1,15 +1,9 @@
 """
-Transition Region Explorer (TREx) is a CFI-funded project and aims to be the world's foremost auroral imaging facility for remote sensing the near-Earth space environment. The project consists of the development and deployment of an extensive ground-based network of sophisticated optical and radio instrumentation across Alberta, Saskatchewan, Manitoba, and the Northwest Territories.
+Transition Region Explorer (TREx) data is courtesy of Space Environment Canada (space-environment.ca). Use of the data must adhere to the rules of the road for that dataset.  Please see below for the required data acknowledgement. Any questions about the TREx instrumentation or data should be directed to the University of Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan (edonovan@ucalgary.ca).
 
-The TREx project will design and deploy the following instruments:
-- 6 blue-line all-sky imagers (3s-30Hz cadence)
-- 6 RGB colour all-sky imagers (3s cadence)
-- 6 Near-Infrared all-sky imagers (6s cadence)
-- 10 Imaging Riometers (1s-100Hz cadence - operations project is GO-IRIS)
-- 2 Proton Aurora Meridian Imaging Spectographs (15s cadence)
-- 13 Global Navigation Satellite System receiver systems (GNSS)
+“The Transition Region Explorer RGB (TREx RGB) is a joint Canada Foundation for Innovation and Canadian Space Agency project developed by the University of Calgary. TREx-RGB is operated and maintained by Space Environment Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”
 
-In partnership with IBM, TREx will include sensor web technology to autonomously control and coordinate sensor behaviour across the observational region. This architecture will allow TREx to produce the first high resolution data (estimated at 120 TB of data per year) over a region large enough to study multi-scale coupling of key physical processes in the space environment.
+For more information see: https://www.ucalgary.ca/aurora/projects/trex
 """
 
 from datetime import datetime, timedelta
@@ -19,23 +13,27 @@ import pathlib
 import copy
 import os
 import dateutil.parser
-from typing import Tuple, Iterable, List, Union
+from typing import Iterable, List, Union
 
 import numpy as np
 import pandas as pd
 import scipy.io
-import matplotlib.colors
+import requests
+import trex_imager_readfile
 
 import asilib
 from asilib.asi.themis import _get_pgm_files
 import asilib.utils as utils
-import asilib.io.download as download
+import asilib.download as download
+import asilib.skymap
 
 
-pgm_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/NIR/stream0/'
-skymap_base_url_nir = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/NIR/skymaps/'
-h5_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/RGB/stream0/'
-skymap_base_url_rgb = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/RGB/skymaps/'
+nir_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/NIR/stream0/'
+nir_skymap_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/NIR/skymaps/'
+rgb_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/RGB/stream0/'
+rgb_skymap_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/RGB/skymaps/'
+blueline_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/blueline/stream0/'
+blueline_skymap_base_url = 'https://data.phys.ucalgary.ca/sort_by_project/TREx/blueline/skymaps/'
 local_base_dir = asilib.config['ASI_DATA_DIR'] / 'trex'
 
 
@@ -44,15 +42,23 @@ def trex_rgb(
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
     alt: int = 110,
+    custom_alt: bool = False,
     redownload: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
     colors: str = 'rgb',
     burst: bool = False,
+    acknowledge: bool = True,
     imager=asilib.Imager,
 ) -> asilib.imager.Imager:
     """
     Create an Imager instance using the TREX-RGB ASI images and skymaps.
+
+    Transition Region Explorer (TREx) RGB data is courtesy of Space Environment Canada (space-environment.ca). Use of the data must adhere to the rules of the road for that dataset.  Please see below for the required data acknowledgement. Any questions about the TREx instrumentation or data should be directed to the University of Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan (edonovan@ucalgary.ca).
+
+    “The Transition Region Explorer RGB (TREx RGB) is a joint Canada Foundation for Innovation and Canadian Space Agency project developed by the University of Calgary. TREx-RGB is operated and maintained by Space Environment Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”
+
+    For more information see: https://www.ucalgary.ca/aurora/projects/trex.
 
     Parameters
     ----------
@@ -66,6 +72,12 @@ def trex_rgb(
         the ASI data time interval.
     alt: int
         The reference skymap altitude, in kilometers.
+    custom_alt: bool
+        If True, asilib will calculate (lat, lon) skymaps assuming a spherical Earth. Otherwise, it will use the official skymaps (Courtesy of University of Calgary).
+
+        .. note::
+        
+            The spherical model of Earth's surface is less accurate than the oblate spheroid geometrical representation. Therefore, there will be a small difference between these and the official skymaps.
     redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes
@@ -81,6 +93,8 @@ def trex_rgb(
         by "r", "g", "b" (or any combination of them).
     burst: bool
         Sometimes Trex-rgb uses a burst mode with higher resolution.
+    acknowledge: bool
+        If True, prints the acknowledgment statement for TREx-RGB.
     imager: :py:meth:`~asilib.imager.Imager`
         Controls what Imager instance to return, asilib.Imager by default. This
         parameter is useful if you need to subclass asilib.Imager.
@@ -129,7 +143,7 @@ def trex_rgb(
             location_code,
             time,
             time_range,
-            h5_base_url,
+            rgb_base_url,
             local_rgb_dir,
             redownload,
             missing_ok,
@@ -146,7 +160,7 @@ def trex_rgb(
             'path': file_paths,
             'start_time': start_times,
             'end_time': end_times,
-            'loader': lambda path: _load_rgb_h5(path, colors.lower()),
+            'loader': lambda path: _load_rgb_h5(path),
         }
     else:
         file_info = {
@@ -167,19 +181,31 @@ def trex_rgb(
     else:
         _time = time_range[0]
     _skymap = trex_rgb_skymap(location_code, _time, redownload=redownload)
-    alt_index = np.where(_skymap['FULL_MAP_ALTITUDE'] / 1000 == alt)[0]
-    assert (
-        len(alt_index) == 1
-    ), f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1000} km.'
-    alt_index = alt_index[0]
+    if custom_alt==False:
+        alt_index = np.where(_skymap['FULL_MAP_ALTITUDE'] / 1000 == alt)[0]
+        assert (
+            len(alt_index) == 1
+        ), f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1000} km. If you want a custom altitude with less percision, please use the custom_alt keyword'
+        alt_index = alt_index[0]
+        lat=_skymap['FULL_MAP_LATITUDE'][alt_index, :, :]
+        lon=_skymap['FULL_MAP_LONGITUDE'][alt_index, :, :]
+    else:
+        lat,lon = asilib.skymap.geodetic_skymap(
+            (float(_skymap['SITE_MAP_LATITUDE']), float(_skymap['SITE_MAP_LONGITUDE']), float(_skymap['SITE_MAP_ALTITUDE']) / 1e3),
+            _skymap['FULL_AZIMUTH'],
+            _skymap['FULL_ELEVATION'],
+            alt
+            )
+
     skymap = {
-        'lat': _skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
-        'lon': _skymap['FULL_MAP_LONGITUDE'][alt_index, :, :],
-        'alt': _skymap['FULL_MAP_ALTITUDE'][alt_index] / 1e3,
+        'lat': lat,
+        'lon': lon,
+        'alt': alt,
         'el': _skymap['FULL_ELEVATION'],
         'az': _skymap['FULL_AZIMUTH'],
         'path': _skymap['PATH'],
     }
+
     meta = {
         'array': 'TREX_RGB',
         'location': location_code.upper(),
@@ -187,9 +213,28 @@ def trex_rgb(
         'lon': float(_skymap['SITE_MAP_LONGITUDE']),
         'alt': float(_skymap['SITE_MAP_ALTITUDE']) / 1e3,
         'cadence': 3,
-        'resolution': (480, 553, len(colors))
+        'resolution': (480, 553, 3),
+        'colors': colors,
+        'acknowledgment':(
+            'Transition Region Explorer (TREx) RGB data is courtesy of Space Environment Canada '
+            '(space-environment.ca). Use of the data must adhere to the rules of the road for '
+            'that dataset.  Please see below for the required data acknowledgement. Any questions '
+            'about the TREx instrumentation or data should be directed to the University of '
+            'Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan '
+            '(edonovan@ucalgary.ca).\n\n“The Transition Region Explorer RGB (TREx RGB) is a joint '
+            'Canada Foundation for Innovation and Canadian Space Agency project developed by the '
+            'University of Calgary. TREx-RGB is operated and maintained by Space Environment '
+            'Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”'
+        )
     }
-    plot_settings = {'color_norm':'lin'}
+    plot_settings = {
+        'color_norm':'lin',  # Needed for to be compatible with plt.pcolormesh.
+        'color_bounds':(15, 80)
+        }
+
+    if acknowledge and ('trex_rgb' not in asilib.config['ACKNOWLEDGED_ASIS']):
+        print(meta['acknowledgment'])
+        asilib.config['ACKNOWLEDGED_ASIS'].append('trex_rgb')
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
@@ -261,10 +306,11 @@ def _get_h5_files(
                             array, location_code, file_time, base_url, save_dir, redownload
                         )
                     )
-                except (FileNotFoundError, AssertionError) as err:
+                except (FileNotFoundError, AssertionError, requests.exceptions.HTTPError) as err:
                     if missing_ok and (
-                        ('does not contain any hyper references containing' in str(err))
-                        or ('Only one href is allowed' in str(err))
+                        ('does not contain any hyper references containing' in str(err)) or
+                        ('Only one href is allowed' in str(err)) or
+                        ('404 Client Error: Not Found for url:' in str(err))
                     ):
                         continue
                     raise
@@ -304,11 +350,11 @@ def _get_h5_files(
                                 array, location_code, file_time, base_url, save_dir, redownload
                             )
                         )
-                    except (FileNotFoundError, AssertionError) as err:
+                    except (FileNotFoundError, AssertionError, requests.exceptions.HTTPError) as err:
                         if missing_ok and (
-                            ('does not contain any hyper references containing' in str(
-                                err))
-                            or ('Only one href is allowed' in str(err))
+                            ('does not contain any hyper references containing' in str(err)) or
+                            ('Only one href is allowed' in str(err)) or
+                            ('404 Client Error: Not Found for url:' in str(err))
                         ):
                             continue
                         raise
@@ -347,55 +393,37 @@ def _download_one_h5_file(
         Local path to file.
     """
     start_url = base_url + f'{time.year}/{time.month:02}/{time.day:02}/'
-    d = download.Downloader(start_url)
+    d = download.Downloader(start_url, headers={'User-Agent':'asilib'})
     # Find the unique directory
     matched_downloaders = d.ls(f'{location_code.lower()}_{array}*')
     assert len(matched_downloaders) == 1
     # Search that directory for the file and donload it.
-    d2 = download.Downloader(matched_downloaders[0].url + f'ut{time.hour:02}/')
+    d2 = download.Downloader(
+        matched_downloaders[0].url + f'ut{time.hour:02}/', 
+        headers={'User-Agent':'asilib'}
+        )
     file_search_str = f'{time.strftime("%Y%m%d_%H%M")}_{location_code.lower()}*{array}*.h5'
     matched_downloaders2 = d2.ls(file_search_str)
     assert len(matched_downloaders2) == 1
     return matched_downloaders2[0].download(save_dir, redownload=redownload)
 
 
-def _load_rgb_h5(path, colors):
-    # TODO: Move import to the top when the opencv bug is fixed for Linux.
-    import trex_imager_readfile
-
+def _load_rgb_h5(path):
     images, meta, problematic_file_list = trex_imager_readfile.read_rgb(
         str(path))
     if len(problematic_file_list):
         raise ValueError(f'A problematic PGM file: {problematic_file_list[0]}')
-    images = np.moveaxis(images, 3, 0)
-
-    if colors == 'rgb':
-        # Scale from 0-255 to work with plt.imshow(). Convert to unit16 to avoid rounding 
-        # off the highest bits.
-        images = images.astype(np.uint16)*255/np.max(images)
-        # Need uint8 for plt.imshow() to work with RGB images. 
-        images = images.astype(np.uint8)
-        _color_indices = [0, 1, 2]
-    else:
-        _color_indices = []
-        _color_indices_map = {'r':0, 'g':1, 'b':2}
-        for _color in colors:
-            assert _color in ['r', 'g', 'b'], (f'{_color} is an invalid color letter. '
-                                               'Try "r", "b", "g" (or a combination).')
-            _color_indices.append(_color_indices_map[_color])
-            _color_indices.sort()
-
-    images = images[:, ::-1, ::-1, _color_indices]  # Flip north-south.
-    if len(_color_indices) == 1:  # If just one channel we want to remove the 3rd dimension.
-        images = images[..., 0]
+    images = np.moveaxis(images, 3, 0)  # Move time to first axis.
+    images = images[:, ::-1, ::-1, :]  # Flip north-south.
+    
     times = np.array(
         [
             dateutil.parser.parse(
-                dict_i['Image request start']).replace(tzinfo=None)
+                dict_i['image_request_start_timestamp']).replace(tzinfo=None)
             for dict_i in meta
         ]
     )
-    return times, images  # returns green
+    return times, images
 
 
 def trex_rgb_skymap(location_code: str, time: utils._time_type, redownload: bool = False) -> dict:
@@ -419,7 +447,7 @@ def trex_rgb_skymap(location_code: str, time: utils._time_type, redownload: bool
     time = utils.validate_time(time)
     local_dir = local_base_dir / 'skymaps' / location_code.lower()
     local_dir.mkdir(parents=True, exist_ok=True)
-    skymap_top_url = skymap_base_url_rgb + location_code.lower() + '/'
+    skymap_top_url = rgb_skymap_base_url + location_code.lower() + '/'
     if redownload:
         # Delete any existing skymap files.
         local_skymap_paths = pathlib.Path(local_dir).rglob(
@@ -487,13 +515,21 @@ def trex_nir(
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
     alt: int = 110,
+    custom_alt: bool = False,
     redownload: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
+    acknowledge: bool = True,
     imager=asilib.Imager,
 ) -> asilib.Imager:
     """
     Create an Imager instance using the TREX-NIR ASI images and skymaps.
+
+    Transition Region Explorer (TREx) NIR data is courtesy of Space Environment Canada (space-environment.ca). Use of the data must adhere to the rules of the road for that dataset.  Please see below for the required data acknowledgement. Any questions about the TREx instrumentation or data should be directed to the University of Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan (edonovan@ucalgary.ca).
+
+    “The Transition Region Explorer NIR (TREx NIR) is a joint Canada Foundation for Innovation and Canadian Space Agency project developed by the University of Calgary. TREx-NIR is operated and maintained by Space Environment Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”
+
+    For more information see: https://www.ucalgary.ca/aurora/projects/trex.
 
     Parameters
     ----------
@@ -507,6 +543,12 @@ def trex_nir(
         the ASI data time interval.
     alt: int
         The reference skymap altitude, in kilometers.
+    custom_alt: bool
+        If True, asilib will calculate (lat, lon) skymaps assuming a spherical Earth. Otherwise, it will use the official skymaps (Courtesy of University of Calgary).
+
+        .. note::
+        
+            The spherical model of Earth's surface is less accurate than the oblate spheroid geometrical representation. Therefore, there will be a small difference between these and the official skymaps.
     redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes
@@ -517,6 +559,8 @@ def trex_nir(
     load_images: bool
         Create an Imager object without images. This is useful if you need to
         calculate conjunctions and don't need to download or load unnecessary data.
+    acknowledge: bool
+        If True, prints the acknowledgment statement for TREx-NIR.
     imager: asilib.Imager
         Controls what Imager instance to return, asilib.Imager by default. This
         parameter is useful if you need to subclass asilib.Imager.
@@ -572,7 +616,7 @@ def trex_nir(
             location_code,
             time,
             time_range,
-            pgm_base_url,
+            nir_base_url,
             local_pgm_dir,
             redownload,
             missing_ok,
@@ -610,15 +654,27 @@ def trex_nir(
     else:
         _time = time_range[0]
     _skymap = trex_nir_skymap(location_code, _time, redownload=redownload)
-    alt_index = np.where(_skymap['FULL_MAP_ALTITUDE'] / 1000 == alt)[0]
-    assert (
-        len(alt_index) == 1
-    ), f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1000} km.'
-    alt_index = alt_index[0]
+    
+    if custom_alt==False:
+        alt_index = np.where(_skymap['FULL_MAP_ALTITUDE'] / 1000 == alt)[0] #Compares the altitudes versus the ones provided by default and chooses the correct index that correlates to the chosen alitudes
+        assert (
+            len(alt_index) == 1
+        ), f'{alt} km is not in the valid skymap altitudes: {_skymap["FULL_MAP_ALTITUDE"]/1000} km. If you want a custom altitude with less percision, please use the custom_alt keyword'
+        alt_index = alt_index[0]
+        lat=_skymap['FULL_MAP_LATITUDE'][alt_index, :, :] #selects lat lon coordinates from data provided in skymap
+        lon=_skymap['FULL_MAP_LONGITUDE'][alt_index, :, :]
+    else:
+        lat,lon = asilib.skymap.geodetic_skymap( #Spherical projection for lat lon coordinates
+            (float(_skymap['SITE_MAP_LATITUDE']), float(_skymap['SITE_MAP_LONGITUDE']), float(_skymap['SITE_MAP_ALTITUDE']) / 1e3),
+            _skymap['FULL_AZIMUTH'],
+            _skymap['FULL_ELEVATION'],
+            alt
+            )
+
     skymap = {
-        'lat': _skymap['FULL_MAP_LATITUDE'][alt_index, :, :],
-        'lon': _skymap['FULL_MAP_LONGITUDE'][alt_index, :, :],
-        'alt': _skymap['FULL_MAP_ALTITUDE'][alt_index] / 1e3,
+        'lat': lat,
+        'lon': lon,
+        'alt': alt,
         'el': _skymap['FULL_ELEVATION'],
         'az': _skymap['FULL_AZIMUTH'],
         'path': _skymap['PATH'],
@@ -631,8 +687,27 @@ def trex_nir(
         'alt': float(_skymap['SITE_MAP_ALTITUDE']) / 1e3,
         'cadence': 6,
         'resolution': (256, 256),
+        'acknowledgment':(
+            'Transition Region Explorer (TREx) NIR data is courtesy of Space Environment Canada '
+            '(space-environment.ca). Use of the data must adhere to the rules of the road for '
+            'that dataset.  Please see below for the required data acknowledgement. Any questions '
+            'about the TREx instrumentation or data should be directed to the University of '
+            'Calgary, Emma Spanswick (elspansw@ucalgary.ca) and/or Eric Donovan '
+            '(edonovan@ucalgary.ca).\n\n“The Transition Region Explorer NIR (TREx NIR) is a joint '
+            'Canada Foundation for Innovation and Canadian Space Agency project developed by the '
+            'University of Calgary. TREx-NIR is operated and maintained by Space Environment '
+            'Canada with the support of the Canadian Space Agency (CSA) [23SUGOSEC].”'
+            )
     }
-    return imager(file_info, meta, skymap)
+
+    plot_settings = {
+        'color_bounds':(350, 1500)
+        }
+
+    if acknowledge and ('trex_nir' not in asilib.config['ACKNOWLEDGED_ASIS']):
+        print(meta['acknowledgment'])
+        asilib.config['ACKNOWLEDGED_ASIS'].append('trex_nir')
+    return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
 def trex_nir_info() -> pd.DataFrame:
@@ -671,7 +746,7 @@ def trex_nir_skymap(location_code: str, time: utils._time_type, redownload: bool
     time = utils.validate_time(time)
     local_dir = local_base_dir / 'skymaps' / location_code.lower()
     local_dir.mkdir(parents=True, exist_ok=True)
-    skymap_top_url = skymap_base_url_nir + location_code.lower() + '/'
+    skymap_top_url = nir_skymap_base_url + location_code.lower() + '/'
 
     if redownload:
         # Delete any existing skymap files.
@@ -722,7 +797,7 @@ def trex_nir_skymap(location_code: str, time: utils._time_type, redownload: bool
 
 
 def _download_all_skymaps(location_code, url, save_dir, redownload):
-    d = download.Downloader(url)
+    d = download.Downloader(url, headers={'User-Agent':'asilib'})
     # Find the dated subdirectories
     ds = d.ls(f'{location_code.lower()}')
 
@@ -816,23 +891,3 @@ def _load_nir_pgm(path):
         ]
     )
     return times, images
-
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    import asilib.map
-    import asilib.imagers
-
-    time = datetime(2021, 11, 4, 7, 3, 51)
-    location_codes = ['FSMI', 'LUCK', 'RABB', 'PINA', 'GILL']
-    asi_list = []
-    ax = asilib.map.create_simple_map()
-    for location_code in location_codes:
-        asi_list.append(trex_rgb(location_code, time=time, colors='rgb'))
-    
-    asis = asilib.imagers.Imagers(asi_list)
-    asis.plot_map(ax=ax)
-    # plt.axis('off')
-    ax.set(title=time)
-    plt.tight_layout()
-    plt.show()
