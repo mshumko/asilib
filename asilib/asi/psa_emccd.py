@@ -413,13 +413,14 @@ def _download_one_raw_file(
 
 
 def _load_image_file(path):
-    # with bz2.open(path, "r") as f:
-    #     content = str(f.read())
+    pass
+    with bz2.open(path, "r") as f:
+        content = str(f.read())
     #     #TODO: Fix the data loader. 
     #     # Seems that libraw doesn't support the Pentax PEF format.
     #     with rawpy.imread(content) as raw:
     #         rgb = raw.postprocess()
-    #     pass
+        pass
     return
 
 if __name__ == '__main__':
