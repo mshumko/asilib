@@ -419,7 +419,8 @@ def _load_image_file(path):
     https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/soft/psa_routines.pro
     """
     with bz2.BZ2File(path, 'rb') as f:
-        pass
+        header_data = ebireaded_ym(f)
+        image_data = ebireaded_ym(f)
 
     # uncompressedData = bz2.BZ2File(path).read()
 
@@ -493,7 +494,7 @@ def ebireaded_ym(f):
 
     elif iTag == 2000:
         # Image data
-        x = y = 128
+        x = y = 256
         iSize = np.frombuffer(f.read(4), dtype='<i4')[0]
         if x is None or y is None:
             raise ValueError("Image dimensions (x, y) must be set before reading data.")
