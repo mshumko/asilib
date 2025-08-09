@@ -413,15 +413,101 @@ def _download_one_raw_file(
 
 
 def _load_image_file(path):
-    pass
-    with bz2.open(path, "r") as f:
-        content = str(f.read())
-    #     #TODO: Fix the data loader. 
-    #     # Seems that libraw doesn't support the Pentax PEF format.
-    #     with rawpy.imread(content) as raw:
-    #         rgb = raw.postprocess()
+    """
+    Translated from IDL with the help of ChatGPT.
+
+    https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/soft/psa_routines.pro
+    """
+    with bz2.BZ2File(path, 'rb') as f:
         pass
+
+    # uncompressedData = bz2.BZ2File(path).read()
+
+    # with bz2.open(path, mode="rb") as f:
+    #     content = str(f.read())
+    # #     #TODO: Fix the data loader. 
+    # #     # Seems that libraw doesn't support the Pentax PEF format.
+    # #     with rawpy.imread(content) as raw:
+    # #         rgb = raw.postprocess()
+    #     pass
+    #     if content[5:6] == '8':
+    #         pass
     return
+
+def _read_header(bin_data):
+    import numpy as np
+
+def ebireaded_ym(f):
+    """
+    Read one image-related block from the PSA binary file.
+    
+    Parameters
+    ----------
+    f : file-like object
+        Binary file handle opened in 'rb' mode.
+
+    Returns
+    -------
+    tuple : (itag, x, y, imgname, dat)
+        itag    : int - record type
+        x, y    : int or None - image dimensions if available
+        imgname : str or None - image name if available
+        dat     : numpy.ndarray or None - image data if available
+    """
+    # Defaults
+    x = None
+    y = None
+    imgname = None
+    dat = None
+
+    # Read record tag
+    tag_bytes = f.read(4)
+    if not tag_bytes or len(tag_bytes) < 4:
+        return None  # EOF
+    iTag = np.frombuffer(tag_bytes, dtype='<i4')[0]  # IDL LONG = 4-byte signed int
+
+    if iTag == 1000:
+        # Header: size + raw bytes
+        iSize = np.frombuffer(f.read(4), dtype='<i4')[0]
+        tmp = bytearray(f.read(iSize))
+        # In IDL, tmp is just a byte array; here we ignore content for now
+
+    elif iTag == 1001:
+        # Header with depth and dimensions
+        iSize = np.frombuffer(f.read(4), dtype='<i4')[0]
+        iDepth = np.frombuffer(f.read(4), dtype='<i4')[0]
+        x = np.frombuffer(f.read(4), dtype='<i4')[0]
+        y = np.frombuffer(f.read(4), dtype='<i4')[0]
+
+    elif iTag == 1002:
+        # Filename
+        iSize = np.frombuffer(f.read(4), dtype='<i4')[0]
+        cname = np.frombuffer(f.read(iSize), dtype=np.uint8)
+        # Build string until null byte
+        chars = []
+        for b in cname:
+            if b == 0:
+                break
+            chars.append(chr(b))
+        imgname = ''.join(chars)
+
+    elif iTag == 2000:
+        # Image data
+        x = y = 128
+        iSize = np.frombuffer(f.read(4), dtype='<i4')[0]
+        if x is None or y is None:
+            raise ValueError("Image dimensions (x, y) must be set before reading data.")
+        dat = np.frombuffer(f.read(x * y * 2), dtype='<u2').reshape((y, x))
+
+    elif iTag == 9999:
+        # End or placeholder
+        pass
+
+    else:
+        raise ValueError(f"Unknown record tag: {iTag}")
+
+    return iTag, x, y, imgname, dat
+
 
 if __name__ == '__main__':
     # https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi?year=2017&month=03&day=07&jump=Plot
@@ -429,7 +515,7 @@ if __name__ == '__main__':
         'C1', 
         time_range=(
             datetime(2017, 3, 7, 19, 30, 0),
-            datetime(2017, 3, 7, 19, 40, 0)
+            datetime(2017, 3, 7, 19, 42, 0)
             ),
         redownload=False
         )
