@@ -418,25 +418,23 @@ def _load_image_file(path):
 
     https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/soft/psa_routines.pro
     """
+    n = 0
+    n_max = 200 # TODO: Calc this from the cadence.
     with bz2.BZ2File(path, 'rb') as f:
-        header_data = ebireaded_ym(f)
-        image_data = ebireaded_ym(f)
-
-    # uncompressedData = bz2.BZ2File(path).read()
-
-    # with bz2.open(path, mode="rb") as f:
-    #     content = str(f.read())
-    # #     #TODO: Fix the data loader. 
-    # #     # Seems that libraw doesn't support the Pentax PEF format.
-    # #     with rawpy.imread(content) as raw:
-    # #         rgb = raw.postprocess()
-    #     pass
-    #     if content[5:6] == '8':
-    #         pass
+        while n < n_max:
+            _data_block = ebireaded_ym(f)
+            if _data_block[0] == 2000:
+                # Image data
+                _image = _data_block[4]
+            elif _data_block[0] == 1001:
+                # Pixel Resolution
+                x, y = _data_block[1], _data_block[2]
+                assert x==y==256, f'The image dimensions should be 256x256 but got {x} and {y}.'
+            elif _data_block[0] == 1002:
+                # timestamp
+                _time = _data_block[3]
+            n+=1
     return
-
-def _read_header(bin_data):
-    import numpy as np
 
 def ebireaded_ym(f):
     """
