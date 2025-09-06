@@ -469,7 +469,7 @@ class Imagers:
 
             if timestamp:
                 if '_text_obj' in locals():
-                    _text_obj.remove()
+                    _text_obj.remove()  # noqa: F821
                 _text_obj = ax.text(
                     0.01, 
                     0.99, 
