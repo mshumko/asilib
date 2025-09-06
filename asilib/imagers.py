@@ -236,6 +236,7 @@ class Imagers:
     def animate_map_gen(
         self,
         overlap=False,
+        timestamp: bool = True,
         lon_bounds: tuple = (-160, -50),
         lat_bounds: tuple = (40, 82),
         ax: Union[plt.Axes, tuple] = None,
@@ -263,6 +264,8 @@ class Imagers:
         overlap: bool
             If True, pixels that overlap between imager FOV's are overplotted such that only the 
             final imager's pixels are shown.
+        timestamp: bool
+            If True, the time stamp is annotated in the upper left corner of the map.
         lon_bounds: tuple
             The map's longitude bounds.
         lat_bounds: tuple
@@ -462,6 +465,20 @@ class Imagers:
                     pcolormesh_kwargs, 
                     lon_grid=_skymaps[self.imagers[j].meta['location']]['lon'], 
                     lat_grid=_skymaps[self.imagers[j].meta['location']]['lat']
+                )
+
+            if timestamp:
+                if '_text_obj' in locals():
+                    _text_obj.remove()
+                _text_obj = ax.text(
+                    0.01, 
+                    0.99, 
+                    f'{_guide_time: %Y-%m-%d %H:%M:%S}', 
+                    va='top', 
+                    transform=ax.transAxes,
+                    fontsize=12,
+                    color='white',
+                    bbox=dict(facecolor='grey', edgecolor='black', alpha=0.5)
                 )
 
             # Give the user the control of the subplot, image object, and return the image time

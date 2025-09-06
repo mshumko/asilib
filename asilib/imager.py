@@ -597,6 +597,8 @@ class Imager:
         ----------
         ax: plt.Axes
             The optional subplot that will be drawn on.
+        timestamp: bool
+            If True, the time stamp is annotated in the upper left corner of the map.
         label: bool
             Flag to add the "asi_array_code/location_code/image_time" text to the plot.
         color_map: str
@@ -652,6 +654,7 @@ class Imager:
 
     def animate_map_gen(
         self,
+        timestamp: bool = True,
         lon_bounds: tuple = (-160, -50),
         lat_bounds: tuple = (40, 82),
         ax: Union[plt.Axes, tuple] = None,
@@ -685,6 +688,8 @@ class Imager:
 
         Parameters
         ----------
+        timestamp: bool
+            If True, the time stamp is annotated in the upper left corner of the map.
         lon_bounds: tuple
             The map's longitude bounds.
         lat_bounds: tuple
@@ -828,6 +833,20 @@ class Imager:
 
             # Give the user the control of the subplot, image object, and return the image time
             # so that they can manipulate the image to add, for example, the satellite track.
+
+            if timestamp:
+                if '_text_obj' in locals():
+                    _text_obj.remove()
+                _text_obj = ax.text(
+                    0.01, 
+                    0.99, 
+                    f'{image_time: %Y-%m-%d %H:%M:%S}', 
+                    va='top', 
+                    transform=ax.transAxes,
+                    fontsize=12,
+                    color='white',
+                    bbox=dict(facecolor='grey', edgecolor='black', alpha=0.5)
+                )
             yield image_time, image, ax, pcolormesh_obj
 
             # Save the plot before the next iteration.
