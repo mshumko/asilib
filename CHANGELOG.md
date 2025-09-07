@@ -4,6 +4,7 @@
 
 ### Added
 - A `timestamp` kwarg to `Imager.animate_map_gen()` and `Imagers.animate_map_gen()`. When True, the timestamp of each image is plotted in the upper-left corner.
+- Added `timeout` and `retries` kwargs to the `Downloader.download()` method. With the defaults, `Downloader.download()` will attempt to download the data 3 times if it receives timeout errors.
 
 ## [0.26.4] - 2025-05-30
 

@@ -54,7 +54,8 @@ class Downloader:
         return downloaders
 
     def download(
-        self, download_dir=None, redownload: bool = False, stream: bool = False
+        self, download_dir=None, redownload: bool = False, stream: bool = False,
+        timeout: int=10, retries:int=3
     ) -> pathlib.Path:
         """
         Downloads file from self.url to the download_dir directory.
@@ -69,6 +70,10 @@ class Downloader:
         stream: bool
             Download the data in one chunk if False, or break it up and download it
             in 5 Mb chunks if True.
+        timeout: int
+            The timeout in seconds for the requests.
+        retries: int
+            The number of times to retry the download if it fails due to a network error.
 
         Returns
         -------
@@ -93,7 +98,7 @@ class Downloader:
 
         if stream:
             with requests.Session() as s:
-                r = s.get(self.url, stream=True, timeout=5, headers=self.headers)
+                r = s.get(self.url, stream=True, timeout=timeout, headers=self.headers)
             r.raise_for_status()
             file_size = int(r.headers.get('content-length'))
             downloaded_bites = 0
@@ -118,7 +123,16 @@ class Downloader:
                     f'Download interrupted. Partially downloaded file ' f'{download_path} deleted.'
                 ) from err
         else:
-            r = requests.get(self.url, timeout=5, headers=self.headers)
+            n_tries = 0
+            while n_tries < retries:
+                try:
+                    r = requests.get(self.url, timeout=timeout, headers=self.headers)
+                    break
+                except (requests.ConnectionError, requests.Timeout) as err:
+                    n_tries += 1
+                    print(f'Download failed for {file_name}, attempt {n_tries+1}/{retries}.')
+                    if n_tries == retries:
+                        raise
             with open(download_path, 'wb') as f:
                 f.write(r.content)
             print(f'Downloaded {file_name}.')
