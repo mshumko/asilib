@@ -3,6 +3,7 @@ from typing import List
 import pathlib
 import urllib
 import re
+import time
 
 from bs4 import BeautifulSoup
 import requests
@@ -130,9 +131,10 @@ class Downloader:
                     break
                 except (requests.ConnectionError, requests.Timeout) as err:
                     n_tries += 1
-                    print(f'Download failed for {file_name}, attempt {n_tries+1}/{retries}.')
+                    print(f'Download failed for {file_name}, attempt {n_tries}/{retries}.')
                     if n_tries == retries:
                         raise
+                    time.sleep(1)
             with open(download_path, 'wb') as f:
                 f.write(r.content)
             print(f'Downloaded {file_name}.')
