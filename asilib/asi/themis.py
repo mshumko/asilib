@@ -435,7 +435,7 @@ def _download_one_pgm_file(
     d = download.Downloader(start_url, headers={'User-Agent':'asilib'})
     # Find the unique directory
     matched_downloaders = d.ls(f'{location_code.lower()}_{array}*')
-    assert len(matched_downloaders) == 1
+    assert len(matched_downloaders) == 1, f'Found {len(matched_downloaders)} directories (not 1) at URLs: {[d.url for d in matched_downloaders]}.'
     # Search that directory for the file and donload it.
     d2 = download.Downloader(
         matched_downloaders[0].url + f'ut{time.hour:02}/', 
