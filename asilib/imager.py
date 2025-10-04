@@ -163,9 +163,10 @@ class Imager:
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
         if len(self.meta['resolution']) == 3:  # tests if rgb
-            vmin, vmax = self.get_color_bounds()
+            vmin, vmax = (color_norm.vmin, color_norm.vmax)
             image = self._rgb_replacer(image)
             image = utils.stretch_contrast(image, vmin, vmax)
+            image[np.isnan(image)] = 0  # necessary starting matplotlib==3.10.2
         if isinstance(color_norm, matplotlib.colors.LogNorm):
             # Increase the corner pixels with 0 counts to 1 count so 
             # it shows up black in log-scale.
@@ -395,9 +396,10 @@ class Imager:
             _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
             
             if len(self.meta['resolution']) == 3:  # tests if rgb
-                vmin, vmax = self.get_color_bounds()
+                vmin, vmax = (_color_norm.vmin, _color_norm.vmax)
                 image = self._rgb_replacer(image)
                 image = utils.stretch_contrast(image, vmin, vmax)
+                image[np.isnan(image)] = 0  # necessary starting matplotlib==3.10.2
 
             if isinstance(color_norm, matplotlib.colors.LogNorm):
                 # Increase the corner pixels with 0 counts to 1 count so 
@@ -558,6 +560,7 @@ class Imager:
             vmin, vmax = self.get_color_bounds()
             image = self._rgb_replacer(image)
             image = utils.stretch_contrast(image, vmin, vmax)
+            image[np.isnan(image)] = 0  # necessary starting matplotlib==3.10.2
 
         pcolormesh_kwargs_copy = pcolormesh_kwargs.copy()
         if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
@@ -1073,6 +1076,7 @@ class Imager:
             _keogram = self._rgb_replacer(_keogram)
             vmin, vmax = self.get_color_bounds()
             _keogram = utils.stretch_contrast(_keogram, vmin, vmax)
+            _keogram[np.isnan(_keogram)] = 0  # necessary starting matplotlib==3.10.2
             
 
         pcolormesh_obj = ax.pcolormesh(
