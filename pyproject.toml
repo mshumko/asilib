@@ -6,14 +6,13 @@ build-backend = "setuptools.build_meta"
 name = "asilib"
 version = "0.26.5"
 description = "An open source package providing data access and analysis tools for the world's all-sky imager (ASI) data."
-keywords = [ "aurora", "all sky imager", "REGO", "THEMIS", "TREx",]
+keywords = ["aurora", "all sky imager", "REGO", "THEMIS", "TREx", "MANGO"]
 license = {text = "BSD 3-Clause"}
 classifiers = [
-    "Programming Language :: Python :: 3", 
-    "Programming Language :: Python :: 3.9", 
-    "Programming Language :: Python :: 3.10", 
+    "Programming Language :: Python :: 3",  
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     ]
 dependencies = [
     "wheel", 

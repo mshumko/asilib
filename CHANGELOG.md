@@ -6,6 +6,12 @@
 - A `timestamp` kwarg to `Imager.animate_map_gen()` and `Imagers.animate_map_gen()`. When True, the timestamp of each image is plotted in the upper-left corner.
 - Added `timeout` and `retries` kwargs to the `Downloader.download()` method. With the defaults, `Downloader.download()` will attempt to download the data 3 times if it receives timeout errors.
 
+### Changed
+- Dropped Python 3.9 and 3.10 in order to keep up with numpy's, matplotlib's, scipy's, and sphinx's deprecation schedules.
+- Added Python 3.13 support.
+- `_rgb_replacer()` function now masks RGB images with 0s instead of NaNs. Now it works with newer version of matplotlib.
+- The THEMIS, REGO, and TREx loaders are now included in their respective modules.
+
 ## [0.26.4] - 2025-05-30
 
 ### Changed
