@@ -26,11 +26,9 @@ dependencies = [
     "ffmpeg-python", 
     "pymap3d", 
     "aacgmv2", 
-    "pyshp >= 2.3", 
-    "rego-imager-readfile>=1.2.0, < 2.0", 
-    "themis-imager-readfile>=1.2.1, < 2.0", 
-    "trex-imager-readfile>=1.5.1, < 2.0", 
+    "pyshp >= 2.3",
     "opencv-python >= 4.8.0, < 5.0",
+    "h5py",
     ]
 
 [[project.authors]]
