@@ -4,7 +4,7 @@ matplotlib==3.10.6
 numpy == 2.2.6
 pandas==2.3.3
 requests==2.32.5
-scipy==1.16.2
+scipy
 ffmpeg-python==0.2.0
 pymap3d==3.2.0
 pyshp==2.3.1
