@@ -19,7 +19,7 @@ dependencies = [
     "wheel", 
     "beautifulsoup4", 
     "requests", 
-    "numpy < 2.0", 
+    "numpy", 
     "scipy >= 1.10.0",
     "pandas", 
     "matplotlib >= 3.7, <4.0", 
