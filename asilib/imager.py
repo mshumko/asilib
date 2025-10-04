@@ -166,7 +166,7 @@ class Imager:
             vmin, vmax = (color_norm.vmin, color_norm.vmax)
             image = self._rgb_replacer(image)
             image = utils.stretch_contrast(image, vmin, vmax)
-            image[np.isnan(image)] = 0  # necessary starting matplotlib==3.10.2
+
         if isinstance(color_norm, matplotlib.colors.LogNorm):
             # Increase the corner pixels with 0 counts to 1 count so 
             # it shows up black in log-scale.
@@ -399,7 +399,6 @@ class Imager:
                 vmin, vmax = (_color_norm.vmin, _color_norm.vmax)
                 image = self._rgb_replacer(image)
                 image = utils.stretch_contrast(image, vmin, vmax)
-                image[np.isnan(image)] = 0  # necessary starting matplotlib==3.10.2
 
             if isinstance(color_norm, matplotlib.colors.LogNorm):
                 # Increase the corner pixels with 0 counts to 1 count so 
@@ -560,7 +559,6 @@ class Imager:
             vmin, vmax = self.get_color_bounds()
             image = self._rgb_replacer(image)
             image = utils.stretch_contrast(image, vmin, vmax)
-            image[np.isnan(image)] = 0  # necessary starting matplotlib==3.10.2
 
         pcolormesh_kwargs_copy = pcolormesh_kwargs.copy()
         if cartopy_imported and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
@@ -1075,9 +1073,7 @@ class Imager:
         if len(self.meta['resolution']) == 3:  # tests if rgb
             _keogram = self._rgb_replacer(_keogram)
             vmin, vmax = self.get_color_bounds()
-            _keogram = utils.stretch_contrast(_keogram, vmin, vmax)
-            _keogram[np.isnan(_keogram)] = 0  # necessary starting matplotlib==3.10.2
-            
+            _keogram = utils.stretch_contrast(_keogram, vmin, vmax)            
 
         pcolormesh_obj = ax.pcolormesh(
             _keogram_time,
@@ -1800,9 +1796,10 @@ class Imager:
         return f'{self.__class__.__qualname__}(' + params + ')'
 
     def _rgb_replacer(self, image):
-
-        #https://www.tutorialspoint.com/How-to-check-if-a-string-only-contains-certain-characters-in-Python
-
+        """
+        Replace some RGB channels with 0. We can't use NaN, as plt.imshow changed the behavior in
+        matplotlib >= 3.10.1 (https://matplotlib.org/stable/api/prev_api_changes/api_changes_3.10.1.html).
+        """
         if not set(self.meta['colors']).issubset('rgb'):
             raise ValueError(" The only valid characters for the colors kwarg are 'r', 'g', 'b' ")
         
@@ -1814,11 +1811,11 @@ class Imager:
             # tests if color is selected, if not selected, then add nan values to array in lieu of color
             if 'r' not in (*self.meta['colors'],):
                 # takes the shape of c, excluding the last index (-1) and replaces that matrix with nans
-                image[..., 0] = np.full(np.shape(image)[:-1], np.nan)
+                image[..., 0] = np.full(np.shape(image)[:-1], 0)
             if 'g' not in (*self.meta['colors'],):
-                image[..., 1] = np.full(np.shape(image)[:-1], np.nan)
+                image[..., 1] = np.full(np.shape(image)[:-1], 0)
             if 'b' not in (*self.meta['colors'],):
-                image[..., 2] = np.full(np.shape(image)[:-1], np.nan)
+                image[..., 2] = np.full(np.shape(image)[:-1], 0)
         return image
 
 class Skymap_Cleaner:
