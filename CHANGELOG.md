@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.27.4] - 2025-10-04
+## [0.27.0] - 2025-10-04
 
 ### Added
 - A `timestamp` kwarg to `Imager.animate_map_gen()` and `Imagers.animate_map_gen()`. When True, the timestamp of each image is plotted in the upper-left corner.
