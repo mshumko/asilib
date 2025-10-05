@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "asilib"
-version = "0.26.5"
+version = "0.27.0"
 description = "An open source package providing data access and analysis tools for the world's all-sky imager (ASI) data."
 keywords = ["aurora", "all sky imager", "REGO", "THEMIS", "TREx", "MANGO"]
 license = {text = "BSD 3-Clause"}
