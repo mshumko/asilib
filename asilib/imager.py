@@ -163,9 +163,10 @@ class Imager:
         color_map, color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
 
         if len(self.meta['resolution']) == 3:  # tests if rgb
-            vmin, vmax = self.get_color_bounds()
+            vmin, vmax = (color_norm.vmin, color_norm.vmax)
             image = self._rgb_replacer(image)
             image = utils.stretch_contrast(image, vmin, vmax)
+
         if isinstance(color_norm, matplotlib.colors.LogNorm):
             # Increase the corner pixels with 0 counts to 1 count so 
             # it shows up black in log-scale.
@@ -395,7 +396,7 @@ class Imager:
             _color_map, _color_norm = self._plot_params(image, color_bounds, color_map, color_norm)
             
             if len(self.meta['resolution']) == 3:  # tests if rgb
-                vmin, vmax = self.get_color_bounds()
+                vmin, vmax = (_color_norm.vmin, _color_norm.vmax)
                 image = self._rgb_replacer(image)
                 image = utils.stretch_contrast(image, vmin, vmax)
 
@@ -597,6 +598,8 @@ class Imager:
         ----------
         ax: plt.Axes
             The optional subplot that will be drawn on.
+        timestamp: bool
+            If True, the time stamp is annotated in the upper left corner of the map.
         label: bool
             Flag to add the "asi_array_code/location_code/image_time" text to the plot.
         color_map: str
@@ -652,6 +655,7 @@ class Imager:
 
     def animate_map_gen(
         self,
+        timestamp: bool = True,
         lon_bounds: tuple = (-160, -50),
         lat_bounds: tuple = (40, 82),
         ax: Union[plt.Axes, tuple] = None,
@@ -685,6 +689,8 @@ class Imager:
 
         Parameters
         ----------
+        timestamp: bool
+            If True, the time stamp is annotated in the upper left corner of the map.
         lon_bounds: tuple
             The map's longitude bounds.
         lat_bounds: tuple
@@ -828,6 +834,20 @@ class Imager:
 
             # Give the user the control of the subplot, image object, and return the image time
             # so that they can manipulate the image to add, for example, the satellite track.
+
+            if timestamp:
+                if '_text_obj' in locals():
+                    _text_obj.remove() # noqa: F821
+                _text_obj = ax.text(
+                    0.01, 
+                    0.99, 
+                    f'{image_time: %Y-%m-%d %H:%M:%S}', 
+                    va='top', 
+                    transform=ax.transAxes,
+                    fontsize=12,
+                    color='white',
+                    bbox=dict(facecolor='grey', edgecolor='black', alpha=0.5)
+                )
             yield image_time, image, ax, pcolormesh_obj
 
             # Save the plot before the next iteration.
@@ -1053,8 +1073,7 @@ class Imager:
         if len(self.meta['resolution']) == 3:  # tests if rgb
             _keogram = self._rgb_replacer(_keogram)
             vmin, vmax = self.get_color_bounds()
-            _keogram = utils.stretch_contrast(_keogram, vmin, vmax)
-            
+            _keogram = utils.stretch_contrast(_keogram, vmin, vmax)            
 
         pcolormesh_obj = ax.pcolormesh(
             _keogram_time,
@@ -1777,9 +1796,10 @@ class Imager:
         return f'{self.__class__.__qualname__}(' + params + ')'
 
     def _rgb_replacer(self, image):
-
-        #https://www.tutorialspoint.com/How-to-check-if-a-string-only-contains-certain-characters-in-Python
-
+        """
+        Replace some RGB channels with 0. We can't use NaN, as plt.imshow changed the behavior in
+        matplotlib >= 3.10.1 (https://matplotlib.org/stable/api/prev_api_changes/api_changes_3.10.1.html).
+        """
         if not set(self.meta['colors']).issubset('rgb'):
             raise ValueError(" The only valid characters for the colors kwarg are 'r', 'g', 'b' ")
         
@@ -1791,11 +1811,11 @@ class Imager:
             # tests if color is selected, if not selected, then add nan values to array in lieu of color
             if 'r' not in (*self.meta['colors'],):
                 # takes the shape of c, excluding the last index (-1) and replaces that matrix with nans
-                image[..., 0] = np.full(np.shape(image)[:-1], np.nan)
+                image[..., 0] = np.full(np.shape(image)[:-1], 0)
             if 'g' not in (*self.meta['colors'],):
-                image[..., 1] = np.full(np.shape(image)[:-1], np.nan)
+                image[..., 1] = np.full(np.shape(image)[:-1], 0)
             if 'b' not in (*self.meta['colors'],):
-                image[..., 2] = np.full(np.shape(image)[:-1], np.nan)
+                image[..., 2] = np.full(np.shape(image)[:-1], 0)
         return image
 
 class Skymap_Cleaner:

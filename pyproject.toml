@@ -4,33 +4,30 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "asilib"
-version = "0.26.5"
+version = "0.27.0"
 description = "An open source package providing data access and analysis tools for the world's all-sky imager (ASI) data."
-keywords = [ "aurora", "all sky imager", "REGO", "THEMIS", "TREx",]
+keywords = ["aurora", "all sky imager", "REGO", "THEMIS", "TREx", "MANGO"]
 license = {text = "BSD 3-Clause"}
 classifiers = [
-    "Programming Language :: Python :: 3", 
-    "Programming Language :: Python :: 3.9", 
-    "Programming Language :: Python :: 3.10", 
+    "Programming Language :: Python :: 3",  
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     ]
 dependencies = [
     "wheel", 
     "beautifulsoup4", 
     "requests", 
-    "numpy < 2.0", 
+    "numpy", 
     "scipy >= 1.10.0",
     "pandas", 
     "matplotlib >= 3.7, <4.0", 
     "ffmpeg-python", 
     "pymap3d", 
     "aacgmv2", 
-    "pyshp >= 2.3", 
-    "rego-imager-readfile>=1.2.0, < 2.0", 
-    "themis-imager-readfile>=1.2.1, < 2.0", 
-    "trex-imager-readfile>=1.5.1, < 2.0", 
+    "pyshp >= 2.3",
     "opencv-python >= 4.8.0, < 5.0",
+    "h5py",
     ]
 
 [[project.authors]]

@@ -1,37 +1,30 @@
 # Core libraries
-beautifulsoup4==4.12.2
-matplotlib==3.7.2
-numpy>=1.23, < 2.0
-pandas==2.2.2
-requests==2.31.0
-scipy==1.12.0
+beautifulsoup4==4.14.2
+matplotlib==3.10.6
+numpy == 2.2.6
+pandas==2.3.3
+requests==2.32.5
+scipy
 ffmpeg-python==0.2.0
-pymap3d==2.5.0
+pymap3d==3.2.0
 pyshp==2.3.1
-aacgmv2==2.6.0
-
-# Necessary libraries to load ASI data.
-rego-imager-readfile==1.3.1
-themis-imager-readfile==1.4.1
-trex-imager-readfile==1.6.6
-# This opencv-python version contains a patch for a bug that triggered a Segmentation Fault 
-# in Linux. It should be pinned by trex-imager-readfile, but left here in the meanwhile.
-opencv-python >= 4.8.0
-h5py==3.10.0  # for LAMP.
+aacgmv2==2.7.0
+opencv-python >= 4.12.0.88
+h5py==3.14.0 
 
 # Dev
 bump2version==1.0.1
-black==23.3.0
-flake8==6.0.0
-pytest==7.3.1
-pytest-cov==4.0.0
-tox==4.4.12
+black==25.9.0
+flake8==7.3.0
+pytest==8.4.2
+pytest-cov==7.0.0
+tox==4.30.3
 
 # Docs
-sphinx==5.3.0
+sphinx==8.2.3  # 5.3.0
 sphinx-copybutton==0.3.1
-furo==2023.3.27
+furo==2025.9.25
 nbsphinx==0.9.1
-jinja2<3.1.0
+jinja2>3.1.0
 
 -e .
