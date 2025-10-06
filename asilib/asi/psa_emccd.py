@@ -426,6 +426,7 @@ def _load_image_file(path):
             if _data_block[0] == 2000:
                 # Image data
                 _image = _data_block[4]
+                # plt.imshow(_image, vmin=2000, vmax=2700); plt.show()
             elif _data_block[0] == 1001:
                 # Pixel Resolution
                 x, y = _data_block[1], _data_block[2]
@@ -512,10 +513,8 @@ if __name__ == '__main__':
     # https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi?year=2017&month=03&day=07&jump=Plot
     asi = psa_emccd(
         'C1', 
-        time_range=(
-            datetime(2017, 3, 7, 19, 30, 0),
-            datetime(2017, 3, 7, 19, 42, 0)
-            ),
+        # time=datetime(2017, 3, 7, 19, 35, 0),
+        time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
         redownload=False
         )
-    asi.animate_fisheye()
+    asi.plot_fisheye()
