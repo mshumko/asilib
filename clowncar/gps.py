@@ -224,7 +224,7 @@ class GPS:
         """
         Download or load GPS CXR data.
         """
-        gps_weeks = _gps_weeks(time_range)
+        gps_weeks = _gps_weeks(self.time_range)
 
         file_paths = []
         spacecraft_ids = []
@@ -263,8 +263,8 @@ class GPS:
             
             if self.clip_date:
                 idt = np.where(
-                    (gps_data[_sc_id]['time'] >= time_range[0]) & 
-                    (gps_data[_sc_id]['time'] < time_range[1])
+                    (gps_data[_sc_id]['time'] >= self.time_range[0]) & 
+                    (gps_data[_sc_id]['time'] < self.time_range[1])
                 )[0]
 
                 for key in gps_data[_sc_id].keys():
