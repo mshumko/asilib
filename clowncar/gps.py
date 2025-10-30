@@ -16,7 +16,6 @@ from datetime import timedelta, datetime, date
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from bs4 import BeautifulSoup
 import requests
 import astropy.time
 

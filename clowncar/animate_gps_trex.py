@@ -17,7 +17,6 @@ import asilib
 from asilib.asi.trex import trex_rgb
 import IRBEM
 import cdasws
-import fontawesome
 import fontawesome as fa
 from matplotlib.font_manager import FontProperties
 from matplotlib.textpath import TextToPath

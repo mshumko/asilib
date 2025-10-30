@@ -10,7 +10,8 @@ pymap3d==3.2.0
 pyshp==2.3.1
 aacgmv2==2.7.0
 opencv-python >= 4.12.0.88
-h5py==3.14.0 
+h5py==3.14.0
+astropy==7.1.0
 
 # Dev
 bump2version==1.0.1
