@@ -33,16 +33,73 @@ if not download_dir.exists():
 
 
 class GPS:
+    """
+    Download, load, and analyze GPS Combined X-ray Dosimeter (CXD) data from LANL.
+    It can handle multiple spacecraft data and provides methods for calculating and
+    plotting average electron flux in specific L-shell ranges.
+
+    Parameters
+    ----------
+    time_range : List[datetime]
+        The time range for which to analyze GPS data, provided as a list of two datetime objects
+        [start_time, end_time].
+    sc_ids : str or list of str, optional
+        Spacecraft ID(s) to analyze (e.g., "ns72" or ["ns72", "ns73"]). If None, data from all
+        available spacecraft is used.
+    version : str, optional
+        Version of the GPS data to use. 
+    redownload : bool, optional
+        If True, forces redownload of existing files.
+    clip_date : bool, optional
+        If True, clips the data to the specified time range.
+
+    Attributes
+    ----------
+    data : dict
+        Dictionary containing the loaded GPS data for each spacecraft.
+    keys : list
+        List of available data keys.
+    energies : numpy.ndarray
+        Array of energy channels in MeV.
+    l_keys : list
+        List of available L-shell parameter keys.
+
+    Methods
+    -------
+    plot_avg_flux()
+        Plot the flux evolution for specified energy channels and L-shell range.
+    avg_flux()
+        Calculate average flux in a given L-shell range at specified time intervals.
+
+    Example
+    -------
+    >>> from datetime import datetime
+    >>> import matplotlib.pyplot as plt
+    >>> time_range = (datetime(2007, 2, 10), datetime(2007, 2, 17))
+    >>> L_range = [4.25, 4.75]
+    >>> gps = GPS(time_range, version='1.10')
+    >>> ax = gps.plot_avg_flux(
+    ...     energies=(0.12, 0.3, 0.6, 1.0, 2.0),
+    ...     L_range=L_range,
+    ...     dt_min=180,  # 3 hours
+    ...     min_samples=5
+    ... )
+    >>> plt.legend()
+    >>> plt.show()
+    """
     def __init__(self, time_range:List[datetime], sc_ids=None, version='1.10', redownload=False, clip_date=True):
         self.time_range = time_range
         self.sc_ids = sc_ids
         self.version = version
         self.redownload = redownload
         self.clip_date = clip_date
-        self.data = self._get_data()
+        self.data = self._find_data()
         self.sc_id_0 = list(self.data.keys())[0]
+        self.keys = self.data[self.sc_id_0].keys()
+
         self.energies = self.data[self.sc_id_0]['electron_diff_flux_energy'][-1, :]
-        pass
+        self.l_keys = [key for key in self.keys if 'L_' in key]
+        return
 
     def plot_avg_flux(
             self, 
@@ -64,12 +121,12 @@ class GPS:
         L_range: tuple of float
             The L-shell range over which to average the flux.
         L_key: str
-            The key in the gps data corresponding to the L-shell values. Can be one of 
-            'L_LGM_T89IGRF'.
+            The key in the gps data corresponding to the L-shell values. See self.l_keys for valid options.
         dt_min: int
             The time cadence (in minutes) at which to sample the flux.
         min_samples: int
-            The minimum number of samples required to compute the average flux at each time step.
+            The minimum number of samples required to compute the average flux at each time step. If the number
+            of samples is less than this value, NaN will be assigned for that time step.
 
         Returns
         -------
@@ -102,7 +159,7 @@ class GPS:
 
     def avg_flux(self, L_range=(5, 6), L_key='L_LGM_T89IGRF', dt_min=15, min_samples=5):
         """
-        Plot the flux evolution from the gps data in a given L range every dt_min minutes.
+        Average the GPS CXD fluxes in a given L range every dt_min minutes.
 
         Parameters
         ----------
@@ -113,6 +170,11 @@ class GPS:
         L_key: str
             The key in the gps data corresponding to the L-shell values. Can be one of 
             'L_LGM_T89IGRF'.
+        dt_min: int
+            The time cadence (in minutes) at which to sample the flux.
+        min_samples: int
+            The minimum number of samples required to compute the average flux at each time step. If the number
+            of samples is less than this value, NaN will be assigned for that time step.
 
         Returns
         -------
@@ -121,6 +183,7 @@ class GPS:
         
         """
         assert len(self.data.keys()) > 0, 'No GPS data.'
+        assert L_key in self.keys, f'L_key {L_key} not in GPS data keys: {self.keys}.'
 
         _flux = pd.DataFrame(
             index=pd.date_range(
@@ -157,7 +220,7 @@ class GPS:
                 raise ValueError('Not supposed to get here.')
         return _flux
     
-    def _get_data(self):
+    def _find_data(self):
         """
         Download or load GPS CXR data.
         """
@@ -361,6 +424,9 @@ class attrs_dict(dict):
         self.update(*args, **kwargs)
         self.attrs = {}
         return
+    
+    def __str__(self):
+        return super().__str__() + f"\nattrs: {self.attrs}."
 
 
 def get_gps_ids(version='1.10'):
