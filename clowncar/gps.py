@@ -38,6 +38,9 @@ class GPS:
     It can handle multiple spacecraft data and provides methods for calculating and
     plotting average electron flux in specific L-shell ranges.
 
+    Note: This code transforms the Geographic_Longitude variable from the (0 -> 360) 
+    range to the (-180 -> 180) range.
+
     Parameters
     ----------
     time_range : List[datetime]
@@ -188,10 +191,11 @@ class GPS:
         _flux = pd.DataFrame(
             index=pd.date_range(
                 self.data[self.sc_id_0]['time'][0].replace(second=0, microsecond=0), 
-                self.data[self.sc_id_0]['time'][-1], 
+                self.data[self.sc_id_0]['time'][-1].replace(second=0, microsecond=0)+pd.Timedelta(minutes=dt_min), 
                 freq=f'{dt_min}min'
                 ),
-            columns = self.data[self.sc_id_0]['electron_diff_flux_energy'][-1, :]
+            columns = self.data[self.sc_id_0]['electron_diff_flux_energy'][-1, :],
+            dtype=float
                 )
         for start_time, end_time in zip(_flux.index[:-1], _flux.index[1:]):
             flux_vals = []
@@ -218,7 +222,7 @@ class GPS:
                 _flux.loc[start_time] = np.nanmean(np.array(flux_vals), axis=0)
             else:
                 raise ValueError('Not supposed to get here.')
-        return _flux
+        return _flux.iloc[:-1, :]
     
     def _find_data(self):
         """
@@ -260,6 +264,9 @@ class GPS:
                     gps_data[_sc_id]['time'],
                     astropy.time.Time(_data['decimal_year'], format='decimalyear').datetime
                     )
+                gps_data[_sc_id]['Geographic_Longitude'] = np.mod(
+                    gps_data[_sc_id]['Geographic_Longitude'] + 180, 360
+                    ) - 180
             
             if self.clip_date:
                 idt = np.where(
