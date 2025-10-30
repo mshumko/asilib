@@ -170,8 +170,13 @@ def mango(
     }
     if time_range is not None:
         file_info['time_range'] = time_range
+        if len(file_paths) == 0:
+            raise ValueError(f'No MANGO-{location_code.upper()} files found for {file_info["time_range"]}')
     else:
         file_info['time'] = time
+        if len(file_paths) == 0:
+            raise ValueError(f'No MANGO-{location_code.upper()} files found for {time}')
+    
 
     mango_meta = _load_h5_meta(file_paths[0])
     

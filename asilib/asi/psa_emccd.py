@@ -127,7 +127,10 @@ def psa_emccd(
         'cadence': 1/100,
         'resolution':(255, 255),
         }
-    return imager(file_info, meta, skymap)
+    plot_settings={
+        'color_bounds':(2_000, 2_500)
+    }
+    return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 def psa_emccd_info() -> pd.DataFrame:
     """
