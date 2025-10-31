@@ -271,9 +271,9 @@ for i, (_guide_time, _, _, _)  in enumerate(gen):
                 )
     
     if '_plot_time' in locals():
-        _plot_time.remove()
-    if ('gps_locs' in locals()) and len(gps_locs) > 0:
-        for gps_loc in gps_locs:
+        _plot_time.remove()  # noqa: F821
+    if ('gps_locs' in locals()) and len(gps_locs) > 0:  # noqa: F821
+        for gps_loc in gps_locs:  # noqa: F821
             gps_loc.remove()
         for gps_label in gps_labels:
             gps_label.remove()
