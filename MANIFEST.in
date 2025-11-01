@@ -1,2 +1,3 @@
 include asilib/data/asi_locations.csv
 include asilib/data/ne_10m_land.zip
+include "asilib/data/Font Awesome 7 Free-Solid-900.otf"
