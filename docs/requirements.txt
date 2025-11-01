@@ -19,10 +19,10 @@ pytest==7.2.1
 pytest-cov==2.12.0
 
 # Docs
-sphinx==6.2.1
-sphinx-copybutton==0.3.1
+sphinx<8.2,>=8
+sphinx-copybutton==0.5.2
 furo==2025.9.25
-nbsphinx==0.9.1
+nbsphinx==0.9.7
 jinja2>3.1.0
 ipython==8.13.0
 sphinx-design==0.4.1
