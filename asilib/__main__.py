@@ -10,12 +10,11 @@ here = pathlib.Path(__file__).parent.resolve()
 
 if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'initialize', 'config', 'configure']):
     print('Running the configuration script.')
-    # ASI Data dir
     s = (
         f'What is the aurora data directory? Press enter for the default '
         f'directory at ~/asilib-data folder will be created.\n'
     )
-    ASI_DATA_DIR = input(s)
+    ASI_DATA_DIR = input(s).strip()
 
     # If the user specified the directory, check that the ASI directory already exists
     # and make that directory if it does not.
