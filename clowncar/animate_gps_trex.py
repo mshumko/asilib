@@ -28,7 +28,9 @@ R_E = 6378.137  # km
 
 def getmarker(mID):
 	symbol = fa.icons[mID]
-	fp = FontProperties(fname=pathlib.Path(__file__).parent / "fontawesome_solid.otf")
+	fp = FontProperties(
+        fname=pathlib.Path(clowncar.__file__).parents[1] / 'asilib' / 'data' / "Font Awesome 7 Free-Solid-900.otf"
+        )
 
 	v, codes = TextToPath().get_text_path(fp, symbol)
 	v = np.array(v)
@@ -164,7 +166,7 @@ ax.contour(
     alpha=0.5, 
     transform=cartopy.crs.PlateCarree()
     )
-ax.clabel(cs, inline=True, fontsize=20, fmt=lambda x: f'$\lambda = {{{round(x)}}}^{{\circ}}$')
+ax.clabel(cs, inline=True, fontsize=20, fmt=lambda x: f'$\\lambda = {{{round(x)}}}^{{\\circ}}$')
 
 for location_code in location_codes:
     asi_list.append(trex_rgb(location_code, time_range=time_range, colors='rgb', acknowledge=False, alt=alt))
@@ -174,13 +176,14 @@ gen = asis.animate_map_gen(
     ax=ax, 
     asi_label=False, 
     ffmpeg_params={'framerate':100},
-    overwrite=True
+    overwrite=True,
+    timestamp=False
     )
 
-interp_times = pd.date_range(*time_range, freq='3S')
+interp_times = pd.date_range(*time_range, freq='3s')
 interp_times_numeric = matplotlib.dates.date2num(interp_times)
 
-gps_data = clowncar.GPS((time_range[0]-timedelta(hours=1), time_range[1]+timedelta(hours=1)))
+gps_data = clowncar.GPS((time_range[0]-timedelta(hours=1), time_range[1]+timedelta(hours=1))).data
 for sc_key in gps_data:
     # Jumps across the anti-meridian or poles.
     lon_jumps = np.where(np.abs(np.diff(gps_data[sc_key]['Geographic_Longitude'])) > 5)[0]
@@ -189,7 +192,7 @@ for sc_key in gps_data:
 
     gps_data[sc_key]['interpolated_times'] = interp_times
 
-    interpolated_jump_indices = np.array([])
+    interpolated_jump_indices = np.array([], dtype=int)
     for start_time, end_time in zip(lon_jump_start_times, lon_jump_end_times):
         idt = np.where(
             (gps_data[sc_key]['interpolated_times'] >= start_time) &
@@ -311,7 +314,7 @@ for i, (_guide_time, _, _, _)  in enumerate(gen):
     
     if i == 0:
         if gps_data[key].attrs['electron_diff_flux']['UNITS'] == 'cm^-2sec^-1sr^-1MeV^-1':
-            label=f'{gps_energy_mev} MeV Electron flux [$(cm^{{2}} \ s \ sr \ MeV)^{{-1}}$]'
+            label=fr'{gps_energy_mev} MeV Electron flux [$(cm^{{2}} \ s \ sr \ MeV)^{{-1}}$]'
         else:
             label=f"{gps_energy_mev} MeV [{gps_data[key].attrs['electron_diff_flux']['UNITS']}]"
         cbar = plt.colorbar(gps_locs[0], ax=ax, orientation='horizontal', pad=0.01, label=label)            
