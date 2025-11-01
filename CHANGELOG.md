@@ -2,8 +2,11 @@
 
 ## [0.27.1] - unpublished
 
-### Added
-- A check to ensure that the number of time stamps in each image file is consistent. If they are not, numpy will raises a ValueError which `asilib.Imager.get_data()` now catches.
+### Fixed
+- A bug where the number of time stamps in each image file is inconsistent. If they are not, numpy will raises a ValueError which `asilib.Imager.get_data()` now catches and raises an error with specific details about the data
+
+### Changed
+- Bumped up the sphinx dependencies.
 
 ## [0.27.0] - 2025-10-04
 
