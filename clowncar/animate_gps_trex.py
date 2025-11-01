@@ -275,7 +275,7 @@ if __name__ == '__main__':
         if ('gps_locs' in locals()) and len(gps_locs) > 0:  # noqa: F821
             for gps_loc in gps_locs:  # noqa: F821
                 gps_loc.remove()
-            for gps_label in gps_labels:
+            for gps_label in gps_labels:  # noqa: F821
                 gps_label.remove()
         gps_locs = []
         gps_labels = []
