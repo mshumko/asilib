@@ -1390,6 +1390,8 @@ class Imager:
         self._loader_is_gen = inspect.isgeneratorfunction(self.file_info['loader'])
         if 'time_range' not in self.file_info.keys():
             raise KeyError('Imager was not instantiated with a time_range.')
+        
+        self._file_times_shapes = []
 
         for path in self.file_info['path']:
             # Check if the loader function is a generator. If not, asilib
@@ -1399,6 +1401,7 @@ class Imager:
             # yielded by the generator and over the timestamps in each chunk.
             if not self._loader_is_gen:
                 times, images = self.file_info['loader'](path)
+                self._file_times_shapes.append(times.shape[0])
 
                 idt = np.where(
                     (times >= self.file_info['time_range'][0])
@@ -1449,7 +1452,16 @@ class Imager:
 
             start_idt = 0
             for file_times, file_images in self.iter_files():
-                self._times[start_idt : start_idt + file_times.shape[0]] = file_times
+                try:
+                    self._times[start_idt : start_idt + file_times.shape[0]] = file_times
+                except ValueError as err:
+                    if 'could not broadcast input array from shape' in str(err):
+                        raise ValueError(
+                            f'The imager tried to load more images than expected. This is likely '
+                            f'due to an inconsistent number of time stamps in the image files. To'
+                            f' confirm, here are the unique image files shapes: '
+                            f'{set(self._file_times_shapes)}. There should be only one unique shape.'
+                        ) from err
                 self._images[start_idt : start_idt + file_times.shape[0]] = file_images
                 start_idt += file_times.shape[0]
             # Remove any unfilled times and images

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.27.1] - unpublished
+
+### Added
+- A check to ensure that the number of time stamps in each image file is consistent. If they are not, numpy will raises a ValueError which `asilib.Imager.get_data()` now catches.
+
 ## [0.27.0] - 2025-10-04
 
 ### Added
