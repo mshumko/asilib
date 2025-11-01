@@ -289,25 +289,25 @@ if __name__ == '__main__':
                 ):
                 _channel_idx = gps_data[key]['energy_channel_idx'] 
                 _flux = gps_data[key]['electron_diff_flux'][dt_idt_flux, _channel_idx]
-                # scat = gps_locs.append(ax.scatter(
-                #     data['footprint_lon'][dt_idt],
-                #     data['footprint_lat'][dt_idt],
-                #     1_500,
-                #     c=_flux,
-                #     cmap=marker_cmap,
-                #     norm=matplotlib.colors.LogNorm(*flux_color_bounds),
-                #     marker=getmarker('satellite'),  # use snowflake for POES
-                #     edgecolors="none",
-                #     transform=cartopy.crs.PlateCarree(),
-                #     ))
-                # gps_labels.append(ax.text(
-                #     data['footprint_lon'][dt_idt]+1, 
-                #     data['footprint_lat'][dt_idt],
-                #     key,
-                #     fontsize=30,
-                #     color='orange',
-                #     transform=cartopy.crs.PlateCarree()
-                # ))
+                scat = gps_locs.append(ax.scatter(
+                    data['footprint_lon'][dt_idt],
+                    data['footprint_lat'][dt_idt],
+                    1_500,
+                    c=_flux,
+                    cmap=marker_cmap,
+                    norm=matplotlib.colors.LogNorm(*flux_color_bounds),
+                    marker=getmarker('satellite'),  # use snowflake for POES
+                    edgecolors="none",
+                    transform=cartopy.crs.PlateCarree(),
+                    ))
+                gps_labels.append(ax.text(
+                    data['footprint_lon'][dt_idt]+1, 
+                    data['footprint_lat'][dt_idt],
+                    key,
+                    fontsize=30,
+                    color='orange',
+                    transform=cartopy.crs.PlateCarree()
+                ))
         
         if i == 0:
             if gps_data[key].attrs['electron_diff_flux']['UNITS'] == 'cm^-2sec^-1sr^-1MeV^-1':
