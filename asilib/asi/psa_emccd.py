@@ -66,6 +66,37 @@ def psa_emccd(
     -------
     :py:meth:`~asilib.imager.Imager`
         A PSA Project ASI instance with the time stamps, images, skymaps, and metadata.
+
+    Examples
+    --------
+    >>> from asilib.asi import psa_emccd
+    >>> # https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi?year=2017&month=03&day=07&jump=Plot
+    >>> asi = psa_emccd(
+    >>>    'C1', 
+    >>>    time=datetime(2017, 3, 7, 19, 35, 0),
+    >>>    redownload=False
+    >>>    )
+    >>> _, ax = plt.subplots(figsize=(8, 8))
+    >>> ax.xaxis.set_visible(False)
+    >>> ax.yaxis.set_visible(False)
+    >>> plt.tight_layout()
+    >>> # The origin kwarg is to shift the origin of the cardinal direction.
+    >>> asi.plot_fisheye(ax=ax, origin=(0.9, 0.1))
+    >>> plt.show()
+
+    >>> # Note that this example will take a while to download data and run.
+    >>> from asilib.asi import psa_emccd
+    >>> # https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi?year=2017&month=03&day=07&jump=Plot
+    >>> asi = psa_emccd(
+    >>>    'C1',
+    >>>    time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
+    >>>    redownload=False
+    >>>    )
+    >>> _, ax = plt.subplots(figsize=(8, 8))
+    >>> ax.xaxis.set_visible(False)
+    >>> ax.yaxis.set_visible(False)
+    >>> plt.tight_layout()
+    >>> asi.animate_fisheye(ax=ax, ffmpeg_params={'framerate':1_000}, origin=(0.9, 0.1))
     """
     location_code = _verify_location(location_code)
 
@@ -123,7 +154,7 @@ def psa_emccd(
         # 'lat': float(_skymap['SITE_MAP_LATITUDE']),
         # 'lon': float(_skymap['SITE_MAP_LONGITUDE']),
         # 'alt': float(_skymap['SITE_MAP_ALTITUDE']) / 1e3,
-        'cadence': 1/100,
+        'cadence': 1/_fps(file_info['path'][0]),
         'resolution':(255, 255),
         }
     plot_settings={
@@ -377,7 +408,6 @@ def _get_raw_files(
                         raise
             return file_paths
 
-
 def _download_one_raw_file(
     location_code: str,
     time: datetime,
@@ -414,12 +444,9 @@ def _download_one_raw_file(
     # Search that directory for the file and download it.
     return matched_downloaders[0].download(save_dir, redownload=redownload, stream=True)
 
-
-def _load_image_file(path):
+def _fps(path):
     """
-    Translated from IDL with the help of ChatGPT.
-
-    https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/soft/psa_routines.pro
+    Determine the frames per second of the PSA EMCCD camera from the filename.
     """
     path = pathlib.Path(path)
     m = re.search(r'C(\d)_(\d{8})_(\d{4})', path.name)
@@ -437,7 +464,15 @@ def _load_image_file(path):
         fps = 100
     else:
         fps = 10
+    return fps
 
+def _load_image_file(path):
+    """
+    Translated from IDL with the help of ChatGPT.
+
+    https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/soft/psa_routines.pro
+    """
+    fps = _fps(path)
     img_i = 0
     time_i = 0
     number_of_images = 60 * fps
@@ -553,9 +588,12 @@ if __name__ == '__main__':
     # https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi?year=2017&month=03&day=07&jump=Plot
     asi = psa_emccd(
         'C1', 
-        time=datetime(2017, 3, 7, 19, 35, 0),
-        # time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
+        # time=datetime(2017, 3, 7, 19, 35, 0),
+        time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
         redownload=False
         )
-    asi.plot_fisheye()
-    plt.show()
+    _, ax = plt.subplots(figsize=(8, 8))
+    ax.xaxis.set_visible(False)
+    ax.yaxis.set_visible(False)
+    plt.tight_layout()
+    asi.animate_fisheye(ax=ax, ffmpeg_params={'framerate':1_000}, origin=(0.9, 0.1))

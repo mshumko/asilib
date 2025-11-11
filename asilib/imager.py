@@ -412,7 +412,7 @@ class Imager:
             if azel_contours:
                 self._add_azel_contours(ax, color=azel_contour_color)
             if cardinal_directions is not None:
-                self._add_cardinal_directions(ax, cardinal_directions)
+                self._add_cardinal_directions(ax, cardinal_directions, origin=origin)
 
             # Give the user the control of the subplot, image object, and return the image time
             # so that they can manipulate the image to add, for example, the satellite track.
