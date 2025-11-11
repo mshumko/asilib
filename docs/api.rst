@@ -28,6 +28,7 @@ ASI arrays
 Time History of Events and Macroscale Interactions during Substorms (THEMIS)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automodule:: asilib.asi
+   :no-index:
    :members: themis, themis_info, themis_skymap
    :undoc-members:
    :show-inheritance:
@@ -37,6 +38,7 @@ Time History of Events and Macroscale Interactions during Substorms (THEMIS)
 Red-line Emission Geospace Observatory (REGO)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automodule:: asilib.asi
+   :no-index:
    :members: rego, rego_info, rego_skymap
    :undoc-members:
    :show-inheritance:
@@ -46,6 +48,7 @@ Red-line Emission Geospace Observatory (REGO)
 Transition Region Explorer (TREx)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automodule:: asilib.asi
+   :no-index:
    :members: trex_rgb, trex_rgb_info, trex_rgb_skymap, trex_nir, trex_nir_skymap, trex_nir_info
    :undoc-members:
    :show-inheritance:
@@ -64,6 +67,7 @@ The Pulsating aurora (PsA) project
 Mid-latitude All-sky-imaging Network for Geophysical Observations (MANGO)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automodule:: asilib.asi
+   :no-index:
    :members: mango, mango_info
    :undoc-members:
    :show-inheritance:

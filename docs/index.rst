@@ -9,12 +9,6 @@
 
 asilib is an open source package providing data access and analysis tools for the world's all-sky imager (ASI) data.
 
-.. note::
-  The asilib code on PyPI moved from `aurora-asi-lib <https://pypi.org/project/aurora-asi-lib/>`_ to `asilib <https://pypi.org/project/asilib/>`_. To update to version >=0.22.0, run
-
-  #. `python3 -m pip uninstall aurora-asi-lib` and
-  #. `python3 -m pip install asilib`.
-
 The purpose of this project is to combine data from numerous observational ASI arrays into a single unified framework and is thus not associated with the development and operations of all sky cameras, or the curation of ASI datasets. All data is publicly available and is provided as-is. Please give appropriate credit and coordinate with instrument teams with regards to data issues and/or interpretation. See the :ref:`acknowledgements` section for more information.
 
 Supported ASI arrays
