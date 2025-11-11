@@ -1616,6 +1616,7 @@ class Imager:
             va='bottom',
             transform=ax.transAxes,
             color='white',
+            fontsize=self.plot_settings.get('label_fontsize', None)
         )
         return
 
@@ -1646,12 +1647,13 @@ class Imager:
             ax.annotate(
                 direction,
                 xy=origin,
-                xytext=(origin[0] + run * norm, origin[1] + rise * norm),  # trig
+                xytext=(origin[0] + run * norm, origin[1] + rise * norm),
                 arrowprops={'arrowstyle': "<-", 'color': 'w'},
                 xycoords='axes fraction',
                 color='w',
                 ha='center',
                 va='center',
+                fontsize=self.plot_settings.get('label_fontsize', None)
             )
         return
 

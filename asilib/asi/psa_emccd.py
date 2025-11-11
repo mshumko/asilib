@@ -158,7 +158,8 @@ def psa_emccd(
         'resolution':(255, 255),
         }
     plot_settings={
-        'color_bounds':(2_000, 3_000)  # or can try (2_000, 3_000)
+        'color_bounds':(2_000, 3_000),  # or can try (2_000, 3_000)
+        'label_fontsize': 20,
     }
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
