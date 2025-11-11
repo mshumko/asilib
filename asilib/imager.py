@@ -34,10 +34,11 @@ try:
     import cartopy.mpl.geoaxes
 
     cartopy_imported = True
-except ImportError as err:
-    # You can also get a ModuleNotFoundError if cartopy is not installed
-    # (as compared to failed to import), but it is a subclass of ImportError.
+except (ImportError, AssertionError) as err:
     cartopy_imported = False
+    
+    if isinstance(err, AssertionError):
+        warnings.warn(f'Cartopy not imported due to an AssertionError: {err}.')
 
 import asilib
 import asilib.map

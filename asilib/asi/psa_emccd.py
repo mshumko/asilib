@@ -11,7 +11,6 @@ import re
 
 import numpy as np
 import pandas as pd
-import scipy.io
 import matplotlib.pyplot as plt
 
 import asilib
@@ -128,7 +127,7 @@ def psa_emccd(
         'resolution':(255, 255),
         }
     plot_settings={
-        'color_bounds':(2_000, 2_500)
+        'color_bounds':(2_000, 3_000)  # or can try (2_000, 3_000)
     }
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
@@ -257,10 +256,11 @@ def _load_skymap(valid_skymap_paths, alt):
             lon_skymap_path = valid_skymap_path
 
     # TODO: Verify that the altitude is available.
-    az_skymap = np.genfromtxt(az_skymap_path)
-    el_skymap = np.genfromtxt(el_skymap_path)
-    lat_skymap = np.genfromtxt(lat_skymap_path)
-    lon_skymap = np.genfromtxt(lon_skymap_path)
+    # The [::-1, :] flips the skymap vertically so north is up.
+    az_skymap = np.genfromtxt(az_skymap_path)[::-1, :]
+    el_skymap = np.genfromtxt(el_skymap_path)[::-1, :]
+    lat_skymap = np.genfromtxt(lat_skymap_path)[::-1, :]
+    lon_skymap = np.genfromtxt(lon_skymap_path)[::-1, :]
     lat_skymap[lat_skymap == -999] = np.nan
     lon_skymap[lon_skymap == -999] = np.nan
     return {'az':az_skymap, 'el':el_skymap, 'lat':lat_skymap, 'lon':lon_skymap, 'alt':alt}
@@ -421,24 +421,61 @@ def _load_image_file(path):
 
     https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/soft/psa_routines.pro
     """
-    n = 0
-    n_max = 200 # TODO: Calc this from the cadence.
+    path = pathlib.Path(path)
+    m = re.search(r'C(\d)_(\d{8})_(\d{4})', path.name)
+    if m is None:
+        raise ValueError(f"Cannot parse camera/date from filename: {path.name}")
+    camid = int(m.group(1))
+    date_str = m.group(2)
+
+    date_long = int(date_str)
+    if camid == 1:
+        fps = 10
+        if date_long >= 20170126:
+            fps = 100
+    elif camid in (2, 6, 7):
+        fps = 100
+    else:
+        fps = 10
+
+    img_i = 0
+    time_i = 0
+    number_of_images = 60 * fps
+
+    raw_images = np.full((number_of_images, 256, 256), 0, dtype=np.uint16)
+    raw_times = np.full((number_of_images,), np.nan, dtype=object)
+
     with bz2.BZ2File(path, 'rb') as f:
-        while n < n_max:
+        while f:
             _data_block = ebireaded_ym(f)
-            if _data_block[0] == 2000:
+            if _data_block is None:
+                break  # EOF
+            elif _data_block[0] == 2000:
                 # Image data
-                _image = _data_block[4]
-                # plt.imshow(_image, vmin=2000, vmax=2700); plt.show()
+                raw_images[img_i, ...] = _data_block[4]
+                img_i+=1
             elif _data_block[0] == 1001:
                 # Pixel Resolution
                 x, y = _data_block[1], _data_block[2]
                 assert x==y==256, f'The image dimensions should be 256x256 but got {x} and {y}.'
             elif _data_block[0] == 1002:
                 # timestamp
-                _time = _data_block[3]
-            n+=1
-    return
+                _time_raw_str = _data_block[3]
+                time_chunks = _time_raw_str.split('_')
+                if len(time_chunks) == 5:
+                    # New style of datetimes
+                    raw_times[time_i] = datetime.strptime(
+                        f'{time_chunks[1]}_{time_chunks[2]}_{time_chunks[3]}',
+                        '%Y%m%d_%H%M%S_%f'
+                        )
+                    time_i+=1
+                else:
+                    raise NotImplementedError(
+                        f"Please submit a GitHub Issue about the old timestamp "
+                        f"format hasn't been implemneted yet: {_time_raw_str}."
+                        )
+                # i+=1  # Only increment i when we get a full image + timestamp.
+    return raw_times, raw_images[:, ::-1, :]
 
 def ebireaded_ym(f):
     """
@@ -516,8 +553,9 @@ if __name__ == '__main__':
     # https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi?year=2017&month=03&day=07&jump=Plot
     asi = psa_emccd(
         'C1', 
-        # time=datetime(2017, 3, 7, 19, 35, 0),
-        time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
+        time=datetime(2017, 3, 7, 19, 35, 0),
+        # time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
         redownload=False
         )
     asi.plot_fisheye()
+    plt.show()
