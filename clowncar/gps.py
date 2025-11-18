@@ -1,18 +1,18 @@
 """
-Download, load, and plot the GPS CXR data from LANL. See the 
+Download, load, and plot the GPS CXR data from LANL for clowncar. See the 
 `README <https://www.ngdc.noaa.gov/stp/space-weather/satellite-data/satellite-systems/lanl_gps/version_v1.10/gps_readme_v1.10.pdf>`_ for more information.
 """
 from __future__ import annotations  # to support the -> List[Downloader] return type
 import json
 import calendar
-import itertools
 from typing import List
 import pathlib
 import urllib
-import re
+import IRBEM
 import warnings
 from datetime import timedelta, datetime, date
 
+import cartopy.crs
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -21,6 +21,8 @@ import astropy.time
 
 import asilib
 import asilib.download as download
+
+R_E = 6378.137  # km
 
 gps_url = "https://www.ngdc.noaa.gov/stp/space-weather/satellite-data/satellite-systems/lanl_gps/"
 download_dir = asilib.ASI_DATA_DIR / 'gps'
@@ -89,12 +91,13 @@ class GPS:
     >>> plt.legend()
     >>> plt.show()
     """
-    def __init__(self, time_range:List[datetime], sc_ids=None, version='1.10', redownload=False, clip_date=True):
+    def __init__(self, time_range:List[datetime], sc_ids=None, version='1.10', redownload=False, clip_date=True, verbose=False):
         self.time_range = time_range
         self.sc_ids = sc_ids
         self.version = version
         self.redownload = redownload
         self.clip_date = clip_date
+        self.verbose = verbose
         self.data = self._find_data()
         self.sc_id_0 = list(self.data.keys())[0]
         self.keys = self.data[self.sc_id_0].keys()
@@ -102,6 +105,155 @@ class GPS:
         self.energies = self.data[self.sc_id_0]['electron_diff_flux_energy'][-1, :]
         self.l_keys = [key for key in self.keys if 'L_' in key]
         return
+    
+    def gps_footprint(self, alt=110, hemi_flag=0):
+        """
+        Compute magnetic footprint (lat, lon, alt) for an already-interpolated gps_dict.
+        Add the footprint_lat, footprint_lon, and footprint_alt keys to gps_dict.
+
+        Parameters
+        ----------
+        alt : float
+            Altitude (in km) at which to compute the magnetic footprint.
+        hemi_flag : int
+            Hemisphere flag for IRBEM MagFields.find_foot_point method. The valid options are:
+            0 - Same magnetic hemisphere as starting point
+            1 - northern magnetic hemisphere
+            -1 - southern magnetic hemisphere
+            2 - opposite magnetic hemisphere from starting point.
+        """        
+        if not hasattr(self, 'mag_model'):
+            # Initialize the magnetic field model.
+            # This is a global variable so that it can be reused in multiple calls.
+            self.mag_model = IRBEM.MagFields(kext='None')
+
+        for sc_key in list(self.data.keys()):
+            if self.verbose:
+                print(f'Calculating footprints for GPS SC ID: {sc_key}...', end='\r')
+            if 'interpolated_times' not in self.data[self.sc_id_0]:
+                _times = self.data[sc_key]['time']
+                n = len(_times)                
+            else:
+                _times = self.data[sc_key]['interpolated_times']
+                n = len(_times)
+
+            _all = np.zeros((n, 3), dtype=float)
+            time_loc = pd.DataFrame(data={
+                'time':_times, 
+                'x1':(self.data[sc_key]['Rad_Re']-1)*R_E,
+                'x2':self.data[sc_key]['Geographic_Latitude'], 
+                'x3':self.data[sc_key]['Geographic_Longitude'],
+                })
+            
+            # For running the T89 model.
+            # kp = _get_kp(gps_dict[sc_key]['interpolated_times'])
+            
+            z = zip(time_loc['time'], time_loc['x1'], time_loc['x2'], time_loc['x3'])
+            for i, (time, x1, x2, x3) in enumerate(z):
+                X = {'Time':time, 'x1':x1, 'x2':x2, 'x3':x3}
+                _all[i, :] = self.mag_model.find_foot_point(X, {}, alt, hemi_flag)['XFOOT']
+
+            _all[_all == -1E31] = np.nan
+            # Convert from (alt, lat, lon) to (lat, lon, alt)
+            lla = np.roll(_all, shift=-1, axis=1)
+
+            self.data[sc_key]['footprint_lat'] = lla[:, 0]
+            self.data[sc_key]['footprint_lon'] = lla[:, 1]
+            self.data[sc_key]['footprint_alt'] = lla[:, 2]
+        return self.data
+    
+    def interpolate_gps_loc(self, freq='3s'):
+        interp_times = pd.date_range(*self.time_range, freq=freq)
+        interp_times_numeric = matplotlib.dates.date2num(interp_times)
+
+        for sc_key in self.data:
+            if self.verbose:
+                print(f'Interpolating GPS SC ID: {sc_key} posiiton...', end='\r')
+            # Jumps across the anti-meridian or poles.
+            lon_jumps = np.where(np.abs(np.diff(self.data[sc_key]['Geographic_Longitude'])) > 5)[0]
+            lon_jump_start_times = self.data[sc_key]['time'][lon_jumps]
+            lon_jump_end_times = self.data[sc_key]['time'][lon_jumps+1]
+
+            self.data[sc_key]['interpolated_times'] = interp_times
+
+            interpolated_jump_indices = np.array([], dtype=int)
+            for start_time, end_time in zip(lon_jump_start_times, lon_jump_end_times):
+                idt = np.where(
+                    (self.data[sc_key]['interpolated_times'] >= start_time) &
+                    (self.data[sc_key]['interpolated_times'] <= end_time)
+                    )[0]
+                interpolated_jump_indices = np.concatenate((interpolated_jump_indices, idt))
+            for llr_key in ['Geographic_Latitude', 'Geographic_Longitude', 'Rad_Re']:
+                self.data[sc_key][llr_key] = np.interp(
+                    interp_times_numeric,
+                    matplotlib.dates.date2num(self.data[sc_key]['time']),
+                    self.data[sc_key][llr_key],
+                    left=np.nan,
+                    right=np.nan,
+                )
+                if interpolated_jump_indices.shape[0] > 0:
+                    self.data[sc_key][llr_key][interpolated_jump_indices] = np.nan
+        return self.data
+
+    def __call__(self, time, ax=None, time_tol_min=4):
+        """
+        This is the method that talks to Clowncar. This method returns the GPS data within time_tol 
+        of the input time. If ax is provided, it will also remove GPS units from self.data that are 
+        not in the subplot FOV.
+        """
+        gps_data = {}
+
+        for sc_key in self.data:
+            if 'interpolated_time' in self.data[self.sc_id_0]:
+                _time_key = 'interpolated_time'
+                min_idx = np.argmin(np.abs(
+                    matplotlib.dates.date2num(self.data[sc_key]['interpolated_time']) - matplotlib.dates.date2num(time)
+                ))
+            else:
+                _time_key = 'time'
+                min_idx = np.argmin(np.abs(
+                    matplotlib.dates.date2num(self.data[sc_key]['time']) - matplotlib.dates.date2num(time)
+                ))
+            if np.abs((self.data[sc_key][_time_key][min_idx] - time).total_seconds()) > 60*time_tol_min:
+                continue
+            gps_data[sc_key] = {}
+            for key in [_time_key, 'Geographic_Latitude', 'Geographic_Longitude', 'Rad_Re']:
+                gps_data[sc_key][key] = self.data[sc_key][key][min_idx]
+
+            if 'footprint_lat' in self.data[self.sc_id_0]:
+                for key in ['footprint_lat', 'footprint_lon', 'footprint_alt']:
+                    gps_data[sc_key][key] = self.data[sc_key][key][min_idx]
+
+
+            # We are currently not interpolating fluxes, so only use the non-interpolated time.
+            min_idx = np.argmin(np.abs(
+                matplotlib.dates.date2num(self.data[sc_key]['time']) - matplotlib.dates.date2num(time)
+            ))
+            gps_data[sc_key]['electron_diff_flux'] = self.data[sc_key]['electron_diff_flux'][min_idx, :]
+
+        if ax is not None:
+            if 'footprint_lat' not in self.data[self.sc_id_0]:
+                raise ValueError(
+                    "GPS footprint data not found. Please run the gps_footprint() method "
+                    "before calling this method with an ax argument."
+                )
+            ax_extent = ax.get_extent(crs=cartopy.crs.PlateCarree())
+
+            gps_units_not_in_view = []
+            for sc_key, data in gps_data.items():
+                idx = np.where(
+                    (ax_extent[0] < data['footprint_lon']) &
+                    (data['footprint_lon'] < ax_extent[1]) &
+                    (ax_extent[2] < data['footprint_lat']) & 
+                    (data['footprint_lat'] < ax_extent[3])
+                )[0]
+                if idx.shape[0] == 0:
+                    gps_units_not_in_view.append(sc_key)
+
+            for sc_key in gps_units_not_in_view:
+                gps_data.pop(sc_key)
+            
+        return gps_data
 
     def plot_avg_flux(
             self, 
@@ -484,21 +636,25 @@ if __name__ == "__main__":
     from datetime import timedelta, datetime
     import matplotlib.ticker
 
-    time_range = (datetime(2007, 2, 10), datetime(2007, 2, 17))
-    vline_times = (datetime(2007, 2, 13, 12), datetime(2007, 2, 14, 13))
+    time_range = (datetime(2021, 11, 4, 6, 30), datetime(2021, 11, 4, 7, 30))
+    # vline_times = (datetime(2007, 2, 13, 12), datetime(2007, 2, 14, 13))
     L_range = [4.25, 4.75]
     dt_min=60*3
     # file_paths, spacecraft_ids = download_gps(date, version='1.10', redownload=False)
-    _gps = GPS(time_range, version='1.10', redownload=False)
-    ax = _gps.plot_avg_flux(
-        energies=(0.12, 0.3, 0.6, 1.0, 2.0), 
-        L_range=L_range, 
-        dt_min=dt_min, 
-        min_samples=5
-        )
-    ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=5))
-    if vline_times is not None:
-        for vline_time in vline_times:
-            ax.axvline(vline_time, c='k', ls=':')
-    plt.legend()
-    plt.show()
+    _gps = GPS(time_range, version='1.10', redownload=False, verbose=True)
+    _gps.interpolate_gps_loc(freq='3s')
+    _gps.gps_footprint(alt=110, hemi_flag=0)
+    print(_gps(time_range[0])['ns74'])
+
+    # ax = _gps.plot_avg_flux(
+    #     energies=(0.12, 0.3, 0.6, 1.0, 2.0), 
+    #     L_range=L_range, 
+    #     dt_min=dt_min, 
+    #     min_samples=5
+    #     )
+    # ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=5))
+    # if vline_times is not None:
+    #     for vline_time in vline_times:
+    #         ax.axvline(vline_time, c='k', ls=':')
+    # plt.legend()
+    # plt.show()
