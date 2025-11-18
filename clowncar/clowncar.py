@@ -35,8 +35,10 @@ class Clowncar:
             self._init_map(ax_kwargs)
         return
     
-    def _init_map(self, fig, ax_kwargs, aacgm_grid=True):
+    def _init_map(self, ax_kwargs):
 
+        center = ax_kwargs.get('center', (-100, 54))
+        
         projection = cartopy.crs.NearsidePerspective(
             central_longitude=center[0], 
             central_latitude=center[1], 
@@ -62,7 +64,7 @@ class Clowncar:
             else:
                 _time = self.asi.imagers[0].file_info['time']
         alt = ax_kwargs.get('alt_km', 110)
-        if aacgm_grid:
+        if ax_kwargs.get('aacgm_grid', True):
             self._plot_aacgm_grid(ax, time=_time, alt=alt)
         return
 
