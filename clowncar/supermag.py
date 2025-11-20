@@ -34,6 +34,7 @@ if importlib.util.find_spec("certifi") is not None:
 
 # Sandy's important comment: pd Dataframes are awesome! To manipulate, just pull out what you need.
 import pandas as pd
+import numpy as np
 import requests
 import matplotlib.pyplot as plt
 import matplotlib.ticker
@@ -57,6 +58,8 @@ class SuperMAG():
         Download and return SuperMAG magnetometer data for a given station.
     indices(query_parameters)
         Download the SuperMAG indices data.
+    locations()
+        Download a list of SuperMAG magnetometer locations (lat, lon) for given station codes.
 
     Attributes
     ----------
@@ -66,8 +69,6 @@ class SuperMAG():
         A list containing the start and end times for the data request.
     api_url: str
         The last API URL used to fetch data.
-    
-    
     """
     def __init__(self, userid, time_range):
         self.userid = userid
@@ -95,12 +96,8 @@ class SuperMAG():
         >>> time_range = ['2022-11-04T06:40','2022-11-04T07:20']
         >>> sm = clowncar.SuperMAG(userid, time_range)
         >>> print(sm.location_codes())
-        """
-
-        # construct URL             
+        """          
         urlstr = self._base_url('inventory.php')
-
-        # get the string array of stations
         stations = self._get_url_data(urlstr,'raw')
 
         # first data item is how many stations were found
@@ -110,6 +107,85 @@ class SuperMAG():
         else: 
             return []
 
+    def locations(self, location_codes=()):
+        """
+        Download a list of SuperMAG magnetometer locations (lat, lon) for given station codes.
+
+        Parameters
+        ----------
+        stations : tuple of str
+            A list of SuperMAG magnetometer location code names. If empty, find locations
+            for all avaiable mags.
+
+        Returns
+        -------
+        location_codes : pandas.DataFrame
+            A DataFrame containing the station codes and their corresponding latitudes and longitudes.
+
+        Example
+        -------
+        # Plot the locations of all available SuperMAG magnetometers for a given time range on 
+        # a geographic map.
+        >>> import cartopy.crs as ccrs
+        >>> import cartopy.feature as cfeature
+        >>> import matplotlib.pyplot as plt
+        >>> 
+        >>> import clowncar
+        >>> 
+        >>> userid=input("Enter your SuperMAG userid: ")
+        >>> sm = clowncar.SuperMAG(userid, ['2022-11-04T06:40','2022-11-04T07:20'])
+        >>> locations = sm.locations()
+        >>> print(locations.head()) 
+                latitude  longitude
+        AAA  43.250000  76.919998
+        ABG  18.620001  72.870003
+        AIA -65.245003 -64.257996
+        AND  69.300003  16.030001
+        ARS  56.432999  58.567001
+        >>> 
+        >>> # Let's plot the locations on a geographic map.
+        >>> projection = ccrs.PlateCarree()
+        >>> fig = plt.figure(figsize=(9, 5))
+        >>> ax = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())
+        >>> ax.add_feature(cfeature.LAND, color='g')
+        >>> ax.add_feature(cfeature.OCEAN, color='w')
+        >>> ax.add_feature(cfeature.COASTLINE, edgecolor='k')
+        >>> ax.scatter(
+        >>>     locations['longitude'], 
+        >>>     locations['latitude'], 
+        >>>     color='red', 
+        >>>     s=10, 
+        >>>     transform=ccrs.PlateCarree()
+        >>>     )
+        >>> plt.tight_layout()
+        >>> plt.show()
+        """
+        if len(location_codes) == 0:
+            location_codes = self.location_codes()
+
+        coords = np.zeros((len(location_codes),2))
+
+        for i, location_code in enumerate(location_codes):
+            assert isinstance(location_code, str), (
+                f'{location_code=} is an invalid SuperMAG location_code.'
+                )
+            try:
+                df = self.mag_data(location_code, query_parameters='all')
+                coords[i,0] = df['glat'].iloc[0]
+                coords[i,1] = df['glon'].iloc[1]
+            except (KeyError, ValueError) as err:
+                if ('tval' in str(err)) or ('no data for the time range' in str(err)):
+                    continue
+                else:
+                    raise
+        valid_idx = np.where((coords[:,0] != 0) & (coords[:,1] != 0))[0]
+        coords[:, 1] = np.mod(coords[:, 1] + 180, 360) - 180  # Convert longitudes to -180 to 180 range
+        df = pd.DataFrame(
+            index=np.array(location_codes)[valid_idx], 
+            data=coords[valid_idx, :], 
+            columns=['latitude', 'longitude']
+            )
+        return df
 
     def indices(self, query_parameters=''):
         """
@@ -207,7 +283,16 @@ class SuperMAG():
         data_list = self._get_url_data(urlstr,'json')
 
         data_df = pd.DataFrame(data_list)
-        data_df.index = pd.to_datetime(data_df['tval'],unit='s')
+        try:
+            data_df.index = pd.to_datetime(data_df['tval'],unit='s')
+        except KeyError as err:
+            if 'tval' in str(err):
+                raise ValueError(
+                    f'The station "{station}" has no data for the time range '
+                    f'from {self.time_range[0]} to {self.time_range[1]}.'
+                    ) from err
+            else:
+                raise
         data_df.drop(columns=['tval'],inplace=True)
         data_df = self._flatten_nested_columns(data_df)
         return data_df
