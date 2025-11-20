@@ -25,8 +25,6 @@
 # INCLUDING, BUT NOT LIMITED TO, ANY DAMAGES FOR LOST PROFITS. 
 
 import json
-import re
-import datetime
 import dateutil.parser
 import importlib
 # the 'certifi' library is required at APL and other sites that require SSL certs for web fetches.
@@ -91,11 +89,11 @@ class SuperMAG():
 
         Example
         -------
-        >>> import supermag
+        >>> import clowncar
         >>> 
         >>> userid=input("Enter your SuperMAG userid: ")
         >>> time_range = ['2022-11-04T06:40','2022-11-04T07:20']
-        >>> sm = supermag.SuperMAG(userid, time_range)
+        >>> sm = clowncar.SuperMAG(userid, time_range)
         >>> print(sm.location_codes())
         """
 
@@ -127,12 +125,12 @@ class SuperMAG():
         Example
         -------
         >>> import matplotlib.pyplot as plt
-        >>> import supermag
+        >>> import clowncar
         >>>
         >>> userid=input("Enter your SuperMAG userid: ")
         >>> time_range = ['2022-11-03T00:00','2022-11-05T00:00']
         >>> 
-        >>> sm = supermag.SuperMAG(userid, time_range)
+        >>> sm = clowncar.SuperMAG(userid, time_range)
         >>> indices = sm.indices('sml,smr,baseline=yearly')
         >>> print(indices.keys())  # Index(['SML', 'smr'], dtype='object')
         >>> 
@@ -148,7 +146,7 @@ class SuperMAG():
         >>>     xlabel='Time',
         >>>     )
         >>> 
-        >>> supermag.format_time_axis(ax[-1])
+        >>> clowncar.supermag.format_time_axis(ax[-1])
         >>> plt.tight_layout()
         >>> plt.show()
         """
@@ -183,6 +181,23 @@ class SuperMAG():
         -------
         data_df : pandas.DataFrame
             A DataFrame containing the magnetometer data from the specified station.
+
+        Example
+        -------
+        >>> import clowncar
+        >>> userid=input("Enter your SuperMAG userid: ")
+        Enter your SuperMAG userid: ...
+        >>> time_range = ['2022-11-04T06:40','2022-11-04T07:20']
+        >>> sm = clowncar.SuperMAG(userid, time_range)
+        >>> df = sm.mag_data('HBK')
+        >>> df.head()
+                            ext iaga      mag_n      mag_e     mag_z      geo_n      geo_e     geo_z
+        tval                                                                                          
+        2022-11-04 06:40:00  60.0  HBK -20.106401  25.399405 -2.382750 -10.571674  30.620856 -2.382750
+        2022-11-04 06:41:00  60.0  HBK -19.933125  24.740351 -1.831235 -10.626166  29.941593 -1.831235
+        2022-11-04 06:42:00  60.0  HBK -19.469585  24.020023 -1.568676 -10.427026  29.108477 -1.568676
+        2022-11-04 06:43:00  60.0  HBK -18.896301  23.956665 -1.867642  -9.906982  28.859032 -1.867642
+        2022-11-04 06:44:00  60.0  HBK -18.863857  23.847208 -1.805935  -9.912575  28.745005 -1.805935
         """        
         urlstr = self._base_url('data-api.php')
         indices = self._sm_keycheck_data(query_parameters)
@@ -194,6 +209,7 @@ class SuperMAG():
         data_df = pd.DataFrame(data_list)
         data_df.index = pd.to_datetime(data_df['tval'],unit='s')
         data_df.drop(columns=['tval'],inplace=True)
+        data_df = self._flatten_nested_columns(data_df)
         return data_df
     
     def _get_start_extent(self):
@@ -201,7 +217,6 @@ class SuperMAG():
         extent = (self.time_range[1] - self.time_range[0]).total_seconds()
         return self.time_range[0].strftime("%Y-%m-%dT%H:%M"), int(extent)
     
-
     def _base_url(self, page):
         """
         Create the base URL for SuperMAG API calls.
@@ -309,9 +324,8 @@ class SuperMAG():
         # add them together
         myflags = indices + swi + imf
         # a little more cleaning for tidiness, removes extraneous commas
-        myflags = re.sub(',&','&',myflags)
-        myflags = re.sub(',$','',myflags)
-
+        myflags = myflags.replace(',&','&')  
+        myflags = myflags.replace(',$','')
         return(myflags)
 
     def _get_url_data(self, api_url,fetch='raw'):
@@ -353,6 +367,22 @@ class SuperMAG():
             raise ValueError(f'{fetch=} is not recognized, must be "raw" or "json".')
     
         return mydata
+    
+    def _flatten_nested_columns(self, df):
+        """
+        Flatten the columns with dictionary vector compoonents into separate columns.
+        """
+        for column in ['N', 'E', 'Z']:
+            df[f'mag_{column.lower()}'] = df[column].apply(lambda x: x['nez'])
+            df[f'geo_{column.lower()}'] = df[column].apply(lambda x: x['geo'])
+            df.drop(columns=[column], inplace=True)
+
+        # The above for-loop scrambles the column order, so we reorder them here.
+        other_keys = [column for column in df.columns if ('mag_' not in column) and ('geo_' not in column)]
+        mag_keys = [column for column in df.columns if ('mag_' in column)]
+        geo_keys = [column for column in df.columns if ('geo_' in column)]
+        return df[other_keys + mag_keys + geo_keys]
+
 
 def format_time_axis(ax):
     """
@@ -364,7 +394,7 @@ def format_time_axis(ax):
 
 def _format_xaxis(tick_val, tick_pos):
     """
-    The tick magic to include the date only on the first tick, and ticks at midnight.
+    The tick magic that is a matplotlib callback.
     """
     tick_time = matplotlib.dates.num2date(tick_val).replace(tzinfo=None)
     if (tick_pos==0) or ((tick_time.hour == 0) and (tick_time.minute == 0)):
@@ -372,153 +402,3 @@ def _format_xaxis(tick_val, tick_pos):
     else:
         ticks = tick_time.strftime('%H:%M')
     return ticks
-
-def _sm_grabme(dataf,key,subkey):
-    # syntactical sugar to grab nested subitems from a dataframe
-    data = dataf[key]
-    subdata = [temp[subkey] for temp in data]
-    return(subdata)
-    
-# Unlike IDL, which returns as Array or Struct,
-# we return as List (of dictionaries) or DataFrame
-
-def sm_microtest(choice,userid):
-    # 3 simple unit tests to verify the core fetches work
-    
-
-    start='2019-11-15T10:40'
-
-    if choice == 1 or choice == 4:
-        stations = supermag_location_codes(userid,start,3600)
-        print(stations)
-
-    if choice == 2 or choice == 4:
-        data = SuperMAGGetData(userid,start,3600,'all,delta=start,baseline=yearly','HBK')
-        print(data)
-        print(data.keys())
-        
-        tval=data.index
-        mlt=data.mlt
-        ### Python way
-        N_nez = [temp['nez'] for temp in data.N]
-        N_geo = [temp['geo'] for temp in data.N]
-        ### or, supermag helper shorthand way
-        N_nez = _sm_grabme(data,'N','nez')
-        N_geo = _sm_grabme(data,'N','geo')
-        #
-        plt.plot(tval,N_nez)
-        plt.plot(tval,N_geo)
-        plt.ylabel('N_geo vs N_nez')
-        plt.xlabel('date')
-        plt.show()
-
-    if choice == 3 or choice == 4:
-        idxdata = SuperMAGGetIndices(userid,start,3600,'swiall,density,darkall,regall,smes')
-
-        idxdata.keys()
-        tval=idxdata.index
-        hours=list(range(24))
-        y=idxdata.SMLr
-        for i in range(len(tval)-1):
-            plt.plot( hours, y[i] )
-            plt.ylabel('SMLr')
-            plt.xlabel('hour')
-            plt.title('SMLr variation by hour, for successive days')
-        plt.show()
-
-def supermag_testing(userid):
-
-    start='2019-11-15T10:40'
-
-    stations = supermag_location_codes(userid,start,3600)
-
-
-    # DATA fetches
-    # BARE CALL, dataframe returned
-    mydata1a = SuperMAGGetData(userid,start,3600,'','HBK')
-    mydata1a                # is 1440 rows x 6 columns dataframe
-    mydata1a.keys() # Index(['tval', 'ext', 'iaga', 'N', 'E', 'Z'], dtype='object')
-
-    # CALL with ALLINDICES, dataframe returned
-    mydata1a = SuperMAGGetData(userid,start,3600,'all','HBK')
-    mydata1a                # is 1440 rows x 12 columns dataframe
-    mydata1a.keys() # Index(['tval', 'ext', 'iaga', 'glon', 'glat', 'mlt', 'mcolat', 'decl', 'sza', 'N', 'E', 'Z'], dtype='object')
-
-    # BARE CALL, list returned
-    mydata1b = SuperMAGGetData(userid,start,3600,'','HBK',FORMAT='list')
-    len(mydata1b)    # is 1440 rows of dicts (key-value pairs)
-    mydata1b[0:1]    # {'tval': 1572726240.0, 'ext': 60.0, 'iaga': 'DOB', 'N': {'nez': -3.942651, 'geo': -5.964826}, 'E': {'nez': 4.492887, 'geo': 0.389075}, 'Z': {'nez': 7.608168, 'geo': 7.608168}}
-
-    # CALL with ALLINDICES, list returned
-    mydata1b = SuperMAGGetData(userid,start,3600,'all','HBK',FORMAT='list')
-    mydata1b                # is 1440 rows of dicts (key-value pairs)
-    mydata1b[0:1]    # {'tval': 1572726240.0, 'ext': 60.0, 'iaga': 'DOB', 'glon': 9.11, 'glat': 62.07, 'mlt': 21.694675, 'mcolat': 30.361519, 'decl': 3.067929, 'sza': 124.698227, 'N': {'nez': -3.942651, 'geo': -5.964826}, 'E': {'nez': 4.492887, 'geo': 0.389075}, 'Z': {'nez': 7.608168, 'geo': 7.608168}}
-    
-    ####################
-    # INDICES fetches
-    idxdata = SuperMAGGetIndices(userid,start,3600)
-    idxdata    # empty!
-
-    idxdata = SuperMAGGetIndices(userid,start,3600,'all,swiall,imfall')
-    idxdata    # 1440 rows x 77 columns dataframe
-    idxdata.keys() # Index(['tval', 'SME', 'SML', 'SMLmlat', 'SMLmlt', 'SMLglat', 'SMLglon', 'SMLstid', 'SMU', 'SMUmlat', 'SMUmlt', 'SMUglat', 'SMUglon', 'SMUstid', 'SMEnum', 'SMEs', 'SMLs', 'SMLsmlat', 'SMLsmlt', 'SMLsglat', 'SMLsglon', 'SMLsstid', 'SMUs', 'SMUsmlat', 'SMUsmlt', 'SMUsglat', 'SMUsglon', 'SMUsstid', 'SMEsnum', 'SMEd', 'SMLd', 'SMLdmlat', 'SMLdmlt', 'SMLdglat', 'SMLdglon', 'SMLdstid', 'SMUd', 'SMUdmlat', 'SMUdmlt', 'SMUdglat', 'SMUdglon', 'SMUdstid', 'SMEdnum', 'SMEr', 'SMLr', 'SMLrmlat', 'SMLrmlt', 'SMLrglat', 'SMLrglon', 'SMLrstid', 'SMUr', 'SMUrmlat', 'SMUrmlt', 'SMUrglat', 'SMUrglon', 'SMUrstid', 'SMErnum', 'smr', 'smr00', 'smr06', 'smr12', 'smr18', 'smrnum', 'smrnum00', 'smrnum06', 'smrnum12', 'smrnum18', 'bgse', 'bgsm', 'vgse', 'vgsm', 'clockgse', 'clockgsm', 'density', 'dynpres', 'epsilon', 'newell'], dtype='object')
-    #
-    # just INDICESALL = 67 columns, above 'tval' through 'smrnum18'
-    # just IMFALL = 5 columns, Index(['tval', 'bgse', 'bgsm', 'vgse', 'vgsm'], dtype='object')
-    # just SWIALL = 7 columns, Index(['tval', 'clockgse', 'clockgsm', 'density', 'dynpres', 'epsilon', 'newell'], dtype='object')
-    #
-    tval = idxdata.tval
-    density = idxdata.density
-    vgse = idxdata.vgse
-    # or all as 1 line of code
-    tval, density, vgse = idxdata.tval, idxdata.density, idxdata.vgse
-    # note that vgse is itself a dictionary of values for X/Y/Z, so you can get subitems from it like this
-    vgse_x = [d.get('X') for d in idxdata.vgse]
-
-    # to save the data, there are many formats.    Here is how to save as csv
-    idxdata.to_csv('mydata.csv')
-
-    # to read it back in later
-    mydata2b=pd.read_csv('mydata.csv',index_col=0) # you can read it into any variable name, we just used 'mydata2b' as an example
-    # now you can do all the above items again, with one exception: each line of the CVS file got split into a dict (key-value pairs) but items like 'vsge' are part of the pandas structure
-    # the 'd.get()' approach will _not_ work once read from csv
-    stationlist = mydata2b.SMLrstid # item is a pandas series (not python list)
-    print(stationlist[0]) # prints a list of stations as a string, but cannot easily access a single item because it is a pandas series
-    # so you can convert a pandas series to a list
-    stationlist2=sm_csvitem_to_list(mydata2b.SMLrstid) # goal is a list of stations
-    slist = stationlist2[0] # grabs a list of stations for row 0
-    s1 = stationlist2[0][0] # grabs the first station for row 0
-
-    vgse=sm_csvitem_to_dict(mydata2b.vgse) # goal is a dict of coords or other values
-    x = vgse[0]['X'] # grab just the 'X' value for the 1st row of data
-    vgse_x = [mydat['X'] for mydat in vgse] # grab all the 'X' values as a new list
-    vgse_xyz = [(mydat['X'],mydat['Y'],mydat['Z']) for mydat in vgse] # grab all 3
-
-    # We also offer a list format, for users who prefer to work in python lists
-    mydata2c = SuperMAGGetIndices(userid,start,3600,'all,swiall,imfall',FORMAT='list')
-    len(mydata2c)    # is 1440 rows of dicts (key-value pairs)
-    mydata2c[0:1] # {'tval': 1572726240.0, 'SME': 58.887299, 'SML': -27.709055, 'SMLmlat': 73.529922, 'SMLmlt': 23.321493, 'SMLglat': 76.510002, 'SMLglon': 25.01, 'SMLstid': 'HOP', 'SMU': 31.178246, 'SMUmlat': 74.702339, 'SMUmlt': 2.090216, 'SMUglat': 79.480003, 'SMUglon': 76.980003, 'SMUstid': 'VIZ', 'SMEnum': 118, 'SMEs': 34.451469, 'SMLs': -16.599854, 'SMLsmlat': 62.368008, 'SMLsmlt': 9.399416, 'SMLsglat': 62.299999, 'SMLsglon': 209.800003, 'SMLsstid': 'T39', 'SMUs': 17.851616, 'SMUsmlat': 73.989975, 'SMUsmlt': 18.228394, 'SMUsglat': 67.93, 'SMUsglon': 306.429993, 'SMUsstid': 'ATU', 'SMEsnum': 54, 'SMEd': 58.887299, 'SMLd': -27.709055, 'SMLdmlat': 73.529922, 'SMLdmlt': 23.321493, 'SMLdglat': 76.510002, 'SMLdglon': 25.01, 'SMLdstid': 'HOP', 'SMUd': 31.178246, 'SMUdmlat': 74.702339, 'SMUdmlt': 2.090216, 'SMUdglat': 79.480003, 'SMUdglon': 76.980003, 'SMUdstid': 'VIZ', 'SMEdnum': 64, 'SMEr': [29.685059, 29.857538, 31.387127, 41.707573, 10.320444, 10.885443, 9.604616, 13.479583, 15.471248, 15.471248, 15.714731, 5.434914, 12.13654, 11.156847, 9.62884, 14.752592, 14.752592, 24.204388, 21.41181, 21.41181, 27.121195, 46.345322, 51.403328, 51.403328], 'SMLr': [-27.709055, 1.320708, -0.208882, -10.529325, -10.529325, -10.529325, -9.248499, -13.123466, -16.599854, -16.599854, -16.599854, -5.449972, -5.449972, -4.470279, -2.942272, -6.352773, -6.352773, -6.352773, -3.560194, -3.560194, -7.514064, -22.651047, -27.709055, -27.709055], 'SMLrmlat': [73.529922, 51.264774, 47.791527, 66.696564, 66.696564, 66.696564, 41.771515, 70.602707, 62.368008, 62.368008, 62.368008, 67.471809, 67.471809, 60.639145, 68.500282, 72.20977, 72.20977, 72.20977, 75.762718, 75.762718, 77.33667, 71.889503, 73.529922, 73.529922], 'SMLrmlt': [23.321493, 2.119074, 3.578985, 4.929673, 4.929673, 4.929673, 5.414416, 8.57761, 9.399416, 9.399416, 9.399416, 11.35623, 11.35623, 12.266475, 13.977451, 16.720993, 16.720993, 16.720993, 19.65963, 19.65963, 21.307804, 22.863134, 23.321493, 23.321493], 'SMLrglat': [76.510002, 55.029999, 52.169998, 71.580002, 71.580002, 71.580002, 47.799999, 71.300003, 62.299999, 62.299999, 62.299999, 61.756001, 61.756001, 53.351002, 58.763, 63.75, 63.75, 63.75, 72.300003, 72.300003, 76.769997, 74.5, 76.510002, 76.510002], 'SMLrglon': [25.01, 82.900002, 104.449997, 129.0, 129.0, 129.0, 132.414001, 203.25, 209.800003, 209.800003, 209.800003, 238.770004, 238.770004, 247.026001, 265.920013, 291.480011, 291.480011, 291.480011, 321.700012, 321.700012, 341.369995, 19.200001, 25.01, 25.01], 'SMLrstid': ['HOP', 'NVS', 'IRT', 'TIK', 'TIK', 'TIK', 'BRN', 'BRW', 'T39', 'T39', 'T39', 'FSP', 'FSP', 'C06', 'FCC', 'IQA', 'IQA', 'IQA', 'SUM', 'SUM', 'DMH', 'BJN', 'HOP', 'HOP'], 'SMUr': [1.976003, 31.178246, 31.178246, 31.178246, -0.208882, 0.356117, 0.356117, 0.356117, -1.128606, -1.128606, -0.885122, -0.015059, 6.686568, 6.686568, 6.686568, 8.399819, 8.399819, 17.851616, 17.851616, 17.851616, 19.60713, 23.694275, 23.694275, 23.694275], 'SMUrmlat': [52.904049, 74.702339, 74.702339, 74.702339, 47.791527, 54.29908, 54.29908, 54.29908, 66.244217, 66.244217, 57.76614, 54.597057, 55.715378, 55.715378, 55.715378, 57.829525, 57.829525, 73.989975, 73.989975, 73.989975, 70.473801, 68.194489, 68.194489, 68.194489], 'SMUrmlt': [0.510692, 2.090216, 2.090216, 2.090216, 3.578985, 6.394085, 6.394085, 6.394085, 9.99274, 9.99274, 11.729218, 12.269058, 13.969843, 13.969843, 13.969843, 16.160952, 16.160952, 18.228394, 18.228394, 18.228394, 21.200783, 22.967857, 22.967857, 22.967857], 'SMUrglat': [56.432999, 79.480003, 79.480003, 79.480003, 52.169998, 59.970001, 59.970001, 59.970001, 64.047997, 64.047997, 51.882999, 47.664001, 45.870998, 45.870998, 45.870998, 48.650002, 48.650002, 67.93, 67.93, 67.93, 70.900002, 71.089996, 71.089996, 71.089996], 'SMUrglon': [58.567001, 76.980003, 76.980003, 76.980003, 104.449997, 150.860001, 150.860001, 150.860001, 220.889999, 220.889999, 239.973999, 245.791, 264.916992, 264.916992, 264.916992, 287.549988, 287.549988, 306.429993, 306.429993, 306.429993, 351.299988, 25.790001, 25.790001, 25.790001], 'SMUrstid': ['ARS', 'VIZ', 'VIZ', 'VIZ', 'IRT', 'MGD', 'MGD', 'MGD', 'DAW', 'DAW', 'C13', 'C10', 'C08', 'C08', 'C08', 'T50', 'T50', 'ATU', 'ATU', 'ATU', 'JAN', 'NOR', 'NOR', 'NOR'], 'SMErnum': [5, 3, 3, 4, 5, 6, 6, 4, 8, 9, 12, 13, 20, 17, 17, 11, 12, 14, 12, 14, 22, 51, 51, 35], 'smr': 0.252399, 'smr00': -0.531382, 'smr06': 0.885406, 'smr12': 1.051192, 'smr18': -0.395618, 'smrnum': 72, 'smrnum00': 26, 'smrnum06': 23, 'smrnum12': 6, 'smrnum18': 17, 'bgse': {'X': 1.07, 'Y': -3.75, 'Z': -0.74}, 'bgsm': {'X': 1.07, 'Y': -3.82, 'Z': -0.06}, 'vgse': {'X': -351.100006, 'Y': -5.5, 'Z': -4.0}, 'vgsm': {'X': 351.100006, 'Y': 6.128625, 'Z': -2.947879}, 'clockgse': 258.340698, 'clockgsm': 268.664337, 'density': 5.03, 'dynpres': 1.25, 'epsilon': 29.468521, 'newell': 2504.155029}
-    # sample accessing
-    print(mydata2c[0]['tval'],mydata2c[0]['density'])    # single element
-    result=[ (myeach['tval'],myeach['density']) for myeach in mydata2c] # pull out pairs e.g. 'tval, density')
-    # two-line method for extracting any variable set from this
-    pairsets= [ (myeach['tval'],myeach['density'],myeach['vgse']) for myeach in mydata2c] # same, pull out pairs, only assign e.g. x=tval, y=density
-    tval, density, vgse = [ [z[i] for z in pairsets] for i in (0,1,2)]
-    # since 'vgse' is itself an dict of 3 values X/Y/Z, you can pull out nested items like this
-    pairsets= [ (myeach['tval'],myeach['density'],myeach['vgse']['X']) for myeach in mydata2c] # same, pull out pairs, only assign e.g. x=tval, y=density
-    tval, density, vgse_x = [ [z[i] for z in pairsets] for i in (0,1,2)]
-    # the above methods are extensible to any number of variables, just update the (0,1,2) to reflect now many you have
-    
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-
-    import supermag
-
-    userid=input("Enter your SuperMAG userid: ")
-    time_range = ['2022-11-04T06:40','2022-11-04T07:20']
-    # data = SuperMAGGetData(userid,start,3600,'all,baseline=yearly','HBK')
-    # print(data)
-
-    sm = supermag.SuperMAG(userid, time_range)
-    print(sm.mag_data('HBK'))
