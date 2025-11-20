@@ -45,11 +45,11 @@ class Clowncar:
             satellite_height=ax_kwargs.get('sat_height_m', 10_000_000) 
         )
         fig = plt.figure(figsize=(9, 10))
-        ax = fig.add_subplot(ax_kwargs.get('position', 111), projection=projection)
-        ax.add_feature(cfeature.LAND, color='grey')
-        ax.add_feature(cfeature.OCEAN, color='w')
-        ax.add_feature(cfeature.COASTLINE, edgecolor='k')
-        ax.set_extent(
+        self.ax = fig.add_subplot(ax_kwargs.get('position', 111), projection=projection)
+        self.ax.add_feature(cfeature.LAND, color='grey')
+        self.ax.add_feature(cfeature.OCEAN, color='w')
+        self.ax.add_feature(cfeature.COASTLINE, edgecolor='k')
+        self.ax.set_extent(
             (center[0]-30, center[0]+30, center[1]-20, center[1]+20), 
             crs=cartopy.crs.PlateCarree()
             )
@@ -65,7 +65,82 @@ class Clowncar:
                 _time = self.asi.imagers[0].file_info['time']
         alt = ax_kwargs.get('alt_km', 110)
         if ax_kwargs.get('aacgm_grid', True):
-            self._plot_aacgm_grid(ax, time=_time, alt=alt)
+            self._plot_aacgm_grid(self.ax, time=_time, alt=alt)
+        return
+    
+    def animate_map(self, framerate=100):
+        gen = self.asi.animate_map_gen(
+            ax=self.ax, 
+            asi_label=False, 
+            ffmpeg_params={'framerate':framerate},
+            overwrite=True,
+            timestamp=False
+            )
+        for i, (_guide_time, _, _, _)  in enumerate(gen):
+            if i == 0:
+                for observatory in self.observatories.observatories:
+                    footprints = observatory.footprints()
+
+                    for sc_key, data in footprints.items():
+                        self.ax.plot(
+                            data['footprint_lon'], 
+                            data['footprint_lat'], 
+                            c='r',
+                            ls=':',
+                            transform=cartopy.crs.PlateCarree()
+                            )
+            
+            if '_plot_time' in locals():
+                _plot_time.remove()  # noqa: F821
+            if ('gps_locs' in locals()) and len(gps_locs) > 0:  # noqa: F821
+                for gps_loc in gps_locs:  # noqa: F821
+                    gps_loc.remove()
+                for gps_label in gps_labels:  # noqa: F821
+                    gps_label.remove()
+            gps_locs = []
+            gps_labels = []
+            for key, data in gps_data.items():
+                dt_idt = np.argmin(np.abs((pd.to_datetime(data['interpolated_times'])-_guide_time).total_seconds()))
+                dt_idt_flux = np.argmin(np.abs((pd.to_datetime(data['time'])-_guide_time).total_seconds()))
+
+                if (
+                    (np.abs((data['interpolated_times'][dt_idt]-_guide_time).total_seconds()) < 5*60) and
+                    np.isfinite(data['footprint_lat'][dt_idt])
+                    ):
+                    _channel_idx = gps_data[key]['energy_channel_idx'] 
+                    _flux = gps_data[key]['electron_diff_flux'][dt_idt_flux, _channel_idx]
+                    scat = gps_locs.append(ax.scatter(
+                        data['footprint_lon'][dt_idt],
+                        data['footprint_lat'][dt_idt],
+                        1_500,
+                        c=_flux,
+                        cmap=marker_cmap,
+                        norm=matplotlib.colors.LogNorm(*flux_color_bounds),
+                        marker=getmarker('satellite'),  # use snowflake for POES
+                        edgecolors="none",
+                        transform=cartopy.crs.PlateCarree(),
+                        ))
+                    gps_labels.append(ax.text(
+                        data['footprint_lon'][dt_idt]+1, 
+                        data['footprint_lat'][dt_idt],
+                        key,
+                        fontsize=30,
+                        color='orange',
+                        transform=cartopy.crs.PlateCarree()
+                    ))
+            
+            if i == 0:
+                if gps_data[key].attrs['electron_diff_flux']['UNITS'] == 'cm^-2sec^-1sr^-1MeV^-1':
+                    label=fr'{gps_energy_mev} MeV Electron flux [$(cm^{{2}} \ s \ sr \ MeV)^{{-1}}$]'
+                else:
+                    label=f"{gps_energy_mev} MeV [{gps_data[key].attrs['electron_diff_flux']['UNITS']}]"
+                # cbar = plt.colorbar(gps_locs[0], ax=ax, orientation='horizontal', pad=0.01, label=label)            
+                # cbar.set_label(label=label, size=20)
+
+            _plot_time = ax.text(
+                0.01, 0.98, f'TREX-RGB\n{_guide_time.strftime("%Y-%m-%d %H:%M:%S")}', 
+                fontsize=20, transform=ax.transAxes, ha='left', va='top'
+                )
         return
 
     def _plot_aacgm_grid(self, ax, time, lat_bounds=(0, 90), lon_bounds=(-150, 0), grid_res=51, alt=110):

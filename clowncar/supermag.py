@@ -198,6 +198,11 @@ class SuperMAG():
             documentation <https://supermag.jhuapl.edu/mag/lib/content/api/supermag_doc_python.pdf>`_
             for details.
 
+        Returns
+        -------
+        data_df : pandas.DataFrame
+            A table with the SuperMAG indices data.
+
         Example
         -------
         >>> import matplotlib.pyplot as plt
@@ -297,6 +302,28 @@ class SuperMAG():
         data_df = self._flatten_nested_columns(data_df)
         return data_df
     
+    def cc_marker_config(self, kwargs={}):
+        """
+        Configure the GPS marker for clowncar. These parameters are passed directly into
+        plt.scatter(lon, lat, **kwargs), so see the matplotlib documentation for valid options.
+        """
+        self._cc_marker_params = kwargs
+        self._cc_marker_params.setdefault('marker', 'fontawesome-magnet')
+        self._cc_marker_params.setdefault('norm', matplotlib.colors.Normalize(-100, 100))
+        self._cc_marker_params.setdefault('cmap', plt.get_cmap('seismic'))
+        self._cc_marker_params.setdefault('s', 1_500)
+        return
+    
+    def cc_marker_label_config(self, kwargs={}):
+        """
+        Configure the GPS marker label for clowncar. These parameters are passed directly into
+        plt.text(lon, lat, label, **kwargs), so see the matplotlib documentation for valid options.
+        """
+        self._cc_marker_label_params = kwargs
+        self._cc_marker_label_params.setdefault('fontsize', 30)
+        self._cc_marker_label_params.setdefault('color', 'blue')
+        return
+
     def _get_start_extent(self):
         # compute start string and extent in seconds from time_range
         extent = (self.time_range[1] - self.time_range[0]).total_seconds()

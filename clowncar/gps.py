@@ -254,6 +254,38 @@ class GPS:
                 gps_data.pop(sc_key)
             
         return gps_data
+    
+    def cc_footprint_config(self, kwargs={}):
+        """
+        Configure the GPS footprint track for clowncar. These parameters are passed directly into
+        plt.plot(lon, lat, **kwargs), so see the matplotlib documentation for valid options.
+        """
+        self._cc_track_params = kwargs
+        self._cc_track_params.setdefault('linestyle', ':')
+        self._cc_track_params.setdefault('color', 'r')
+        return
+    
+    def cc_marker_config(self, kwargs={}):
+        """
+        Configure the GPS marker for clowncar. These parameters are passed directly into
+        plt.scatter(lon, lat, **kwargs), so see the matplotlib documentation for valid options.
+        """
+        self._cc_marker_params = kwargs
+        self._cc_marker_params.setdefault('marker', 'fontawesome-satellite')
+        self._cc_marker_params.setdefault('norm', matplotlib.colors.LogNorm(1E4, 1E7))
+        self._cc_marker_params.setdefault('cmap', plt.get_cmap('plasma'))
+        self._cc_marker_params.setdefault('s', 1_500)
+        return
+    
+    def cc_marker_label_config(self, kwargs={}):
+        """
+        Configure the GPS marker label for clowncar. These parameters are passed directly into
+        plt.text(lon, lat, label, **kwargs), so see the matplotlib documentation for valid options.
+        """
+        self._cc_marker_label_params = kwargs
+        self._cc_marker_label_params.setdefault('fontsize', 30)
+        self._cc_marker_label_params.setdefault('color', 'orange')
+        return
 
     def plot_avg_flux(
             self, 
