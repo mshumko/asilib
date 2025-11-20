@@ -82,7 +82,7 @@ class SuperMAG():
     
     def location_codes(self):
         """
-        Download a list of SuperMAG magnetometer location code names.
+        Download a list of SuperMAG magnetometer location code names for a given time range.
 
         Returns
         -------
@@ -91,8 +91,12 @@ class SuperMAG():
 
         Example
         -------
-        # Grab a day's worth of station codes. The output list should be 184 stations
-        >>> stations = supermag_location_codes('myname', '2019-11-15T10:40', 86400)
+        >>> import supermag
+        >>> 
+        >>> userid=input("Enter your SuperMAG userid: ")
+        >>> time_range = ['2022-11-04T06:40','2022-11-04T07:20']
+        >>> sm = supermag.SuperMAG(userid, time_range)
+        >>> print(sm.location_codes())
         """
 
         # construct URL             
@@ -104,7 +108,7 @@ class SuperMAG():
         # first data item is how many stations were found
         numstations = int(stations[0])
         if numstations > 0: 
-            return stations[1:]
+            return stations[1:-1]
         else: 
             return []
 
@@ -137,13 +141,11 @@ class SuperMAG():
         >>> ax[1].plot(indices.index, indices.smr)
         >>> ax[0].set(
         >>>     ylabel='SML [nT]', 
-        >>>     ylim=(-1600, 0), 
         >>>     title=f'SuperMAG indices: {sm.time_range[0]} to {sm.time_range[1]}'
         >>>     )
         >>> ax[1].set(
         >>>     ylabel='SMR [nT]', 
-        >>>     xlabel='Time', 
-        >>>     ylim=(-80, 0)
+        >>>     xlabel='Time',
         >>>     )
         >>> 
         >>> supermag.format_time_axis(ax[-1])
@@ -164,7 +166,7 @@ class SuperMAG():
         return data_df
 
 
-    def mag_data(self, station, query_parameters):
+    def mag_data(self, station, query_parameters=''):
         """
         Download and return SuperMAG magnetometer data for a given station.
 
@@ -514,29 +516,9 @@ if __name__ == "__main__":
     import supermag
 
     userid=input("Enter your SuperMAG userid: ")
-    time_range = ['2022-11-03T00:00','2022-11-05T00:00']
+    time_range = ['2022-11-04T06:40','2022-11-04T07:20']
     # data = SuperMAGGetData(userid,start,3600,'all,baseline=yearly','HBK')
     # print(data)
 
     sm = supermag.SuperMAG(userid, time_range)
-    indices = sm.indices('sml,smr,baseline=yearly')
-
-    print(indices.keys())
-
-    _, ax = plt.subplots(2, 1, sharex=True, figsize=(8, 5))
-    ax[0].plot(indices.index, indices.SML)
-    ax[1].plot(indices.index, indices.smr)
-    ax[0].set(
-        ylabel='SML [nT]', 
-        ylim=(-1600, 0), 
-        title=f'SuperMAG indices: {sm.time_range[0]} to {sm.time_range[1]}'
-        )
-    ax[1].set(
-        ylabel='SMR [nT]', 
-        xlabel='Time', 
-        ylim=(-80, 0)
-        )
-
-    supermag.format_time_axis(ax[-1])
-    plt.tight_layout()
-    plt.show()
+    print(sm.mag_data('HBK'))
