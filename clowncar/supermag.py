@@ -293,6 +293,8 @@ def SuperMAGGetIndices(logon,start,extent,flagstring='',**kwargs):
     else:
         # default, converts the json 'list of dictionaries' into a dataframe
         data_df = pd.DataFrame(data_list)
+        data_df.index = pd.to_datetime(data_df['tval'],unit='s')
+        data_df.drop(columns=['tval'],inplace=True)
         return data_df
 
 
@@ -349,7 +351,7 @@ def sm_microtest(choice,userid):
         print(data)
         print(data.keys())
         
-        tval=data.tval
+        tval=data.index
         mlt=data.mlt
         ### Python way
         N_nez = [temp['nez'] for temp in data.N]
@@ -368,7 +370,7 @@ def sm_microtest(choice,userid):
         idxdata = SuperMAGGetIndices(userid,start,3600,'swiall,density,darkall,regall,smes')
 
         idxdata.keys()
-        tval=idxdata.tval
+        tval=idxdata.index
         hours=list(range(24))
         y=idxdata.SMLr
         for i in range(len(tval)-1):
@@ -462,11 +464,20 @@ def supermag_testing(userid):
     # the above methods are extensible to any number of variables, just update the (0,1,2) to reflect now many you have
     
 
-#    Uncomment to run quick sample tests
-userid='mshumko'    # TODO: Remove!
-# sm_microtest(1,userid)     # sample stations fetch
-# sm_microtest(2,userid)     # sample data fetch, with plotting
-# sm_microtest(3,userid)     # sample indices fetch, with plotting
-start='2019-11-15T10:40'
-data = SuperMAGGetData(userid,start,3600,'all,delta=start,baseline=yearly','HBK')
-print(data)
+if __name__ == "__main__":
+    import matplotlib.dates
+    #    Uncomment to run quick sample tests
+    userid='mshumko'    # TODO: Remove!
+    start='2022-11-04T06:40'
+    # data = SuperMAGGetData(userid,start,3600,'all,baseline=yearly','HBK')
+    # print(data)
+
+    idxdata = SuperMAGGetIndices(userid,start,60*40,'sml,smr,baseline=yearly')
+
+    print(idxdata.keys())
+
+    _, ax = plt.subplots()
+    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%H:%M'))
+    ax.plot(idxdata.index, idxdata.SML)
+    ax.set(ylabel='SML (nT)', xlabel='Time [HH:MM]', title=f'SuperMAG {start}')
+    plt.show()
