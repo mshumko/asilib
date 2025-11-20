@@ -38,11 +38,9 @@ if importlib.util.find_spec("certifi") is not None:
 import pandas as pd
 import requests
 import matplotlib.pyplot as plt
+import matplotlib.ticker
+import matplotlib.dates
 
-# Sample URLs, type into browser if you want to compare the data vs python
-#https://supermag.jhuapl.edu/services/data-api.php?fmt=json&logon=YOURNAME&start=2019-10-15T10:40&extent=3600&all&station=NCK
-#https://supermag.jhuapl.edu/services/indices.php?fmt=json&logon=YOURNAME&start=2019-10-15T10:40&extent=3600&all
-#https://supermag.jhuapl.edu/services/inventory.php?fmt=json&logon=YOURNAME&start=2019-10-15T10:40&extent=3600
 baseurl = "https://supermag.jhuapl.edu/"
 
 
@@ -57,9 +55,9 @@ class SuperMAG():
     -------
     location_codes()
         Download a list of SuperMAG magnetometer location code names for a given time range.
-    mag_data(station, flagstring)
+    mag_data(station, query_parameters)
         Download and return SuperMAG magnetometer data for a given station.
-    indices(flagstring)
+    indices(query_parameters)
         Download the SuperMAG indices data.
 
     Attributes
@@ -85,16 +83,6 @@ class SuperMAG():
     def location_codes(self):
         """
         Download a list of SuperMAG magnetometer location code names.
-        
-        # Parameters
-        # ----------
-        # logon : str
-        #     Your SuperMAG logon name.
-        # start : str
-        #     The start time for the data request in 'YYYY-MM-DDTHH:MM' format, or
-        #     a datetime object.
-        # extent : int
-        #     The duration of the data request in seconds.
 
         Returns
         -------
@@ -104,7 +92,7 @@ class SuperMAG():
         Example
         -------
         # Grab a day's worth of station codes. The output list should be 184 stations
-        >>> stations =supermag_location_codes('myname', '2019-11-15T10:40', 86400)
+        >>> stations = supermag_location_codes('myname', '2019-11-15T10:40', 86400)
         """
 
         # construct URL             
@@ -121,29 +109,62 @@ class SuperMAG():
             return []
 
 
-    def indices(self, flagstring='', **kwargs):
+    def indices(self, query_parameters=''):
         """
         Download the SuperMAG indices data.
+
+        Parameters
+        ----------
+        query_parameters : str
+            A comma-separated string of data options to include. See the `SuperMAG API
+            documentation <https://supermag.jhuapl.edu/mag/lib/content/api/supermag_doc_python.pdf>`_
+            for details.
+
+        Example
+        -------
+        >>> import matplotlib.pyplot as plt
+        >>> import supermag
+        >>>
+        >>> userid=input("Enter your SuperMAG userid: ")
+        >>> time_range = ['2022-11-03T00:00','2022-11-05T00:00']
+        >>> 
+        >>> sm = supermag.SuperMAG(userid, time_range)
+        >>> indices = sm.indices('sml,smr,baseline=yearly')
+        >>> print(indices.keys())  # Index(['SML', 'smr'], dtype='object')
+        >>> 
+        >>> _, ax = plt.subplots(2, 1, sharex=True, figsize=(8, 5))
+        >>> ax[0].plot(indices.index, indices.SML)
+        >>> ax[1].plot(indices.index, indices.smr)
+        >>> ax[0].set(
+        >>>     ylabel='SML [nT]', 
+        >>>     ylim=(-1600, 0), 
+        >>>     title=f'SuperMAG indices: {sm.time_range[0]} to {sm.time_range[1]}'
+        >>>     )
+        >>> ax[1].set(
+        >>>     ylabel='SMR [nT]', 
+        >>>     xlabel='Time', 
+        >>>     ylim=(-80, 0)
+        >>>     )
+        >>> 
+        >>> supermag.format_time_axis(ax[-1])
+        >>> plt.tight_layout()
+        >>> plt.show()
         """
         urlstr = self._base_url('indices.php')
-        indices = self._sm_keycheck_indices(flagstring)
+        indices = self._sm_keycheck_indices(query_parameters)
         urlstr += indices
 
         # get the string array of JSON data         
         data_list = self._get_url_data(urlstr,'json')
 
-        # default is to return a dataframe, but can also return an array
-        if (kwargs.get('FORMAT','none')).lower() == 'list':
-            return data_list
-        else:
-            # default, converts the json 'list of dictionaries' into a dataframe
-            data_df = pd.DataFrame(data_list)
-            data_df.index = pd.to_datetime(data_df['tval'],unit='s')
-            data_df.drop(columns=['tval'],inplace=True)
-            return data_df
+        # default, converts the json 'list of dictionaries' into a dataframe
+        data_df = pd.DataFrame(data_list)
+        data_df.index = pd.to_datetime(data_df['tval'],unit='s')
+        data_df.drop(columns=['tval'],inplace=True)
+        return data_df
 
 
-    def mag_data(self, station, flagstring):
+    def mag_data(self, station, query_parameters):
         """
         Download and return SuperMAG magnetometer data for a given station.
 
@@ -151,16 +172,18 @@ class SuperMAG():
         ----------
         station : str
             The SuperMAG location code name for the magnetometer station.
-        flagstring : str
-            A comma-separated string of data options to include.
-
+        query_parameters : str
+            A comma-separated string of data options to include. See the `SuperMAG API
+            documentation <https://supermag.jhuapl.edu/mag/lib/content/api/supermag_doc_python.pdf>`_
+            for details.
+        
         Returns
         -------
         data_df : pandas.DataFrame
             A DataFrame containing the magnetometer data from the specified station.
         """        
         urlstr = self._base_url('data-api.php')
-        indices = self._sm_keycheck_data(flagstring)
+        indices = self._sm_keycheck_data(query_parameters)
         urlstr += indices
         urlstr += '&station='+station.upper()
 
@@ -189,12 +212,12 @@ class SuperMAG():
         urlstr+='&extent='+ ("%12.12d" % extent)
         return(urlstr)
     
-    def _sm_keycheck_data(self, flagstring):
+    def _sm_keycheck_data(self, query_parameters):
         # internal helper function
         toggles=['mlt','mag','geo','decl','sza','delta=start','baseline=yearly','baseline=none']
 
         myflags=''
-        flags=[x.strip() for x in flagstring.split(',')]
+        flags=[x.strip() for x in query_parameters.split(',')]
 
         for i in range(0,len(flags)):
             chk=flags[i]
@@ -207,7 +230,7 @@ class SuperMAG():
         return(myflags)
 
 
-    def _sm_keycheck_indices(self, flagstring):
+    def _sm_keycheck_indices(self, query_parameters):
         # internal helper function
         # For category='indices', always returns:
         #                tval
@@ -235,7 +258,7 @@ class SuperMAG():
         swi='&swi='
         imf='&imf='
 
-        flags=[x.strip() for x in flagstring.split(',')]
+        flags=[x.strip() for x in query_parameters.split(',')]
 
         for i in range(0,len(flags)):
             chk=flags[i]
@@ -328,7 +351,25 @@ class SuperMAG():
             raise ValueError(f'{fetch=} is not recognized, must be "raw" or "json".')
     
         return mydata
-    
+
+def format_time_axis(ax):
+    """
+    Format the x-axis of a time series plot to include date only on the first tick and at midnight.
+    Include the HH:MM on all ticks.
+    """
+    ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(_format_xaxis))
+    return
+
+def _format_xaxis(tick_val, tick_pos):
+    """
+    The tick magic to include the date only on the first tick, and ticks at midnight.
+    """
+    tick_time = matplotlib.dates.num2date(tick_val).replace(tzinfo=None)
+    if (tick_pos==0) or ((tick_time.hour == 0) and (tick_time.minute == 0)):
+        ticks = tick_time.strftime('%H:%M') + '\n' + tick_time.strftime('%Y-%m-%d')
+    else:
+        ticks = tick_time.strftime('%H:%M')
+    return ticks
 
 def _sm_grabme(dataf,key,subkey):
     # syntactical sugar to grab nested subitems from a dataframe
@@ -468,13 +509,16 @@ def supermag_testing(userid):
     
 
 if __name__ == "__main__":
-    import matplotlib.dates
-    userid='mshumko'
+    import matplotlib.pyplot as plt
+
+    import supermag
+
+    userid=input("Enter your SuperMAG userid: ")
     time_range = ['2022-11-03T00:00','2022-11-05T00:00']
     # data = SuperMAGGetData(userid,start,3600,'all,baseline=yearly','HBK')
     # print(data)
 
-    sm = SuperMAG(userid, time_range,)
+    sm = supermag.SuperMAG(userid, time_range)
     indices = sm.indices('sml,smr,baseline=yearly')
 
     print(indices.keys())
@@ -482,8 +526,17 @@ if __name__ == "__main__":
     _, ax = plt.subplots(2, 1, sharex=True, figsize=(8, 5))
     ax[0].plot(indices.index, indices.SML)
     ax[1].plot(indices.index, indices.smr)
-    ax[0].set(ylabel='SML (nT)', title=f'SuperMAG indices: {time_range[0]} to {time_range[1]}')
-    ax[1].set(ylabel='SMR (nT)', xlabel='Time [HH:MM]')
+    ax[0].set(
+        ylabel='SML [nT]', 
+        ylim=(-1600, 0), 
+        title=f'SuperMAG indices: {sm.time_range[0]} to {sm.time_range[1]}'
+        )
+    ax[1].set(
+        ylabel='SMR [nT]', 
+        xlabel='Time', 
+        ylim=(-80, 0)
+        )
 
-    ax[-1].xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%H:%M'))
+    supermag.format_time_axis(ax[-1])
+    plt.tight_layout()
     plt.show()
