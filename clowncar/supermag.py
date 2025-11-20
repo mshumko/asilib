@@ -1,9 +1,3 @@
-"""
-Download, load, and plot SuperMAG magnetometer data. This code is adapted from the supermag-api.py 
-(https://supermag.jhuapl.edu/mag/?tab=api) which is credited to Author S. Antunes, which in turn 
-was credited to R.J.Barnes.
-"""
-
 # Original header and licence is copied below from supermag-api.py
 # ================
 # Author S. Antunes, based on supermag-api.pro by R.J.Barnes
@@ -33,6 +27,7 @@ was credited to R.J.Barnes.
 import json
 import re
 import datetime
+import dateutil.parser
 import importlib
 # the 'certifi' library is required at APL and other sites that require SSL certs for web fetches.
 # If you need this, install certifi (python -m pip install certifi)
@@ -48,284 +43,292 @@ import matplotlib.pyplot as plt
 #https://supermag.jhuapl.edu/services/data-api.php?fmt=json&logon=YOURNAME&start=2019-10-15T10:40&extent=3600&all&station=NCK
 #https://supermag.jhuapl.edu/services/indices.php?fmt=json&logon=YOURNAME&start=2019-10-15T10:40&extent=3600&all
 #https://supermag.jhuapl.edu/services/inventory.php?fmt=json&logon=YOURNAME&start=2019-10-15T10:40&extent=3600
+baseurl = "https://supermag.jhuapl.edu/"
 
 
-def _sm_coreurl(page,logon,start,extent):
+class SuperMAG():
     """
-    Create the base URL for SuperMAG API calls.
-    """
-    baseurl = "https://supermag.jhuapl.edu/"
+    Download, load, and plot SuperMAG magnetometer data from APL's API.
 
-    if isinstance(start, (datetime.date, datetime.datetime, pd.Timestamp)):
-        mytime =  start.strftime("%Y-%m-%dT%H:%M")
-    else:
-        mytime = str(start)
+    This code is adapted from the supermag-api.py (https://supermag.jhuapl.edu/mag/?tab=api) which
+    is credited to S. Antunes, which in turn was credited to R.J. Barnes.
 
-    urlstr = baseurl + 'services/'+page+'?python&nohead'
-    urlstr+='&start='+mytime
-    urlstr += '&logon='+logon
-    urlstr+='&extent='+ ("%12.12d" % extent)
-    return(urlstr)
+    Methods
+    -------
+    location_codes()
+        Download a list of SuperMAG magnetometer location code names for a given time range.
+    mag_data(station, flagstring)
+        Download and return SuperMAG magnetometer data for a given station.
+    indices(flagstring)
+        Download the SuperMAG indices data.
 
-# handy helper function when using complicated CVS encoding of lists
-def sm_csvitem_to_list(myarr):
-    # converts entity of form ['HOP', 'NVS', 'IRT'] to an actual list of HOP, NVS, IRT
-    mylist=[]
-    for myline in myarr:
-        myline=re.sub("'","",myline[1:-1])
-        mylist.append(myline.split(", "))
-    return(mylist)
-
-
-# handy helper function when using complicated CVS encoding of dicts
-def sm_csvitem_to_dict(myarr,**kwargs):
-    # converts entity of form {'X': -12.213, 'Y': -5.5, 'Z': 1.2} to an actual dict of var.X, var.Y, etc
-    # items are presumed strings by default
-    # optional argument "convert=num" will convert them to doubles
-    mylist=[]
-    for myline in myarr:
-        myline2=re.sub(" ","",myline[1:-1]) # scrub out extra spaces
-        myline2=re.sub("'","",myline2)
-        elements = dict(x.split(":") for x in myline2.split(","))
-        # little sanity check to make sure float subitems remain floats
-        try: elements = {item: float(value) for (item, value) in elements.items()}
-        except: pass
-        
-        #type(elements)
-        mylist.append(elements)
-    return(mylist)
-    
-    
-def sm_DateToYMDHMS(tval,yr,mo,dy,hr,mt,sc):
-    # not used but here as an example of date conversion
-    julday=(tval/86400.0)+2440587.5
-    datestr=pd.to_datetime(julday,unit='D',origin='julian')    # format YYYY-MM-DD HH:MM:SS.ssssss
-    return(datestr)
-
-def sm_keycheck_data(flagstring):
-    # internal helper function
-    toggles=['mlt','mag','geo','decl','sza','delta=start','baseline=yearly','baseline=none']
-
-    myflags=''
-    flags=[x.strip() for x in flagstring.split(',')]
-
-    for i in range(0,len(flags)):
-        chk=flags[i]
-        chk=chk.lower()
-        # check for the '*all', also individual keys, and assemble url flags
-        if chk == 'all': myflags += '&mlt&mag&geo&decl&sza'
-        for ikey in range(0,len(toggles)):
-            if chk == toggles[ikey]: myflags += '&'+toggles[ikey]
-
-    return(myflags)
-
-
-def sm_keycheck_indices(flagstring):
-    # internal helper function
-    # For category='indices', always returns:
-    #                tval
-    # additional flags to return data include:
-    #                indicesall (or its alias: all)
-    #    (or any of)
-    #                baseall, sunall, darkall, regionalall, plusall
-    #    (or specify individual items to include, from the sets below)
-    #                
-    basekeys=["sme","sml","smu","mlat","mlt","glat","glon","stid","num"]
-    # sunkeys: alias allowed of SUN___ -> ___s
-    sunkeys=["smes","smls","smus","mlats","mlts","glats","glons","stids","nums"]
-    # darkkeys: alias allowed of DARK___ -> ___d
-    darkkeys=["smed","smld","smud","mlatd","mltd","glatd","glond","stidd","num"]
-    # regkeys: alias allowed of REGIONAL___ -> ___r
-    regkeys=["smer","smlr","smur","mlatr","mltr","glatr","glonr","stidr","numr"]
-    pluskeys=["smr","ltsmr","ltnum","nsmr"]
-    indiceskeys = basekeys + sunkeys + darkkeys + regkeys + pluskeys
-    # 'all' means all the above                                                                                                 
-
-    imfkeys=["bgse","bgsm","vgse","vgsm"] # or imfall for all these                        
-    swikeys=["pdyn","epsilon","newell","clockgse","clockgsm","density"] # % or swiall for all these                                                                                                                         
-    myflags=''
-    indices='&indices='
-    swi='&swi='
-    imf='&imf='
-
-    flags=[x.strip() for x in flagstring.split(',')]
-
-    for i in range(0,len(flags)):
-        chk=flags[i]
-        chk=chk.lower()
-        
-        # check for the '*all', also individual keys, and assemble url flags
-        if chk == 'all': indices += 'all,'
-        if chk == 'indicesall': indices += 'all,'
-        if chk == 'imfall': imf += 'all,'
-        if chk == 'swiall': swi += 'all,'
-        # available keywords, we allow both the url version and the
-        # aliases of "SUN___ -> ___s", "DARK___ -> ___d", "REGIONAL___ -> ___r"
-
-        for ikey in range(0,len(indiceskeys)):
-            mykey=indiceskeys[ikey]
-            sunkey="sun"+mykey # allow alias
-            darkkey="dark"+mykey # allow alias
-            regkey1="regional"+mykey # allow alias
-            regkey2="reg"+mykey # allow alias
-            if chk == mykey:
-                indices += mykey+','    # base key is correct
-            elif sunkey == mykey:
-                indices += mykey+'s,'    # alias, so base key + 's'
-            elif darkkey == mykey:
-                indices += mykey+'d,'    # alias, so base key + 'd'
-            elif regkey1 == mykey or regkey2 == mykey:
-                indices += mykey+'r,'    # alias, so base key + 'r'
-
-        for ikey in range(0,len(swikeys)):
-            if chk == swikeys[ikey]: swi += swikeys[ikey] + ','
-         
-        for ikey in range(0,len(imfkeys)):
-            if chk == imfkeys[ikey]: imf += imfkeys[ikey] + ','
-    
-        # more aliases to the user
-        if chk == 'baseall': indices += ','.join(basekeys)
-        if chk == 'sunall': indices += ','.join(sunkeys)
-        if chk == 'darkall': indices += ','.join(darkkeys)
-        if chk == 'regionalall' or chk == 'regall': indices += ','.join(regkeys)
-        if chk == 'plusall': indices += ','.join(pluskeys)
-
-    # clean it up a bit by removing extraneous tags/characters
-    if indices == "&indices=": indices=""
-    if swi == "&swi=": swi=""
-    if imf == "&imf=": imf=""
-    # add them together
-    myflags = indices + swi + imf
-    # a little more cleaning for tidiness, removes extraneous commas
-    myflags = re.sub(',&','&',myflags)
-    myflags = re.sub(',$','',myflags)
-
-    return(myflags)
-
-def _sm_GetUrl(fetchurl,fetch='raw'):
-    """
-    Given a fetchurl, fetch the data from SuperMAG API.
-
-    Parameters
+    Attributes
     ----------
-    fetchurl : str
-        The complete URL to fetch data from.
-    fetch : str, optional
-        The format of data to fetch. Options are 'raw' for raw text data
-        or 'json' for JSON formatted data.
-    """
-    try:
-        cafile=certifi.where()
-    except:
-        cafile=''
-    
-    response = requests.get(fetchurl,verify=cafile)
-    response.raise_for_status()
-    longstring = response.text
-    mydata = longstring.split('\n')
-  
-    if fetch == 'json':
-        if len(longstring) > 3:
-            mydata = json.loads(longstring)
-        else:
-            mydata=[] # just the word 'OK', no data, so return no data
-    elif fetch == 'raw':
-        if f'ERROR' in mydata[0]: 
-            raise ValueError(f'ERROR returned from SuperMAG API: {mydata[0]}')
-    else:
-        raise ValueError(f'{fetch=} is not recognized, must be "raw" or "json".')
-  
-    return mydata
-
-def supermag_location_codes(logon,start,extent):
-    """
-    Download a list of SuperMAG magnetometer location code names.
-    
-    Parameters
-    ----------
-    logon : str
+    userid : str
         Your SuperMAG logon name.
-    start : str
-        The start time for the data request in 'YYYY-MM-DDTHH:MM' format, or
-        a datetime object.
-    extent : int
-        The duration of the data request in seconds.
-
-    Returns
-    -------
-    stations : list
-        A list of SuperMAG magnetometer location code names.
-
-    Example
-    -------
-    # Grab a day's worth of station codes. The output list should be 184 stations
-    >>> stations =supermag_location_codes('myname', '2019-11-15T10:40', 86400)
+    time_range : list of datetime
+        A list containing the start and end times for the data request.
+    api_url: str
+        The last API URL used to fetch data.
+    
+    
     """
-
-    # construct URL             
-    urlstr = _sm_coreurl('inventory.php',logon,start,extent)
-
-    # get the string array of stations
-    stations=_sm_GetUrl(urlstr,'raw')
-
-    # first data item is how many stations were found
-    numstations = int(stations[0])
-    if numstations > 0: 
-        stations=stations[1:-1]
-    else: 
-        stations=[]
-    return stations
-
-
-def SuperMAGGetIndices(logon,start,extent,flagstring='',**kwargs):
-    # One of the core 3 functions
-
-    urlstr = _sm_coreurl('indices.php',logon,start,extent)
-    indices = sm_keycheck_indices(flagstring)
-    urlstr += indices
+    def __init__(self, userid, time_range):
+        self.userid = userid
+        self.time_range = time_range
+        for i, t_i in enumerate(self.time_range):
+            if isinstance(t_i, (str)):
+                self.time_range[i] = dateutil.parser.isoparse(t_i)
+        self.api_url = ''  # initialize api_url attribute so it exists.
+        return
     
-    # get the string array of JSON data         
-    data_list=_sm_GetUrl(urlstr,'json')
+    def location_codes(self):
+        """
+        Download a list of SuperMAG magnetometer location code names.
+        
+        # Parameters
+        # ----------
+        # logon : str
+        #     Your SuperMAG logon name.
+        # start : str
+        #     The start time for the data request in 'YYYY-MM-DDTHH:MM' format, or
+        #     a datetime object.
+        # extent : int
+        #     The duration of the data request in seconds.
 
-    # default is to return a dataframe, but can also return an array
-    if (kwargs.get('FORMAT','none')).lower() == 'list':
-        return data_list
-    else:
-        # default, converts the json 'list of dictionaries' into a dataframe
+        Returns
+        -------
+        stations : list
+            A list of SuperMAG magnetometer location code names.
+
+        Example
+        -------
+        # Grab a day's worth of station codes. The output list should be 184 stations
+        >>> stations =supermag_location_codes('myname', '2019-11-15T10:40', 86400)
+        """
+
+        # construct URL             
+        urlstr = self._base_url('inventory.php')
+
+        # get the string array of stations
+        stations = self._get_url_data(urlstr,'raw')
+
+        # first data item is how many stations were found
+        numstations = int(stations[0])
+        if numstations > 0: 
+            return stations[1:]
+        else: 
+            return []
+
+
+    def indices(self, flagstring='', **kwargs):
+        """
+        Download the SuperMAG indices data.
+        """
+        urlstr = self._base_url('indices.php')
+        indices = self._sm_keycheck_indices(flagstring)
+        urlstr += indices
+
+        # get the string array of JSON data         
+        data_list = self._get_url_data(urlstr,'json')
+
+        # default is to return a dataframe, but can also return an array
+        if (kwargs.get('FORMAT','none')).lower() == 'list':
+            return data_list
+        else:
+            # default, converts the json 'list of dictionaries' into a dataframe
+            data_df = pd.DataFrame(data_list)
+            data_df.index = pd.to_datetime(data_df['tval'],unit='s')
+            data_df.drop(columns=['tval'],inplace=True)
+            return data_df
+
+
+    def mag_data(self, station, flagstring):
+        """
+        Download and return SuperMAG magnetometer data for a given station.
+
+        Parameters
+        ----------
+        station : str
+            The SuperMAG location code name for the magnetometer station.
+        flagstring : str
+            A comma-separated string of data options to include.
+
+        Returns
+        -------
+        data_df : pandas.DataFrame
+            A DataFrame containing the magnetometer data from the specified station.
+        """        
+        urlstr = self._base_url('data-api.php')
+        indices = self._sm_keycheck_data(flagstring)
+        urlstr += indices
+        urlstr += '&station='+station.upper()
+
+        data_list = self._get_url_data(urlstr,'json')
+
         data_df = pd.DataFrame(data_list)
         data_df.index = pd.to_datetime(data_df['tval'],unit='s')
         data_df.drop(columns=['tval'],inplace=True)
         return data_df
-
-
-def SuperMAGGetData(logon,start,extent,flagstring,station,**kwargs):
-    # One of the core 3 functions
-
-    # optional options for 'data':
-    # ALL=&mlt&mag&geo&decl&sza
-    # MLT=&mlt,MAG=&mag,GEO=&geo,DECL=&decl,SZA=&sza,
-    # DELTA='start',BASELINE='none/yearly'
-    # e.g. can pass    MLT=1,MAG=1    and they will be evaluated.    Full set checked: ALL, MLT, MAG, GEO, DECL, SZA, also values for DELTA, BASELINE
-    # also arg FORMAT='list', otherwise defaults to FORMAT='dataframe'    NOT YET DONE!!!!
-
-    # default FORMAT='dataframe', alt is FORMAT='list'
     
-    urlstr = _sm_coreurl('data-api.php',logon,start,extent)
-    indices = sm_keycheck_data(flagstring)
-    urlstr += indices
-    urlstr += '&station='+station.upper()
+    def _get_start_extent(self):
+        # compute start string and extent in seconds from time_range
+        extent = (self.time_range[1] - self.time_range[0]).total_seconds()
+        return self.time_range[0].strftime("%Y-%m-%dT%H:%M"), int(extent)
     
-    data_list = _sm_GetUrl(urlstr,'json')
 
-    # default is to return a dataframe, but can also return an array
-    if (kwargs.get('FORMAT','none')).lower() == 'list':
-        return data_list
-    else:
-        # default, converts the json 'list of dictionaries' into a dataframe
-        data_df = pd.DataFrame(data_list)
-        data_df.index = pd.to_datetime(data_df['tval'],unit='s')
-        data_df.drop(columns=['tval'],inplace=True)
-        return data_df
+    def _base_url(self, page):
+        """
+        Create the base URL for SuperMAG API calls.
+        """
+        start, extent = self._get_start_extent()
+
+        urlstr = baseurl + 'services/'+page+'?python&nohead'
+        urlstr+='&start='+start
+        urlstr += '&logon='+self.userid
+        urlstr+='&extent='+ ("%12.12d" % extent)
+        return(urlstr)
+    
+    def _sm_keycheck_data(self, flagstring):
+        # internal helper function
+        toggles=['mlt','mag','geo','decl','sza','delta=start','baseline=yearly','baseline=none']
+
+        myflags=''
+        flags=[x.strip() for x in flagstring.split(',')]
+
+        for i in range(0,len(flags)):
+            chk=flags[i]
+            chk=chk.lower()
+            # check for the '*all', also individual keys, and assemble url flags
+            if chk == 'all': myflags += '&mlt&mag&geo&decl&sza'
+            for ikey in range(0,len(toggles)):
+                if chk == toggles[ikey]: myflags += '&'+toggles[ikey]
+
+        return(myflags)
+
+
+    def _sm_keycheck_indices(self, flagstring):
+        # internal helper function
+        # For category='indices', always returns:
+        #                tval
+        # additional flags to return data include:
+        #                indicesall (or its alias: all)
+        #    (or any of)
+        #                baseall, sunall, darkall, regionalall, plusall
+        #    (or specify individual items to include, from the sets below)
+        #                
+        basekeys=["sme","sml","smu","mlat","mlt","glat","glon","stid","num"]
+        # sunkeys: alias allowed of SUN___ -> ___s
+        sunkeys=["smes","smls","smus","mlats","mlts","glats","glons","stids","nums"]
+        # darkkeys: alias allowed of DARK___ -> ___d
+        darkkeys=["smed","smld","smud","mlatd","mltd","glatd","glond","stidd","num"]
+        # regkeys: alias allowed of REGIONAL___ -> ___r
+        regkeys=["smer","smlr","smur","mlatr","mltr","glatr","glonr","stidr","numr"]
+        pluskeys=["smr","ltsmr","ltnum","nsmr"]
+        indiceskeys = basekeys + sunkeys + darkkeys + regkeys + pluskeys
+        # 'all' means all the above                                                                                                 
+
+        imfkeys=["bgse","bgsm","vgse","vgsm"] # or imfall for all these                        
+        swikeys=["pdyn","epsilon","newell","clockgse","clockgsm","density"] # % or swiall for all these                                                                                                                         
+        myflags=''
+        indices='&indices='
+        swi='&swi='
+        imf='&imf='
+
+        flags=[x.strip() for x in flagstring.split(',')]
+
+        for i in range(0,len(flags)):
+            chk=flags[i]
+            chk=chk.lower()
+            
+            # check for the '*all', also individual keys, and assemble url flags
+            if chk == 'all': indices += 'all,'
+            if chk == 'indicesall': indices += 'all,'
+            if chk == 'imfall': imf += 'all,'
+            if chk == 'swiall': swi += 'all,'
+            # available keywords, we allow both the url version and the
+            # aliases of "SUN___ -> ___s", "DARK___ -> ___d", "REGIONAL___ -> ___r"
+
+            for ikey in range(0,len(indiceskeys)):
+                mykey=indiceskeys[ikey]
+                sunkey="sun"+mykey # allow alias
+                darkkey="dark"+mykey # allow alias
+                regkey1="regional"+mykey # allow alias
+                regkey2="reg"+mykey # allow alias
+                if chk == mykey:
+                    indices += mykey+','    # base key is correct
+                elif sunkey == mykey:
+                    indices += mykey+'s,'    # alias, so base key + 's'
+                elif darkkey == mykey:
+                    indices += mykey+'d,'    # alias, so base key + 'd'
+                elif regkey1 == mykey or regkey2 == mykey:
+                    indices += mykey+'r,'    # alias, so base key + 'r'
+
+            for ikey in range(0,len(swikeys)):
+                if chk == swikeys[ikey]: swi += swikeys[ikey] + ','
+            
+            for ikey in range(0,len(imfkeys)):
+                if chk == imfkeys[ikey]: imf += imfkeys[ikey] + ','
+        
+            # more aliases to the user
+            if chk == 'baseall': indices += ','.join(basekeys)
+            if chk == 'sunall': indices += ','.join(sunkeys)
+            if chk == 'darkall': indices += ','.join(darkkeys)
+            if chk == 'regionalall' or chk == 'regall': indices += ','.join(regkeys)
+            if chk == 'plusall': indices += ','.join(pluskeys)
+
+        # clean it up a bit by removing extraneous tags/characters
+        if indices == "&indices=": indices=""
+        if swi == "&swi=": swi=""
+        if imf == "&imf=": imf=""
+        # add them together
+        myflags = indices + swi + imf
+        # a little more cleaning for tidiness, removes extraneous commas
+        myflags = re.sub(',&','&',myflags)
+        myflags = re.sub(',$','',myflags)
+
+        return(myflags)
+
+    def _get_url_data(self, api_url,fetch='raw'):
+        """
+        Given a fetchurl, fetch the data from SuperMAG API.
+
+        Parameters
+        ----------
+        fetchurl : str
+            The complete URL to fetch data from.
+        fetch : str, optional
+            The format of data to fetch. Options are 'raw' for raw text data
+            or 'json' for JSON formatted data.
+        """
+        self.api_url = api_url
+        try:
+            cafile=certifi.where()
+        except:
+            cafile=''
+        
+        response = requests.get(api_url, verify=cafile)
+        response.raise_for_status()
+        longstring = response.text
+        mydata = longstring.split('\n')
+
+        assert 'ERROR: Invalid username' != mydata[0], (
+            f'The user "{self.userid}" is an invalid SuperMAG username.'
+            )
+    
+        if fetch == 'json':
+            if len(longstring) > 3:
+                mydata = json.loads(longstring)
+            else:
+                mydata=[] # just the word 'OK', no data, so return no data
+        elif fetch == 'raw':
+            if f'ERROR' in mydata[0]: 
+                raise ValueError(f'ERROR returned from SuperMAG API: {mydata[0]}')
+        else:
+            raise ValueError(f'{fetch=} is not recognized, must be "raw" or "json".')
+    
+        return mydata
+    
 
 def _sm_grabme(dataf,key,subkey):
     # syntactical sugar to grab nested subitems from a dataframe
@@ -466,18 +469,21 @@ def supermag_testing(userid):
 
 if __name__ == "__main__":
     import matplotlib.dates
-    #    Uncomment to run quick sample tests
-    userid='mshumko'    # TODO: Remove!
-    start='2022-11-04T06:40'
+    userid='mshumko'
+    time_range = ['2022-11-03T00:00','2022-11-05T00:00']
     # data = SuperMAGGetData(userid,start,3600,'all,baseline=yearly','HBK')
     # print(data)
 
-    idxdata = SuperMAGGetIndices(userid,start,60*40,'sml,smr,baseline=yearly')
+    sm = SuperMAG(userid, time_range,)
+    indices = sm.indices('sml,smr,baseline=yearly')
 
-    print(idxdata.keys())
+    print(indices.keys())
 
-    _, ax = plt.subplots()
-    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%H:%M'))
-    ax.plot(idxdata.index, idxdata.SML)
-    ax.set(ylabel='SML (nT)', xlabel='Time [HH:MM]', title=f'SuperMAG {start}')
+    _, ax = plt.subplots(2, 1, sharex=True, figsize=(8, 5))
+    ax[0].plot(indices.index, indices.SML)
+    ax[1].plot(indices.index, indices.smr)
+    ax[0].set(ylabel='SML (nT)', title=f'SuperMAG indices: {time_range[0]} to {time_range[1]}')
+    ax[1].set(ylabel='SMR (nT)', xlabel='Time [HH:MM]')
+
+    ax[-1].xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%H:%M'))
     plt.show()
