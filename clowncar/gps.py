@@ -127,6 +127,8 @@ class GPS:
             # This is a global variable so that it can be reused in multiple calls.
             self.mag_model = IRBEM.MagFields(kext='None')
 
+        self.footprints = {}
+
         for sc_key in list(self.data.keys()):
             if self.verbose:
                 print(f'Calculating footprints for GPS SC ID: {sc_key}...', end='\r')
@@ -160,6 +162,12 @@ class GPS:
             self.data[sc_key]['footprint_lat'] = lla[:, 0]
             self.data[sc_key]['footprint_lon'] = lla[:, 1]
             self.data[sc_key]['footprint_alt'] = lla[:, 2]
+
+            self.footprints[sc_key] = {
+                'lat': self.data[sc_key]['footprint_lat'],
+                'lon': self.data[sc_key]['footprint_lon'],
+                'alt': self.data[sc_key]['footprint_alt']
+            }
         return self.data
     
     def interpolate_gps_loc(self, freq='3s'):
@@ -260,9 +268,9 @@ class GPS:
         Configure the GPS footprint track for clowncar. These parameters are passed directly into
         plt.plot(lon, lat, **kwargs), so see the matplotlib documentation for valid options.
         """
-        self._cc_track_params = kwargs
-        self._cc_track_params.setdefault('linestyle', ':')
-        self._cc_track_params.setdefault('color', 'r')
+        self._cc_footprint_params = kwargs
+        self._cc_footprint_params.setdefault('linestyle', ':')
+        self._cc_footprint_params.setdefault('color', 'r')
         return
     
     def cc_marker_config(self, kwargs={}):
@@ -275,6 +283,7 @@ class GPS:
         self._cc_marker_params.setdefault('norm', matplotlib.colors.LogNorm(1E4, 1E7))
         self._cc_marker_params.setdefault('cmap', plt.get_cmap('plasma'))
         self._cc_marker_params.setdefault('s', 1_500)
+        self._cc_marker_params.setdefault('c', self._flux_value())  # TODO: Define this method.
         return
     
     def cc_marker_label_config(self, kwargs={}):
