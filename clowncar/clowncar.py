@@ -5,24 +5,30 @@ data orchistra and makes plots & animations.
 """
 
 import pathlib
-# import time
+import pprint
 from datetime import datetime, timezone, timedelta
 
 import numpy as np
 import pandas as pd
 import aacgmv2
-import cartopy.crs
-import cartopy.feature as cfeature
+try:
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+
+    cartopy_imported = True
+except ImportError as err:
+    # You can also get a ModuleNotFoundError if cartopy is not installed
+    # (as compared to failed to import), but it is a subclass of ImportError.
+    cartopy_imported = False
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.colors
 import matplotlib.dates
 import asilib
+import asilib.map
 import IRBEM
 import cdasws
 import fontawesome as fa
-
-import clowncar
 
 R_E = 6378.137  # km
 
@@ -30,6 +36,12 @@ class Clowncar:
     def __init__(self, asi, observatories, ax=None, ax_kwargs={}):
         self.asi = asi
         self.observatories = observatories
+        if not isinstance(self.observatories, (list, tuple)):
+            self.observatories = (self.observatories,)
+        if cartopy_imported:
+            self._transform = ccrs.PlateCarree()
+        else:
+            self._transform = None
         self.ax = ax
         if self.ax is None:
             self._init_map(ax_kwargs)
@@ -38,21 +50,27 @@ class Clowncar:
     def _init_map(self, ax_kwargs):
 
         center = ax_kwargs.get('center', (-100, 54))
+        lon_bounds = ax_kwargs.get('lon_bounds', (center[0]-30, center[0]+30))
+        lat_bounds = ax_kwargs.get('lat_bounds', (center[1]-20, center[1]+20))
         
-        projection = cartopy.crs.NearsidePerspective(
-            central_longitude=center[0], 
-            central_latitude=center[1], 
-            satellite_height=ax_kwargs.get('sat_height_m', 10_000_000) 
-        )
-        fig = plt.figure(figsize=(9, 10))
-        self.ax = fig.add_subplot(ax_kwargs.get('position', 111), projection=projection)
-        self.ax.add_feature(cfeature.LAND, color='grey')
-        self.ax.add_feature(cfeature.OCEAN, color='w')
-        self.ax.add_feature(cfeature.COASTLINE, edgecolor='k')
-        self.ax.set_extent(
-            (center[0]-30, center[0]+30, center[1]-20, center[1]+20), 
-            crs=cartopy.crs.PlateCarree()
+        if cartopy_imported:
+            projection = ccrs.NearsidePerspective(
+                central_longitude=center[0], 
+                central_latitude=center[1], 
+                satellite_height=ax_kwargs.get('sat_height_m', 10_000_000) 
             )
+            fig = plt.figure(figsize=(9, 10))
+            self.ax = fig.add_subplot(ax_kwargs.get('position', 111), projection=projection)
+            self.ax.add_feature(cfeature.LAND, color='grey')
+            self.ax.add_feature(cfeature.OCEAN, color='w')
+            self.ax.add_feature(cfeature.COASTLINE, edgecolor='k')
+            self.ax.set_extent(
+                (*lon_bounds, *lat_bounds), 
+                crs=self._transform
+                )
+        else:
+            fig = plt.figure(figsize=(9, 10))
+            self.ax = asilib.map.create_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds)
         if hasattr(self.asi, 'file_info'):
             if 'time_range' in self.asi.file_info:
                 _time = self.asi.file_info['time_range'][0]
@@ -84,56 +102,64 @@ class Clowncar:
                             self.ax.plot(
                                 _footprint['lon'], 
                                 _footprint['lat'], 
-                                transform=cartopy.crs.PlateCarree(),
+                                transform=self._transform,
                                 **observatory._cc_footprint_params
                                 )
+                            print(_footprint['lon'], _footprint['lon'])
             
             # if '_plot_time' in locals():
             #     _plot_time.remove()  # noqa: F821
             if ('observatory_markers' in locals()) and len(observatory_markers) > 0:  # noqa: F821
                 for observatory_marker in observatory_markers:  # noqa: F821
                     observatory_marker.remove()
-                for gps_label in gps_labels:  # noqa: F821
-                    gps_label.remove()
+                for obs_label in obs_labels:  # noqa: F821
+                    obs_label.remove()
             observatory_markers = []
-            gps_labels = []
+            obs_labels = []
             for observatory in self.observatories:
-                for key, data in observatory.items():
-                    # TODO: Resume here.
-                    dt_idt = np.argmin(np.abs((pd.to_datetime(data['interpolated_times'])-_guide_time).total_seconds()))
-                    dt_idt_flux = np.argmin(np.abs((pd.to_datetime(data['time'])-_guide_time).total_seconds()))
+                observatory_data = observatory(_guide_time, ax=self.ax)
+                if observatory_data == {}:
+                    Warning(f"No {observatory.__class__.__name__} data returned for time {_guide_time}.")
+                    continue
+                for sc_id, _lon, _lat, _flux in zip(
+                    observatory_data['sc_id'],
+                    observatory_data['footprint_lon'], 
+                    observatory_data['footprint_lat'], 
+                    observatory_data['flux']
+                    ):
+                    marker = observatory._cc_marker_params.get('marker', 'o')
+                    if (isinstance(marker, str)) and (marker.split('-')[0] == 'fontawesome'):
+                        marker = self._get_fontawesome_marker(marker.split('-')[1])
 
-                    if (
-                        (np.abs((data['interpolated_times'][dt_idt]-_guide_time).total_seconds()) < 5*60) and
-                        np.isfinite(data['footprint_lat'][dt_idt])
-                        ):
-                        _channel_idx = gps_data[key]['energy_channel_idx'] 
-                        _flux = gps_data[key]['electron_diff_flux'][dt_idt_flux, _channel_idx]
-                        scat = observatory_markers.append(ax.scatter(
-                            data['footprint_lon'][dt_idt],
-                            data['footprint_lat'][dt_idt],
-                            1_500,
-                            c=_flux,
-                            cmap=marker_cmap,
-                            norm=matplotlib.colors.LogNorm(*flux_color_bounds),
-                            marker=getmarker('satellite'),  # use snowflake for POES
-                            edgecolors="none",
-                            transform=cartopy.crs.PlateCarree(),
+                    if np.isfinite(_lat) and np.isfinite(_lon):
+                        observatory_markers.append(
+                            self.ax.scatter(
+                                _lon,
+                                _lat,
+                                c=_flux,
+                                s=observatory._cc_marker_params.get('s', 1_500),
+                                cmap=observatory._cc_marker_params.get('cmap', 'viridis'),
+                                norm=observatory._cc_marker_params.get('norm', None),
+                                marker=marker,
+                                edgecolors=observatory._cc_marker_params.get('edgecolors', None),
+                                transform=self._transform,
                             ))
-                        gps_labels.append(ax.text(
-                            data['footprint_lon'][dt_idt]+1, 
-                            data['footprint_lat'][dt_idt],
-                            key,
-                            fontsize=30,
-                            color='orange',
-                            transform=cartopy.crs.PlateCarree()
-                        ))
+                    
+                        if hasattr(observatory, '_cc_marker_label_params'):
+                            obs_labels.append(self.ax.text(
+                                _lon+observatory._cc_marker_label_params.get('lon_offset', 1),
+                                _lat+observatory._cc_marker_label_params.get('lat_offset', 0),
+                                sc_id,
+                                fontsize=observatory._cc_marker_label_params.get('fontsize', 20),
+                                color=observatory._cc_marker_label_params.get('color', 'orange'),
+                                transform=self._transform
+                            ))
             
-            if i == 0:
-                if gps_data[key].attrs['electron_diff_flux']['UNITS'] == 'cm^-2sec^-1sr^-1MeV^-1':
-                    label=fr'{gps_energy_mev} MeV Electron flux [$(cm^{{2}} \ s \ sr \ MeV)^{{-1}}$]'
-                else:
-                    label=f"{gps_energy_mev} MeV [{gps_data[key].attrs['electron_diff_flux']['UNITS']}]"
+            # if i == 0:
+            #     if gps_data[key].attrs['electron_diff_flux']['UNITS'] == 'cm^-2sec^-1sr^-1MeV^-1':
+            #         label=fr'{gps_energy_mev} MeV Electron flux [$(cm^{{2}} \ s \ sr \ MeV)^{{-1}}$]'
+            #     else:
+            #         label=f"{gps_energy_mev} MeV [{gps_data[key].attrs['electron_diff_flux']['UNITS']}]"
                 # cbar = plt.colorbar(observatory_markers[0], ax=ax, orientation='horizontal', pad=0.01, label=label)            
                 # cbar.set_label(label=label, size=20)
 
@@ -161,7 +187,7 @@ class Clowncar:
             linestyles='dashed',
             linewidths=2,
             alpha=0.5, 
-            transform=cartopy.crs.PlateCarree()
+            transform=self._transform
             )
         ax.contour(
             lon_grid, 
@@ -171,12 +197,12 @@ class Clowncar:
             colors='k',
             linestyles='dashed',
             alpha=0.5, 
-            transform=cartopy.crs.PlateCarree()
+            transform=self._transform
             )
         ax.clabel(cs, inline=True, fontsize=20, fmt=lambda x: f'$\\lambda = {{{round(x)}}}^{{\\circ}}$')
         return lat_grid, lon_grid, aacgm_lat_grid, aacgm_lon_grid, cs
     
-    def _getmarker(self, marker_nam='satellite'):
+    def _get_fontawesome_marker(self, marker_nam='satellite'):
         symbol = fa.icons[marker_nam]
         fp = matplotlib.font_manager.FontProperties(
             fname=pathlib.Path(asilib.__file__).parents[1] / 'asilib' / 'data' / "Font Awesome 7 Free-Solid-900.otf"
@@ -192,6 +218,8 @@ if __name__ == "__main__":
     from datetime import datetime
     from asilib.asi import trex_rgb
 
+    from gps import GPS
+
     time_range = (datetime(2021, 11, 4, 6, 30), datetime(2021, 11, 4, 7, 30))
     location_codes = ['LUCK', 'RABB', 'PINA', 'GILL']
     center=(-100, 54)
@@ -202,6 +230,14 @@ if __name__ == "__main__":
         asi_list.append(trex_rgb(location_code, time_range=time_range, colors='rgb', acknowledge=False, alt=alt))
     asis = asilib.Imagers(asi_list)
 
-    cc = Clowncar(asis, None)
-    print(cc.getmarker())
+    L_range = [4.25, 4.75]
+    dt_min=60*3
+    # file_paths, spacecraft_ids = download_gps(date, version='1.10', redownload=False)
+    _gps = GPS(time_range, version='1.10', redownload=False)
+    _gps.interpolate_gps_loc(freq='3s')
+    _gps.gps_footprint(alt=110, hemi_flag=0)
+    _gps.cc_footprint_config()
+
+    cc = Clowncar(asis, _gps)
+    cc.animate_map(framerate=30)
     pass

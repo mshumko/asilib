@@ -10,10 +10,19 @@ import pathlib
 import urllib
 import IRBEM
 import warnings
+import pprint
 from datetime import timedelta, datetime, date
 
-import cartopy.crs
+try:
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+    cartopy_imported = True
+except ImportError as err:
+    # You can also get a ModuleNotFoundError if cartopy is not installed
+    # (as compared to failed to import), but it is a subclass of ImportError.
+    cartopy_imported = False
 import matplotlib.pyplot as plt
+import matplotlib.dates
 import pandas as pd
 import numpy as np
 import requests
@@ -56,6 +65,10 @@ class GPS:
         If True, forces redownload of existing files.
     clip_date : bool, optional
         If True, clips the data to the specified time range.
+    verbose : bool, optional
+        If True, prints progress messages during data processing.
+    energy : float, optional
+        The energy channel (in MeV) pass to Clowncar.
 
     Attributes
     ----------
@@ -91,18 +104,33 @@ class GPS:
     >>> plt.legend()
     >>> plt.show()
     """
-    def __init__(self, time_range:List[datetime], sc_ids=None, version='1.10', redownload=False, clip_date=True, verbose=False):
+    def __init__(
+            self, 
+            time_range:List[datetime], 
+            sc_ids=None, 
+            version='1.10', 
+            redownload=False, 
+            clip_date=True, 
+            verbose=False,
+            energy=1
+            ):
         self.time_range = time_range
         self.sc_ids = sc_ids
         self.version = version
         self.redownload = redownload
         self.clip_date = clip_date
         self.verbose = verbose
+        self.energy = energy
         self.data = self._find_data()
         self.sc_id_0 = list(self.data.keys())[0]
         self.keys = self.data[self.sc_id_0].keys()
 
         self.energies = self.data[self.sc_id_0]['electron_diff_flux_energy'][-1, :]
+        self._energy_idx = np.where(energy==self.energies)[0]
+        assert len(self._energy_idx) == 1, (
+            f'Energy channel {energy} is not in the valid {self.energies} list.'
+            )
+        self._energy_idx = self._energy_idx[0]
         self.l_keys = [key for key in self.keys if 'L_' in key]
         return
     
@@ -171,6 +199,15 @@ class GPS:
         return self.data
     
     def interpolate_gps_loc(self, freq='3s'):
+        """
+        Interpolate the GPS location data to a regular time interval.
+
+        Parameters
+        ----------
+        freq : str
+            The frequency string for interpolation (e.g., '3s' for 3 seconds). It is passed
+            directly to pandas.date_range(freq=freq) to create the interpolated time index.
+        """
         interp_times = pd.date_range(*self.time_range, freq=freq)
         interp_times_numeric = matplotlib.dates.date2num(interp_times)
 
@@ -184,6 +221,7 @@ class GPS:
 
             self.data[sc_key]['interpolated_times'] = interp_times
 
+            # Keep track of indices where we had to interpolate across jumps, and nan them out.
             interpolated_jump_indices = np.array([], dtype=int)
             for start_time, end_time in zip(lon_jump_start_times, lon_jump_end_times):
                 idt = np.where(
@@ -203,11 +241,23 @@ class GPS:
                     self.data[sc_key][llr_key][interpolated_jump_indices] = np.nan
         return self.data
 
-    def __call__(self, time, ax=None, time_tol_min=4):
+    def __call__(self, time:datetime, ax=None, time_tol_min=4):
         """
-        This is the method that talks to Clowncar. This method returns the GPS data within time_tol 
-        of the input time. If ax is provided, it will also remove GPS units from self.data that are 
-        not in the subplot FOV.
+        This is the method that talks to Clowncar. This method returns the GPS locations and 
+        footprints, interpolated or non-interpolated, if they are within time_tol of the input
+        time. If ax is provided with a Cartopy projection, the GPS units outside the ax's FOV
+        are excluded.
+
+        Note: The fluxes are not interpolated. Rather, they correspond to the nearest time stamp.
+
+        Parameters
+        ----------
+        time : datetime
+            The time at which to get the GPS data.
+        ax: matplotlib.axes.Axes, optional
+            The axes on which to check if the GPS unit footprints are in the ax's FOV.
+        time_tol_min : int, optional
+            The time tolerance (in minutes) for matching GPS data to the input time.        
         """
         gps_data = {}
 
@@ -222,22 +272,23 @@ class GPS:
                 min_idx = np.argmin(np.abs(
                     matplotlib.dates.date2num(self.data[sc_key]['time']) - matplotlib.dates.date2num(time)
                 ))
-            if np.abs((self.data[sc_key][_time_key][min_idx] - time).total_seconds()) > 60*time_tol_min:
-                continue
-            gps_data[sc_key] = {}
-            for key in [_time_key, 'Geographic_Latitude', 'Geographic_Longitude', 'Rad_Re']:
-                gps_data[sc_key][key] = self.data[sc_key][key][min_idx]
+            if np.abs((self.data[sc_key][_time_key][min_idx] - time).total_seconds()) <= 60*time_tol_min:
+                gps_data[sc_key] = {}
+                gps_keys = [_time_key, 'Geographic_Latitude', 'Geographic_Longitude', 'Rad_Re']
+                general_keys = [_time_key, 'sc_lat', 'sc_lon', 'sc_rad']
+                for gps_key, general_key in zip(gps_keys, general_keys):
+                    gps_data[sc_key][general_key] = self.data[sc_key][gps_key][min_idx]
 
-            if 'footprint_lat' in self.data[self.sc_id_0]:
-                for key in ['footprint_lat', 'footprint_lon', 'footprint_alt']:
-                    gps_data[sc_key][key] = self.data[sc_key][key][min_idx]
-
+                if hasattr(self, 'footprints'):
+                    for key in ['footprint_lat', 'footprint_lon', 'footprint_alt']:
+                        gps_data[sc_key][key] = self.data[sc_key][key][min_idx]
 
             # We are currently not interpolating fluxes, so only use the non-interpolated time.
-            min_idx = np.argmin(np.abs(
+            min_idx_flux = np.argmin(np.abs(
                 matplotlib.dates.date2num(self.data[sc_key]['time']) - matplotlib.dates.date2num(time)
             ))
-            gps_data[sc_key]['electron_diff_flux'] = self.data[sc_key]['electron_diff_flux'][min_idx, :]
+            if np.abs((self.data[sc_key]['time'][min_idx_flux] - time).total_seconds()) <= 60*time_tol_min:
+                gps_data[sc_key]['flux'] = self.data[sc_key]['electron_diff_flux'][min_idx_flux, self._energy_idx]
 
         if ax is not None:
             if 'footprint_lat' not in self.data[self.sc_id_0]:
@@ -245,10 +296,16 @@ class GPS:
                     "GPS footprint data not found. Please run the gps_footprint() method "
                     "before calling this method with an ax argument."
                 )
-            ax_extent = ax.get_extent(crs=cartopy.crs.PlateCarree())
+            if cartopy_imported:
+                ax_extent = ax.get_extent(crs=ccrs.PlateCarree())
+            else:
+                ax_extent = (*ax.get_xlim(), *ax.get_ylim())
 
             gps_units_not_in_view = []
             for sc_key, data in gps_data.items():
+                if np.isnan(data['footprint_lat']) or np.isnan(data['footprint_lon']):
+                    gps_units_not_in_view.append(sc_key)
+                    continue
                 idx = np.where(
                     (ax_extent[0] < data['footprint_lon']) &
                     (data['footprint_lon'] < ax_extent[1]) &
@@ -260,7 +317,9 @@ class GPS:
 
             for sc_key in gps_units_not_in_view:
                 gps_data.pop(sc_key)
-            
+        if len(list(gps_data.keys())) == 0:
+            return {}  # Interpolated time stamps before the first GPS time stamp
+        gps_data['sc_id'] = list(gps_data.keys())
         return gps_data
     
     def cc_footprint_config(self, kwargs={}):
@@ -277,13 +336,20 @@ class GPS:
         """
         Configure the GPS marker for clowncar. These parameters are passed directly into
         plt.scatter(lon, lat, **kwargs), so see the matplotlib documentation for valid options.
+
+        The default options are: 
+        - marker='fontawesome-satellite', 
+        - norm=LogNorm(1E4, 1E7),
+        - cmap='plasma',
+        - s=1_500,
         """
         self._cc_marker_params = kwargs
         self._cc_marker_params.setdefault('marker', 'fontawesome-satellite')
         self._cc_marker_params.setdefault('norm', matplotlib.colors.LogNorm(1E4, 1E7))
         self._cc_marker_params.setdefault('cmap', plt.get_cmap('plasma'))
         self._cc_marker_params.setdefault('s', 1_500)
-        self._cc_marker_params.setdefault('c', self._flux_value())  # TODO: Define this method.
+        self._cc_marker_params.setdefault('edgecolors', 'k')
+        # self._cc_marker_params.setdefault('c', self._flux_value())  # TODO: Define this method.
         return
     
     def cc_marker_label_config(self, kwargs={}):
@@ -294,6 +360,8 @@ class GPS:
         self._cc_marker_label_params = kwargs
         self._cc_marker_label_params.setdefault('fontsize', 30)
         self._cc_marker_label_params.setdefault('color', 'orange')
+        self._cc_marker_label_params.setdefault('lon_offset', 1)
+        self._cc_marker_label_params.setdefault('lat_offset', 0)
         return
 
     def plot_avg_flux(
@@ -544,6 +612,14 @@ class GPS:
             spacecraft_ids.append(_gps_id)   
         return file_paths, spacecraft_ids
 
+    def __str__(self) -> str:
+        s = (
+            f'GPS object for times between {self.time_range} containing data '
+            f'from {self.data.keys()} satellites.'
+        )
+        return s
+    
+
 def Dec2Datetime(gps_dict):
     """
     Convert year and decimal day to datetime (yuck).
@@ -685,7 +761,8 @@ if __name__ == "__main__":
     _gps = GPS(time_range, version='1.10', redownload=False, verbose=True)
     _gps.interpolate_gps_loc(freq='3s')
     _gps.gps_footprint(alt=110, hemi_flag=0)
-    print(_gps(time_range[0])['ns74'])
+    _gps(time_range[0]+timedelta(minutes=10))
+    pass
 
     # ax = _gps.plot_avg_flux(
     #     energies=(0.12, 0.3, 0.6, 1.0, 2.0), 
