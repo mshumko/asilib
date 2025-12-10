@@ -38,13 +38,11 @@ class Clowncar:
         self.observatories = observatories
         if not isinstance(self.observatories, (list, tuple)):
             self.observatories = (self.observatories,)
-        if cartopy_imported:
-            self._transform = ccrs.PlateCarree()
-        else:
-            self._transform = None
         self.ax = ax
-        if self.ax is None:
-            self._init_map(ax_kwargs)
+        self._init_map(ax_kwargs)
+
+        self.default_cmap = plt.cm.viridis
+        self.default_cmap.set_bad(color='white', alpha=0.5)
         return
     
     def _init_map(self, ax_kwargs):
@@ -53,7 +51,7 @@ class Clowncar:
         lon_bounds = ax_kwargs.get('lon_bounds', (center[0]-30, center[0]+30))
         lat_bounds = ax_kwargs.get('lat_bounds', (center[1]-20, center[1]+20))
         
-        if cartopy_imported:
+        if cartopy_imported and (self.ax is None):
             projection = ccrs.NearsidePerspective(
                 central_longitude=center[0], 
                 central_latitude=center[1], 
@@ -66,11 +64,19 @@ class Clowncar:
             self.ax.add_feature(cfeature.COASTLINE, edgecolor='k')
             self.ax.set_extent(
                 (*lon_bounds, *lat_bounds), 
-                crs=self._transform
+                crs=ccrs.PlateCarree()
                 )
-        else:
+        elif (not cartopy_imported) and (self.ax is None):
             fig = plt.figure(figsize=(9, 10))
             self.ax = asilib.map.create_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds)
+        else:
+            pass
+        
+        if cartopy_imported:
+            self._transform = ccrs.PlateCarree()
+        else:
+            self._transform = self.ax.transData
+
         if hasattr(self.asi, 'file_info'):
             if 'time_range' in self.asi.file_info:
                 _time = self.asi.file_info['time_range'][0]
@@ -105,7 +111,6 @@ class Clowncar:
                                 transform=self._transform,
                                 **observatory._cc_footprint_params
                                 )
-                            print(_footprint['lon'], _footprint['lon'])
             
             # if '_plot_time' in locals():
             #     _plot_time.remove()  # noqa: F821
@@ -132,14 +137,15 @@ class Clowncar:
                         marker = self._get_fontawesome_marker(marker.split('-')[1])
 
                     if np.isfinite(_lat) and np.isfinite(_lon):
+                        print(f"Plotting {observatory.__class__.__name__} {_lon:.2f}, {_lat:.2f}, flux={_flux:.2e}")
                         observatory_markers.append(
                             self.ax.scatter(
                                 _lon,
                                 _lat,
                                 c=_flux,
                                 s=observatory._cc_marker_params.get('s', 1_500),
-                                cmap=observatory._cc_marker_params.get('cmap', 'viridis'),
-                                norm=observatory._cc_marker_params.get('norm', None),
+                                cmap=observatory._cc_marker_params.get('cmap', self.default_cmap),
+                                norm=observatory._cc_marker_params.get('norm', matplotlib.colors.Normalize),
                                 marker=marker,
                                 edgecolors=observatory._cc_marker_params.get('edgecolors', None),
                                 transform=self._transform,
@@ -154,6 +160,8 @@ class Clowncar:
                                 color=observatory._cc_marker_label_params.get('color', 'orange'),
                                 transform=self._transform
                             ))
+                    else:
+                        print(f"Skipping {observatory.__class__.__name__}-{sc_id} footprint plot for invalid lat/lon: {_lat}, {_lon}")
             
             # if i == 0:
             #     if gps_data[key].attrs['electron_diff_flux']['UNITS'] == 'cm^-2sec^-1sr^-1MeV^-1':
@@ -235,8 +243,10 @@ if __name__ == "__main__":
     # file_paths, spacecraft_ids = download_gps(date, version='1.10', redownload=False)
     _gps = GPS(time_range, version='1.10', redownload=False)
     _gps.interpolate_gps_loc(freq='3s')
-    _gps.gps_footprint(alt=110, hemi_flag=0)
+    _gps.gps_footprint(alt=110, hemi_flag=1)
     _gps.cc_footprint_config()
+    _gps.cc_marker_config()
+    _gps.cc_marker_label_config()
 
     cc = Clowncar(asis, _gps)
     cc.animate_map(framerate=30)

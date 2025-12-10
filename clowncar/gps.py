@@ -272,23 +272,25 @@ class GPS:
                 min_idx = np.argmin(np.abs(
                     matplotlib.dates.date2num(self.data[sc_key]['time']) - matplotlib.dates.date2num(time)
                 ))
-            if np.abs((self.data[sc_key][_time_key][min_idx] - time).total_seconds()) <= 60*time_tol_min:
-                gps_data[sc_key] = {}
-                gps_keys = [_time_key, 'Geographic_Latitude', 'Geographic_Longitude', 'Rad_Re']
-                general_keys = [_time_key, 'sc_lat', 'sc_lon', 'sc_rad']
-                for gps_key, general_key in zip(gps_keys, general_keys):
-                    gps_data[sc_key][general_key] = self.data[sc_key][gps_key][min_idx]
-
-                if hasattr(self, 'footprints'):
-                    for key in ['footprint_lat', 'footprint_lon', 'footprint_alt']:
-                        gps_data[sc_key][key] = self.data[sc_key][key][min_idx]
+            # TODO: return this if statement to enforce time tolerance.
+            # if np.abs((self.data[sc_key][_time_key][min_idx] - time).total_seconds()) <= 60*time_tol_min:
+            gps_data[sc_key] = {}
+            gps_keys = [_time_key, 'Geographic_Latitude', 'Geographic_Longitude', 'Rad_Re']
+            general_keys = [_time_key, 'sc_lat', 'sc_lon', 'sc_rad']
+            for gps_key, general_key in zip(gps_keys, general_keys):
+                gps_data[sc_key][general_key] = self.data[sc_key][gps_key][min_idx]
+            # TODO: Indent this too.
+            if hasattr(self, 'footprints'):
+                for key in ['footprint_lat', 'footprint_lon', 'footprint_alt']:
+                    gps_data[sc_key][key] = self.data[sc_key][key][min_idx]
 
             # We are currently not interpolating fluxes, so only use the non-interpolated time.
             min_idx_flux = np.argmin(np.abs(
                 matplotlib.dates.date2num(self.data[sc_key]['time']) - matplotlib.dates.date2num(time)
             ))
-            if np.abs((self.data[sc_key]['time'][min_idx_flux] - time).total_seconds()) <= 60*time_tol_min:
-                gps_data[sc_key]['flux'] = self.data[sc_key]['electron_diff_flux'][min_idx_flux, self._energy_idx]
+            # TODO: return this if statement to enforce time tolerance.
+            # if np.abs((self.data[sc_key]['time'][min_idx_flux] - time).total_seconds()) <= 60*time_tol_min:
+            gps_data[sc_key]['flux'] = self.data[sc_key]['electron_diff_flux'][min_idx_flux, self._energy_idx]
 
         if ax is not None:
             if 'footprint_lat' not in self.data[self.sc_id_0]:
