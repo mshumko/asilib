@@ -105,6 +105,33 @@ def psa_emccd(
     >>> ax.yaxis.set_visible(False)
     >>> plt.tight_layout()
     >>> asi.animate_fisheye(ax=ax, ffmpeg_params={'framerate':100}, origin=(0.9, 0.1))
+
+    >>> # Animate the Tromsø ASI on a map.
+    >>> # Note that this example will take a while to download data and run.
+    >>> # Change the time_range if needed to run quicker.
+    >>> from datetime import datetime
+    >>> 
+    >>> import matplotlib.pyplot as plt
+    >>> 
+    >>> import asilib.asi
+    >>> import asilib.map
+    >>> 
+    >>> # https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi?year=2017&month=03&day=07&jump=Plot
+    >>> asi = asilib.asi.psa_emccd(
+    >>>     'C1', 
+    >>>     # time=datetime(2017, 3, 7, 19, 35, 0),
+    >>>     time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
+    >>>     redownload=False,
+    >>>     downsample_factor=100  # 1 fps for C1 after 2017-01-26.
+    >>>     )
+    >>> fig = plt.figure(figsize=(6, 6))
+    >>> ax = asilib.map.create_map(
+    >>>     lon_bounds=(asi.meta['lon']-10, asi.meta['lon']+10),
+    >>>     lat_bounds=(asi.meta['lat']-5, asi.meta['lat']+5),
+    >>>     fig_ax=(fig, 111)
+    >>>     )
+    >>> plt.tight_layout()
+    >>> asi.animate_map(ax=ax, ffmpeg_params={'framerate':100})
     """
     location_code = _verify_location(location_code)
 
