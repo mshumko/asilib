@@ -15,7 +15,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 import asilib
-import asilib.skymap
 import asilib.utils as utils
 import asilib.download as download
 
@@ -155,14 +154,14 @@ def psa_emccd(
         _time = time
 
     skymap = psa_emccd_skymap(location_code, _time, redownload, alt)
+    max_el_idx = np.unravel_index(np.argmax(skymap['el']), skymap['el'].shape)
 
     meta = {
         'array': 'PSA_EMCCD',
         'location': location_code,
-        # TODO: Get site locations from Keisuke.
-        # 'lat': float(_skymap['SITE_MAP_LATITUDE']),
-        # 'lon': float(_skymap['SITE_MAP_LONGITUDE']),
-        # 'alt': float(_skymap['SITE_MAP_ALTITUDE']) / 1e3,
+        'lat': skymap['lat'][*max_el_idx],
+        'lon': skymap['lon'][*max_el_idx],
+        'alt': 0,
         'cadence': downsample_factor/_fps(file_info['path'][0]),
         'resolution':(255, 255),
         }
@@ -622,16 +621,26 @@ def ebireaded_ym(f):
 
 
 if __name__ == '__main__':
+    from datetime import datetime
+
+    import matplotlib.pyplot as plt
+    
+    import asilib.asi
+    import asilib.map
+
     # https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi?year=2017&month=03&day=07&jump=Plot
-    asi = psa_emccd(
+    asi = asilib.asi.psa_emccd(
         'C1', 
         # time=datetime(2017, 3, 7, 19, 35, 0),
         time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
         redownload=False,
         downsample_factor=100  # 1 fps for C1 after 2017-01-26.
         )
-    _, ax = plt.subplots(figsize=(8, 8))
-    ax.xaxis.set_visible(False)
-    ax.yaxis.set_visible(False)
+    fig = plt.figure(figsize=(6, 6))
+    ax = asilib.map.create_map(
+        lon_bounds=(asi.meta['lon']-10, asi.meta['lon']+10),
+        lat_bounds=(asi.meta['lat']-5, asi.meta['lat']+5),
+        fig_ax=(fig, 111)
+        )
     plt.tight_layout()
-    asi.animate_fisheye(ax=ax, ffmpeg_params={'framerate':1_00}, origin=(0.9, 0.1))
+    asi.animate_map(ax=ax, ffmpeg_params={'framerate':100})
