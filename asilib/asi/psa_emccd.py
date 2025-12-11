@@ -3,6 +3,7 @@ The `Pulsating Aurora (PsA) project <http://www.psa-research.org>`_ operated hig
 """
 from datetime import datetime, timedelta
 from typing import Union, Iterable, List
+import functools
 import warnings
 import pathlib
 import bz2
@@ -28,6 +29,7 @@ def psa_emccd(
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
     alt: int = 110,
+    downsample_factor: int = 1,
     redownload: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
@@ -48,6 +50,12 @@ def psa_emccd(
         the ASI data time interval.
     alt: int
         The reference skymap altitude, in kilometers.
+    downsample_factor: int
+        The factor by which to downsample the images. For example, a value of
+        10 will reduce the image cadence by a factor of 10. For C1 after 2017-01-26,
+        and C2, C6, C7, the frame rate is 100 fps, so a downsample_factor=10 will 
+        yield 10 fps. Other imagers are 10 fps by default, so downsample_factor=10
+        will yield 1 fps.
     redownload: bool
         If True, will download the data from the internet, regardless of
         wether or not the data exists locally (useful if the data becomes
@@ -90,13 +98,14 @@ def psa_emccd(
     >>> asi = psa_emccd(
     >>>    'C1',
     >>>    time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
-    >>>    redownload=False
+    >>>    redownload=False,
+    >>>    downsample_factor=100  # 1 fps for C1 after 2017-01-26.
     >>>    )
     >>> _, ax = plt.subplots(figsize=(8, 8))
     >>> ax.xaxis.set_visible(False)
     >>> ax.yaxis.set_visible(False)
     >>> plt.tight_layout()
-    >>> asi.animate_fisheye(ax=ax, ffmpeg_params={'framerate':1_000}, origin=(0.9, 0.1))
+    >>> asi.animate_fisheye(ax=ax, ffmpeg_params={'framerate':100}, origin=(0.9, 0.1))
     """
     location_code = _verify_location(location_code)
 
@@ -129,7 +138,7 @@ def psa_emccd(
             'path': file_paths,
             'start_time': start_times,
             'end_time': end_times,
-            'loader': _load_image_file,
+            'loader': functools.partial(_load_image_file, downsample_factor=downsample_factor),
         }
     else:
         file_info = {
@@ -154,7 +163,7 @@ def psa_emccd(
         # 'lat': float(_skymap['SITE_MAP_LATITUDE']),
         # 'lon': float(_skymap['SITE_MAP_LONGITUDE']),
         # 'alt': float(_skymap['SITE_MAP_ALTITUDE']) / 1e3,
-        'cadence': 1/_fps(file_info['path'][0]),
+        'cadence': downsample_factor/_fps(file_info['path'][0]),
         'resolution':(255, 255),
         }
     plot_settings={
@@ -467,7 +476,7 @@ def _fps(path):
         fps = 10
     return fps
 
-def _load_image_file(path):
+def _load_image_file(path, downsample_factor):
     """
     Translated from IDL with the help of ChatGPT.
 
@@ -477,6 +486,12 @@ def _load_image_file(path):
     img_i = 0
     time_i = 0
     number_of_images = 60 * fps
+
+    if number_of_images % downsample_factor != 0:
+        raise ValueError(
+            f'downsample_factor={downsample_factor} must evenly divide the number of'
+            f'images={number_of_images} in each file.'
+        )
 
     raw_images = np.full((number_of_images, 256, 256), 0, dtype=np.uint16)
     raw_times = np.full((number_of_images,), np.nan, dtype=object)
@@ -511,6 +526,27 @@ def _load_image_file(path):
                         f"format hasn't been implemneted yet: {_time_raw_str}."
                         )
                 # i+=1  # Only increment i when we get a full image + timestamp.
+
+    if downsample_factor > 1:
+        # Trim to whole number of groups and average each non-overlapping group
+        n_frames = raw_images.shape[0]
+        n_groups = n_frames // downsample_factor
+
+        if n_groups > 0:
+            last_downsample_frame = n_groups * downsample_factor
+            raw_times = raw_times[:last_downsample_frame]
+            raw_images = raw_images[:last_downsample_frame, :, :]
+            # reshape to (n_groups, group_size, img_H, img_W) and average over group_size
+            raw_images = raw_images.reshape(
+                n_groups, downsample_factor, raw_images.shape[1], raw_images.shape[2]
+                ).mean(axis=1).astype(np.uint16)
+            # keep the first timestamp of each group
+            raw_times = raw_times[::downsample_factor]
+        else:
+            raise ValueError(
+                f"downsample_factor={downsample_factor} is too large for "
+                f"the number of frames={n_frames} in the file."
+            )
     return raw_times, raw_images[:, ::-1, :]
 
 def ebireaded_ym(f):
@@ -591,10 +627,11 @@ if __name__ == '__main__':
         'C1', 
         # time=datetime(2017, 3, 7, 19, 35, 0),
         time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
-        redownload=False
+        redownload=False,
+        downsample_factor=100  # 1 fps for C1 after 2017-01-26.
         )
     _, ax = plt.subplots(figsize=(8, 8))
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
     plt.tight_layout()
-    asi.animate_fisheye(ax=ax, ffmpeg_params={'framerate':1_000}, origin=(0.9, 0.1))
+    asi.animate_fisheye(ax=ax, ffmpeg_params={'framerate':1_00}, origin=(0.9, 0.1))
