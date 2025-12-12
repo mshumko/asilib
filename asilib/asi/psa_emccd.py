@@ -557,7 +557,7 @@ def _load_image_file(path, downsample_factor):
                 else:
                     raise NotImplementedError(
                         f"Please submit a GitHub Issue about the old timestamp "
-                        f"format hasn't been implemneted yet: {_time_raw_str}."
+                        f"format hasn't been implemented yet: {_time_raw_str}."
                         )
                 # i+=1  # Only increment i when we get a full image + timestamp.
 
@@ -655,7 +655,7 @@ def _ebireaded_ym(f):
     return iTag, x, y, imgname, dat
 
 
-def lamp(location_code, time=None, time_range=None, redownload=False, missing_ok=True, alt=90):
+def lamp(location_code, time=None, time_range=None, redownload=False, missing_ok=True, alt=90, downsample_factor=1):
     """
     Create an Imager instance of the Pulsating Aurora ground-based EMCCD ASI in support of the LAMP 
     sounding rocket flight.
@@ -679,6 +679,10 @@ def lamp(location_code, time=None, time_range=None, redownload=False, missing_ok
         for them locally and online).
     alt: int
         The mapping altitude.
+    downsample_factor: int
+        The factor by which to downsample the images. For example, a value of
+        10 will reduce the image cadence by a factor of 10. The LAMP EMCCD ASIs
+        are 100 fps by default, so downsample_factor=10 will yield 10 fps.
 
     Example
     -------
@@ -758,7 +762,7 @@ def lamp(location_code, time=None, time_range=None, redownload=False, missing_ok
         'path': file_paths,
         'start_time': start_times,
         'end_time': end_times,
-        'loader': lamp_reader,
+        'loader': functools.partial(lamp_reader, downsample_factor=downsample_factor),
     }
     if time_range is not None:
         file_info['time_range'] = time_range
@@ -824,13 +828,12 @@ def _get_lamp_file_paths(location_code, time, time_range, redownload, missing_ok
     return file_paths
 
 
-def lamp_reader(file_path):
+def lamp_reader(file_path, downsample_factor=1):
     """
     Reads a LAMP EMCCD .sav file and returns the times and images.
     """
     sav_data = scipy.io.readsav(str(file_path), python_dict=True)
     images = np.moveaxis(sav_data['img'], 2, 0)
-    # images = images[:, :, :]  # Flip from column- to row-major.
     times = np.array(
         [
             datetime(y, mo, d, h, m, s, 1000 * ms)
@@ -845,6 +848,25 @@ def lamp_reader(file_path):
             )
         ]
     )
+    if downsample_factor > 1:
+        n_frames = images.shape[0]
+        n_groups = n_frames // downsample_factor
+
+        if n_groups > 0:
+            last_downsample_frame = n_groups * downsample_factor
+            times = times[:last_downsample_frame]
+            images = images[:last_downsample_frame, :, :]
+            # reshape to (n_groups, group_size, img_H, img_W) and average over group_size
+            images = images.reshape(
+                n_groups, downsample_factor, images.shape[1], images.shape[2]
+                ).mean(axis=1).astype(np.uint16)
+            # keep the first timestamp of each group
+            times = times[::downsample_factor]
+        else:
+            raise ValueError(
+                f"downsample_factor={downsample_factor} is too large for "
+                f"the number of frames={n_frames} in the file."
+            )
     return times, images
 
 
