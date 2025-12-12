@@ -527,8 +527,8 @@ def _load_image_file(path, downsample_factor):
             f'images={number_of_images} in each file.'
         )
 
-    raw_images = np.full((number_of_images, 256, 256), 0, dtype=np.uint16)
-    raw_times = np.full((number_of_images,), np.nan, dtype=object)
+    raw_images = np.full((number_of_images+1, 256, 256), 0, dtype=np.uint16)
+    raw_times = np.full((number_of_images+1,), np.datetime64("NaT"), dtype=object)
 
     with bz2.BZ2File(path, 'rb') as f:
         while f:
@@ -560,6 +560,9 @@ def _load_image_file(path, downsample_factor):
                         f"format hasn't been implemented yet: {_time_raw_str}."
                         )
                 # i+=1  # Only increment i when we get a full image + timestamp.
+
+    raw_times = raw_times[:time_i]
+    raw_images = raw_images[:time_i, :, :]
 
     if downsample_factor > 1:
         # Trim to whole number of groups and average each non-overlapping group
