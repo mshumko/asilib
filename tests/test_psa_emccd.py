@@ -1,5 +1,5 @@
 """
-Tests the psa_emccd() data loading and the example plotting functions.
+Tests the psa_project() data loading and the example plotting functions.
 """
 from datetime import datetime
 
@@ -13,7 +13,7 @@ import asilib.asi
 
 def test_valid_camera_code():
     location_code = 'c2'
-    asi = asilib.asi.psa_emccd(
+    asi = asilib.asi.psa_project(
         location_code, 
         time=datetime(2019, 3, 1, 18, 30, 0)
     )
@@ -23,7 +23,7 @@ def test_valid_camera_code():
 def test_invalid_camera_code():
     location_code = 'C100'
     with pytest.raises(ValueError) as excinfo:
-        asi = asilib.asi.psa_emccd(
+        asi = asilib.asi.psa_project(
             location_code, 
             time=datetime(2019, 3, 1, 18, 30, 0)
         )
@@ -32,7 +32,7 @@ def test_invalid_camera_code():
 
 def test_valid_name():
     location_name = 'Tromsoe'
-    asi = asilib.asi.psa_emccd(
+    asi = asilib.asi.psa_project(
         location_name, 
         time=datetime(2019, 3, 1, 18, 30, 0)
     )
@@ -42,7 +42,7 @@ def test_valid_name():
 def test_invalid_name():
     location_name = 'Test'
     with pytest.raises(ValueError) as excinfo:
-        asi = asilib.asi.psa_emccd(
+        asi = asilib.asi.psa_project(
             location_name, 
             time=datetime(2019, 3, 1, 18, 30, 0)
         )

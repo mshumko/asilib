@@ -63,6 +63,6 @@ omit = [
     "examples//*",
     "__main__.py",
     "setup.py",
-    "asilib//asi//psa_emccd.py",
+    "asilib//asi//psa_project.py",
     "asilib//asi//lamp_phantom.py",
     ]

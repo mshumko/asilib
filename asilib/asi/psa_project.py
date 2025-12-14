@@ -23,15 +23,15 @@ import asilib.download as download
 
 image_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/raw/'
 skymap_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/raw/fovd/'
-local_base_dir = asilib.config['ASI_DATA_DIR'] / 'psa_emccd'
+local_base_dir = asilib.config['ASI_DATA_DIR'] / 'psa_project'
 
 # These paths are for the LAMP project, which was also part of the PSA project, but the imagers
 # are different.
 lamp_image_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/lamp/sav_img/'
 lamp_skymap_base_url = 'https://ergsc.isee.nagoya-u.ac.jp/psa-pwing/pub/raw/lamp/sav_fov/'
-lamp_local_base_dir = asilib.config['ASI_DATA_DIR'] / 'psa_emccd' / 'lamp'
+lamp_local_base_dir = asilib.config['ASI_DATA_DIR'] / 'psa_project'
 
-def psa_emccd(
+def psa_project(
     location_code: str,
     time: utils._time_type = None,
     time_range: utils._time_range_type = None,
@@ -84,9 +84,9 @@ def psa_emccd(
 
     Examples
     --------
-    >>> from asilib.asi import psa_emccd
+    >>> from asilib.asi import psa_project
     >>> # https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi?year=2017&month=03&day=07&jump=Plot
-    >>> asi = psa_emccd(
+    >>> asi = psa_project(
     >>>    'C1', 
     >>>    time=datetime(2017, 3, 7, 19, 35, 0),
     >>>    redownload=False
@@ -100,9 +100,9 @@ def psa_emccd(
     >>> plt.show()
 
     >>> # Note that this example will take a while to download data and run.
-    >>> from asilib.asi import psa_emccd
+    >>> from asilib.asi import psa_project
     >>> # https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi?year=2017&month=03&day=07&jump=Plot
-    >>> asi = psa_emccd(
+    >>> asi = psa_project(
     >>>    'C1',
     >>>    time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
     >>>    redownload=False,
@@ -125,7 +125,7 @@ def psa_emccd(
     >>> import asilib.map
     >>> 
     >>> # https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi?year=2017&month=03&day=07&jump=Plot
-    >>> asi = asilib.asi.psa_emccd(
+    >>> asi = asilib.asi.psa_project(
     >>>     'C1', 
     >>>     # time=datetime(2017, 3, 7, 19, 35, 0),
     >>>     time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
@@ -188,11 +188,11 @@ def psa_emccd(
         file_info['time'] = time
         _time = time
 
-    skymap = psa_emccd_skymap(location_code, _time, redownload, alt)
+    skymap = psa_project_skymap(location_code, _time, redownload, alt)
     max_el_idx = np.unravel_index(np.argmax(skymap['el']), skymap['el'].shape)
 
     meta = {
-        'array': 'PSA_EMCCD',
+        'array': 'psa_project',
         'location': location_code,
         'lat': skymap['lat'][*max_el_idx],
         'lon': skymap['lon'][*max_el_idx],
@@ -206,21 +206,21 @@ def psa_emccd(
     }
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
-def psa_emccd_info() -> pd.DataFrame:
+def psa_project_info() -> pd.DataFrame:
     """
-    Returns a pd.DataFrame with the PSA_EMCCD ASI names and locations.
+    Returns a pd.DataFrame with the psa_project ASI names and locations.
 
     Returns
     -------
     pd.DataFrame
-        A table of PSA_EMCCD imager names and locations.
+        A table of psa_project imager names and locations.
     """
     path = pathlib.Path(asilib.__file__).parent / 'data' / 'asi_locations.csv'
     df = pd.read_csv(path)
     df = df[df['array'] == 'psa_project']
     return df.reset_index(drop=True)
 
-def psa_emccd_skymap(location_code, time, redownload, alt):
+def psa_project_skymap(location_code, time, redownload, alt):
     """
     Load a PSA EMCCD ASI skymap file.
 
@@ -269,7 +269,7 @@ def psa_emccd_skymap(location_code, time, redownload, alt):
         # Edge case when time is before the first skymap_date.
         closest_index = 0
         warnings.warn(
-            f'The requested skymap time={time} for psa_emccd imager {location_code.upper()} is '
+            f'The requested skymap time={time} for psa_project imager {location_code.upper()} is '
             f'before first skymap file dated: {skymap_file_dates[0]}. This skymap file will be used.'
         )
     else:
@@ -286,7 +286,7 @@ def _verify_location(location_str):
     Locate and verify that the location code (C#) or full name is valid.
     """
     location_code = location_str.upper()
-    location_df = psa_emccd_info()
+    location_df = psa_project_info()
     location_df['name_uppercase'] = location_df['name'].str.upper()
     if (len(location_code) != 2) and location_code[0] != 'C':
         # Assume its the full name
@@ -693,7 +693,7 @@ def lamp(location_code, time=None, time_range=None, redownload=False, missing_ok
     >>> import matplotlib.gridspec
     >>>
     >>> import asilib.map
-    >>> from asilib.asi.psa_emccd import lamp
+    >>> from asilib.asi.psa_project import lamp
     >>>
     >>> asi = lamp(
     >>>     'vee',
@@ -784,7 +784,7 @@ def _get_lamp_file_paths(location_code, time, time_range, redownload, missing_ok
     elif (time is not None) and (time_range is not None):
         raise ValueError('both time and time_range can not be simultaneously specified.')
 
-    local_dir = lamp_local_base_dir / 'images' / location_code.lower()
+    local_dir = lamp_local_base_dir / 'images' / f'lamp_{location_code.lower()}'
 
     # Find one image file.
     if time is not None:
@@ -877,7 +877,7 @@ def find_lamp_skymap(location_code, alt, redownload=True):
     """
     Find the path to the skymap file.
     """
-    local_dir = lamp_local_base_dir / 'skymaps' / location_code.lower()
+    local_dir = lamp_local_base_dir / 'skymaps' / f'lamp_{location_code.lower()}'
 
     # Check if the skymaps are already downloaded.
     local_skymap_paths = list(pathlib.Path(local_dir).rglob(f'{location_code.lower()}*.sav'))
@@ -936,7 +936,7 @@ if __name__ == '__main__':
 
     _asis = []
     for location_code in ['C1', 'C2', 'C6']:
-        asi = asilib.asi.psa_emccd(
+        asi = asilib.asi.psa_project(
             location_code,
             time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
             redownload=False,
