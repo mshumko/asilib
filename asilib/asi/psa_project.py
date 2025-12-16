@@ -658,7 +658,7 @@ def _ebireaded_ym(f):
     return iTag, x, y, imgname, dat
 
 
-def lamp(location_code, time=None, time_range=None, redownload=False, missing_ok=True, alt=90, downsample_factor=1):
+def psa_project_lamp(location_code, time=None, time_range=None, redownload=False, missing_ok=True, alt=90, downsample_factor=1):
     """
     Create an Imager instance of the Pulsating Aurora ground-based EMCCD ASI in support of the LAMP 
     sounding rocket flight.
@@ -693,9 +693,9 @@ def lamp(location_code, time=None, time_range=None, redownload=False, missing_ok
     >>> import matplotlib.gridspec
     >>>
     >>> import asilib.map
-    >>> from asilib.asi.psa_project import lamp
+    >>> from asilib.asi.psa_project import psa_project_lamp
     >>>
-    >>> asi = lamp(
+    >>> asi = psa_project_lamp(
     >>>     'vee',
     >>>     time=datetime(2022, 3, 5, 11, 0),
     >>>     redownload=False,
