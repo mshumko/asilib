@@ -40,6 +40,7 @@ def psa_project(
     redownload: bool = False,
     missing_ok: bool = True,
     load_images: bool = True,
+    acknowledge: bool = True,
     imager=asilib.Imager,
     ) -> asilib.Imager:
     """
@@ -73,6 +74,8 @@ def psa_project(
     load_images: bool
         Create an Imager object without images. This is useful if you need to
         calculate conjunctions and don't need to download or load unnecessary data.
+    acknowledge: bool
+        If True, prints the acknowledgment statement for PsA Project.
     imager: asilib.Imager
         Controls what Imager instance to return, asilib.Imager by default. This
         parameter is useful if you need to subclass asilib.Imager.
@@ -199,11 +202,29 @@ def psa_project(
         'alt': 0,
         'cadence': downsample_factor/_fps(file_info['path'][0]),
         'resolution':(255, 255),
+        'acknowledgment':(
+            'The Pulsating Aurora (PsA) project (http://www.psa-research.org) operated high-speed '
+            'ground-based cameras in the northern Scandinavia and Alaska(in Norway, Sweden, '
+            'Finland, and Alaska) during the 2016-current years to observe rapid modulation of '
+            'PsA. These ground-based observations will be compared with the wave and particle data'
+            'from the ERG satellite, which launched in 2016, in the magnetosphere to understand '
+            'the connection between the non-linear processes in the magnetosphere and periodic '
+            'variation of PsA on the ground. Before using this data, please refer to the rules of '
+            'the road document https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/rules-of-the-road_psa-pwing.pdf) '
+            'for data caveats and other prudent considerations. The DOIs of the cameras are '
+            'introduced in the rules of the road document online. When you write a paper using '
+            'data from these cameras, please indicate the corresponding DOIs of the cameras that '
+            'you used for your analyses. You can find the animations and keograms online '
+            '(https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi).'
+        )
         }
     plot_settings={
         'color_bounds':(2_000, 3_000),  # or can try (2_000, 3_000)
         'label_fontsize': 20,
     }
+    if acknowledge and ('psa_project' not in asilib.config['ACKNOWLEDGED_ASIS']):
+        print(meta['acknowledgment'])
+        asilib.config['ACKNOWLEDGED_ASIS'].append('psa_project')
     return imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 def psa_project_info() -> pd.DataFrame:
