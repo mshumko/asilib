@@ -792,7 +792,12 @@ def psa_project_lamp(location_code, time=None, time_range=None, redownload=False
         file_info['time_range'] = time_range
     else:
         file_info['time'] = time
-    return asilib.Imager(file_info, meta, skymap)
+
+    plot_settings={
+        'color_bounds':(2_000, 3_000),
+        'label_fontsize': 20,
+    }
+    return asilib.Imager(file_info, meta, skymap, plot_settings=plot_settings)
 
 
 def _get_lamp_file_paths(location_code, time, time_range, redownload, missing_ok):
@@ -868,7 +873,7 @@ def lamp_reader(file_path, downsample_factor=1):
                 sav_data['hh'],
                 sav_data['mm'],
                 sav_data['ss'],
-                sav_data['ms'],
+                sav_data['ms'].astype(int),
             )
         ]
     )
@@ -947,30 +952,40 @@ def load_lamp_skymap(location_code, alt, redownload):
     skymap['azm'][valid_val_idx] = np.mod(skymap['azm'][valid_val_idx], 360)
     return skymap
 
+# if __name__ == '__main__':
+#     from datetime import datetime
+
+#     import matplotlib.pyplot as plt
+    
+#     import asilib.asi
+#     import asilib.map
+
+#     _asis = []
+#     for location_code in ['C1', 'C2', 'C6']:
+#         asi = asilib.asi.psa_project(
+#             location_code,
+#             time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
+#             redownload=False,
+#             downsample_factor=100  # 1 fps
+#             )
+#         _asis.append(asi)
+    
+#     asis = asilib.Imagers(_asis)
+#     fig = plt.figure(figsize=(6, 6))
+#     ax = asilib.map.create_map(
+#         lon_bounds=(7, 42),
+#         lat_bounds=(60, 75),
+#         fig_ax=(fig, 111)
+#         )
+#     plt.tight_layout()
+#     asis.animate_map(ax=ax, ffmpeg_params={'framerate':100})
+
 if __name__ == '__main__':
-    from datetime import datetime
+    import dateutil.parser
 
-    import matplotlib.pyplot as plt
-    
-    import asilib.asi
-    import asilib.map
+    alt = 110  # km
+    time_range_str = ('2022-03-05T14:52', '2022-03-05T14:56')
+    time_range = (dateutil.parser.parse(time_range_str[0]), dateutil.parser.parse(time_range_str[1]))
 
-    _asis = []
-    for location_code in ['C1', 'C2', 'C6']:
-        asi = asilib.asi.psa_project(
-            location_code,
-            time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
-            redownload=False,
-            downsample_factor=100  # 1 fps
-            )
-        _asis.append(asi)
-    
-    asis = asilib.Imagers(_asis)
-    fig = plt.figure(figsize=(6, 6))
-    ax = asilib.map.create_map(
-        lon_bounds=(7, 42),
-        lat_bounds=(60, 75),
-        fig_ax=(fig, 111)
-        )
-    plt.tight_layout()
-    asis.animate_map(ax=ax, ffmpeg_params={'framerate':100})
+    asi = psa_project_lamp('pkf', time_range=time_range, alt=alt, downsample_factor=100)
+    asi.animate_fisheye(color_bounds=asi.auto_color_bounds(), overwrite=True)
