@@ -193,13 +193,18 @@ def psa_project(
     skymap = psa_project_skymap(location_code, _time, redownload, alt)
     max_el_idx = np.unravel_index(np.argmax(skymap['el']), skymap['el'].shape)
 
+    if load_images:
+        _cadence = downsample_factor/_fps(file_info['path'][0])
+    else:
+        _cadence = None
+
     meta = {
         'array': 'psa_project',
         'location': location_code,
         'lat': skymap['lat'][*max_el_idx],
         'lon': skymap['lon'][*max_el_idx],
         'alt': 0,
-        'cadence': downsample_factor/_fps(file_info['path'][0]),
+        'cadence': _cadence,
         'resolution':(255, 255),
         'acknowledgment':(
             'The Pulsating Aurora (PsA) project (http://www.psa-research.org) operated high-speed '
