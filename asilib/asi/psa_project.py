@@ -1,6 +1,7 @@
 """
-The `Pulsating Aurora (PsA) project <http://www.psa-research.org>`_ operated high-speed ground-based cameras in the northern Scandinavia and Alaska(in Norway, Sweden, Finland, and Alaska) during the 2016-current years to observe rapid modulation of PsA. These ground-based observations will be compared with the wave and particle data from the ERG satellite, which launched in 2016, in the magnetosphere to understand the connection between the non-linear processes in the magnetosphere and periodic variation of PsA on the ground. Before using this data, please refer to the `rules of the road document <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/rules-of-the-road_psa-pwing.pdf>`_ for data caveats and other prudent considerations. The DOIs of the cameras are introduced in the rules of the road document online. When you write a paper using data from these cameras, please indicate the corresponding DOIs of the cameras that you used for your analyses. You can find the animations and keograms `online <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi>`_.
+The `Pulsating Aurora (PsA) project <http://www.psa-research.org>`_ operated high-speed ground-based cameras in the northern Scandinavia and Alaska(in Norway, Sweden, Finland, and Alaska) during the 2016-current years to observe rapid modulation of PsA. These ground-based observations will be compared with the wave and particle data from the ERG satellite, which launched in 2016, in the magnetosphere to understand the connection between the non-linear processes in the magnetosphere and periodic variation of PsA on the ground. Before using this data, please refer to the `rules of the road document <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/rules-of-the-road_psa-pwing.pdf>`_ for data caveats and other prudent considerations. The DOIs of the cameras are introduced in the rules of the road document online. When you write a paper using data from these cameras, please indicate the corresponding DOIs of the cameras that you used for your analyses. You can find the summary animations and keograms `online <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi>`_. If there is an animation or keogram online but no data for a time period, contact the PsA team (e.g., Y. Miyoshi or K. Hosokawa) to retrieve the data from cold storage.
 """
+from curses.ascii import alt
 from datetime import datetime, timedelta
 from typing import Union, Iterable, List
 import functools
@@ -44,7 +45,11 @@ def psa_project(
     imager=asilib.Imager,
     ) -> asilib.Imager:
     """
-    Create an Imager instance of the Pulsating Aurora project's EMCCD ASI.
+    Create an Imager instance of the Pulsating Aurora project's EMCCD ASIs 
+    (http://www.psa-research.org). You can find the animations and keograms 
+    `online <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi>`_. 
+    If there is an animation or keogram online but no data, contact the PsA team 
+    (e.g., Y. Miyoshi or K. Hosokawa) to retrieve the data from cold storage.
 
     Parameters
     ----------
@@ -109,7 +114,7 @@ def psa_project(
     >>>    'C1',
     >>>    time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
     >>>    redownload=False,
-    >>>    downsample_factor=100  # 1 fps for C1 after 2017-01-26.
+    >>>    downsample_factor=100  # corresponds to 1 fps for C1 after 2017-01-26.
     >>>    )
     >>> _, ax = plt.subplots(figsize=(8, 8))
     >>> ax.xaxis.set_visible(False)
@@ -210,16 +215,18 @@ def psa_project(
             'from the ERG satellite, which launched in 2016, in the magnetosphere to understand '
             'the connection between the non-linear processes in the magnetosphere and periodic '
             'variation of PsA on the ground. Before using this data, please refer to the rules of '
-            'the road document https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/rules-of-the-road_psa-pwing.pdf) '
+            'the road document at https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/rules-of-the-road_psa-pwing.pdf '
             'for data caveats and other prudent considerations. The DOIs of the cameras are '
             'introduced in the rules of the road document online. When you write a paper using '
             'data from these cameras, please indicate the corresponding DOIs of the cameras that '
             'you used for your analyses. You can find the animations and keograms online '
-            '(https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi).'
+            '(https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi). If there is an animation '
+            'or keogram online but no data for a time period, contact the PsA team (e.g., '
+            'Y. Miyoshi or K. Hosokawa) to retrieve the data from cold storage.'
         )
         }
     plot_settings={
-        'color_bounds':(2_000, 3_000),  # or can try (2_000, 3_000)
+        'color_bounds':(2_000, 3_000),
         'label_fontsize': 20,
     }
     if acknowledge and ('psa_project' not in asilib.config['ACKNOWLEDGED_ASIS']):
@@ -352,6 +359,7 @@ def _load_skymap(valid_skymap_paths, alt):
             lon_skymap_path = valid_skymap_path
 
     # TODO: Verify that the altitude is available.
+
     # The [::-1, :] flips the skymap vertically so north is up.
     az_skymap = np.genfromtxt(az_skymap_path)[::-1, :]
     el_skymap = np.genfromtxt(el_skymap_path)[::-1, :]
@@ -578,9 +586,8 @@ def _load_image_file(path, downsample_factor):
                 else:
                     raise NotImplementedError(
                         f"Please submit a GitHub Issue about the old timestamp "
-                        f"format hasn't been implemented yet: {_time_raw_str}."
+                        f"format that hasn't been implemented yet for file {path.name}."
                         )
-                # i+=1  # Only increment i when we get a full image + timestamp.
 
     raw_times = raw_times[:time_i]
     raw_images = raw_images[:time_i, :, :]
@@ -678,8 +685,27 @@ def _ebireaded_ym(f):
 
     return iTag, x, y, imgname, dat
 
+# location_code: str,
+#     time: utils._time_type = None,
+#     time_range: utils._time_range_type = None,
+#     alt: int = 110,
+#     downsample_factor: int = 1,
+#     redownload: bool = False,
+#     missing_ok: bool = True,
+#     load_images: bool = True,
+#     acknowledge: bool = True,
+#     imager=asilib.Imager,
 
-def psa_project_lamp(location_code, time=None, time_range=None, redownload=False, missing_ok=True, alt=90, downsample_factor=1):
+
+def psa_project_lamp(
+        location_code:str, 
+        time: utils._time_type=None,
+        time_range: utils._time_range_type=None,
+        redownload=False, 
+        missing_ok:bool=True, 
+        alt:int=90, 
+        downsample_factor:int=1
+        ) -> asilib.Imager:
     """
     Create an Imager instance of the Pulsating Aurora ground-based EMCCD ASI in support of the LAMP 
     sounding rocket flight.
@@ -735,10 +761,21 @@ def psa_project_lamp(location_code, time=None, time_range=None, redownload=False
     >>> asi.plot_map(ax=bx)
     >>> plt.show()
 
+    >>> # Animate a few minutes of LAMP PKF data.
+    >>> from asilib.asi.psa_project import psa_project_lamp
+    >>> import dateutil.parser
+    >>>
+    >>> alt = 110  # km
+    >>> time_range_str = ('2022-03-05T14:52', '2022-03-05T14:56')
+    >>> time_range = (dateutil.parser.parse(time_range_str[0]), dateutil.parser.parse(time_range_str[1]))
+    >>>
+    >>> asi = psa_project_lamp('pkf', time_range=time_range, alt=alt, downsample_factor=100)
+    >>> asi.animate_fisheye(color_bounds=asi.auto_color_bounds(), overwrite=True)
+
     Returns
     -------
     :py:meth:`~asilib.imager.Imager`
-        A LAMP EMCCD ASI instance with the time stamps, images, skymaps, and metadata.
+        A PsA Project LAMP ASI instance with the time stamps, images, skymaps, and metadata.
     """
     if location_code.lower() == 'vee':
         meta = {
@@ -951,41 +988,3 @@ def load_lamp_skymap(location_code, alt, redownload):
     valid_val_idx = np.where(~np.isnan(skymap['azm']))
     skymap['azm'][valid_val_idx] = np.mod(skymap['azm'][valid_val_idx], 360)
     return skymap
-
-# if __name__ == '__main__':
-#     from datetime import datetime
-
-#     import matplotlib.pyplot as plt
-    
-#     import asilib.asi
-#     import asilib.map
-
-#     _asis = []
-#     for location_code in ['C1', 'C2', 'C6']:
-#         asi = asilib.asi.psa_project(
-#             location_code,
-#             time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
-#             redownload=False,
-#             downsample_factor=100  # 1 fps
-#             )
-#         _asis.append(asi)
-    
-#     asis = asilib.Imagers(_asis)
-#     fig = plt.figure(figsize=(6, 6))
-#     ax = asilib.map.create_map(
-#         lon_bounds=(7, 42),
-#         lat_bounds=(60, 75),
-#         fig_ax=(fig, 111)
-#         )
-#     plt.tight_layout()
-#     asis.animate_map(ax=ax, ffmpeg_params={'framerate':100})
-
-if __name__ == '__main__':
-    import dateutil.parser
-
-    alt = 110  # km
-    time_range_str = ('2022-03-05T14:52', '2022-03-05T14:56')
-    time_range = (dateutil.parser.parse(time_range_str[0]), dateutil.parser.parse(time_range_str[1]))
-
-    asi = psa_project_lamp('pkf', time_range=time_range, alt=alt, downsample_factor=100)
-    asi.animate_fisheye(color_bounds=asi.auto_color_bounds(), overwrite=True)
