@@ -1,72 +1,73 @@
-array,location_code,name,latitude,longitude
-REGO,ATHA,Athabasca,54.71,-113.28
-REGO,FSIM,Fort Simpson,61.756,-121.23
-REGO,FSMI,Fort Smith,60.017,-111.95
-REGO,GILL,Gillam,56.376,-94.64
-REGO,KAKT,Kaktovik,70.13,-143.62
-REGO,LUCK,Lucky Lake,51.15,-107.1
-REGO,LYRN,Longyearbyen,78.15,16.04
-REGO,RANK,Rankin Inlet,62.82,-92.11
-REGO,RESU,Resolute Bay,74.7,-94.83
-REGO,SACH,Sachs Harbour,71.99,-125.26
-REGO,TALO,Taloyoak,69.53,-93.53
-THEMIS,ATHA,Athabasca,54.71,-113.28
-THEMIS,CHBG,Chibougamau,49.814,-74.419
-THEMIS,EKAT,Ekati,64.73,-110.6699
-THEMIS,FSIM,Fort Simpson,61.756,-121.23
-THEMIS,FSMI,Fort Smith,60.017,-111.95
-THEMIS,FYKN,Fort Yukon,66.56,-145.214
-THEMIS,GAKO,Gakona,62.407,-145.158
-THEMIS,GBAY,Goose Bay,53.316,-60.46
-THEMIS,GILL,Gillam,56.376,-94.64
-THEMIS,INUV,Inuvik,68.413,-133.77
-THEMIS,KAPU,Kapuskasing,49.392,-82.32
-THEMIS,KIAN,Kiana,66.971,-160.438
-THEMIS,KUUJ,Kuujjuaq,58.1,-68.4
-THEMIS,MCGR,Mcgrath,62.953,-155.596
-THEMIS,NRSQ,Narsarsuaq,61.16,-45.44
-THEMIS,PGEO,Prince George,53.815,-122.828
-THEMIS,RANK,Rankin Inlet,62.82,-92.11
-THEMIS,SNAP,Snap Lake,63.58,-110.87
-THEMIS,SNKQ,Sanikiluaq,56.536,-79.23
-THEMIS,TALO,Taloyoak,69.53,-93.53
-THEMIS,TPAS,The Pas,53.994,-100.941
-THEMIS,WHIT,Whitehorse,61.01,-135.223
-THEMIS,YKNF,Yellowknife,62.52,-114.31
-TREx_NIR,ATHA,Athabasca,54.60,-113.64
-TREx_NIR,FSMI,Fort Smith,60.03,-111.93
-TREx_NIR,GILL,Gillam,56.38,-94.64
-TREx_NIR,LUCK,Lucky Lake,51.15,-107.26
-TREx_NIR,PINA,Pinawa,50.26,-95.87
-TREx_NIR,RABB,Rabbit Lake,58.23,-103.68
-TREx_Blue,ATHA,Athabasca,54.60,-113.64
-TREx_Blue,FSMI,Fort Smith,60.03,-111.93
-TREx_Blue,GILL,Gillam,56.38,-94.64
-TREx_Blue,LUCK,Lucky Lake,51.15,-107.26
-TREx_Blue,PINA,Pinawa,50.26,-95.87
-TREx_Blue,RABB,Rabbit Lake,58.23,-103.68
-TREx_RGB,ATHA,Athabasca,54.60,-113.64
-TREx_RGB,FSMI,Fort Smith,60.03,-111.93
-TREx_RGB,GILL,Gillam,56.38,-94.64
-TREx_RGB,LUCK,Lucky Lake,51.15,-107.26
-TREx_RGB,PINA,Pinawa,50.26,-95.87
-TREx_RGB,RABB,Rabbit Lake,58.23,-103.68
-psa_project,C1,Tromsoe,69.6492,18.9553
-psa_project,C2,Sodankyla,67.4160,26.5890
-psa_project,C3,Tromsoe,69.6492,18.9553
-psa_project,C4,Tjautjas,67.3143,20.7329
-psa_project,C6,Kevo,69.7579,27.0204
-psa_project,C7,Gakona,62.3038,-145.2828
-psa_project,C8,Poker Flat,65.1256,-147.4919
-MANGO,BDR,Big Dog Ranch,31.020278,-98.314722
-MANGO,BLO,Bear Lake Observatory,41.933611,-111.420556
-MANGO,CVO,Christmas Valley Observatory,43.7811,-120.9376
-MANGO,CFS,Capitol Reef Field Station,38.185000,-111.178889
-MANGO,EIO,Eastern Iowa Observatory,41.88884,-91.499
-MANGO,HCO,Hat Creek Observatory,40.8,-121.47
-MANGO,LOW,Lowell Observatory,34.752500,-111.423056
-MANGO,MRO,Magdalena Ridge Observatory,33.976667,-107.185000
-MANGO,MTO,Martens Observatory,48.162269,-97.682944
-MANGO,NEW,Newport Geophysical Observatory,48.2643,-117.1226
-MANGO,MDK,Madison,38.117778,-96.090278
-MANGO,PAR,Pisgah Astronomical Research Institute,35.199,-82.872
+array,location_code,name,latitude,longitude,filter
+REGO,ATHA,Athabasca,54.71,-113.28,630 nm
+REGO,FSIM,Fort Simpson,61.756,-121.23,630 nm
+REGO,FSMI,Fort Smith,60.017,-111.95,630 nm
+REGO,GILL,Gillam,56.376,-94.64,630 nm
+REGO,KAKT,Kaktovik,70.13,-143.62,630 nm
+REGO,LUCK,Lucky Lake,51.15,-107.1,630 nm
+REGO,LYRN,Longyearbyen,78.15,16.04,630 nm
+REGO,RANK,Rankin Inlet,62.82,-92.11,630 nm
+REGO,RESU,Resolute Bay,74.7,-94.83,630 nm
+REGO,SACH,Sachs Harbour,71.99,-125.26,630 nm
+REGO,TALO,Taloyoak,69.53,-93.53,630 nm
+THEMIS,ATHA,Athabasca,54.71,-113.28,None
+THEMIS,CHBG,Chibougamau,49.814,-74.419,None
+THEMIS,EKAT,Ekati,64.73,-110.6699,None
+THEMIS,FSIM,Fort Simpson,61.756,-121.23,None
+THEMIS,FSMI,Fort Smith,60.017,-111.95,None
+THEMIS,FYKN,Fort Yukon,66.56,-145.214,None
+THEMIS,GAKO,Gakona,62.407,-145.158,None
+THEMIS,GBAY,Goose Bay,53.316,-60.46,None
+THEMIS,GILL,Gillam,56.376,-94.64,None
+THEMIS,INUV,Inuvik,68.413,-133.77,None
+THEMIS,KAPU,Kapuskasing,49.392,-82.32,None
+THEMIS,KIAN,Kiana,66.971,-160.438,None
+THEMIS,KUUJ,Kuujjuaq,58.1,-68.4,None
+THEMIS,MCGR,Mcgrath,62.953,-155.596,None
+THEMIS,NRSQ,Narsarsuaq,61.16,-45.44,None
+THEMIS,PGEO,Prince George,53.815,-122.828,None
+THEMIS,RANK,Rankin Inlet,62.82,-92.11,None
+THEMIS,SNAP,Snap Lake,63.58,-110.87,None
+THEMIS,SNKQ,Sanikiluaq,56.536,-79.23,None
+THEMIS,TALO,Taloyoak,69.53,-93.53,None
+THEMIS,TPAS,The Pas,53.994,-100.941,None
+THEMIS,WHIT,Whitehorse,61.01,-135.223,None
+THEMIS,YKNF,Yellowknife,62.52,-114.31,None
+TREx_NIR,ATHA,Athabasca,54.6,-113.64,
+TREx_NIR,FSMI,Fort Smith,60.03,-111.93,
+TREx_NIR,GILL,Gillam,56.38,-94.64,
+TREx_NIR,LUCK,Lucky Lake,51.15,-107.26,
+TREx_NIR,PINA,Pinawa,50.26,-95.87,
+TREx_NIR,RABB,Rabbit Lake,58.23,-103.68,
+TREx_Blue,ATHA,Athabasca,54.6,-113.64,
+TREx_Blue,FSMI,Fort Smith,60.03,-111.93,
+TREx_Blue,GILL,Gillam,56.38,-94.64,
+TREx_Blue,LUCK,Lucky Lake,51.15,-107.26,
+TREx_Blue,PINA,Pinawa,50.26,-95.87,
+TREx_Blue,RABB,Rabbit Lake,58.23,-103.68,
+TREx_RGB,ATHA,Athabasca,54.6,-113.64,
+TREx_RGB,FSMI,Fort Smith,60.03,-111.93,
+TREx_RGB,GILL,Gillam,56.38,-94.64,
+TREx_RGB,LUCK,Lucky Lake,51.15,-107.26,
+TREx_RGB,PINA,Pinawa,50.26,-95.87,
+TREx_RGB,RABB,Rabbit Lake,58.23,-103.68,
+psa_project,C1,Tromsoe,69.6492,18.9553,BG3
+psa_project,C2,Sodankyla,67.416,26.589,BG3
+psa_project,C3,Tromsoe,69.6492,18.9553,844.6 nm
+psa_project,C4,Tjautjas,67.3143,20.7329,BG3
+psa_project,C5,Tromsoe,69.6492,18.9553,427.8 nm
+psa_project,C6,Kevo,69.7579,27.0204,BG3
+psa_project,C7,Gakona,62.3038,-145.2828,BG3
+psa_project,C8,Poker Flat,65.1256,-147.4919,BG3
+MANGO,BDR,Big Dog Ranch,31.020278,-98.314722,
+MANGO,BLO,Bear Lake Observatory,41.933611,-111.420556,
+MANGO,CVO,Christmas Valley Observatory,43.7811,-120.9376,
+MANGO,CFS,Capitol Reef Field Station,38.185,-111.178889,
+MANGO,EIO,Eastern Iowa Observatory,41.88884,-91.499,
+MANGO,HCO,Hat Creek Observatory,40.8,-121.47,
+MANGO,LOW,Lowell Observatory,34.7525,-111.423056,
+MANGO,MRO,Magdalena Ridge Observatory,33.976667,-107.185,
+MANGO,MTO,Martens Observatory,48.162269,-97.682944,
+MANGO,NEW,Newport Geophysical Observatory,48.2643,-117.1226,
+MANGO,MDK,Madison,38.117778,-96.090278,
+MANGO,PAR,Pisgah Astronomical Research Institute,35.199,-82.872,
