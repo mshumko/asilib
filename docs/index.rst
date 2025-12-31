@@ -16,7 +16,7 @@ Supported ASI arrays
 - :ref:`rego_asi`,
 - :ref:`themis_asi`,
 - :ref:`trex_asi`,
-- :ref:`psa_project`
+- :ref:`psa_project`,
 - :ref:`mango_asi`
 
 .. figure:: ./_static/global_coverage.png

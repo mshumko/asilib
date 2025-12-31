@@ -19,6 +19,7 @@ asi_arrays = {
     'REGO':(asilib.asi.rego, asilib.asi.rego_info, 'blue', 10),
     'TREx-NIR':(asilib.asi.trex_nir, asilib.asi.trex_nir_info, 'c', 12),
     'TREx-RGB':(asilib.asi.trex_rgb, asilib.asi.trex_rgb_info, 'purple', 15),
+    'PsA Project':(asilib.asi.psa_project, asilib.asi.psa_project_info, 'gold', 15),
     }
 
 mango_sations = [
@@ -61,8 +62,8 @@ for mango_station in mango_sations:
         plotted_locations.append(mango_station[0])
 
 ax.text(
-    0, 4/30, 'MANGO-redline', va='bottom', color=mango_station[2], 
-    transform=ax.transAxes, fontsize=18
+    0, 5/30, 'MANGO-redline', va='bottom', color=mango_station[2], 
+    transform=ax.transAxes, fontsize=15
     )
 
 for i, (array, (loader, info_df, color, elevation)) in enumerate(asi_arrays.items()):
@@ -97,7 +98,7 @@ for i, (array, (loader, info_df, color, elevation)) in enumerate(asi_arrays.item
                 ha='center',
             )
             plotted_locations.append(location)
-    ax.text(0, i/30, array, va='bottom', color=color, transform=ax.transAxes, fontsize=18)
+    ax.text(0, i/30, array, va='bottom', color=color, transform=ax.transAxes, fontsize=15)
 
 ax.set_title(f'Imagers Supported by asilib as of {datetime.now().date()}', fontsize=22)        
 plt.tight_layout()

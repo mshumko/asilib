@@ -1,7 +1,6 @@
 """
 The `Pulsating Aurora (PsA) project <http://www.psa-research.org>`_ operated high-speed ground-based cameras in the northern Scandinavia and Alaska(in Norway, Sweden, Finland, and Alaska) during the 2016-current years to observe rapid modulation of PsA. These ground-based observations will be compared with the wave and particle data from the ERG satellite, which launched in 2016, in the magnetosphere to understand the connection between the non-linear processes in the magnetosphere and periodic variation of PsA on the ground. Before using this data, please refer to the `rules of the road document <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/rules-of-the-road_psa-pwing.pdf>`_ for data caveats and other prudent considerations. The DOIs of the cameras are introduced in the rules of the road document online. When you write a paper using data from these cameras, please indicate the corresponding DOIs of the cameras that you used for your analyses. You can find the summary animations and keograms `online <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi>`_. If there is an animation or keogram online but no data for a time period, contact the PsA team (e.g., Y. Miyoshi or K. Hosokawa) to retrieve the data from cold storage.
 """
-from curses.ascii import alt
 from datetime import datetime, timedelta
 from typing import Union, Iterable, List
 import functools
@@ -15,7 +14,6 @@ import re
 import scipy.io
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 import asilib
 import asilib.utils as utils
