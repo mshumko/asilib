@@ -47,8 +47,6 @@ def psa_project(
     """
     Create an Imager instance of the Pulsating Aurora project's EMCCD ASIs.
 
-    The `Pulsating Aurora (PsA) project <http://www.psa-research.org>`_ operated high-speed ground-based cameras in the northern Scandinavia and Alaska(in Norway, Sweden, Finland, and Alaska) during the 2016-current years to observe rapid modulation of PsA. These ground-based observations will be compared with the wave and particle data from the ERG satellite, which launched in 2016, in the magnetosphere to understand the connection between the non-linear processes in the magnetosphere and periodic variation of PsA on the ground. Before using this data, please refer to the `rules of the road document <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/rules-of-the-road_psa-pwing.pdf>`_ for data caveats and other prudent considerations. The DOIs of the cameras are introduced in the rules of the road document online. When you write a paper using data from these cameras, please indicate the corresponding DOIs of the cameras that you used for your analyses. You can find the summary animations and keograms `online <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi>`_. If there is an animation or keogram online but no data for a time period, contact the PsA team (e.g., Y. Miyoshi or K. Hosokawa) to retrieve the data from cold storage.
-
     Parameters
     ----------
     location_code: str
@@ -101,7 +99,7 @@ def psa_project(
     >>> ax.xaxis.set_visible(False)
     >>> ax.yaxis.set_visible(False)
     >>> plt.tight_layout()
-    >>> # The origin kwarg is to shift the origin of the cardinal direction.
+    >>> # We use the origin kwarg to shift the origin of the cardinal direction.
     >>> asi.plot_fisheye(ax=ax, origin=(0.9, 0.1))
     >>> plt.show()
 
@@ -118,6 +116,7 @@ def psa_project(
     >>> ax.xaxis.set_visible(False)
     >>> ax.yaxis.set_visible(False)
     >>> plt.tight_layout()
+    >>> # We use the origin kwarg to shift the origin of the cardinal direction.
     >>> asi.animate_fisheye(ax=ax, ffmpeg_params={'framerate':100}, origin=(0.9, 0.1))
 
     >>> # Animate the Tromsø ASI on a map.
@@ -133,7 +132,6 @@ def psa_project(
     >>> # https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi?year=2017&month=03&day=07&jump=Plot
     >>> asi = asilib.asi.psa_project(
     >>>     'C1', 
-    >>>     # time=datetime(2017, 3, 7, 19, 35, 0),
     >>>     time_range=(datetime(2017, 3, 7, 19, 0, 0), datetime(2017, 3, 7, 20, 0, 0)),
     >>>     redownload=False,
     >>>     downsample_factor=100  # 1 fps for C1 after 2017-01-26.
@@ -720,6 +718,11 @@ def psa_project_lamp(
         10 will reduce the image cadence by a factor of 10. The LAMP EMCCD ASIs
         are 100 fps by default, so downsample_factor=10 will yield 10 fps.
 
+    Returns
+    -------
+    :py:meth:`~asilib.imager.Imager`
+        A PsA Project LAMP ASI instance with the time stamps, images, skymaps, and metadata.
+
     Example
     -------
     >>> import matplotlib.pyplot as plt
@@ -757,11 +760,6 @@ def psa_project_lamp(
     >>>
     >>> asi = psa_project_lamp('pkf', time_range=time_range, alt=alt, downsample_factor=100)
     >>> asi.animate_fisheye(color_bounds=asi.auto_color_bounds(), overwrite=True)
-
-    Returns
-    -------
-    :py:meth:`~asilib.imager.Imager`
-        A PsA Project LAMP ASI instance with the time stamps, images, skymaps, and metadata.
     """
     if location_code.lower() == 'vee':
         meta = {

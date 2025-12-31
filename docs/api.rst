@@ -58,6 +58,7 @@ Transition Region Explorer (TREx)
 The Pulsating aurora (PsA) project
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automodule:: asilib.asi.psa_project
+   :no-index:
    :members: psa_project, psa_project_info, psa_project_skymap, psa_project_lamp, psa_project_lamp_skymap
    :undoc-members:
    :show-inheritance:
