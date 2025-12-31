@@ -199,7 +199,7 @@ def psa_project(
         _cadence = None
 
     meta = {
-        'array': 'psa_project',
+        'array': 'psa project',
         'location': location_code,
         'lat': skymap['lat'][*max_el_idx],
         'lon': skymap['lon'][*max_el_idx],
