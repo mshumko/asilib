@@ -31,25 +31,6 @@ def test_invalid_camera_code():
     assert f"{location_code=} is invalid." in str(excinfo.value)
     return
 
-def test_valid_name():
-    location_name = 'Tromsoe'
-    asi = asilib.asi.psa_project(
-        location_name, 
-        time=datetime(2019, 3, 1, 18, 30, 0)
-    )
-    assert asi.meta['location'] == 'C1'
-    return
-
-def test_invalid_name():
-    location_name = 'Test'
-    with pytest.raises(ValueError) as excinfo:
-        asi = asilib.asi.psa_project(
-            location_name, 
-            time=datetime(2019, 3, 1, 18, 30, 0)
-        )
-    assert f"location_code='TEST' is invalid." in str(excinfo.value)
-    return
-
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_plot_fisheye'], 
     tol=10, 

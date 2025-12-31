@@ -48,7 +48,7 @@ def psa_project(
     Parameters
     ----------
     location_code: str
-        The ASI's location code, in either the "C#" format or the full name (e.g., "Tromsoe"), case insensitive
+        One of the ASI's location codes: "C1" through "C8".
     time: str or datetime.datetime
         A time to look for the ASI data at. Either time or time_range
         must be specified (not both or neither).
@@ -310,29 +310,19 @@ def psa_project_skymap(location_code, time, redownload, alt):
 
 def _verify_location(location_str):
     """
-    Locate and verify that the location code (C#) or full name is valid.
+    Locate and verify that the location code (C#) is valid.
     """
     location_code = location_str.upper()
     location_df = psa_project_info()
     location_df['name_uppercase'] = location_df['name'].str.upper()
-    if (len(location_code) != 2) and location_code[0] != 'C':
-        # Assume its the full name
-        row = location_df.loc[location_df['name_uppercase']==location_code]
-        if row.shape[0] != 1:
-            raise ValueError(
+    
+    row = location_df.loc[location_df['location_code']==location_code]
+    if row.shape[0] != 1:
+        raise ValueError(
                 f'{location_code=} is invalid. Try one of these: '
                 f'{location_df["location_code"].to_numpy()} or '
                 f'{location_df["name"].to_numpy()}'
             )
-    else:
-        # Assume it is a Camera code.
-        row = location_df.loc[location_df['location_code']==location_code]
-        if row.shape[0] != 1:
-            raise ValueError(
-                    f'{location_code=} is invalid. Try one of these: '
-                    f'{location_df["location_code"].to_numpy()} or '
-                    f'{location_df["name"].to_numpy()}'
-                )
     return row['location_code'].to_numpy()[0]
 
 def _download_all_skymaps(location_code, url, save_dir, redownload):
