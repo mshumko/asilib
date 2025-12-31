@@ -45,11 +45,9 @@ def psa_project(
     imager=asilib.Imager,
     ) -> asilib.Imager:
     """
-    Create an Imager instance of the Pulsating Aurora project's EMCCD ASIs 
-    (http://www.psa-research.org). You can find the animations and keograms 
-    `online <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi>`_. 
-    If there is an animation or keogram online but no data, contact the PsA team 
-    (e.g., Y. Miyoshi or K. Hosokawa) to retrieve the data from cold storage.
+    Create an Imager instance of the Pulsating Aurora project's EMCCD ASIs.
+
+    The `Pulsating Aurora (PsA) project <http://www.psa-research.org>`_ operated high-speed ground-based cameras in the northern Scandinavia and Alaska(in Norway, Sweden, Finland, and Alaska) during the 2016-current years to observe rapid modulation of PsA. These ground-based observations will be compared with the wave and particle data from the ERG satellite, which launched in 2016, in the magnetosphere to understand the connection between the non-linear processes in the magnetosphere and periodic variation of PsA on the ground. Before using this data, please refer to the `rules of the road document <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/pub/rules-of-the-road_psa-pwing.pdf>`_ for data caveats and other prudent considerations. The DOIs of the cameras are introduced in the rules of the road document online. When you write a paper using data from these cameras, please indicate the corresponding DOIs of the cameras that you used for your analyses. You can find the summary animations and keograms `online <https://ergsc.isee.nagoya-u.ac.jp/psa-gnd/bin/psa.cgi>`_. If there is an animation or keogram online but no data for a time period, contact the PsA team (e.g., Y. Miyoshi or K. Hosokawa) to retrieve the data from cold storage.
 
     Parameters
     ----------
@@ -685,18 +683,6 @@ def _ebireaded_ym(f):
 
     return iTag, x, y, imgname, dat
 
-# location_code: str,
-#     time: utils._time_type = None,
-#     time_range: utils._time_range_type = None,
-#     alt: int = 110,
-#     downsample_factor: int = 1,
-#     redownload: bool = False,
-#     missing_ok: bool = True,
-#     load_images: bool = True,
-#     acknowledge: bool = True,
-#     imager=asilib.Imager,
-
-
 def psa_project_lamp(
         location_code:str, 
         time: utils._time_type=None,
@@ -708,7 +694,7 @@ def psa_project_lamp(
         ) -> asilib.Imager:
     """
     Create an Imager instance of the Pulsating Aurora ground-based EMCCD ASI in support of the LAMP 
-    sounding rocket flight.
+    sounding rocket flight in March 2022.
 
     Parameters
     ----------
@@ -800,7 +786,7 @@ def psa_project_lamp(
     else:
         raise NotImplementedError
 
-    _skymap = load_lamp_skymap(location_code, alt, redownload)
+    _skymap = psa_project_lamp_skymap(location_code, alt, redownload)
     skymap = {
         'lat': _skymap['gla'],
         'lon': _skymap['glo'],
@@ -823,7 +809,7 @@ def psa_project_lamp(
         'path': file_paths,
         'start_time': start_times,
         'end_time': end_times,
-        'loader': functools.partial(lamp_reader, downsample_factor=downsample_factor),
+        'loader': functools.partial(_lamp_reader, downsample_factor=downsample_factor),
     }
     if time_range is not None:
         file_info['time_range'] = time_range
@@ -894,7 +880,7 @@ def _get_lamp_file_paths(location_code, time, time_range, redownload, missing_ok
     return file_paths
 
 
-def lamp_reader(file_path, downsample_factor=1):
+def _lamp_reader(file_path, downsample_factor=1):
     """
     Reads a LAMP EMCCD .sav file and returns the times and images.
     """
@@ -936,7 +922,7 @@ def lamp_reader(file_path, downsample_factor=1):
     return times, images
 
 
-def find_lamp_skymap(location_code, alt, redownload=True):
+def _find_lamp_skymap(location_code, alt, redownload=True):
     """
     Find the path to the skymap file.
     """
@@ -962,11 +948,11 @@ def find_lamp_skymap(location_code, alt, redownload=True):
     )
 
 
-def load_lamp_skymap(location_code, alt, redownload):
+def psa_project_lamp_skymap(location_code, alt, redownload):
     """
     Load the skymap file and apply the transformations.
     """
-    skymap_path = find_lamp_skymap(location_code, alt, redownload)
+    skymap_path = _find_lamp_skymap(location_code, alt, redownload)
     _skymap_dict = scipy.io.readsav(str(skymap_path), python_dict=True)
     skymap = copy.deepcopy(_skymap_dict)
 
