@@ -1,12 +1,21 @@
 # Changelog
 
-## [0.27.1] - unpublished
+## [0.28.0] - unpublished
+
+### Added
+- The `asilib.asi.psa_project`, and `asilib.asi.psa_project_lamp` ASIs.
+- Tests and documentation for `asilib.asi.psa_project`.
+- A `Downloader.retry_download()` method.
 
 ### Fixed
 - A bug where the number of time stamps in each image file is inconsistent. If they are not, numpy will raises a ValueError which `asilib.Imager.get_data()` now catches and raises an error with specific details about the data
 
 ### Changed
 - Bumped up the sphinx dependencies.
+- Updated the `asi_locations.csv` with the PsA project information.
+- Added support for python 3.14.
+- Added exposed the `origin` kwarg to the cardinal directions.
+- Updated the global coverage figure.
 
 ## [0.27.0] - 2025-10-04
 
