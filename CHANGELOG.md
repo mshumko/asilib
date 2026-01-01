@@ -13,7 +13,6 @@
 ### Changed
 - Bumped up the sphinx dependencies.
 - Updated the `asi_locations.csv` with the PsA project information.
-- Added support for python 3.14.
 - Added exposed the `origin` kwarg to the cardinal directions.
 - Updated the global coverage figure.
 
