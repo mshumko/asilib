@@ -761,7 +761,7 @@ def psa_project_lamp(
             'lat': 67.0139,
             'lon': -146.4186,
             'alt': 0.174,
-            'cadence': 0.01,
+            'cadence': 0.01*downsample_factor,
             'resolution': (256, 256),
         }
     elif location_code.lower() == 'pkf':
@@ -771,11 +771,16 @@ def psa_project_lamp(
             'lat': 65.1256,
             'lon': -147.4919,
             'alt': 0.213,
-            'cadence': 0.01,
+            'cadence': 0.01*downsample_factor,
             'resolution': (256, 256),
         }
     else:
         raise NotImplementedError
+    
+    if time is not None:
+        time = utils.validate_time(time)
+    else:
+        time_range = utils.validate_time_range(time_range)
 
     _skymap = psa_project_lamp_skymap(location_code, alt, redownload)
     skymap = {
