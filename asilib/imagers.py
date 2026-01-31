@@ -51,6 +51,15 @@ class Imagers:
         if isinstance(self.imagers, Imager):
             self.imagers = (self.imagers, )
         self.iter_tol = iter_tol
+
+        start_times = [img.file_info['time_range'][0] for img in self.imagers]
+        end_times = [img.file_info['time_range'][1] for img in self.imagers]
+        self.min_cadence = np.min([img.meta['cadence'] for img in self.imagers]).astype(float)
+
+        if not all(start_time is None for start_time in start_times):
+            self.start_time = min(start_times)
+            self.end_time = max(end_times)
+        self.n_times = int(np.ceil((self.end_time - self.start_time).total_seconds() / self.min_cadence))
         return
     
     def plot_fisheye(self, ax:Tuple[plt.Axes], **kwargs):
@@ -412,7 +421,7 @@ class Imagers:
         image_paths = []
         _progressbar = asilib.utils.progressbar(
             enumerate(self.__iter__()),
-            iter_length=self.imagers[0]._estimate_n_times(),
+            iter_length=self.n_times,
             text=self.animation_name,
         )
         operating_asis = np.array([])
@@ -658,14 +667,7 @@ class Imagers:
             The images from each imager. If the imager is unsynchronized the yielded 
             image is ``None``.
         """
-        start_times = [img.file_info['time_range'][0] for img in self.imagers]
-        end_times = [img.file_info['time_range'][1] for img in self.imagers]
-        cadence = np.min([img.meta['cadence'] for img in self.imagers])
-
-        start_time = min(start_times)
-        end_time = max(end_times)
-        n_times = int(np.ceil((end_time - start_time).total_seconds() / cadence))
-        guide_times = np.array([start_time+timedelta(seconds=i*cadence) for i in range(n_times)])
+        guide_times = np.array([self.start_time+timedelta(seconds=i*self.min_cadence) for i in range(self.n_times)])
         # asi_iterators keeps track of all ASIs in Imagers, with same order as passed into
         # __init__(). 
         # 
@@ -676,6 +678,8 @@ class Imagers:
             f'{_imager.meta["array"]}-{_imager.meta["location"]}':iter(_imager) 
             for _imager in self.imagers
             }
+        
+        current_images = {}
         future_iterators = {}
         stopped_iterators = []
 
@@ -683,13 +687,11 @@ class Imagers:
             _asi_times = []
             _asi_images = []
             for (_name, _iterator), _imager in zip(asi_iterators.items(), self.imagers):
-                # We have three cases to address. If the iterator is synchronized, the
-                # future_iterators will not have the _name key. This will trigger next() 
-                # on that iterator. In either case, this will return a time stamp and 
-                # an image. The one exception is when the _iterator is exhausted we fill 
-                # in dummy values for the time and image.
                 try:
-                    _asi_time, _asi_image = future_iterators.get(_name, next(_iterator))
+                    if _name in future_iterators:
+                        current_images[_name] = future_iterators.pop(_name)
+                    else:
+                        current_images[_name] = next(_iterator)
                 except StopIteration:
                     _asi_times.append(datetime.min)
                     _asi_images.append(None)
@@ -700,21 +702,33 @@ class Imagers:
                         # Stop once all iterators are exhausted.
                         return
                     continue
-                abs_dt = np.abs((guide_time-_asi_time).total_seconds())
-                synchronized = abs_dt < _imager.meta['cadence']*self.iter_tol
 
-                # We must always append a time stamp and image, even if a dummy variable
-                # to preserve the Imager order.
-                if synchronized:
-                    _asi_times.append(_asi_time)
-                    _asi_images.append(_asi_image)
+
+                # Check if the guide_time is within the cadence window after the current image 
+                # timestamp.
+                guide_time_after_image = (
+                    guide_time > current_images[_name][0]
+                    )
+                guide_time_before_next_image = (
+                    guide_time <= current_images[_name][0]+timedelta(seconds=_imager.meta['cadence'])
+                    )
+                if (guide_time_after_image and guide_time_before_next_image):
+                    _asi_times.append(current_images[_name][0])
+                    _asi_images.append(current_images[_name][1])
                 else:
-                    future_iterators[_name] = (_asi_time, _asi_image)
+                    # Store the current image into the future iterator and 
+                    # yield dummy values for time and image.
+                    future_iterators[_name] = current_images[_name]
                     _asi_times.append(datetime.min)
                     _asi_images.append(None)
 
-                if synchronized and (_name in future_iterators):
-                    future_iterators.pop(_name)
+
+            if all(_asi_images is None for _asi_images in _asi_images):
+                # This condition happens in the first iteration which has no images.
+                # This is because the start_time is always earlier than all imagers' 
+                # first image time.
+                continue
+
             yield guide_time, _asi_times, _asi_images
         return
 
@@ -988,3 +1002,65 @@ class Imagers:
             raise ValueError(
                 'The 0th imager object does not have a "time" or a "time_range" variable.'
                 )
+        
+
+if __name__ == '__main__':
+    # import asilib.asi
+
+    # trex_location_codes = ['FSMI', 'LUCK', 'RABB', 'PINA', 'GILL']
+
+    # asi_list = [asilib.asi.themis(location, time_range=('2008-02-11T03:35', '2008-02-11T03:36'))
+    #             for location in ['ATHA', 'FSIM', 'FSMI']]
+    # asis = asilib.Imagers(asi_list)
+    # g = asis.animate_map_gen(overwrite=True)
+    # for i, (guide_time, times, images, ax) in enumerate(g):
+    #     dts = [(guide_time - t).total_seconds() if t != datetime.min else None for t in times]
+    #     print(f'Frame {i}: guide_time={guide_time}, dts={dts}')
+
+    # You will need to install cdasws to run this example (python -m pip install cdasws)
+    from datetime import datetime, timedelta, timezone
+    
+    import cdasws
+    import matplotlib.pyplot as plt
+    import matplotlib.dates
+    import pandas as pd
+    import asilib.asi
+    
+    time_range=(datetime(2021, 11, 4, 1, 56), datetime(2021, 11, 4, 12, 30))  #datetime(2021, 11, 4, 12, 24)
+    mango_location_code='CFS'
+    mango_asi = asilib.asi.mango(mango_location_code, 'redline', time_range=time_range)
+    trex_location_codes = ['FSMI', 'LUCK'] #, 'RABB', 'PINA', 'GILL']
+    trex_asis = [asilib.asi.trex_rgb(location_code, time_range=time_range) 
+                  for location_code in trex_location_codes]
+    asis = asilib.Imagers([mango_asi]+trex_asis)
+
+    fig = plt.figure(layout='constrained', figsize=(8, 9))
+    gs = matplotlib.gridspec.GridSpec(2, 1, fig, height_ratios=(3, 1))
+    ax = asilib.map.create_map(lat_bounds=(30, 64), lon_bounds=(-125, -75), fig_ax=(fig, gs[0]))
+    bx = fig.add_subplot(gs[1])
+    bx.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%H:%M'))
+    gen = asis.animate_map_gen(ax=ax, asi_label=True, overwrite=True)
+    
+    cdas = cdasws.CdasWs()
+    time_range_cdasws = cdasws.TimeInterval(
+        datetime.fromisoformat(str(time_range[0]-timedelta(days=0.5))).replace(tzinfo=timezone.utc),
+        datetime.fromisoformat(str(time_range[1]+timedelta(days=0.5))).replace(tzinfo=timezone.utc)
+        )
+    _, data = cdas.get_data(
+                    'OMNI_HRO_5MIN', ['SYM_H'], time_range_cdasws
+                    )
+    symh = pd.DataFrame(index=data['SYM_H'].Epoch.data, data={'SYM_H':data['SYM_H']})
+    bx.plot(symh.index, symh['SYM_H'], c='k')
+    bx.set(xlabel='Time [HH:MM]', ylabel='Sym-H [nT]')
+
+    plt.suptitle(f'MANGO & TREx-RGB Mosaic | {time_range[0]:%F %T} to {time_range[1]:%T}', fontsize=16)
+    
+    for image_time, image, _, im in gen:
+        # We will need to delete the prior text object, otherwise the current one
+        # will overplot on the prior one---clean up after yourself!
+        if '_time_guide' in locals():
+            # text_obj.remove()  # noqa: F821
+            _time_guide.remove()  # noqa: F821
+        # text_obj = plt.suptitle(f'MANGO-{location_code} | {image_time:%F %T}', fontsize=15)
+        _time_guide = bx.axvline(image_time, c='k', ls='--')
+        
