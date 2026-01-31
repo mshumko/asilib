@@ -1043,7 +1043,7 @@ if __name__ == '__main__':
     time_range=(datetime(2021, 11, 4, 1, 56), datetime(2021, 11, 4, 12, 30))  #datetime(2021, 11, 4, 12, 24)
     mango_location_code='CFS'
     mango_asi = asilib.asi.mango(mango_location_code, 'redline', time_range=time_range)
-    trex_location_codes = ['FSMI', 'LUCK'] #, 'RABB', 'PINA', 'GILL']
+    trex_location_codes = ['FSMI', 'LUCK', 'RABB', 'PINA', 'GILL']
     trex_asis = [asilib.asi.trex_rgb(location_code, time_range=time_range) 
                   for location_code in trex_location_codes]
     asis = asilib.Imagers([mango_asi]+trex_asis)
