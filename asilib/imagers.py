@@ -714,7 +714,7 @@ class Imagers:
                     current_images[_name].time+timedelta(seconds=_imager.meta['cadence'])
                     )
                 guide_time_after_image = (
-                    guide_time > current_images[_name].time
+                    guide_time >= current_images[_name].time
                     )
                 guide_time_before_next_image = (guide_time <= next_predicted_imager_timestamp)
 
@@ -1050,7 +1050,7 @@ if __name__ == '__main__':
     ax = asilib.map.create_map(lat_bounds=(30, 64), lon_bounds=(-125, -75), fig_ax=(fig, gs[0]))
     bx = fig.add_subplot(gs[1])
     bx.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%H:%M'))
-    gen = asis.animate_map_gen(ax=ax, asi_label=True, overwrite=True)
+    gen = asis.animate_map_gen(ax=ax, asi_label=True, overwrite=True, ffmpeg_params={'framerate':100})
     
     cdas = cdasws.CdasWs()
     time_range_cdasws = cdasws.TimeInterval(
@@ -1066,12 +1066,12 @@ if __name__ == '__main__':
 
     plt.suptitle(f'MANGO & TREx-RGB Mosaic | {time_range[0]:%F %T} to {time_range[1]:%T}', fontsize=16)
     
-    for image_time, image, _, im in gen:
+    for guide_time, image_times, images, ax in gen:
         # We will need to delete the prior text object, otherwise the current one
         # will overplot on the prior one---clean up after yourself!
         if '_time_guide' in locals():
             # text_obj.remove()  # noqa: F821
             _time_guide.remove()  # noqa: F821
         # text_obj = plt.suptitle(f'MANGO-{location_code} | {image_time:%F %T}', fontsize=15)
-        _time_guide = bx.axvline(image_time, c='k', ls='--')
+        _time_guide = bx.axvline(guide_time, c='k', ls='--')
         
