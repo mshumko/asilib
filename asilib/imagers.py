@@ -722,8 +722,11 @@ class Imagers:
                     _asi_times.append(current_images[_name].time)
                     _asi_images.append(current_images[_name].image)
 
-                    if current_images[_name].time+timedelta(seconds=_imager.meta['cadence']) > next_guide_time:
-                        # Savew current image as a future image if the current image exposure takes 
+                    if (
+                        (next_guide_time is not None) and 
+                        (next_predicted_imager_timestamp > next_guide_time)
+                        ):
+                        # Save the current image as a future image if the current image exposure takes 
                         # us beyond the next guide_time. This is useful for the slower of the imagers.
                         future_iterators[_name] = current_images[_name]
                 else:
@@ -1037,7 +1040,7 @@ if __name__ == '__main__':
     import pandas as pd
     import asilib.asi
     
-    time_range=(datetime(2021, 11, 4, 1, 56), datetime(2021, 11, 4, 2, 30))  #datetime(2021, 11, 4, 12, 24)
+    time_range=(datetime(2021, 11, 4, 1, 56), datetime(2021, 11, 4, 12, 30))  #datetime(2021, 11, 4, 12, 24)
     mango_location_code='CFS'
     mango_asi = asilib.asi.mango(mango_location_code, 'redline', time_range=time_range)
     trex_location_codes = ['FSMI', 'LUCK'] #, 'RABB', 'PINA', 'GILL']
