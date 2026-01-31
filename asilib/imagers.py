@@ -658,12 +658,14 @@ class Imagers:
             The images from each imager. If the imager is unsynchronized the yielded 
             image is ``None``.
         """
-        t0 = self.imagers[0].file_info['time_range'][0]
-        # TODO: Check all imagers for the quickest cadence to allow for multi-ASI array mosaics.
-        times = np.array(
-            [t0+timedelta(seconds=i*self.imagers[0].meta['cadence'])
-            for i in range(self.imagers[0]._estimate_n_times())]
-            )
+        start_times = [img.file_info['time_range'][0] for img in self.imagers]
+        end_times = [img.file_info['time_range'][1] for img in self.imagers]
+        cadence = np.min([img.meta['cadence'] for img in self.imagers])
+
+        start_time = min(start_times)
+        end_time = max(end_times)
+        n_times = int(np.ceil((end_time - start_time).total_seconds() / cadence))
+        guide_times = np.array([start_time+timedelta(seconds=i*cadence) for i in range(n_times)])
         # asi_iterators keeps track of all ASIs in Imagers, with same order as passed into
         # __init__(). 
         # 
@@ -677,10 +679,10 @@ class Imagers:
         future_iterators = {}
         stopped_iterators = []
 
-        for guide_time in times:
+        for guide_time in guide_times:
             _asi_times = []
             _asi_images = []
-            for _name, _iterator in asi_iterators.items():
+            for (_name, _iterator), _imager in zip(asi_iterators.items(), self.imagers):
                 # We have three cases to address. If the iterator is synchronized, the
                 # future_iterators will not have the _name key. This will trigger next() 
                 # on that iterator. In either case, this will return a time stamp and 
@@ -699,7 +701,7 @@ class Imagers:
                         return
                     continue
                 abs_dt = np.abs((guide_time-_asi_time).total_seconds())
-                synchronized = abs_dt < self.imagers[0].meta['cadence']*self.iter_tol
+                synchronized = abs_dt < _imager.meta['cadence']*self.iter_tol
 
                 # We must always append a time stamp and image, even if a dummy variable
                 # to preserve the Imager order.
