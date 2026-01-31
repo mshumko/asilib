@@ -1073,8 +1073,22 @@ if __name__ == '__main__':
         # We will need to delete the prior text object, otherwise the current one
         # will overplot on the prior one---clean up after yourself!
         if '_time_guide' in locals():
-            # text_obj.remove()  # noqa: F821
             _time_guide.remove()  # noqa: F821
-        # text_obj = plt.suptitle(f'MANGO-{location_code} | {image_time:%F %T}', fontsize=15)
+            _text_box.remove()  # noqa: F821
+        _zip = zip([mango_location_code]+trex_location_codes, image_times)
+        time_str = (
+            f'Current timestamps:\n'+
+            '\n'.join([f'{name} {ti.strftime("%H:%M:%S")}' for name, ti in _zip])
+            )
+        _text_box = ax.text(
+            0.80, 
+            0.01, 
+            time_str, 
+            color='w',
+            transform=ax.transAxes, 
+            bbox=dict(boxstyle='round', facecolor='purple', alpha=0.5), 
+            ha='left', 
+            va='bottom'
+            )
         _time_guide = bx.axvline(guide_time, c='k', ls='--')
         
