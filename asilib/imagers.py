@@ -41,17 +41,17 @@ class Imagers:
     ----------
     imagers: Tuple
         The Imager objects to plot and animate. 
-    iter_tol: float
-        The allowable time tolerance, in units of time_tol*imager_cadence, for imagers to be 
-        considered synchronized. Adjusting this kwarg is useful if the imager has missing 
-        data and you need to animate a mosaic.
+    sync_image_tol: float
+        The allowable time tolerance, in units of a fraction of each imagers's cadence, 
+        for images to be considered synchronized. Adjusting this kwarg is useful if 
+        the imager has missing data and you need to animate a mosaic.
     """
-    def __init__(self, imagers:Tuple[Imager], iter_tol:float=2) -> None:
+    def __init__(self, imagers:Tuple[Imager], sync_image_tol:float=0.2) -> None:
         self.imagers = imagers
         # Wrap self.imagers in a tuple if the user passes in a single Imager object.
         if isinstance(self.imagers, Imager):
             self.imagers = (self.imagers, )
-        self.iter_tol = iter_tol
+        self.sync_image_tol = sync_image_tol 
 
         start_times = [img.file_info['time_range'][0] for img in self.imagers]
         end_times = [img.file_info['time_range'][1] for img in self.imagers]
@@ -668,7 +668,9 @@ class Imagers:
             The images from each imager. If the imager is unsynchronized the yielded 
             image is ``None``.
         """
-        guide_times = np.array([self.start_time+timedelta(seconds=i*self.min_cadence) for i in range(self.n_times)])
+        guide_times = np.array([
+            self.start_time+timedelta(seconds=i*self.min_cadence) for i in range(self.n_times)
+            ])
         # asi_iterators keeps track of all ASIs in Imagers, with same order as passed into
         # __init__(). 
         # 
@@ -709,14 +711,20 @@ class Imagers:
 
 
                 # Check if the guide_time is within the cadence window after the current image 
-                # timestamp.
+                # timestamp, allowing for a fraction of an imager's cadence tolerance 
+                # controlled by self.sync_image_tol. This addresses the case where the imager 
+                # file for the minute 01:56:00 includes the first image at 01:56:00.1 
+                # (which is within the tolerance).
+                exposure_tol = timedelta(seconds=self.sync_image_tol*_imager.meta['cadence'])
                 next_predicted_imager_timestamp = (
                     current_images[_name].time+timedelta(seconds=_imager.meta['cadence'])
                     )
                 guide_time_after_image = (
-                    guide_time >= current_images[_name].time
+                    guide_time >= (current_images[_name].time - exposure_tol)
                     )
-                guide_time_before_next_image = (guide_time <= next_predicted_imager_timestamp)
+                guide_time_before_next_image = (
+                    guide_time <= next_predicted_imager_timestamp-exposure_tol
+                    )
 
                 if (guide_time_after_image and guide_time_before_next_image):
                     _asi_times.append(current_images[_name].time)
@@ -724,7 +732,7 @@ class Imagers:
 
                     if (
                         (next_guide_time is not None) and 
-                        (next_predicted_imager_timestamp > next_guide_time)
+                        (next_predicted_imager_timestamp-exposure_tol > next_guide_time)
                         ):
                         # Save the current image as a future image if the current image exposure takes 
                         # us beyond the next guide_time. This is useful for the slower of the imagers.
@@ -1019,18 +1027,6 @@ class Imagers:
         
 
 if __name__ == '__main__':
-    # import asilib.asi
-
-    # trex_location_codes = ['FSMI', 'LUCK', 'RABB', 'PINA', 'GILL']
-
-    # asi_list = [asilib.asi.themis(location, time_range=('2008-02-11T03:35', '2008-02-11T03:36'))
-    #             for location in ['ATHA', 'FSIM', 'FSMI']]
-    # asis = asilib.Imagers(asi_list)
-    # g = asis.animate_map_gen(overwrite=True)
-    # for i, (guide_time, times, images, ax) in enumerate(g):
-    #     dts = [(guide_time - t).total_seconds() if t != datetime.min else None for t in times]
-    #     print(f'Frame {i}: guide_time={guide_time}, dts={dts}')
-
     # You will need to install cdasws to run this example (python -m pip install cdasws)
     from datetime import datetime, timedelta, timezone
     
@@ -1078,10 +1074,10 @@ if __name__ == '__main__':
         _zip = zip([mango_location_code]+trex_location_codes, image_times)
         time_str = (
             f'Current timestamps:\n'+
-            '\n'.join([f'{name} {ti.strftime("%H:%M:%S")}' for name, ti in _zip])
+            '\n'.join([f'{name} {ti.strftime("%H:%M:%S.%f")}' for name, ti in _zip])
             )
         _text_box = ax.text(
-            0.80, 
+            0.75, 
             0.01, 
             time_str, 
             color='w',

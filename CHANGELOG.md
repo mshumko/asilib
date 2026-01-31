@@ -1,6 +1,14 @@
 # Changelog
 
-## [0.28.0] - unpublished
+## [0.28.1] - unpublished
+
+### Added
+- `asilib.Imagers()` can now animate (and loop over) ASI networks with different cadences, for example MANGO and TREx-RGB.
+
+### Changed
+- Renamed the `asilib.Imagers()`'s `iter_tol` kwarg to `sync_image_tol` to be more descriptive, and updated the docstring describing the variable.
+
+## [0.28.0] - 2025-01-29
 
 ### Added
 - The `asilib.asi.psa_project`, and `asilib.asi.psa_project_lamp` ASIs.
