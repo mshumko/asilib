@@ -7,6 +7,7 @@ from typing import Tuple, List, Union, Generator, Callable
 from collections import namedtuple
 import pathlib
 from datetime import datetime, timedelta
+from itertools import zip_longest
 import shutil
 import warnings
 
@@ -683,7 +684,9 @@ class Imagers:
         future_iterators = {}
         stopped_iterators = []
 
-        for guide_time in guide_times:
+        time_img_tuple = namedtuple('time_img_tuple', ['time', 'image'])
+
+        for guide_time, next_guide_time in zip_longest(guide_times, guide_times[1:]):
             _asi_times = []
             _asi_images = []
             for (_name, _iterator), _imager in zip(asi_iterators.items(), self.imagers):
@@ -691,7 +694,8 @@ class Imagers:
                     if _name in future_iterators:
                         current_images[_name] = future_iterators.pop(_name)
                     else:
-                        current_images[_name] = next(_iterator)
+                        asi_time, asi_img = next(_iterator)
+                        current_images[_name] = time_img_tuple(asi_time, asi_img)
                 except StopIteration:
                     _asi_times.append(datetime.min)
                     _asi_images.append(None)
@@ -706,15 +710,22 @@ class Imagers:
 
                 # Check if the guide_time is within the cadence window after the current image 
                 # timestamp.
+                next_predicted_imager_timestamp = (
+                    current_images[_name].time+timedelta(seconds=_imager.meta['cadence'])
+                    )
                 guide_time_after_image = (
-                    guide_time > current_images[_name][0]
+                    guide_time > current_images[_name].time
                     )
-                guide_time_before_next_image = (
-                    guide_time <= current_images[_name][0]+timedelta(seconds=_imager.meta['cadence'])
-                    )
+                guide_time_before_next_image = (guide_time <= next_predicted_imager_timestamp)
+
                 if (guide_time_after_image and guide_time_before_next_image):
-                    _asi_times.append(current_images[_name][0])
-                    _asi_images.append(current_images[_name][1])
+                    _asi_times.append(current_images[_name].time)
+                    _asi_images.append(current_images[_name].image)
+
+                    if current_images[_name].time+timedelta(seconds=_imager.meta['cadence']) > next_guide_time:
+                        # Savew current image as a future image if the current image exposure takes 
+                        # us beyond the next guide_time. This is useful for the slower of the imagers.
+                        future_iterators[_name] = current_images[_name]
                 else:
                     # Store the current image into the future iterator and 
                     # yield dummy values for time and image.
@@ -1026,7 +1037,7 @@ if __name__ == '__main__':
     import pandas as pd
     import asilib.asi
     
-    time_range=(datetime(2021, 11, 4, 1, 56), datetime(2021, 11, 4, 12, 30))  #datetime(2021, 11, 4, 12, 24)
+    time_range=(datetime(2021, 11, 4, 1, 56), datetime(2021, 11, 4, 2, 30))  #datetime(2021, 11, 4, 12, 24)
     mango_location_code='CFS'
     mango_asi = asilib.asi.mango(mango_location_code, 'redline', time_range=time_range)
     trex_location_codes = ['FSMI', 'LUCK'] #, 'RABB', 'PINA', 'GILL']
