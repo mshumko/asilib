@@ -53,14 +53,15 @@ class Imagers:
             self.imagers = (self.imagers, )
         self.sync_image_tol = sync_image_tol 
 
-        start_times = [img.file_info['time_range'][0] for img in self.imagers]
-        end_times = [img.file_info['time_range'][1] for img in self.imagers]
-        self.min_cadence = np.min([img.meta['cadence'] for img in self.imagers]).astype(float)
+        if hasattr(self.imagers[0], 'time_range'):
+            start_times = [img.file_info['time_range'][0] for img in self.imagers]
+            end_times = [img.file_info['time_range'][1] for img in self.imagers]
+            self.min_cadence = np.min([img.meta['cadence'] for img in self.imagers]).astype(float)
 
-        if not all(start_time is None for start_time in start_times):
-            self.start_time = min(start_times)
-            self.end_time = max(end_times)
-        self.n_times = int(np.ceil((self.end_time - self.start_time).total_seconds() / self.min_cadence))
+            if not all(start_time is None for start_time in start_times):
+                self.start_time = min(start_times)
+                self.end_time = max(end_times)
+            self.n_times = int(np.ceil((self.end_time - self.start_time).total_seconds() / self.min_cadence))
         return
     
     def plot_fisheye(self, ax:Tuple[plt.Axes], **kwargs):
