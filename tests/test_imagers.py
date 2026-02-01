@@ -290,6 +290,34 @@ def test_animate_map():
     asis.animate_map(lon_bounds=(-115, -85), lat_bounds=(43, 63), overwrite=True)
     return
 
+def test_multi_asi_iter():
+    """
+    Loop over 
+    """
+    from datetime import datetime
+    import asilib.asi
+
+    time_range=(datetime(2021, 11, 4, 1, 56), datetime(2021, 11, 4, 2, 2))
+    mango_location_code='CFS'
+    mango_asi = asilib.asi.mango(mango_location_code, 'redline', time_range=time_range)
+    trex_location_code = 'FSMI'
+    trex_asi = asilib.asi.trex_rgb(trex_location_code, time_range=time_range)
+    asis = asilib.Imagers([mango_asi, trex_asi])
+
+    mango_dt_within_cadence = []
+    trex_dt_within_cadence = []
+
+    for guide_time, _asi_times, _ in asis:
+        mango_dt_within_cadence.append(
+            mango_asi.meta['cadence'] > (guide_time - _asi_times[0]).total_seconds()
+            )
+        trex_dt_within_cadence.append(
+            trex_asi.meta['cadence'] > (guide_time - _asi_times[1]).total_seconds()
+            )
+    assert all(mango_dt_within_cadence)
+    assert all(trex_dt_within_cadence)
+    return
+
 # @matplotlib.testing.decorators.image_comparison(
 #     baseline_images=['test_plot_map_eq'],
 #     tol=10,
