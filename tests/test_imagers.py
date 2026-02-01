@@ -292,7 +292,8 @@ def test_animate_map():
 
 def test_multi_asi_iter():
     """
-    Loop over 
+    Loop over multiple ASI imagers and ensure that the time differences between the guide time
+    and each imager time are within the cadence of each imager.
     """
     from datetime import datetime
     import asilib.asi
