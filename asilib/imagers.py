@@ -53,7 +53,10 @@ class Imagers:
             self.imagers = (self.imagers, )
         self.sync_image_tol = sync_image_tol 
 
-        if hasattr(self.imagers[0], 'time_range'):
+        if 'time_range' in self.imagers[0].file_info:
+            assert np.all(['time_range' in img.file_info for img in self.imagers]), (
+                'Not all imagers have a time_range defined.'
+                )
             start_times = [img.file_info['time_range'][0] for img in self.imagers]
             end_times = [img.file_info['time_range'][1] for img in self.imagers]
             self.min_cadence = np.min([img.meta['cadence'] for img in self.imagers]).astype(float)

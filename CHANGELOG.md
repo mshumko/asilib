@@ -7,6 +7,7 @@
 
 ### Changed
 - Renamed the `asilib.Imagers()`'s `iter_tol` kwarg to `sync_image_tol` to be more descriptive, and updated the docstring describing the variable.
+- Updated tests in the `test_imagers.py`. The synchronized images are now much closer to the guide_time.
 
 ## [0.28.0] - 2025-01-29
 

@@ -157,7 +157,8 @@ def test_iterate_trex_imagers():
     trex_metadata = asilib.asi.trex_rgb_info()
     asis = asilib.Imagers(
         [asilib.asi.trex_rgb(location_code, time_range=time_range) 
-        for location_code in trex_metadata['location_code']]
+        for location_code in trex_metadata['location_code']],
+        sync_image_tol=0.5
         )
 
     _guide_times = []
@@ -172,11 +173,10 @@ def test_iterate_trex_imagers():
     for i, (_guide_time, imager_times_i) in enumerate(zip(_guide_times, _times)):
         dt[i, :] = [(_guide_time-j).total_seconds() for j in imager_times_i]
     
-    dt[np.abs(dt) > 3600*24] = np.nan
+    dt[np.abs(dt) > asis.imagers[0].meta['cadence']] = np.nan
 
-    assert np.nanmax(np.abs(dt)) == 3.297666  # Maximum unsynchronized time difference.
-    assert np.all(~np.isnan(dt[:-1, :]))  # All 
-    assert np.all(np.isnan(dt[-1, :]) == np.array([False, False, False,  True, False, False]))
+    assert np.nanmax(np.abs(dt)) == 0.358808  # Maximum synchronized time difference.
+    assert np.sum(np.isnan(dt)) <= 1 # One image is missing and thus masked.
     return
 
 def test_iterate_rego_imagers():
