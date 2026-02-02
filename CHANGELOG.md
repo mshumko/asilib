@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.28.1] - unpublished
+## [0.29.0] - 2025-02-01
 
 ### Added
 - `asilib.Imagers()` can now animate (and loop over) ASI networks with different cadences, for example MANGO and TREx-RGB.
