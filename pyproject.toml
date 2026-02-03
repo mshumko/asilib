@@ -67,14 +67,6 @@ omit = [
     "asilib//asi//lamp_phantom.py",
     ]
 
-[tool.uv.workspace]
-members = [
-    ".",
-]
-
-[tool.uv.sources]
-asilib = { workspace = true }
-
 [dependency-groups]
 dev = [
     "aacgmv2==2.7.0",
