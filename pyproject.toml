@@ -16,20 +16,21 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     ]
 dependencies = [
-    "wheel", 
-    "beautifulsoup4", 
-    "requests", 
-    "numpy", 
+    "wheel",
+    "beautifulsoup4",
+    "requests",
+    "numpy",
     "scipy >= 1.10.0",
-    "pandas", 
-    "matplotlib >= 3.7, <4.0", 
-    "ffmpeg-python", 
-    "pymap3d", 
-    "aacgmv2", 
+    "pandas",
+    "matplotlib >= 3.7, <4.0",
+    "ffmpeg-python",
+    "pymap3d",
+    "aacgmv2",
     "pyshp >= 2.3",
     "opencv-python >= 4.8.0, < 5.0",
     "h5py",
-    ]
+    "python-dateutil>=2.9.0.post0",
+]
 
 [[project.authors]]
 name = "Mykhaylo Shumko"
