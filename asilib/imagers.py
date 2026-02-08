@@ -197,7 +197,7 @@ class Imagers:
         # and then the skymap cleaner nans everything below min_elevation, which is then
         # immediately followed by the reassignment of all nans to the nearest valid value.
         if not overlap:
-            self._skymaps = self._calc_overlap_mask(self._skymaps, shrink_distance_to_self=0.96)
+            self._skymaps = self.nan_overlap_pixels(self._skymaps, shrink_distance_to_self=0.96)
 
         for imager, _color_bounds in zip(self.imagers, color_bounds):
             _skymap_cleaner = Skymap_Cleaner(
@@ -447,7 +447,7 @@ class Imagers:
                     }
 
                 if not overlap:
-                    _skymaps = self._calc_overlap_mask(_skymaps, idx=currently_on_asis)
+                    _skymaps = self.nan_overlap_pixels(_skymaps, idx=currently_on_asis)
 
                 for j in currently_on_asis:
                     imager = self.imagers[j]
@@ -842,7 +842,7 @@ class Imagers:
                 'lon':imager.skymap['lon'].copy(), 
                 'lat':imager.skymap['lat'].copy()
             }
-        _skymaps = self._calc_overlap_mask(_skymaps)
+        _skymaps = self.nan_overlap_pixels(_skymaps)
 
         for _imager in self.imagers:
             assert 'time' in _imager.file_info.keys(), (
@@ -882,68 +882,72 @@ class Imagers:
                 ))
         return lat_lon_points, intensities
     
-    def _calc_overlap_mask(self, _skymaps, idx=None, shrink_distance_to_self=0.98):
+    def nan_overlap_pixels(
+            self, 
+            skymaps, 
+            idx=None, 
+            shrink_distance_to_self=0.98
+            ):
         """
-        Calculate which pixels to plot for overlapping imagers by the criteria that the ith 
-        imager's pixel must be closest to that imager (and not a neighboring one).
+        Calculate which pixels whose mapped distance are closer to neighboring imagers and 
+        NaN those. This is useful to remove the overlapping parts of the imagers when 
+        plotting them together.
 
-        Algorithm:
-        1. Loop over ith imager
-        2. Loop over jth imager within 500 km distance of the ith imager
-        3. Mask low-elevations with np.nan
-        4. Create a distance array with shape (resolution[0], resolution[1], j_total)
-        5. For all pixels in ith imager, calculate the haversine distance to jth imager and 
-        assign it to distance[..., j].
-        6. For all pixels calculate the nearest imager out of all j's.
-        7. If the minimum j is not the ith imager, mask the imager.skymap['lat'] and 
-        imager.skymap['lon'] as np.nan.
+        Parameters
+        ----------
+        skymaps: dict
+            A dictionary of (lat, lon) skymaps for each imager location. This is a copy of the 
+            skymaps dictionary that this method modifies.
+        idx: list
+            A list of indices for self.imagers list to calculate the overlap mask for. 
+            If None, the mask is calculated for all imagers.
+        shrink_distance_to_self: float
+            A scaling factor to apply to the distance from the pixels to its own imager. This
+            is necessary to avoid gaps between the imager boundaries.
+
+        Returns
+        -------
+        dict
+            A dictionary of (lat, lon) skymaps in the same format as skyamps, for each imager location with the overlapping pixels masked as np.nan.
         """
-        # This variable keeps track of all imagers in case their field of view is clipped
-        # by the CCD (TREx-RGB, for example has this). If at least one imager's FOV is 
-        # clipped, it will run an additional step to check if some of the pixels to be removed
-        # from one imager are not in the clipped region of the other imager.
-        clipped_fov=False
-
         if idx is None:
             _imagers = self.imagers
         else:
             _imagers = [self.imagers[i] for i in idx]
 
-        for imager in _imagers:
-            merged_edges = np.concatenate((
-                _skymaps[imager.meta['location']]['lat'][0, :], 
-                _skymaps[imager.meta['location']]['lat'][-1, :], 
-                _skymaps[imager.meta['location']]['lat'][:, 0], 
-                _skymaps[imager.meta['location']]['lat'][:, -1]
-                ))
-            if not np.all(np.isnan(merged_edges)):
-                clipped_fov=True
-                # Save the clipped (lats, lon) to compare with here.
-
         for i, imager in enumerate(_imagers):
+            # Algorithm:
+            # 1. Loop over ith imager
+            # 2. Loop over jth imager within 500 km distance of the ith imager
+            # 3. Mask low-elevations with np.nan
+            # 4. Create a distance array with shape (resolution[0], resolution[1], j_total)
+            # 5. For all pixels in ith imager, calculate the haversine distance to jth imager and 
+            # assign it to distance[..., j].
+            # 6. For all pixels calculate the nearest imager out of all j's.
+            # 7. If the minimum j is not the ith imager, mask the imager.skymap['lat'] and 
+            # imager.skymap['lon'] as np.nan.
             _distances = np.nan*np.ones(
-                (*_skymaps[imager.meta['location']]['lat'].shape, len(_imagers))
+                (*skymaps[imager.meta['location']]['lat'].shape, len(_imagers))
                 )
             for j, other_imager in enumerate(_imagers):
                 # Calculate the distance between all imager pixels and every other imager 
                 # location (including itself).
                 _other_lon = np.broadcast_to(
                     other_imager.meta['lon'], 
-                    _skymaps[imager.meta['location']]['lat'].shape
+                    skymaps[imager.meta['location']]['lat'].shape
                     )
                 _other_lat = np.broadcast_to(
                     other_imager.meta['lat'], 
-                    _skymaps[imager.meta['location']]['lat'].shape
+                    skymaps[imager.meta['location']]['lat'].shape
                     )
 
                 _distances[:, :, j] = _haversine(
-                    _skymaps[imager.meta['location']]['lat'], 
-                    _skymaps[imager.meta['location']]['lon'],
+                    skymaps[imager.meta['location']]['lat'], 
+                    skymaps[imager.meta['location']]['lon'],
                     _other_lat, 
                     _other_lon
                     )
                 
-                # _distances[:, :, i] = 0
             # Without this small reduction in the distance of pixels to its own imager,
             # there are gaps between the imager boundaries. In other words, this scaling
             # slightly biases to plotting pixels nearest to the imager. 
@@ -957,58 +961,82 @@ class Imagers:
             min_distances = np.argmin(_distances, axis=2)
             far_pixels = np.where(min_distances != i)
 
-            # if clipped_fov and (far_pixels[0].shape[0] > 0):
-            #     far_pixels = self._valid_far_pixels(i, _skymaps, far_pixels)
+            skymaps[imager.meta['location']]['lat'][far_pixels] = np.nan
+            skymaps[imager.meta['location']]['lon'][far_pixels] = np.nan
+        return skymaps
 
-            _skymaps[imager.meta['location']]['lat'][far_pixels] = np.nan
-            _skymaps[imager.meta['location']]['lon'][far_pixels] = np.nan
-
-            # TODO: Add an option to return the skymaps with just the overlapping part.
-        return _skymaps
-    
-    def _valid_far_pixels(self, imager_id, _skymaps, far_pixels):
+    def find_overlap_pixels(self, idx=None):
         """
-        Sometimes for imagers with clipped FOV the far pixel from the main imager falls inside 
-        the clipped region. This loop checks that these far pixels are not in the clipped FOV.
-        """
-        imager = self.imagers[imager_id]
-        valid_far_pixels = []
+        Similar to nan_overlap_pixels, but instead of masking the overlapping pixels as np.nan, 
+        it returns a dictionary of dictionaties containing indices arrays of the overlapping 
+        pixels for each imager and a neighboring imager. This is useful for triangulation.
 
-        _progressbar = asilib.utils.progressbar(
-            enumerate(zip(far_pixels[0], far_pixels[1])),
-            iter_length=far_pixels[0].shape[0],
-            text='Processing clipped FOV pixels',
-        )
-        for i, far_pixel in _progressbar:
-            _lon = _skymaps[imager.meta['location']]['lon'][far_pixel]
-            _lat = _skymaps[imager.meta['location']]['lat'][far_pixel]
-            
-            for k, other_imager in enumerate(self.imagers):
-                if k==i:
-                    continue
-                _lon_arr = np.broadcast_to(
-                    _lon, 
-                    _skymaps[other_imager.meta['location']]['lon'].shape
+        Parameters
+        ----------
+        idx: list
+            A list of indices for self.imagers list to calculate the overlap pixels for. 
+            If None, the pixels are calculated for all imagers.
+
+        Returns
+        -------
+        dict
+            A dictionary of dictionaries containing indices arrays of the overlapping pixels 
+            for each imager and a neighboring imager. The keys of the outer dictionary are the 
+            self imager, and the inner dictionary has keys of the neighboring imager with thich
+            the self imager has overlapping pixels.
+        """
+        overlap_pixels = {}
+        if idx is None:
+            _imagers = self.imagers
+        else:
+            _imagers = [self.imagers[i] for i in idx]
+
+        for i, imager in enumerate(_imagers):
+            # Algorithm:
+            # 1. Loop over ith imager
+            # 2. Loop over jth imager within 500 km distance of the ith imager
+            # 3. Mask low-elevations with np.nan
+            # 4. Create a distance array with shape (resolution[0], resolution[1], j_total)
+            # 5. For all pixels in ith imager, calculate the haversine distance to jth imager and 
+            # assign it to distance[..., j].
+            # 6. For all pixels calculate the nearest imager out of all j's.
+            # 7. If the minimum j is not the ith imager, add the pixel indices to the 
+            # overlap_pixels dictionary with outer key of the self imager and the inner 
+            # key neighboring imager.
+            _distances = np.nan*np.ones(
+                (*imager.meta['lat'].shape, len(_imagers))
                 )
-                _lat_arr = np.broadcast_to(
-                    _lat, 
-                    _skymaps[other_imager.meta['location']]['lat'].shape
-                )
-                _other_lon_arr = _skymaps[other_imager.meta['location']]['lon']
-                _other_lat_arr = _skymaps[other_imager.meta['location']]['lat']
-                _distances_other_imager = _haversine(
-                    _other_lon_arr,
-                    _other_lat_arr,
-                    _lat_arr,
-                    _lon_arr
+                
+            for j, other_imager in enumerate(_imagers):
+                # Calculate the distance between all imager pixels and every other imager 
+                # location (including itself).
+                _other_lon = np.broadcast_to(
+                    other_imager.meta['lon'], 
+                    imager.skymaps['lat'].shape
                     )
-                idx_other = np.unravel_index(
-                    np.argmin(_distances_other_imager), 
-                    _skymaps[other_imager.meta['location']]['lon'].shape
+                _other_lat = np.broadcast_to(
+                    other_imager.meta['lat'], 
+                    imager.skymaps['lat'].shape
                     )
-                if _distances_other_imager[idx_other] < 100:
-                    valid_far_pixels.append(far_pixel)
-        return np.array(valid_far_pixels).astype(int)
+
+                _distances[:, :, j] = _haversine(
+                    imager.skymaps['lat'], 
+                    imager.skymaps['lon'],
+                    _other_lat, 
+                    _other_lon
+                    )
+                
+            _distances = np.ma.masked_array(_distances, np.isnan(_distances))
+            # For each pixel, calculate the nearest imager. If the pixel is not closest to 
+            # the imager that it's from, add its indices to the overlap_pixels dictionary.
+            min_distances = np.argmin(_distances, axis=2)
+            far_pixels = np.where(min_distances != i)
+
+            if far_pixels[0].shape[0] > 0:
+                if imager.meta['location'] not in overlap_pixels.keys():
+                    overlap_pixels[imager.meta['location']] = {}
+                overlap_pixels[imager.meta['location']][other_imager.meta['location']] = far_pixels
+        return overlap_pixels
     
     def __str__(self):
         names = [f'{_img.meta["array"]}-{_img.meta["location"]}' for _img in self.imagers]
@@ -1031,64 +1059,73 @@ class Imagers:
         
 
 if __name__ == '__main__':
-    # You will need to install cdasws to run this example (python -m pip install cdasws)
-    from datetime import datetime, timedelta, timezone
-    
-    import cdasws
-    import matplotlib.pyplot as plt
-    import matplotlib.dates
-    import pandas as pd
-    import asilib.asi
-    
-    time_range=(datetime(2021, 11, 4, 1, 56), datetime(2021, 11, 4, 12, 30))  #datetime(2021, 11, 4, 12, 24)
-    mango_location_code='CFS'
-    mango_asi = asilib.asi.mango(mango_location_code, 'redline', time_range=time_range)
-    trex_location_codes = ['FSMI', 'LUCK', 'RABB', 'PINA', 'GILL']
-    trex_asis = [asilib.asi.trex_rgb(location_code, time_range=time_range) 
-                  for location_code in trex_location_codes]
-    asis = asilib.Imagers([mango_asi]+trex_asis)
+    # Test the find_overlap_pixels method
+    time = datetime(2007, 3, 13, 5, 8, 45)
+    location_codes = ['ATHA', 'TPAS']
+    map_alt = 110
+    _imagers = [asilib.asi.themis(location_code, time=time, alt=map_alt) 
+                for location_code in location_codes]
+    asis = asilib.Imagers(_imagers)
+    asis.find_overlap_pixels()
 
-    fig = plt.figure(layout='constrained', figsize=(8, 9))
-    gs = matplotlib.gridspec.GridSpec(2, 1, fig, height_ratios=(3, 1))
-    ax = asilib.map.create_map(lat_bounds=(30, 64), lon_bounds=(-125, -75), fig_ax=(fig, gs[0]))
-    bx = fig.add_subplot(gs[1])
-    bx.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%H:%M'))
-    gen = asis.animate_map_gen(ax=ax, asi_label=True, overwrite=True, ffmpeg_params={'framerate':100})
+    # # You will need to install cdasws to run this example (python -m pip install cdasws)
+    # from datetime import datetime, timedelta, timezone
     
-    cdas = cdasws.CdasWs()
-    time_range_cdasws = cdasws.TimeInterval(
-        datetime.fromisoformat(str(time_range[0]-timedelta(days=0.5))).replace(tzinfo=timezone.utc),
-        datetime.fromisoformat(str(time_range[1]+timedelta(days=0.5))).replace(tzinfo=timezone.utc)
-        )
-    _, data = cdas.get_data(
-                    'OMNI_HRO_5MIN', ['SYM_H'], time_range_cdasws
-                    )
-    symh = pd.DataFrame(index=data['SYM_H'].Epoch.data, data={'SYM_H':data['SYM_H']})
-    bx.plot(symh.index, symh['SYM_H'], c='k')
-    bx.set(xlabel='Time [HH:MM]', ylabel='Sym-H [nT]')
+    # import cdasws
+    # import matplotlib.pyplot as plt
+    # import matplotlib.dates
+    # import pandas as pd
+    # import asilib.asi
+    
+    # time_range=(datetime(2021, 11, 4, 1, 56), datetime(2021, 11, 4, 12, 30))  #datetime(2021, 11, 4, 12, 24)
+    # mango_location_code='CFS'
+    # mango_asi = asilib.asi.mango(mango_location_code, 'redline', time_range=time_range)
+    # trex_location_codes = ['FSMI', 'LUCK', 'RABB', 'PINA', 'GILL']
+    # trex_asis = [asilib.asi.trex_rgb(location_code, time_range=time_range) 
+    #               for location_code in trex_location_codes]
+    # asis = asilib.Imagers([mango_asi]+trex_asis)
 
-    plt.suptitle(f'MANGO & TREx-RGB Mosaic | {time_range[0]:%F %T} to {time_range[1]:%T}', fontsize=16)
+    # fig = plt.figure(layout='constrained', figsize=(8, 9))
+    # gs = matplotlib.gridspec.GridSpec(2, 1, fig, height_ratios=(3, 1))
+    # ax = asilib.map.create_map(lat_bounds=(30, 64), lon_bounds=(-125, -75), fig_ax=(fig, gs[0]))
+    # bx = fig.add_subplot(gs[1])
+    # bx.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%H:%M'))
+    # gen = asis.animate_map_gen(ax=ax, asi_label=True, overwrite=True, ffmpeg_params={'framerate':100})
     
-    for guide_time, image_times, images, ax in gen:
-        # We will need to delete the prior text object, otherwise the current one
-        # will overplot on the prior one---clean up after yourself!
-        if '_time_guide' in locals():
-            _time_guide.remove()  # noqa: F821
-            _text_box.remove()  # noqa: F821
-        _zip = zip([mango_location_code]+trex_location_codes, image_times)
-        time_str = (
-            f'Current timestamps:\n'+
-            '\n'.join([f'{name} {ti.strftime("%H:%M:%S.%f")}' for name, ti in _zip])
-            )
-        _text_box = ax.text(
-            0.75, 
-            0.01, 
-            time_str, 
-            color='w',
-            transform=ax.transAxes, 
-            bbox=dict(boxstyle='round', facecolor='purple', alpha=0.5), 
-            ha='left', 
-            va='bottom'
-            )
-        _time_guide = bx.axvline(guide_time, c='k', ls='--')
+    # cdas = cdasws.CdasWs()
+    # time_range_cdasws = cdasws.TimeInterval(
+    #     datetime.fromisoformat(str(time_range[0]-timedelta(days=0.5))).replace(tzinfo=timezone.utc),
+    #     datetime.fromisoformat(str(time_range[1]+timedelta(days=0.5))).replace(tzinfo=timezone.utc)
+    #     )
+    # _, data = cdas.get_data(
+    #                 'OMNI_HRO_5MIN', ['SYM_H'], time_range_cdasws
+    #                 )
+    # symh = pd.DataFrame(index=data['SYM_H'].Epoch.data, data={'SYM_H':data['SYM_H']})
+    # bx.plot(symh.index, symh['SYM_H'], c='k')
+    # bx.set(xlabel='Time [HH:MM]', ylabel='Sym-H [nT]')
+
+    # plt.suptitle(f'MANGO & TREx-RGB Mosaic | {time_range[0]:%F %T} to {time_range[1]:%T}', fontsize=16)
+    
+    # for guide_time, image_times, images, ax in gen:
+    #     # We will need to delete the prior text object, otherwise the current one
+    #     # will overplot on the prior one---clean up after yourself!
+    #     if '_time_guide' in locals():
+    #         _time_guide.remove()  # noqa: F821
+    #         _text_box.remove()  # noqa: F821
+    #     _zip = zip([mango_location_code]+trex_location_codes, image_times)
+    #     time_str = (
+    #         f'Current timestamps:\n'+
+    #         '\n'.join([f'{name} {ti.strftime("%H:%M:%S.%f")}' for name, ti in _zip])
+    #         )
+    #     _text_box = ax.text(
+    #         0.75, 
+    #         0.01, 
+    #         time_str, 
+    #         color='w',
+    #         transform=ax.transAxes, 
+    #         bbox=dict(boxstyle='round', facecolor='purple', alpha=0.5), 
+    #         ha='left', 
+    #         va='bottom'
+    #         )
+    #     _time_guide = bx.axvline(guide_time, c='k', ls='--')
         
