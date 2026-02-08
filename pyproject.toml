@@ -30,6 +30,7 @@ dependencies = [
     "opencv-python >= 4.8.0, < 5.0",
     "h5py",
     "python-dateutil>=2.9.0.post0",
+    "pytest-cov>=7.0.0",
 ]
 
 [[project.authors]]

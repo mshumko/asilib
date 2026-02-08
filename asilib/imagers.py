@@ -1039,23 +1039,23 @@ class Imagers:
             # For each pixel, calculate the nearest imager. If the pixel is not closest to 
             # the imager that it's from, add its indices to the overlap_pixels dictionary.
             min_distances = np.argmin(_distances, axis=2)
-            # ij_overlap_pixels = np.where((min_distances == j) & (min_distances != i))
-            ij_overlap_pixels = np.where((min_distances == j))
 
-            self_key =f'{self_imager.meta["array"]}-{self_imager.meta["location"]}'
-            other_key = f'{other_imager.meta["array"]}-{other_imager.meta["location"]}'
+            for j, other_imager in enumerate(_imagers):
+                ij_overlap_pixels = np.where(
+                    (min_distances == j) & 
+                    (j != i) & 
+                    ~np.isnan(_skymap_cleaner._lat_grid)
+                    )
 
-            if ij_overlap_pixels[0].shape[0] > 0:
-                if self_key not in overlap_pixels.keys():
-                    overlap_pixels[self_key] = {}
-                overlap_pixels[self_key][other_key] = ij_overlap_pixels
+                self_key =f'{self_imager.meta["array"]}-{self_imager.meta["location"]}'
+                other_key = f'{other_imager.meta["array"]}-{other_imager.meta["location"]}'
 
-            plt.scatter(_skymap_cleaner._lon_grid, _skymap_cleaner._lat_grid, s=5, c='r'); 
-            plt.scatter(self_imager.skymap['lon'][ij_overlap_pixels], self_imager.skymap['lat'][ij_overlap_pixels], s=1, c='b')
-            plt.title(f'{self_key} pixels overlapping with {other_key}')
-            plt.savefig(f'{self_key}_overlapping_with_{other_key}.png')
-            plt.close()
-            del _skymap_cleaner
+                if ij_overlap_pixels[0].shape[0] > 0:
+                    if self_key not in overlap_pixels.keys():
+                        overlap_pixels[self_key] = {}
+                    overlap_mask = np.zeros(self_imager.skymap['lat'].shape, dtype=bool)
+                    overlap_mask[ij_overlap_pixels] = True
+                    overlap_pixels[self_key][other_key] = overlap_mask
         return overlap_pixels
     
     def __str__(self):
@@ -1090,7 +1090,7 @@ if __name__ == '__main__':
     _imagers = [asilib.asi.themis(location_code, time=time, alt=map_alt) 
                 for location_code in location_codes]
     asis = asilib.Imagers(_imagers)
-    overlapping_pixels = asis.find_overlap_pixels(min_elevation=2)
+    overlapping_masks = asis.find_overlap_pixels(min_elevation=2)
 
     ax = asilib.map.create_simple_map(
         lon_bounds=(-140, -60), lat_bounds=(40, 82)
@@ -1100,16 +1100,17 @@ if __name__ == '__main__':
 
     asi_names = [f'{_imager.meta["array"]}-{_imager.meta["location"]}' for _imager in asis.imagers]
 
-    for self_loc, neighbors in overlapping_pixels.items():
-        for neighbor_loc, pixel_indices in neighbors.items():
+    for self_loc, neighbors in overlapping_masks.items():
+        for neighbor_loc, overlapping_mask in neighbors.items():
             self_loc_idx = asi_names.index(self_loc)
             neighbor_loc_idx = asi_names.index(neighbor_loc)
             ax.scatter(
-                asis.imagers[self_loc_idx].skymap['lon'][pixel_indices], 
-                asis.imagers[self_loc_idx].skymap['lat'][pixel_indices], 
-                s=1, label=f'{self_loc} pixels overlapping with {neighbor_loc}',
-                alpha=0.1
-                )
+                asis.imagers[self_loc_idx].skymap['lon'][overlapping_mask], 
+                asis.imagers[self_loc_idx].skymap['lat'][overlapping_mask], 
+                alpha=0.5, 
+                label=f'{self_loc} pixels overlapping with {neighbor_loc}',
+                s=2
+            )   
             
     ax.legend(loc='lower left', fontsize=8)
     plt.show()

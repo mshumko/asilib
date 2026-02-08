@@ -319,6 +319,58 @@ def test_multi_asi_iter():
     assert all(trex_dt_within_cadence)
     return
 
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_pixel_overlap'],
+    tol=10,
+    remove_text=True,
+    extensions=['png'],
+)
+def test_overlap_pixels():
+    """
+    Test the Imagers.find_overlap_pixels() pixels and plot them on a map.
+    """
+    from datetime import datetime
+
+    import asilib.asi
+    import asilib.map
+    import matplotlib.pyplot as plt
+
+    time = '2021-11-04T06:55'
+    min_elevation = 10
+    asis = asilib.Imagers(
+        [asilib.asi.trex_rgb(location_code, time=time) 
+        for location_code in ['LUCK', 'PINA', 'GILL', 'RABB']]
+        )
+    overlapping_masks = asis.find_overlap_pixels(min_elevation=min_elevation)
+
+    ax = asilib.map.create_simple_map(
+        lon_bounds=(-120, -80), lat_bounds=(40, 70)
+        )            
+
+    asis.plot_map(ax=ax, min_elevation=min_elevation)
+
+    asi_names = [f'{_imager.meta["array"]}-{_imager.meta["location"]}' for _imager in asis.imagers]
+
+    n = 0
+    for _, inner_dict in overlapping_masks.items():
+        n += len(inner_dict)
+    colors = iter(plt.cm.viridis(np.linspace(0,1,n)))
+
+    for self_loc, neighbors in overlapping_masks.items():
+        for neighbor_loc, overlapping_mask in neighbors.items():
+            self_loc_idx = asi_names.index(self_loc)
+            # neighbor_loc_idx = asi_names.index(neighbor_loc)
+            ax.scatter(
+                asis.imagers[self_loc_idx].skymap['lon'][overlapping_mask], 
+                asis.imagers[self_loc_idx].skymap['lat'][overlapping_mask], 
+                c=next(colors),
+                alpha=0.1, 
+                label=f'{self_loc} pixels overlapping with {neighbor_loc}',
+                s=10
+            )
+    plt.tight_layout()
+    return
+
 # @matplotlib.testing.decorators.image_comparison(
 #     baseline_images=['test_plot_map_eq'],
 #     tol=10,

@@ -39,7 +39,7 @@ jobs:
         python -m pip install flake8 pytest cartopy
         yes | python -m pip uninstall shapely  # https://stackoverflow.com/a/52399943
         python -m pip install --no-binary :all: shapely
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install .
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
