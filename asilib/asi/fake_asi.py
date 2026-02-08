@@ -80,9 +80,9 @@ def get_meta(location_dict):
     meta = {
         'array': 'TEST',
         'location': location_dict.index[0],
-        'lat': location_dict['lat'][0],
-        'lon': location_dict['lon'][0],
-        'alt': location_dict['alt'][0] / 1e3,  # km
+        'lat': location_dict['lat'].iat[0],
+        'lon': location_dict['lon'].iat[0],
+        'alt': location_dict['alt'].iat[0] / 1e3,  # km
         'cadence': 10,
         'resolution': (512, 512),
     }
@@ -258,6 +258,7 @@ def plot_skymap(location_code, alt=110, pixel_center=True):
 
 if __name__ == '__main__':
     # asi = fake_asi('GILL', time_range=('2015-01-01T15:00:15.17', '2015-01-01T20:00'))
+    # asi = fake_asi('GILL', time='2015-01-01T15:14:00.17')
+    # asi.plot_fisheye(color_bounds=(1, 255), origin=(0.85, 0.15), cardinal_directions='NEWS')
+    # plt.show()
     asi = fake_asi('GILL', time='2015-01-01T15:14:00.17')
-    asi.plot_fisheye(color_bounds=(1, 255), origin=(0.85, 0.15), cardinal_directions='NEWS')
-    plt.show()
