@@ -993,7 +993,7 @@ class Imagers:
         else:
             _imagers = [self.imagers[i] for i in idx]
 
-        for i, imager in enumerate(_imagers):
+        for i, self_imager in enumerate(_imagers):
             # Algorithm:
             # 1. Loop over ith imager
             # 2. Loop over jth imager within 500 km distance of the ith imager
@@ -1006,13 +1006,13 @@ class Imagers:
             # overlap_pixels dictionary with outer key of the self imager and the inner 
             # key neighboring imager.
             _distances = np.nan*np.ones(
-                (*imager.skymap['lat'].shape, len(_imagers))
+                (*self_imager.skymap['lat'].shape, len(_imagers))
                 )
             
             _skymap_cleaner = Skymap_Cleaner(
-                imager.skymap['lon'], 
-                imager.skymap['lat'], 
-                imager.skymap['el'], 
+                self_imager.skymap['lon'], 
+                self_imager.skymap['lat'], 
+                self_imager.skymap['el'], 
             )
             _skymap_cleaner.mask_elevation(min_elevation)
                 
@@ -1035,19 +1035,27 @@ class Imagers:
                     _other_lon
                     )
                 
-                _distances = np.ma.masked_array(_distances, np.isnan(_distances))
-                # For each pixel, calculate the nearest imager. If the pixel is not closest to 
-                # the imager that it's from, add its indices to the overlap_pixels dictionary.
-                min_distances = np.argmin(_distances, axis=2)
-                ij_overlap_pixels = np.where((min_distances == j) & (min_distances != i))
+            _distances = np.ma.masked_array(_distances, np.isnan(_distances))
+            # For each pixel, calculate the nearest imager. If the pixel is not closest to 
+            # the imager that it's from, add its indices to the overlap_pixels dictionary.
+            min_distances = np.argmin(_distances, axis=2)
+            # ij_overlap_pixels = np.where((min_distances == j) & (min_distances != i))
+            ij_overlap_pixels = np.where((min_distances == j))
 
-                self_key =f'{imager.meta["array"]}-{imager.meta["location"]}'
-                other_key = f'{other_imager.meta["array"]}-{other_imager.meta["location"]}'
+            self_key =f'{self_imager.meta["array"]}-{self_imager.meta["location"]}'
+            other_key = f'{other_imager.meta["array"]}-{other_imager.meta["location"]}'
 
-                if ij_overlap_pixels[0].shape[0] > 0:
-                    if self_key not in overlap_pixels.keys():
-                        overlap_pixels[self_key] = {}
-                    overlap_pixels[self_key][other_key] = ij_overlap_pixels
+            if ij_overlap_pixels[0].shape[0] > 0:
+                if self_key not in overlap_pixels.keys():
+                    overlap_pixels[self_key] = {}
+                overlap_pixels[self_key][other_key] = ij_overlap_pixels
+
+            plt.scatter(_skymap_cleaner._lon_grid, _skymap_cleaner._lat_grid, s=5, c='r'); 
+            plt.scatter(self_imager.skymap['lon'][ij_overlap_pixels], self_imager.skymap['lat'][ij_overlap_pixels], s=1, c='b')
+            plt.title(f'{self_key} pixels overlapping with {other_key}')
+            plt.savefig(f'{self_key}_overlapping_with_{other_key}.png')
+            plt.close()
+            del _skymap_cleaner
         return overlap_pixels
     
     def __str__(self):
@@ -1102,7 +1110,6 @@ if __name__ == '__main__':
                 s=1, label=f'{self_loc} pixels overlapping with {neighbor_loc}',
                 alpha=0.1
                 )
-        break
             
     ax.legend(loc='lower left', fontsize=8)
     plt.show()
