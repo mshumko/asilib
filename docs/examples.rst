@@ -93,6 +93,53 @@ The first breakup of an auroral arc during a substorm analyzed by Donovan et al.
     plt.show()
 
 
+Find Overlapping Pixels in a Mosaic
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. figure:: ./_static/example_outputs/map_arc_overlap_pixels.png
+    :alt: An auroral arc projected onto a map of North America with overlapping pixels colored.
+    :width: 75%
+
+.. code:: python
+
+    import asilib.asi
+    import asilib.map
+    import matplotlib.pyplot as plt
+    import cartopy.crs as ccrs
+
+    time = datetime(2007, 3, 13, 5, 8, 45)
+    location_codes = ['ATHA', 'TPAS']
+    map_alt = 110
+    _imagers = [asilib.asi.themis(location_code, time=time, alt=map_alt) 
+                for location_code in location_codes]
+    asis = asilib.Imagers(_imagers)
+    overlapping_masks = asis.find_overlap_pixels(min_elevation=2)
+
+    ax = asilib.map.create_map(
+        lon_bounds=(-125, -90), lat_bounds=(42, 64)
+        )            
+
+    asis.plot_map(ax=ax, min_elevation=2)
+
+    asi_names = [f'{_imager.meta["array"]}-{_imager.meta["location"]}' for _imager in asis.imagers]
+
+    for self_loc, neighbors in overlapping_masks.items():
+        for neighbor_loc, overlapping_mask in neighbors.items():
+            self_loc_idx = asi_names.index(self_loc)
+            neighbor_loc_idx = asi_names.index(neighbor_loc)
+            ax.scatter(
+                asis.imagers[self_loc_idx].skymap['lon'][overlapping_mask], 
+                asis.imagers[self_loc_idx].skymap['lat'][overlapping_mask], 
+                alpha=0.5, 
+                label=f'{self_loc} pixels overlapping with {neighbor_loc}',
+                s=2,
+                transform=ccrs.PlateCarree()
+            )   
+            
+    ax.legend(loc='lower left', fontsize=12, markerscale=3)
+    plt.tight_layout()
+    plt.show()
+
+
 A keogram of STEVE
 ^^^^^^^^^^^^^^^^^^
 

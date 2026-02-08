@@ -986,6 +986,46 @@ class Imagers:
             for each imager and a neighboring imager. The keys of the outer dictionary are the 
             self imager, and the inner dictionary has keys of the neighboring imager with thich
             the self imager has overlapping pixels.
+
+        Examples
+        --------
+        >>> import asilib.asi
+        >>> import asilib.map
+        >>> import matplotlib.pyplot as plt
+        >>> import cartopy.crs as ccrs
+        >>> 
+        >>> time = datetime(2007, 3, 13, 5, 8, 45)
+        >>> location_codes = ['ATHA', 'TPAS']
+        >>> map_alt = 110
+        >>> _imagers = [asilib.asi.themis(location_code, time=time, alt=map_alt) 
+        >>>             for location_code in location_codes]
+        >>> asis = asilib.Imagers(_imagers)
+        >>> overlapping_masks = asis.find_overlap_pixels(min_elevation=2)
+        >>> 
+        >>> ax = asilib.map.create_map(
+        >>>     lon_bounds=(-125, -90), lat_bounds=(42, 64)
+        >>>     )            
+        >>> 
+        >>> asis.plot_map(ax=ax, min_elevation=2)
+        >>> 
+        >>> asi_names = [f'{_imager.meta["array"]}-{_imager.meta["location"]}' for _imager in asis.imagers]
+        >>> 
+        >>> for self_loc, neighbors in overlapping_masks.items():
+        >>>     for neighbor_loc, overlapping_mask in neighbors.items():
+        >>>         self_loc_idx = asi_names.index(self_loc)
+        >>>         neighbor_loc_idx = asi_names.index(neighbor_loc)
+        >>>         ax.scatter(
+        >>>             asis.imagers[self_loc_idx].skymap['lon'][overlapping_mask], 
+        >>>             asis.imagers[self_loc_idx].skymap['lat'][overlapping_mask], 
+        >>>             alpha=0.5, 
+        >>>             label=f'{self_loc} pixels overlapping with {neighbor_loc}',
+        >>>             s=2,
+        >>>             transform=ccrs.PlateCarree()
+        >>>         )   
+        >>>         
+        >>> ax.legend(loc='lower left', fontsize=12, markerscale=3)
+        >>> plt.tight_layout()
+        >>> plt.show()
         """
         overlap_pixels = {}
         if idx is None:
@@ -1079,10 +1119,10 @@ class Imagers:
         
 
 if __name__ == '__main__':
-    # Test the find_overlap_pixels method
     import asilib.asi
     import asilib.map
     import matplotlib.pyplot as plt
+    import cartopy.crs as ccrs
 
     time = datetime(2007, 3, 13, 5, 8, 45)
     location_codes = ['ATHA', 'TPAS']
@@ -1092,8 +1132,8 @@ if __name__ == '__main__':
     asis = asilib.Imagers(_imagers)
     overlapping_masks = asis.find_overlap_pixels(min_elevation=2)
 
-    ax = asilib.map.create_simple_map(
-        lon_bounds=(-140, -60), lat_bounds=(40, 82)
+    ax = asilib.map.create_map(
+        lon_bounds=(-125, -90), lat_bounds=(42, 64)
         )            
 
     asis.plot_map(ax=ax, min_elevation=2)
@@ -1109,10 +1149,12 @@ if __name__ == '__main__':
                 asis.imagers[self_loc_idx].skymap['lat'][overlapping_mask], 
                 alpha=0.5, 
                 label=f'{self_loc} pixels overlapping with {neighbor_loc}',
-                s=2
+                s=2,
+                transform=ccrs.PlateCarree()
             )   
             
-    ax.legend(loc='lower left', fontsize=8)
+    ax.legend(loc='lower left', fontsize=12, markerscale=3)
+    plt.tight_layout()
     plt.show()
 
     # # You will need to install cdasws to run this example (python -m pip install cdasws)
