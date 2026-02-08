@@ -965,7 +965,7 @@ class Imagers:
             skymaps[imager.meta['location']]['lon'][far_pixels] = np.nan
         return skymaps
 
-    def find_overlap_pixels(self, idx=None):
+    def find_overlap_pixels(self, idx=None, min_elevation:float=10) -> dict:
         """
         Similar to nan_overlap_pixels, but instead of masking the overlapping pixels as np.nan, 
         it returns a dictionary of dictionaties containing indices arrays of the overlapping 
@@ -976,6 +976,8 @@ class Imagers:
         idx: list
             A list of indices for self.imagers list to calculate the overlap pixels for. 
             If None, the pixels are calculated for all imagers.
+        min_elevation: float
+            Only consider pixels above min_elevation when calculating the overlapping pixels.
 
         Returns
         -------
@@ -1004,38 +1006,48 @@ class Imagers:
             # overlap_pixels dictionary with outer key of the self imager and the inner 
             # key neighboring imager.
             _distances = np.nan*np.ones(
-                (*imager.meta['lat'].shape, len(_imagers))
+                (*imager.skymap['lat'].shape, len(_imagers))
                 )
+            
+            _skymap_cleaner = Skymap_Cleaner(
+                imager.skymap['lon'], 
+                imager.skymap['lat'], 
+                imager.skymap['el'], 
+            )
+            _skymap_cleaner.mask_elevation(min_elevation)
                 
             for j, other_imager in enumerate(_imagers):
                 # Calculate the distance between all imager pixels and every other imager 
                 # location (including itself).
                 _other_lon = np.broadcast_to(
                     other_imager.meta['lon'], 
-                    imager.skymaps['lat'].shape
+                    _skymap_cleaner._lat_grid.shape
                     )
                 _other_lat = np.broadcast_to(
                     other_imager.meta['lat'], 
-                    imager.skymaps['lat'].shape
+                    _skymap_cleaner._lat_grid.shape
                     )
 
                 _distances[:, :, j] = _haversine(
-                    imager.skymaps['lat'], 
-                    imager.skymaps['lon'],
+                    _skymap_cleaner._lat_grid, 
+                    _skymap_cleaner._lon_grid,
                     _other_lat, 
                     _other_lon
                     )
                 
-            _distances = np.ma.masked_array(_distances, np.isnan(_distances))
-            # For each pixel, calculate the nearest imager. If the pixel is not closest to 
-            # the imager that it's from, add its indices to the overlap_pixels dictionary.
-            min_distances = np.argmin(_distances, axis=2)
-            far_pixels = np.where(min_distances != i)
+                _distances = np.ma.masked_array(_distances, np.isnan(_distances))
+                # For each pixel, calculate the nearest imager. If the pixel is not closest to 
+                # the imager that it's from, add its indices to the overlap_pixels dictionary.
+                min_distances = np.argmin(_distances, axis=2)
+                ij_overlap_pixels = np.where((min_distances == j) & (min_distances != i))
 
-            if far_pixels[0].shape[0] > 0:
-                if imager.meta['location'] not in overlap_pixels.keys():
-                    overlap_pixels[imager.meta['location']] = {}
-                overlap_pixels[imager.meta['location']][other_imager.meta['location']] = far_pixels
+                self_key =f'{imager.meta["array"]}-{imager.meta["location"]}'
+                other_key = f'{other_imager.meta["array"]}-{other_imager.meta["location"]}'
+
+                if ij_overlap_pixels[0].shape[0] > 0:
+                    if self_key not in overlap_pixels.keys():
+                        overlap_pixels[self_key] = {}
+                    overlap_pixels[self_key][other_key] = ij_overlap_pixels
         return overlap_pixels
     
     def __str__(self):
@@ -1060,13 +1072,40 @@ class Imagers:
 
 if __name__ == '__main__':
     # Test the find_overlap_pixels method
+    import asilib.asi
+    import asilib.map
+    import matplotlib.pyplot as plt
+
     time = datetime(2007, 3, 13, 5, 8, 45)
     location_codes = ['ATHA', 'TPAS']
     map_alt = 110
     _imagers = [asilib.asi.themis(location_code, time=time, alt=map_alt) 
                 for location_code in location_codes]
     asis = asilib.Imagers(_imagers)
-    asis.find_overlap_pixels()
+    overlapping_pixels = asis.find_overlap_pixels(min_elevation=2)
+
+    ax = asilib.map.create_simple_map(
+        lon_bounds=(-140, -60), lat_bounds=(40, 82)
+        )            
+
+    asis.plot_map(ax=ax, min_elevation=2)
+
+    asi_names = [f'{_imager.meta["array"]}-{_imager.meta["location"]}' for _imager in asis.imagers]
+
+    for self_loc, neighbors in overlapping_pixels.items():
+        for neighbor_loc, pixel_indices in neighbors.items():
+            self_loc_idx = asi_names.index(self_loc)
+            neighbor_loc_idx = asi_names.index(neighbor_loc)
+            ax.scatter(
+                asis.imagers[self_loc_idx].skymap['lon'][pixel_indices], 
+                asis.imagers[self_loc_idx].skymap['lat'][pixel_indices], 
+                s=1, label=f'{self_loc} pixels overlapping with {neighbor_loc}',
+                alpha=0.1
+                )
+        break
+            
+    ax.legend(loc='lower left', fontsize=8)
+    plt.show()
 
     # # You will need to install cdasws to run this example (python -m pip install cdasws)
     # from datetime import datetime, timedelta, timezone
