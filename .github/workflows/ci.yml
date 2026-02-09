@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    name: continuous-integration
+    name: build-linux
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -51,7 +51,7 @@ jobs:
           uv pip install --no-binary :all: shapely
 
           # install the package in editable mode via uv
-          uv add --editable .
+          # uv add --editable .
 
       - name: Lint with flake8
         run: |
