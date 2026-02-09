@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.29.1] - 2025-02-08
+
+### Added
+- `Imagers.find_overlap_pixels()` which outputs a doubly nested dict containing masked arrays with valid values in only the overlapping regions. This is useful for triangulation.
+- Tests and an example for `Imagers.find_overlap_pixels()`
+
+### Changed
+- `Imagers.nan_overlap_pixels()` which preserved the original functionality when making mosaics. It is now exposed as a user-facing method.
+- Updated how to access variables that works with pandas==3.0.0. 
+
 ## [0.29.0] - 2025-02-01
 
 ### Added
