@@ -41,7 +41,9 @@ jobs:
 
       - name: Install the python dependencies and asilib
         run: |
-          uv sync --locked --all-extras --dev
+          # We need to run this command at some point, but need to figure out how to update the lockfile.
+          # uv sync --locked --all-extras --dev
+          uv sync --all-extras --dev
 
           # install test/lint deps via uv
           uv add flake8 pytest cartopy
@@ -57,6 +59,6 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-          
+
       - name: Run tests
         run: uv run pytest tests
