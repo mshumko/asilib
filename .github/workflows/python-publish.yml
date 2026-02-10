@@ -30,4 +30,4 @@ jobs:
         uv self update || true
 
         uv build
-        uv publish --username __token__ --token ${{ secrets.PYPI_API_TOKEN }} --publish-url https://test.pypi.org/legacy/ dist/*
+        uv publish --token ${{ secrets.PYPI_API_TOKEN }} --publish-url https://test.pypi.org/legacy/ dist/*
