@@ -19,7 +19,7 @@ jobs:
     - name: Set up uv and Python
       uses: astral-sh/setup-uv@v7
       with:
-        python-version: '3.x'
+        python-version: '3.14'
 
     - name: Build and publish with uv
       env:
