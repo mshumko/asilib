@@ -11,6 +11,12 @@ Installing asilib is as simple as:
 
    python3 -m pip install asilib 
 
+or 
+
+.. code-block:: shell
+
+   uv add asilib 
+
 
 Anaconda
 ^^^^^^^^

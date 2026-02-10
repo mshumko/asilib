@@ -1,6 +1,11 @@
 # Changelog
 
-## [0.29.1] - 2025-02-08
+## [0.29.2] - 2026-02-09
+
+### Changed
+- Migrated from pip to uv for the CI and package distribution.
+
+## [0.29.1] - 2026-02-08
 
 ### Added
 - `Imagers.find_overlap_pixels()` which outputs a doubly nested dict containing masked arrays with valid values in only the overlapping regions. This is useful for triangulation.
@@ -10,7 +15,7 @@
 - `Imagers.nan_overlap_pixels()` which preserved the original functionality when making mosaics. It is now exposed as a user-facing method.
 - Updated how to access variables that works with pandas==3.0.0. 
 
-## [0.29.0] - 2025-02-01
+## [0.29.0] - 2026-02-01
 
 ### Added
 - `asilib.Imagers()` can now animate (and loop over) ASI networks with different cadences, for example MANGO and TREx-RGB.
@@ -19,7 +24,7 @@
 - Renamed the `asilib.Imagers()`'s `iter_tol` kwarg to `sync_image_tol` to be more descriptive, and updated the docstring describing the variable.
 - Updated tests in the `test_imagers.py`. The synchronized images are now much closer to the guide_time.
 
-## [0.28.0] - 2025-01-29
+## [0.28.0] - 2026-01-29
 
 ### Added
 - The `asilib.asi.psa_project`, and `asilib.asi.psa_project_lamp` ASIs.
