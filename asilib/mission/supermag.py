@@ -1,4 +1,4 @@
-# Original header and licence is copied below from supermag-api.py
+# Original header and license is copied below from supermag-api.py
 # ================
 # Author S. Antunes, based on supermag-api.pro by R.J.Barnes
 
@@ -76,7 +76,7 @@ class SuperMAG():
         for i, t_i in enumerate(self.time_range):
             if isinstance(t_i, (str)):
                 self.time_range[i] = dateutil.parser.isoparse(t_i)
-        self.api_url = ''  # initialize api_url attribute so it exists.
+        self.api_url = ''
         return
     
     def location_codes(self):

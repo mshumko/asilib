@@ -155,8 +155,6 @@ class GPS:
             # This is a global variable so that it can be reused in multiple calls.
             self.mag_model = IRBEM.MagFields(kext='None')
 
-        self.footprints = {}
-
         for sc_key in list(self.data.keys()):
             if self.verbose:
                 print(f'Calculating footprints for GPS SC ID: {sc_key}...', end='\r')
@@ -190,12 +188,6 @@ class GPS:
             self.data[sc_key]['footprint_lat'] = lla[:, 0]
             self.data[sc_key]['footprint_lon'] = lla[:, 1]
             self.data[sc_key]['footprint_alt'] = lla[:, 2]
-
-            self.footprints[sc_key] = {
-                'lat': self.data[sc_key]['footprint_lat'],
-                'lon': self.data[sc_key]['footprint_lon'],
-                'alt': self.data[sc_key]['footprint_alt']
-            }
         return self.data
     
     def interpolate_gps_loc(self, freq='3s'):
@@ -280,7 +272,7 @@ class GPS:
             for gps_key, general_key in zip(gps_keys, general_keys):
                 gps_data[sc_key][general_key] = self.data[sc_key][gps_key][min_idx]
             # TODO: Indent this too.
-            if hasattr(self, 'footprints'):
+            if 'footprint_lat' in self.data[self.sc_id_0]:
                 for key in ['footprint_lat', 'footprint_lon', 'footprint_alt']:
                     gps_data[sc_key][key] = self.data[sc_key][key][min_idx]
 
@@ -292,36 +284,37 @@ class GPS:
             # if np.abs((self.data[sc_key]['time'][min_idx_flux] - time).total_seconds()) <= 60*time_tol_min:
             gps_data[sc_key]['flux'] = self.data[sc_key]['electron_diff_flux'][min_idx_flux, self._energy_idx]
 
-        if ax is not None:
-            if 'footprint_lat' not in self.data[self.sc_id_0]:
-                raise ValueError(
-                    "GPS footprint data not found. Please run the gps_footprint() method "
-                    "before calling this method with an ax argument."
-                )
-            if cartopy_imported:
-                ax_extent = ax.get_extent(crs=ccrs.PlateCarree())
-            else:
-                ax_extent = (*ax.get_xlim(), *ax.get_ylim())
+        # TODO: There is a bug somewhere here that filters out all GPS units.
+        # if ax is not None:
+        #     if 'footprint_lat' not in self.data[self.sc_id_0]:
+        #         raise ValueError(
+        #             "GPS footprint data not found. Please run the gps_footprint() method "
+        #             "before calling this method with an ax argument."
+        #         )
+        #     if cartopy_imported:
+        #         ax_extent = ax.get_extent(crs=ccrs.PlateCarree())
+        #     else:
+        #         ax_extent = (*ax.get_xlim(), *ax.get_ylim())
 
-            gps_units_not_in_view = []
-            for sc_key, data in gps_data.items():
-                if np.isnan(data['footprint_lat']) or np.isnan(data['footprint_lon']):
-                    gps_units_not_in_view.append(sc_key)
-                    continue
-                idx = np.where(
-                    (ax_extent[0] < data['footprint_lon']) &
-                    (data['footprint_lon'] < ax_extent[1]) &
-                    (ax_extent[2] < data['footprint_lat']) & 
-                    (data['footprint_lat'] < ax_extent[3])
-                )[0]
-                if idx.shape[0] == 0:
-                    gps_units_not_in_view.append(sc_key)
+        #     gps_units_not_in_view = []
+        #     for sc_key, data in gps_data.items():
+        #         if np.isnan(data['footprint_lat']) or np.isnan(data['footprint_lon']):
+        #             gps_units_not_in_view.append(sc_key)
+        #             continue
+        #         idx = np.where(
+        #             (ax_extent[0] < data['footprint_lon']) &
+        #             (data['footprint_lon'] < ax_extent[1]) &
+        #             (ax_extent[2] < data['footprint_lat']) & 
+        #             (data['footprint_lat'] < ax_extent[3])
+        #         )[0]
+        #         if idx.shape[0] == 0:
+        #             gps_units_not_in_view.append(sc_key)
 
-            for sc_key in gps_units_not_in_view:
-                gps_data.pop(sc_key)
+        #     for sc_key in gps_units_not_in_view:
+        #         gps_data.pop(sc_key)
         if len(list(gps_data.keys())) == 0:
             return {}  # Interpolated time stamps before the first GPS time stamp
-        gps_data['sc_id'] = list(gps_data.keys())
+        # gps_data['sc_id'] = list(gps_data.keys())
         return gps_data
     
     def cc_footprint_config(self, kwargs={}):

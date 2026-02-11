@@ -6,6 +6,7 @@ data orchistra and makes plots & animations.
 
 import pathlib
 import pprint
+import warnings
 from datetime import datetime, timezone, timedelta
 
 import numpy as np
@@ -104,10 +105,10 @@ class Clowncar:
             if i == 0:
                 for observatory in self.observatories:
                     if hasattr(observatory, '_cc_footprint_params'):
-                        for _footprint in observatory.footprints.values():
+                        for key, _dict in observatory.data.items():
                             self.ax.plot(
-                                _footprint['lon'], 
-                                _footprint['lat'], 
+                                _dict['footprint_lon'], 
+                                _dict['footprint_lat'], 
                                 transform=self._transform,
                                 **observatory._cc_footprint_params
                                 )
@@ -122,16 +123,26 @@ class Clowncar:
             observatory_markers = []
             obs_labels = []
             for observatory in self.observatories:
-                observatory_data = observatory(_guide_time, ax=self.ax)
-                if observatory_data == {}:
+                observatory_data_ti = observatory(_guide_time, ax=self.ax)
+                if observatory_data_ti == {}:
                     Warning(f"No {observatory.__class__.__name__} data returned for time {_guide_time}.")
                     continue
-                for sc_id, _lon, _lat, _flux in zip(
-                    observatory_data['sc_id'],
-                    observatory_data['footprint_lon'], 
-                    observatory_data['footprint_lat'], 
-                    observatory_data['flux']
-                    ):
+                # for sc_id, _lon, _lat, _flux in zip(
+                #     observatory_data_ti['sc_id'],
+                #     observatory_data_ti['footprint_lon'], 
+                #     observatory_data_ti['footprint_lat'], 
+                #     observatory_data_ti['flux']
+                #     ):
+                for sc_id, value in observatory_data_ti.items():
+                    _lon = value['footprint_lon']
+                    _lat = value['footprint_lat']
+                    _flux = value['flux']
+
+                    if np.isnan(_lon) or np.isnan(_lat) or np.isnan(_flux):
+                        continue
+                    else:
+                        pass
+
                     marker = observatory._cc_marker_params.get('marker', 'o')
                     if (isinstance(marker, str)) and (marker.split('-')[0] == 'fontawesome'):
                         marker = self._get_fontawesome_marker(marker.split('-')[1])
@@ -226,7 +237,7 @@ if __name__ == "__main__":
     from datetime import datetime
     from asilib.asi import trex_rgb
 
-    from gps import GPS
+    from asilib.mission.gps import GPS
 
     time_range = (datetime(2021, 11, 4, 6, 30), datetime(2021, 11, 4, 7, 30))
     location_codes = ['LUCK', 'RABB', 'PINA', 'GILL']
@@ -249,5 +260,5 @@ if __name__ == "__main__":
     _gps.cc_marker_label_config()
 
     cc = Clowncar(asis, _gps)
-    cc.animate_map(framerate=30)
+    cc.animate_map()
     pass
