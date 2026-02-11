@@ -11,40 +11,53 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-linux:
-
+  build:
+    name: build-linux
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
 
     steps:
-    - uses: actions/checkout@v4.1.1
+      - uses: actions/checkout@v6
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6.0.0
-      with:
-        python-version: ${{ matrix.python-version }}
-    # - name: Setup PROJ
-    #   uses: ./.github/actions/setup-proj
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install libgeos-dev
-        sudo apt-get install ffmpeg
-        sudo apt-get install python3-dev
+      - name: Install uv and set the Python version
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
 
-        # python -m pip install --upgrade pip
-        python -m pip install flake8 pytest cartopy
-        yes | python -m pip uninstall shapely  # https://stackoverflow.com/a/52399943
-        python -m pip install --no-binary :all: shapely
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
-      run: |
-        pytest
+      # - name: Setup PROJ
+      #   uses: ./.github/actions/setup-proj
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgeos-dev
+          sudo apt-get install -y ffmpeg
+          sudo apt-get install -y python3-dev
+          sudo apt-get install -y libhdf5-dev
+
+      - name: Install the python dependencies and asilib
+        run: |
+          # We need to run this command at some point, but need to figure out how to update the lockfile.
+          # uv sync --locked --all-extras --dev
+          uv sync --all-extras --dev
+
+          uv add flake8 pytest cartopy
+          yes | uv pip uninstall shapely  # https://stackoverflow.com/a/52399943
+          uv pip install --no-binary :all: shapely
+
+          # install the package in editable mode via uv
+          # uv add --editable .
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          uv run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude .venv
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          uv run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude .venv
+
+      - name: Run tests
+        run: uv run pytest tests

@@ -157,7 +157,8 @@ def test_iterate_trex_imagers():
     trex_metadata = asilib.asi.trex_rgb_info()
     asis = asilib.Imagers(
         [asilib.asi.trex_rgb(location_code, time_range=time_range) 
-        for location_code in trex_metadata['location_code']]
+        for location_code in trex_metadata['location_code']],
+        sync_image_tol=0.5
         )
 
     _guide_times = []
@@ -172,11 +173,10 @@ def test_iterate_trex_imagers():
     for i, (_guide_time, imager_times_i) in enumerate(zip(_guide_times, _times)):
         dt[i, :] = [(_guide_time-j).total_seconds() for j in imager_times_i]
     
-    dt[np.abs(dt) > 3600*24] = np.nan
+    dt[np.abs(dt) > asis.imagers[0].meta['cadence']] = np.nan
 
-    assert np.nanmax(np.abs(dt)) == 3.297666  # Maximum unsynchronized time difference.
-    assert np.all(~np.isnan(dt[:-1, :]))  # All 
-    assert np.all(np.isnan(dt[-1, :]) == np.array([False, False, False,  True, False, False]))
+    assert np.nanmax(np.abs(dt)) == 0.358808  # Maximum synchronized time difference.
+    assert np.sum(np.isnan(dt)) <= 1 # One image is missing and thus masked.
     return
 
 def test_iterate_rego_imagers():
@@ -288,6 +288,87 @@ def test_animate_map():
         for location_code in ['LUCK', 'PINA', 'GILL', 'RABB']]
         )
     asis.animate_map(lon_bounds=(-115, -85), lat_bounds=(43, 63), overwrite=True)
+    return
+
+def test_multi_asi_iter():
+    """
+    Loop over multiple ASI imagers and ensure that the time differences between the guide time
+    and each imager time are within the cadence of each imager.
+    """
+    from datetime import datetime
+    import asilib.asi
+
+    time_range=(datetime(2021, 11, 4, 1, 56), datetime(2021, 11, 4, 2, 2))
+    mango_location_code='CFS'
+    mango_asi = asilib.asi.mango(mango_location_code, 'redline', time_range=time_range)
+    trex_location_code = 'FSMI'
+    trex_asi = asilib.asi.trex_rgb(trex_location_code, time_range=time_range)
+    asis = asilib.Imagers([mango_asi, trex_asi])
+
+    mango_dt_within_cadence = []
+    trex_dt_within_cadence = []
+
+    for guide_time, _asi_times, _ in asis:
+        mango_dt_within_cadence.append(
+            mango_asi.meta['cadence'] > (guide_time - _asi_times[0]).total_seconds()
+            )
+        trex_dt_within_cadence.append(
+            trex_asi.meta['cadence'] > (guide_time - _asi_times[1]).total_seconds()
+            )
+    assert all(mango_dt_within_cadence)
+    assert all(trex_dt_within_cadence)
+    return
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_pixel_overlap'],
+    tol=10,
+    remove_text=True,
+    extensions=['png'],
+)
+def test_overlap_pixels():
+    """
+    Test the Imagers.find_overlap_pixels() pixels and plot them on a map.
+    """
+    from datetime import datetime
+
+    import asilib.asi
+    import asilib.map
+    import matplotlib.pyplot as plt
+
+    time = '2021-11-04T06:55'
+    min_elevation = 10
+    asis = asilib.Imagers(
+        [asilib.asi.trex_rgb(location_code, time=time) 
+        for location_code in ['LUCK', 'PINA', 'GILL', 'RABB']]
+        )
+    overlapping_masks = asis.find_overlap_pixels(min_elevation=min_elevation)
+
+    ax = asilib.map.create_simple_map(
+        lon_bounds=(-120, -80), lat_bounds=(40, 70)
+        )            
+
+    asis.plot_map(ax=ax, min_elevation=min_elevation)
+
+    asi_names = [f'{_imager.meta["array"]}-{_imager.meta["location"]}' for _imager in asis.imagers]
+
+    n = 0
+    for _, inner_dict in overlapping_masks.items():
+        n += len(inner_dict)
+    colors = iter(plt.cm.viridis(np.linspace(0,1,n)))
+
+    for self_loc, neighbors in overlapping_masks.items():
+        for neighbor_loc, overlapping_mask in neighbors.items():
+            self_loc_idx = asi_names.index(self_loc)
+            # neighbor_loc_idx = asi_names.index(neighbor_loc)
+            ax.scatter(
+                asis.imagers[self_loc_idx].skymap['lon'][overlapping_mask], 
+                asis.imagers[self_loc_idx].skymap['lat'][overlapping_mask], 
+                c=next(colors),
+                alpha=0.1, 
+                label=f'{self_loc} pixels overlapping with {neighbor_loc}',
+                s=10
+            )
+    plt.tight_layout()
     return
 
 # @matplotlib.testing.decorators.image_comparison(

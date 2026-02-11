@@ -34,10 +34,11 @@ try:
     import cartopy.mpl.geoaxes
 
     cartopy_imported = True
-except ImportError as err:
-    # You can also get a ModuleNotFoundError if cartopy is not installed
-    # (as compared to failed to import), but it is a subclass of ImportError.
+except (ImportError, AssertionError) as err:
     cartopy_imported = False
+    
+    if isinstance(err, AssertionError):
+        warnings.warn(f'Cartopy not imported due to an AssertionError: {err}.')
 
 import asilib
 import asilib.map
@@ -411,7 +412,7 @@ class Imager:
             if azel_contours:
                 self._add_azel_contours(ax, color=azel_contour_color)
             if cardinal_directions is not None:
-                self._add_cardinal_directions(ax, cardinal_directions)
+                self._add_cardinal_directions(ax, cardinal_directions, origin=origin)
 
             # Give the user the control of the subplot, image object, and return the image time
             # so that they can manipulate the image to add, for example, the satellite track.
@@ -1627,6 +1628,7 @@ class Imager:
             va='bottom',
             transform=ax.transAxes,
             color='white',
+            fontsize=self.plot_settings.get('label_fontsize', None)
         )
         return
 
@@ -1657,12 +1659,13 @@ class Imager:
             ax.annotate(
                 direction,
                 xy=origin,
-                xytext=(origin[0] + run * norm, origin[1] + rise * norm),  # trig
+                xytext=(origin[0] + run * norm, origin[1] + rise * norm),
                 arrowprops={'arrowstyle': "<-", 'color': 'w'},
                 xycoords='axes fraction',
                 color='w',
                 ha='center',
                 va='center',
+                fontsize=self.plot_settings.get('label_fontsize', None)
             )
         return
 

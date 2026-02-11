@@ -5,6 +5,7 @@ import urllib
 import re
 import time
 
+import numpy as np
 from bs4 import BeautifulSoup
 import requests
 
@@ -124,19 +125,9 @@ class Downloader:
                     f'Download interrupted. Partially downloaded file ' f'{download_path} deleted.'
                 ) from err
         else:
-            n_tries = 0
-            while n_tries < retries:
-                try:
-                    r = requests.get(self.url, timeout=timeout, headers=self.headers)
-                    break
-                except (requests.ConnectionError, requests.Timeout) as err:
-                    n_tries += 1
-                    print(f'Download failed for {file_name}, attempt {n_tries}/{retries}.')
-                    if n_tries == retries:
-                        raise
-                    time.sleep(1)
+            response = self.retry_download(self.url, timeout=timeout, retries=retries)
             with open(download_path, 'wb') as f:
-                f.write(r.content)
+                f.write(response.content)
             print(f'Downloaded {file_name}.')
         return download_path
 
@@ -177,7 +168,7 @@ class Downloader:
             If no hyper references were found.
         """
         with requests.Session() as s:
-            request = s.get(url, timeout=5, headers=self.headers)
+            request = self.retry_download(url, timeout=5, retries=3)
         request.raise_for_status()
         soup = BeautifulSoup(request.content, 'html.parser')
 
@@ -193,6 +184,25 @@ class Downloader:
                 f'references containing the match kwarg="{match}".'
             )
         return matched_hrefs
+    
+    def retry_download(self, url: str, timeout: int=10, retries:int=3):
+        """
+        Retry downloading from a url.
+        """
+        n_tries = 0
+        sleep_times = np.logspace(0, 1, retries)
+        
+        while n_tries < retries:
+            try:
+                response = requests.get(url, timeout=timeout, headers=self.headers)
+                break
+            except (requests.ConnectionError, requests.Timeout) as err:
+                n_tries += 1
+                print(f'Download failed for {url}, attempt {n_tries}/{retries}.')
+                if n_tries == retries:
+                    raise
+                time.sleep(sleep_times[n_tries])
+        return response
 
     def __repr__(self) -> str:
         params = f'{self.url}, download_dir={self.download_dir},'

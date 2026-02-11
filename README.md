@@ -8,6 +8,7 @@ The purpose of this project is to combine data from numerous observational ASI a
 * [Time History of Events and Macroscale Interactions during Substorms (THEMIS)](https://aurora-asi-lib.readthedocs.io/en/latest/api.html#module-asilib.asi)
 * [Transition Region Explorer (TREx)](https://aurora-asi-lib.readthedocs.io/en/latest/api.html#trex-asi)
 * [Mid-latitude All-sky-imaging Network for Geophysical Observations (MANGO)](https://aurora-asi-lib.readthedocs.io/en/latest/api.html#mango-asi)
+* [Pulsating Aurora (PsA Project)](https://aurora-asi-lib.readthedocs.io/en/latest/api.html#psa-project)
 
 [Documentation](https://aurora-asi-lib.readthedocs.io/) | [Code on GitHub](https://github.com/mshumko/asilib) | [PyPI archive](https://pypi.org/project/asilib/) | [Zenodo archive](https://doi.org/10.5281/zenodo.4746446)
 

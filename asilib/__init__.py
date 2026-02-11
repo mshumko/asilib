@@ -1,7 +1,12 @@
 import pathlib
 import configparser
 
-__version__ = '0.27.0'
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("asilib")  # Defined in pyproject.toml
+except PackageNotFoundError:
+    __version__ = "unknown"
 
 # Load the configuration settings.
 HERE = pathlib.Path(__file__).parent.resolve()

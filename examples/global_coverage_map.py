@@ -19,6 +19,7 @@ asi_arrays = {
     'REGO':(asilib.asi.rego, asilib.asi.rego_info, 'blue', 10),
     'TREx-NIR':(asilib.asi.trex_nir, asilib.asi.trex_nir_info, 'c', 12),
     'TREx-RGB':(asilib.asi.trex_rgb, asilib.asi.trex_rgb_info, 'purple', 15),
+    'PsA Project':(asilib.asi.psa_project, asilib.asi.psa_project_info, 'orange', 15),
     }
 
 mango_sations = [
@@ -61,8 +62,8 @@ for mango_station in mango_sations:
         plotted_locations.append(mango_station[0])
 
 ax.text(
-    0, 4/30, 'MANGO-redline', va='bottom', color=mango_station[2], 
-    transform=ax.transAxes, fontsize=18
+    0, len(asi_arrays)/30, 'MANGO-redline', va='bottom', color=mango_station[2], 
+    transform=ax.transAxes, fontsize=15
     )
 
 for i, (array, (loader, info_df, color, elevation)) in enumerate(asi_arrays.items()):
@@ -82,8 +83,14 @@ for i, (array, (loader, info_df, color, elevation)) in enumerate(asi_arrays.item
                 asi.skymap['el'],
             )
         _lon, _lat = _skymap_cleaner.remove_nans()
+        if (
+            (_lon.shape[0] == asi.skymap['el'].shape[0]+1) and 
+            (_lon.shape[1] == asi.skymap['el'].shape[1]+1)
+            ):
+            _lon = _lon[:-1, :-1]
+            _lat = _lat[:-1, :-1]
         ax.contour(
-            _lon[:-1, :-1], _lat[:-1, :-1], asi.skymap['el'], levels=[elevation],
+            _lon, _lat, asi.skymap['el'], levels=[elevation],
             transform=ccrs.PlateCarree(), colors=color
         )
         if location not in plotted_locations:
@@ -97,7 +104,7 @@ for i, (array, (loader, info_df, color, elevation)) in enumerate(asi_arrays.item
                 ha='center',
             )
             plotted_locations.append(location)
-    ax.text(0, i/30, array, va='bottom', color=color, transform=ax.transAxes, fontsize=18)
+    ax.text(0, i/30, array, va='bottom', color=color, transform=ax.transAxes, fontsize=15)
 
 ax.set_title(f'Imagers Supported by asilib as of {datetime.now().date()}', fontsize=22)        
 plt.tight_layout()

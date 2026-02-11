@@ -4,10 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "asilib"
-version = "0.27.0"
+version = "0.29.2"
+requires-python = ">=3.11"
 description = "An open source package providing data access and analysis tools for the world's all-sky imager (ASI) data."
 keywords = ["aurora", "all sky imager", "REGO", "THEMIS", "TREx", "MANGO"]
-license = {text = "BSD 3-Clause"}
+license = "BSD-3-Clause"
 classifiers = [
     "Programming Language :: Python :: 3",  
     "Programming Language :: Python :: 3.11",
@@ -16,21 +17,22 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     ]
 dependencies = [
-    "wheel", 
-    "beautifulsoup4", 
-    "requests", 
-    "numpy", 
+    "wheel",
+    "beautifulsoup4",
+    "requests",
+    "numpy",
     "scipy >= 1.10.0",
-    "pandas", 
-    "matplotlib >= 3.7, <4.0", 
-    "ffmpeg-python", 
-    "pymap3d", 
-    "aacgmv2", 
+    "pandas",
+    "matplotlib >= 3.7, <4.0",
+    "ffmpeg-python",
+    "pymap3d",
+    "aacgmv2",
     "pyshp >= 2.3",
     "opencv-python >= 4.8.0, < 5.0",
     "h5py",
     "astropy",
-    ]
+    "python-dateutil>=2.9.0.post0",
+]
 
 [[project.authors]]
 name = "Mykhaylo Shumko"
@@ -65,6 +67,33 @@ omit = [
     "examples//*",
     "__main__.py",
     "setup.py",
-    "asilib//asi//psa_emccd.py",
     "asilib//asi//lamp_phantom.py",
     ]
+
+[dependency-groups]
+dev = [
+    "aacgmv2==2.7.0",
+    "asilib",
+    "beautifulsoup4==4.14.2",
+    "black==25.9.0",
+    "bump2version==1.0.1",
+    "ffmpeg-python==0.2.0",
+    "flake8==7.3.0",
+    "furo==2025.9.25",
+    "h5py==3.14.0",
+    "jinja2>3.1.0",
+    "matplotlib==3.10.6",
+    "nbsphinx==0.9.1",
+    "numpy>=2.2.6",
+    "opencv-python>=4.12.0.88",
+    "pandas>=2.3.3",
+    "pymap3d==3.2.0",
+    "pyshp==2.3.1",
+    "pytest==8.4.2",
+    "pytest-cov==7.0.0",
+    "requests==2.32.5",
+    "scipy>=1.16.3",
+    "sphinx==8.2.3",
+    "sphinx-copybutton==0.3.1",
+    "tox==4.30.3",
+]
