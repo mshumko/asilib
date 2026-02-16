@@ -90,11 +90,11 @@ class SuperMAG():
 
         Example
         -------
-        >>> import clowncar
+        >>> import asilib.mission
         >>> 
         >>> userid=input("Enter your SuperMAG userid: ")
         >>> time_range = ['2022-11-04T06:40','2022-11-04T07:20']
-        >>> sm = clowncar.SuperMAG(userid, time_range)
+        >>> sm = asilib.mission.SuperMAG(userid, time_range)
         >>> print(sm.location_codes())
         """          
         urlstr = self._base_url('inventory.php')
@@ -130,10 +130,10 @@ class SuperMAG():
         >>> import cartopy.feature as cfeature
         >>> import matplotlib.pyplot as plt
         >>> 
-        >>> import clowncar
+        >>> import asilib.mission
         >>> 
         >>> userid=input("Enter your SuperMAG userid: ")
-        >>> sm = clowncar.SuperMAG(userid, ['2022-11-04T06:40','2022-11-04T07:20'])
+        >>> sm = asilib.mission.SuperMAG(userid, ['2022-11-04T06:40','2022-11-04T07:20'])
         >>> locations = sm.locations()
         >>> print(locations.head()) 
                 latitude  longitude
@@ -206,12 +206,12 @@ class SuperMAG():
         Example
         -------
         >>> import matplotlib.pyplot as plt
-        >>> import clowncar
+        >>> import asilib.mission
         >>>
         >>> userid=input("Enter your SuperMAG userid: ")
         >>> time_range = ['2022-11-03T00:00','2022-11-05T00:00']
         >>> 
-        >>> sm = clowncar.SuperMAG(userid, time_range)
+        >>> sm = asilib.mission.SuperMAG(userid, time_range)
         >>> indices = sm.indices('sml,smr,baseline=yearly')
         >>> print(indices.keys())  # Index(['SML', 'smr'], dtype='object')
         >>> 
@@ -265,11 +265,11 @@ class SuperMAG():
 
         Example
         -------
-        >>> import clowncar
+        >>> import asilib.mission
         >>> userid=input("Enter your SuperMAG userid: ")
         Enter your SuperMAG userid: ...
         >>> time_range = ['2022-11-04T06:40','2022-11-04T07:20']
-        >>> sm = clowncar.SuperMAG(userid, time_range)
+        >>> sm = asilib.mission.SuperMAG(userid, time_range)
         >>> df = sm.mag_data('HBK')
         >>> df.head()
                             ext iaga      mag_n      mag_e     mag_z      geo_n      geo_e     geo_z
