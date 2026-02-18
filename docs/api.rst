@@ -29,7 +29,7 @@ Time History of Events and Macroscale Interactions during Substorms (THEMIS)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automodule:: asilib.asi
    :no-index:
-   :members: themis, themis_info, themis_skymap
+   :members: themis, themis_info, themis_skymap, themis_available, plot_themis_available
    :undoc-members:
    :show-inheritance:
 

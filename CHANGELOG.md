@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unrelased]
+
+### Added
+- `asilib.asi.themis_available()` and `asilib.asi.plot_themis_available()` functions to find which THEMIS data is available for a given `time` or `time_range` kwargs.
+- `Imagers.spatial_extent()` method that calculates the spatial extent of the mosaic when an `asilib.Imager` object is created.
+- Tests for the `asilib.asi.themis_available()` and `asilib.asi.plot_themis_available()` functions.
+
 ## [0.29.2] - 2026-02-09
 
 ### Changed

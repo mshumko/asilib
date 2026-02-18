@@ -65,7 +65,32 @@ class Imagers:
                 self.start_time = min(start_times)
                 self.end_time = max(end_times)
             self.n_times = int(np.ceil((self.end_time - self.start_time).total_seconds() / self.min_cadence))
+
+        self.lon_bounds, self.lat_bounds = self.spatial_extent()
         return
+    
+    def spatial_extent(self) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+        """
+        Calculate the longitude and latitude bounds of the mosaic.
+
+        Returns
+        -------
+        Tuple[float, float]
+            Longitude bounds.
+        Tuple[float, float]
+            Latitude bounds.
+        """
+        lon_bounds = [np.nan, np.nan]
+        lat_bounds = [np.nan, np.nan]
+        for imager in self.imagers:
+            _imager_lon_bounds = np.nanmin(imager.skymap['lon']), np.nanmax(imager.skymap['lon'])
+            _imager_lat_bounds = np.nanmin(imager.skymap['lat']), np.nanmax(imager.skymap['lat'])
+
+            lon_bounds[0] = np.nanmin([lon_bounds[0], _imager_lon_bounds[0]])
+            lon_bounds[1] = np.nanmax([lon_bounds[1], _imager_lon_bounds[1]])
+            lat_bounds[0] = np.nanmin([lat_bounds[0], _imager_lat_bounds[0]])
+            lat_bounds[1] = np.nanmax([lat_bounds[1], _imager_lat_bounds[1]])
+        return tuple(lon_bounds), tuple(lat_bounds)
     
     def plot_fisheye(self, ax:Tuple[plt.Axes], **kwargs):
         """
