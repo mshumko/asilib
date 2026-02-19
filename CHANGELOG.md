@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unrelased]
+## [0.30.0] - 2026-02-18
 
 ### Added
 - `asilib.asi.themis_available()` and `asilib.asi.plot_themis_available()` functions to find which THEMIS data is available for a given `time` or `time_range` kwargs.
