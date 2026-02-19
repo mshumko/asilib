@@ -18,6 +18,7 @@ import functools
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.colors
 import scipy.io
 import requests
 
@@ -253,7 +254,7 @@ def themis_info() -> pd.DataFrame:
     return df.reset_index(drop=True)
 
 
-def themis_available(time=None, time_range=None, base_url=pgm_base_url):
+def themis_available(time=None, time_range=None, base_url=None):
     """
     Check for THEMIS ASI data availability online for a given time or in a given time range.
     Currently the availability is reported to within an hour.
@@ -265,7 +266,7 @@ def themis_available(time=None, time_range=None, base_url=pgm_base_url):
     time_range: list of str or datetime.datetime
         The ASI data time interval. Either time or time_range must be specified, but not both.
     base_url: str
-        The base URL for the THEMIS ASI data.
+        The base URL for the THEMIS ASI data. If None, the default Calgary URL is used.
 
     Returns
     -------
@@ -276,6 +277,9 @@ def themis_available(time=None, time_range=None, base_url=pgm_base_url):
         raise ValueError('time or time_range must be specified.')
     elif (time is not None) and (time_range is not None):
         raise ValueError('both time and time_range can not be simultaneously specified.')
+    
+    if base_url is None:
+        base_url = pgm_base_url
     
     if time is not None:
         time = utils.validate_time(time)
@@ -323,7 +327,7 @@ def themis_available(time=None, time_range=None, base_url=pgm_base_url):
         _available_df = _available_df.loc[time_range[0], :]
     return _available_df
 
-def plot_themis_available(time_range=None, ax=None, base_url=pgm_base_url):
+def plot_themis_available(time_range=None, ax=None, base_url=None, pcolormesh_kwargs={}):
     """
     Plot the availability of THEMIS ASI data online for a given time range. Currently the 
     availability is reported to within an hour.
@@ -335,7 +339,9 @@ def plot_themis_available(time_range=None, ax=None, base_url=pgm_base_url):
     ax: matplotlib.axes.Axes, optional
         The axes to plot on. If None, a new figure and axes are created.
     base_url: str
-        The base URL for the THEMIS ASI data.
+        The base URL for the THEMIS ASI data. If None, the default Calgary URL is used.
+    pcolormesh_kwargs: dict
+        Additional keyword arguments to pass to `plt.pcolormesh`.
 
     Returns
     -------
@@ -345,10 +351,19 @@ def plot_themis_available(time_range=None, ax=None, base_url=pgm_base_url):
     available_df = themis_available(time_range=time_range, base_url=base_url)
     if ax is None:
         fig, ax = plt.subplots(figsize=(10, 5))
+    
+    pcolormesh_kwargs['cmap'] = pcolormesh_kwargs.get(
+        'cmap', 
+        matplotlib.colors.ListedColormap(['lightgray', 'lightgreen'])
+        )
+    pcolormesh_kwargs['edgecolors'] = pcolormesh_kwargs.get('edgecolors', 'black')
+    pcolormesh_kwargs['linewidth'] = pcolormesh_kwargs.get('linewidth', 0.5)
+    
     ax.pcolormesh(
         available_df.index, 
         available_df.columns, 
-        available_df.to_numpy().astype(bool).T
+        available_df.to_numpy().astype(bool).T,
+        **pcolormesh_kwargs
     )
     return available_df, ax
 
