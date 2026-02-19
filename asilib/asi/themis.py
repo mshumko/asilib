@@ -303,8 +303,13 @@ def themis_available(time=None, time_range=None, base_url=None):
             start_url = base_url + f'{day.year}/{day.month:02}/{day.day:02}/'
             _current_date = day.date()
 
-            d = download.Downloader(start_url, headers={'User-Agent':'asilib'})
-            daily_folders = d.ls(f'*_themis*')
+            try:
+                d = download.Downloader(start_url, headers={'User-Agent':'asilib'})
+                daily_folders = d.ls(f'*_themis*')
+            except requests.exceptions.HTTPError as err:
+                if '404 Client Error: Not Found for url:' in str(err):
+                    continue
+                raise
 
         for daily_folder in daily_folders:
             location_code = daily_folder.url.split('/')[-2].split('_')[0]
@@ -956,19 +961,3 @@ def __themis_readfile_worker(file, first_frame=False, no_metadata=False, quiet=F
 
     # return
     return images, metadata_dict_list, problematic, file, error_message
-
-if __name__ == "__main__":
-    # a = themis_available(time='2018-01-31T14:00')
-    import time
-    print('Sleeping...')
-    time.sleep(2)
-    # time_range = ('2018-01-28T00:01:27', '2018-01-31T23:00')
-    # # availability = themis_available(time_range=time_range)
-    # # print(a)
-    # pass
-    # plot_themis_availability(time_range=time_range)
-    # plt.show()
-
-    time_range = ('2018-01-31T13:01:27', '2018-01-31T20:00')
-    availability = themis_available(time_range=time_range)
-    pass

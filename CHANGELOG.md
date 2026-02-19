@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.1] - 2026-02-18
+
+### Added
+- `asilib.asi.trex_rgb_available()` and `asilib.asi.plot_trex_rgb_available()` functions to find which TREx-RGB data is available for a given `time` or `time_range` kwargs.
+- Tests for the `asilib.asi.trex_rgb_available()` and `asilib.asi.plot_trex_rgb_available()` functions.
+- A try-catch block for the `...available()` functions that will correctly handle days when there is no data available.
+
 ## [0.30.0] - 2026-02-18
 
 ### Added

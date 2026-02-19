@@ -6,6 +6,8 @@ from datetime import datetime
 import requests
 import pytest
 import matplotlib.testing.decorators
+import pandas as pd
+import numpy as np
 
 import asilib.asi
 
@@ -298,4 +300,32 @@ def test_trex_mosaic():
     asis.plot_map(ax=ax)
     ax.set(title=time)
     plt.tight_layout()
+    return
+
+
+def test_trex_rgb_available_time():
+    """
+    Check that a time query returns a pandas Series with an entry per location.
+    """
+    info = asilib.asi.trex_rgb_info()
+    num_locations = len(info['location_code'])
+    reference_availability = pd.Series(
+        data=[False, True, True, True, True, True],
+        index=info['location_code'],
+    )
+    availability = asilib.asi.trex_rgb_available(time='2021-11-04T07:00')
+    assert np.all(availability.to_numpy()==reference_availability.to_numpy())
+    assert availability.shape[0] == num_locations
+    return
+
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_trex_rgb_available_multiday_time_range'], tol=10, remove_text=True, extensions=['png']
+)
+def test_trex_rgb_available_time_range_and_plot():
+    """
+    Check that the availability looks correct for TREx-RGB.
+    """
+    time_range = ('2021-11-01T00:00', '2021-11-05T00:00')
+    df_plot, ax = asilib.asi.plot_trex_rgb_available(time_range=time_range)
     return

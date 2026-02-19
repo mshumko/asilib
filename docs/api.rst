@@ -49,7 +49,7 @@ Transition Region Explorer (TREx)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automodule:: asilib.asi
    :no-index:
-   :members: trex_rgb, trex_rgb_info, trex_rgb_skymap, trex_nir, trex_nir_skymap, trex_nir_info
+   :members: trex_rgb, trex_rgb_info, trex_rgb_skymap, trex_nir, trex_nir_skymap, trex_nir_info, trex_rgb_available, plot_trex_rgb_available
    :undoc-members:
    :show-inheritance:
 
