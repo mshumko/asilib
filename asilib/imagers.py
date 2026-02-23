@@ -540,7 +540,7 @@ class Imagers:
         self.imagers[0]._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
         return
     
-    def map_eq(self, b_model: Callable='IGRF', normalize_intensities:bool=True) -> Tuple[np.ndarray, np.ndarray]:
+    def map_eq(self, b_model: Callable='IGRF', normalize_intensities:bool=True, min_elevation:float=10) -> Tuple[np.ndarray, np.ndarray]:
         """
         Map an auroral image to the magnetic equator using IGRF or a user-defined magnetic field model.
 
@@ -552,6 +552,8 @@ class Imagers:
             in the default GSM coordinates.
         normalize_intensities: bool
             If True, the B&W pixel intensities are normalized to 0-1.
+        min_elevation: float
+            The minimum elevation angle for pixels to be included in the mapping.
 
         Returns
         -------
@@ -572,7 +574,10 @@ class Imagers:
                     'or supply a custom b_model.'
                     )
             
-        lats_lons, intensities = self.get_points(normalize_intensities=normalize_intensities)
+        lats_lons, intensities = self.get_points(
+            normalize_intensities=normalize_intensities,
+            min_elevation=min_elevation,
+            )
         equator_sm = np.zeros((lats_lons[:, 0].shape[0], 3))
 
         _progressbar = asilib.utils.progressbar(
@@ -589,6 +594,7 @@ class Imagers:
             self, 
             ax:plt.Axes=None, 
             b_model:Callable="IGRF",
+            min_elevation:float=10,
             max_valid_grid_distance:float=0.03,
             x_grid:np.ndarray=None, 
             y_grid:np.ndarray=None, 
@@ -610,6 +616,8 @@ class Imagers:
             A function with the (time, lla) arguments where time is a single time stamp, 
             and lla is one (lat, lon, alt) point. If ``b_model='IGRF'``, IRBEM's IGRF model is used
             in the default GSM coordinates.
+        min_elevation: float
+            The minimum elevation angle for pixels to be included in the mapping.
         max_valid_grid_distance: float
             The maximum distance from the mapped point to the grid point. If the distance is greater
             than this value, the mapped grid point will be masked as NaN. The distance is in units of Re.
@@ -635,7 +643,7 @@ class Imagers:
         if (x_grid is None) and (y_grid is None):
             x_grid, y_grid = np.meshgrid(np.linspace(-12, 1.1, num=1000), np.linspace(-5, 5, num=1001))
 
-        equator_sm, intensities = self.map_eq(b_model=b_model)
+        equator_sm, intensities = self.map_eq(b_model=b_model, min_elevation=min_elevation)
 
         gridded_eq_data = scipy.interpolate.griddata(
             equator_sm[:, :2], 
@@ -649,10 +657,13 @@ class Imagers:
         gridded_eq_data[dists > max_valid_grid_distance, ...] = np.nan  # Mask any gridded point > 0.1 Re from the mapped point as NaN
 
         if not normalize_intensities:
-            color_map, color_norm = self.imagers[0]._plot_params(gridded_eq_data, color_bounds, color_map, color_norm)
+            _color_map, color_norm = self.imagers[0]._plot_params(gridded_eq_data, color_bounds, color_map, color_norm)
         else:
-            color_map = None
+            _color_map = None
             color_norm = matplotlib.colors.Normalize(vmin=0, vmax=1)
+        
+        if color_map is None:
+            color_map = _color_map
 
         vmin, vmax = self.imagers[0].plot_settings['color_bounds']
         if len(self.imagers[0].meta['resolution']) == 3:
@@ -1138,6 +1149,25 @@ class Imagers:
                     overlap_mask[ij_overlap_pixels] = True
                     overlap_pixels[self_key][other_key] = overlap_mask
         return overlap_pixels
+    
+    def __getitem__(self, _slice):
+        """
+        Slice all Imagers objects by time.
+
+        Parameters
+        ----------
+        _slice: str, pd.Timestamp, datetime.datetime, or list.
+            The time(s) to slice an Imager object. Can type of slice can be either
+            1) [start_time:end_time], or 2) just time.
+
+        Yields
+        ------
+        asilib.Imagers:
+            A sliced version of the Imagers.
+        """
+        _imagers = [_imager[_slice] for _imager in self.imagers]
+        cls = type(self)
+        return cls(_imagers)
     
     def __str__(self):
         names = [f'{_img.meta["array"]}-{_img.meta["location"]}' for _img in self.imagers]
