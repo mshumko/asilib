@@ -540,7 +540,7 @@ class Imagers:
         self.imagers[0]._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
         return
     
-    def map_eq(self, b_model: Callable='IGRF', normalize_intensities:bool=True, min_elevation:float=10) -> Tuple[np.ndarray, np.ndarray]:
+    def map_eq(self, b_model: Callable='IGRF', normalize_intensities:bool=False, min_elevation:float=10) -> Tuple[np.ndarray, np.ndarray]:
         """
         Map an auroral image to the magnetic equator using IGRF or a user-defined magnetic field model.
 
@@ -599,7 +599,7 @@ class Imagers:
             x_grid:np.ndarray=None, 
             y_grid:np.ndarray=None, 
             color_bounds: List[float] = None,
-            normalize_intensities: bool = True,
+            normalize_intensities: bool = False,
             color_norm: str = None,
             color_map: str = None,
             pcolormesh_kwargs:dict={},
@@ -803,7 +803,7 @@ class Imagers:
             yield guide_time, _asi_times, _asi_images
         return
 
-    def get_points(self, min_elevation:float=10, normalize_intensities:bool=True)->Tuple[np.ndarray, np.ndarray]:
+    def get_points(self, min_elevation:float=10, normalize_intensities:bool=False)->Tuple[np.ndarray, np.ndarray]:
         """
         Get pixel intensities in each (lat, lon) grid point.
 
