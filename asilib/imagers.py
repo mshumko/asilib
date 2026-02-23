@@ -540,7 +540,7 @@ class Imagers:
         self.imagers[0]._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
         return
     
-    def map_eq(self, b_model: Callable='IGRF') -> Tuple[np.ndarray, np.ndarray]:
+    def map_eq(self, b_model: Callable='IGRF', normalize_intensities:bool=True) -> Tuple[np.ndarray, np.ndarray]:
         """
         Map an auroral image to the magnetic equator using IGRF or a user-defined magnetic field model.
 
@@ -550,6 +550,8 @@ class Imagers:
             A function with the (time, lla) arguments where time is a single time stamp, 
             and lla is one (lat, lon, alt) point. If ``b_model='IGRF'``, IRBEM's IGRF model is used
             in the default GSM coordinates.
+        normalize_intensities: bool
+            If True, the B&W pixel intensities are normalized to 0-1.
 
         Returns
         -------
@@ -570,7 +572,7 @@ class Imagers:
                     'or supply a custom b_model.'
                     )
             
-        lats_lons, intensities = self.get_points()
+        lats_lons, intensities = self.get_points(normalize_intensities=normalize_intensities)
         equator_sm = np.zeros((lats_lons[:, 0].shape[0], 3))
 
         _progressbar = asilib.utils.progressbar(
@@ -591,6 +593,7 @@ class Imagers:
             x_grid:np.ndarray=None, 
             y_grid:np.ndarray=None, 
             color_bounds: List[float] = None,
+            normalize_intensities: bool = True,
             color_norm: str = None,
             color_map: str = None,
             pcolormesh_kwargs:dict={},
@@ -615,6 +618,8 @@ class Imagers:
             -12 < x < 1.1 and -5 < y < 5 is generated.
         color_bounds: List[float]
             The ASI image color bounds.
+        normalize_intensities: bool
+            If True, the B&W pixel intensities are normalized to 0-1 before plotting
         color_map: str
             The matplotlib colormap to use. See `matplotlib colormaps <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_
             for supported colormaps.
@@ -641,9 +646,13 @@ class Imagers:
         # https://stackoverflow.com/a/31189177
         tree = cKDTree(equator_sm[:, :2])
         dists, _ = tree.query(np.stack((x_grid, y_grid), axis=-1))
-        gridded_eq_data[dists > max_valid_grid_distance, :] = np.nan  # Mask any gridded point > 0.1 Re from the mapped point as NaN
+        gridded_eq_data[dists > max_valid_grid_distance, ...] = np.nan  # Mask any gridded point > 0.1 Re from the mapped point as NaN
 
-        color_map, color_norm = self.imagers[0]._plot_params(gridded_eq_data, color_bounds, color_map, color_norm)
+        if not normalize_intensities:
+            color_map, color_norm = self.imagers[0]._plot_params(gridded_eq_data, color_bounds, color_map, color_norm)
+        else:
+            color_map = None
+            color_norm = matplotlib.colors.Normalize(vmin=0, vmax=1)
 
         vmin, vmax = self.imagers[0].plot_settings['color_bounds']
         if len(self.imagers[0].meta['resolution']) == 3:
@@ -783,7 +792,7 @@ class Imagers:
             yield guide_time, _asi_times, _asi_images
         return
 
-    def get_points(self, min_elevation:float=10)->Tuple[np.ndarray, np.ndarray]:
+    def get_points(self, min_elevation:float=10, normalize_intensities:bool=True)->Tuple[np.ndarray, np.ndarray]:
         """
         Get pixel intensities in each (lat, lon) grid point.
 
@@ -791,6 +800,8 @@ class Imagers:
         ----------
         min_elevation: float
             Only return pixel intensities above min_elevation.
+        normalize_intensities: bool
+            If True, the returned pixel intensities are normalized to the range [0, 1] using the imager's color bounds.
 
         Returns
         -------
@@ -897,6 +908,11 @@ class Imagers:
             lat_grid = _masked_lat_map[_valid_idx[0], _valid_idx[1]]
             lon_grid = _masked_lon_map[_valid_idx[0], _valid_idx[1]]
             intensity = _imager.data.image[_valid_idx[0], _valid_idx[1], ...]
+
+            if (len(self.imagers[0].meta['resolution']) == 2) and normalize_intensities: # B&W images only.
+                old_min, old_max = _imager.get_color_bounds()
+                new_min, new_max = 0, 1
+                intensity = (intensity - old_min) / (old_max - old_min) * (new_max - new_min) + new_min
 
             # Concatenate joins arrays along an existing axis, while stack joins arrays
             # along a new axis. 
