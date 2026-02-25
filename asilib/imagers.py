@@ -69,7 +69,7 @@ class Imagers:
         self.lon_bounds, self.lat_bounds = self.spatial_extent()
         return
     
-    def spatial_extent(self) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+    def spatial_extent(self, min_elevation: float = 10) -> Tuple[Tuple[float, float], Tuple[float, float]]:
         """
         Calculate the longitude and latitude bounds of the mosaic.
 
@@ -83,8 +83,15 @@ class Imagers:
         lon_bounds = [np.nan, np.nan]
         lat_bounds = [np.nan, np.nan]
         for imager in self.imagers:
-            _imager_lon_bounds = np.nanmin(imager.skymap['lon']), np.nanmax(imager.skymap['lon'])
-            _imager_lat_bounds = np.nanmin(imager.skymap['lat']), np.nanmax(imager.skymap['lat'])
+            _skymap_cleaner = Skymap_Cleaner(
+                imager.skymap['lon'], 
+                imager.skymap['lat'], 
+                imager.skymap['el'], 
+            )
+            _skymap_cleaner.mask_elevation(min_elevation)
+
+            _imager_lon_bounds = np.nanmin(_skymap_cleaner._lon_grid), np.nanmax(_skymap_cleaner._lon_grid)
+            _imager_lat_bounds = np.nanmin(_skymap_cleaner._lat_grid), np.nanmax(_skymap_cleaner._lat_grid)
 
             lon_bounds[0] = np.nanmin([lon_bounds[0], _imager_lon_bounds[0]])
             lon_bounds[1] = np.nanmax([lon_bounds[1], _imager_lon_bounds[1]])
