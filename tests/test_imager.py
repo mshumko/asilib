@@ -238,7 +238,7 @@ def test_plot_keogram_magnetic_example():
     asi = asilib.asi.themis('GILL', time_range=time_range)
     ax, p = asi.plot_keogram(
         color_map='turbo', aacgm=True, title=False,
-        color_bounds=asi.auto_color_bounds()
+        color_bounds=asi.auto_color_bounds(n_files=3)
         )
     ax.set_ylabel('Magnetic Lat [deg]')
     plt.colorbar(p)
@@ -289,7 +289,7 @@ def test_get_set_color_bounds():
     time_range = ['2008-01-16T10', '2008-01-16T12']
 
     asi = asilib.asi.themis('GILL', time_range=time_range)
-    assert np.all(np.array(asi.auto_color_bounds()).round() == np.array([4034., 6887.]))
+    assert np.all(np.array(asi.auto_color_bounds()).round() == np.array([3992., 6305.]))
     asi.set_color_bounds(4000, 7000)
     assert np.all(asi.get_color_bounds() == (4000, 7000))
     return

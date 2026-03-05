@@ -17,6 +17,8 @@ import functools
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.colors
 import scipy.io
 import requests
 
@@ -251,6 +253,124 @@ def themis_info() -> pd.DataFrame:
     df = df[df['array'] == 'THEMIS']
     return df.reset_index(drop=True)
 
+
+def themis_available(time=None, time_range=None, base_url=None):
+    """
+    Check for THEMIS ASI data availability online for a given time or in a given time range.
+    Currently the availability is reported to within an hour.
+
+    Parameters
+    ----------
+    time: str or datetime.datetime
+        The specific time to check for availability.
+    time_range: list of str or datetime.datetime
+        The ASI data time interval. Either time or time_range must be specified, but not both.
+    base_url: str
+        The base URL for the THEMIS ASI data. If None, the default Calgary URL is used.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the availability DataFrame.
+    """
+    if (time is None) and (time_range is None):
+        raise ValueError('time or time_range must be specified.')
+    elif (time is not None) and (time_range is not None):
+        raise ValueError('both time and time_range can not be simultaneously specified.')
+    
+    if base_url is None:
+        base_url = pgm_base_url
+    
+    if time is not None:
+        time = utils.validate_time(time)
+        _start = time.replace(minute=0, second=0, microsecond=0)
+        time_range = (_start, _start + timedelta(hours=1))
+
+    time_range = utils.validate_time_range(time_range)
+    start = time_range[0].replace(minute=0, second=0, microsecond=0)
+    days = pd.date_range(start, time_range[1], freq='D')
+
+    hours = pd.date_range(start, time_range[1], freq='h')
+    _available_df = pd.DataFrame(index=hours, columns=themis_info()['location_code'])
+    _available_df[:] = False
+    _current_date = datetime.min.date()
+
+    if days.shape[0] > 1:
+        days = utils.progressbar(days, text='Checking THEMIS ASI availability')
+
+    for day in days:
+        if _current_date != day.date():
+            start_url = base_url + f'{day.year}/{day.month:02}/{day.day:02}/'
+            _current_date = day.date()
+
+            try:
+                d = download.Downloader(start_url, headers={'User-Agent':'asilib'})
+                daily_folders = d.ls(f'*_themis*')
+            except requests.exceptions.HTTPError as err:
+                if '404 Client Error: Not Found for url:' in str(err):
+                    continue
+                raise
+
+        for daily_folder in daily_folders:
+            location_code = daily_folder.url.split('/')[-2].split('_')[0]
+            hour_folders = daily_folder.ls('ut*/')
+            dates_hours_on = [
+                datetime(
+                    day.year, 
+                    day.month, 
+                    day.day, 
+                    int(hour_folder.url.split("/")[-2][2:])
+                    ) 
+                for hour_folder in hour_folders
+                ]
+            for date_hour_on in dates_hours_on:
+                if (date_hour_on >= time_range[0]) and (date_hour_on < time_range[1]):
+                    _available_df.loc[date_hour_on, location_code.upper()] = True
+    _available_df[pd.isna(_available_df)] = False
+
+    if time is not None:
+        _available_df = _available_df.loc[time_range[0], :]
+    return _available_df
+
+def plot_themis_available(time_range=None, ax=None, base_url=None, pcolormesh_kwargs={}):
+    """
+    Plot the availability of THEMIS ASI data online for a given time range. Currently the 
+    availability is reported to within an hour.
+
+    Parameters
+    ----------
+    time_range: list of str or datetime.datetime
+        The ASI data time interval.
+    ax: matplotlib.axes.Axes, optional
+        The axes to plot on. If None, a new figure and axes are created.
+    base_url: str
+        The base URL for the THEMIS ASI data. If None, the default Calgary URL is used.
+    pcolormesh_kwargs: dict
+        Additional keyword arguments to pass to `plt.pcolormesh`.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the availability DataFrame and the axes object.
+    """
+    available_df = themis_available(time_range=time_range, base_url=base_url)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(10, 5))
+    
+    pcolormesh_kwargs['cmap'] = pcolormesh_kwargs.get(
+        'cmap', 
+        matplotlib.colors.ListedColormap(['lightgray', 'lightgreen'])
+        )
+    pcolormesh_kwargs['edgecolors'] = pcolormesh_kwargs.get('edgecolors', 'black')
+    pcolormesh_kwargs['linewidth'] = pcolormesh_kwargs.get('linewidth', 0.5)
+    
+    ax.pcolormesh(
+        available_df.index, 
+        available_df.columns, 
+        available_df.to_numpy().astype(bool).T,
+        **pcolormesh_kwargs
+    )
+    return available_df, ax
 
 def _get_pgm_files(
     array: str,

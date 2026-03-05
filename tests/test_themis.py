@@ -6,6 +6,7 @@ from datetime import datetime
 import requests
 import pytest
 import matplotlib.testing.decorators
+import numpy as np
 
 import asilib.asi
 
@@ -183,4 +184,27 @@ def test_themis_keogram():
     ax, im = asi.plot_keogram()
     plt.colorbar(im)
     ax.axis('off')
+    return
+
+def test_themis_available_time():
+    time = '2018-01-31T14:00'
+    availability = asilib.asi.themis_available(time=time)
+    assert sum(availability) == 9
+    return
+
+def test_themis_available_time_range():
+    time_range = ('2018-01-31T13:01:27', '2018-01-31T20:00')
+    availability = asilib.asi.themis_available(time_range=time_range)
+    assert np.all(~availability['YKNF']) is np.True_
+    assert sum(availability.loc['2018-01-31T14:00', :]) == 9
+    assert sum(availability.loc['2018-01-31T20:00', :]) == 0
+    assert availability.shape == (8, 23)
+    return
+
+@matplotlib.testing.decorators.image_comparison(
+    baseline_images=['test_themis_available_multiday_time_range'], tol=10, remove_text=True, extensions=['png']
+)
+def test_themis_available_multiday_time_range():
+    time_range = ('2018-01-29T00:01:27', '2018-01-31T20:00')
+    asilib.asi.plot_themis_available(time_range=time_range)
     return

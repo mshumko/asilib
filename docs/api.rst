@@ -29,7 +29,7 @@ Time History of Events and Macroscale Interactions during Substorms (THEMIS)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automodule:: asilib.asi
    :no-index:
-   :members: themis, themis_info, themis_skymap
+   :members: themis, themis_info, themis_skymap, themis_available, plot_themis_available
    :undoc-members:
    :show-inheritance:
 
@@ -49,7 +49,7 @@ Transition Region Explorer (TREx)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automodule:: asilib.asi
    :no-index:
-   :members: trex_rgb, trex_rgb_info, trex_rgb_skymap, trex_nir, trex_nir_skymap, trex_nir_info
+   :members: trex_rgb, trex_rgb_info, trex_rgb_skymap, trex_nir, trex_nir_skymap, trex_nir_info, trex_rgb_available, plot_trex_rgb_available
    :undoc-members:
    :show-inheritance:
 

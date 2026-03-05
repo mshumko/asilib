@@ -1111,7 +1111,7 @@ class Imager:
         """
         return self.plot_settings['color_bounds']
     
-    def auto_color_bounds(self, images:np.ndarray=None):
+    def auto_color_bounds(self, images:np.ndarray=None, n_files=5):
         """
         Calculate the (vmin, vmax) color bounds automatically by loading in a subset of the 
         image data.
@@ -1122,12 +1122,15 @@ class Imager:
             If None, will calculate the bounds range automatically by loading in a subset of the 
             image data, or return the pre-defined color bounds in the imager.plot_settings dict.
             If a np.array, will calculate the color bounds directly from the images.
+        n_files: int
+            The number of files to sample when calculating the color bound. It is not used if
+            images=None.
         """
         if images is not None:
             lower, upper = np.quantile(images, (0.25, 0.98))
             return [lower, np.min([upper, lower * 10])]
         
-        num = min(len(self.file_info['start_time']), 3)
+        num = min(len(self.file_info['start_time']), n_files)
         file_indicies = np.arange(
             0, 
             len(self.file_info['start_time']), 
