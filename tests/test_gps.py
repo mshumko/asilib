@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from clowncar import GPS
+from asilib.mission import GPS
 
 def test_download():
     """

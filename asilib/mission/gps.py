@@ -8,7 +8,6 @@ import calendar
 from typing import List
 import pathlib
 import urllib
-import IRBEM
 import warnings
 from datetime import timedelta, datetime, date
 
@@ -20,6 +19,14 @@ except ImportError as err:
     # You can also get a ModuleNotFoundError if cartopy is not installed
     # (as compared to failed to import), but it is a subclass of ImportError.
     cartopy_imported = False
+
+try:
+    import IRBEM
+    irbem_imported = True
+except ImportError as err:
+    irbem_imported = False
+
+
 import matplotlib.pyplot as plt
 import matplotlib.dates
 import pandas as pd
@@ -47,8 +54,10 @@ class GPS:
     It can handle multiple spacecraft data and provides methods for calculating and
     plotting average electron flux in specific L-shell ranges.
 
-    Note: This code transforms the Geographic_Longitude variable from the (0 -> 360) 
-    range to the (-180 -> 180) range.
+    .. note::
+
+        This code transforms the Geographic_Longitude variable from the (0 -> 360) 
+        range to the (-180 -> 180) range.
 
     Parameters
     ----------
@@ -121,6 +130,7 @@ class GPS:
         self.verbose = verbose
         self.energy = energy
         self.data = self._find_data()
+        self.interp_data = {}
         self.sc_id_0 = list(self.data.keys())[0]
         self.keys = self.data[self.sc_id_0].keys()
 
@@ -144,7 +154,7 @@ class GPS:
         alt : float
             Altitude (in km) at which to compute the magnetic footprint.
         hemi_flag : int
-            Hemisphere flag for IRBEM MagFields.find_foot_point method. The valid options are:
+            Hemisphere flag for IRBEM MagFields.find_foot_point() method. The valid options are:
             0 - Same magnetic hemisphere as starting point
             1 - northern magnetic hemisphere
             -1 - southern magnetic hemisphere
@@ -153,6 +163,8 @@ class GPS:
         if not hasattr(self, 'mag_model'):
             # Initialize the magnetic field model.
             # This is a global variable so that it can be reused in multiple calls.
+            if not irbem_imported:
+                raise ImportError('GPS footprints require the IRBEM library.')
             self.mag_model = IRBEM.MagFields(kext='None')
 
         for sc_key in list(self.data.keys()):
@@ -599,8 +611,11 @@ class GPS:
             _airplane_mode = False
         except requests.exceptions.ConnectionError as err:
             if 'Temporary failure in name resolution' in str(err):
-                print('asilib: No internet connection. Loading only local GPS data.')
-                _airplane_mode = True
+                if redownload is False:
+                    print('asilib: No internet connection. Loading only local GPS data.')
+                    _airplane_mode = True
+                else:
+                    raise ValueError('No internet connection but redownload kwarg is True.')
             else:
                 raise 
 
