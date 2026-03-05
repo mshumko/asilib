@@ -173,20 +173,20 @@ class GPS:
         for sc_key in list(self.data.keys()):
             if self.verbose:
                 print(f'Calculating footprints for GPS SC ID: {sc_key}...', end='\r')
-            if 'interpolated_times' not in self.data[self.sc_id_0]:
-                _times = self.data[sc_key]['time']
-                n = len(_times)                
+            if sc_key in self.interp_data and 'time' in self.interp_data[sc_key]:
+                _times = self.interp_data[sc_key]['time']
+                x1 = (self.interp_data[sc_key]['Rad_Re']-1)*R_E
+                x2 = self.interp_data[sc_key]['Geographic_Latitude']
+                x3 = self.interp_data[sc_key]['Geographic_Longitude']
             else:
-                _times = self.data[sc_key]['interpolated_times']
-                n = len(_times)
+                _times = self.data[sc_key]['time']
+                x1 = (self.data[sc_key]['Rad_Re']-1)*R_E
+                x2 = self.data[sc_key]['Geographic_Latitude']
+                x3 = self.data[sc_key]['Geographic_Longitude']
+            n = len(_times)
 
             _all = np.zeros((n, 3), dtype=float)
-            time_loc = pd.DataFrame(data={
-                'time':_times, 
-                'x1':(self.data[sc_key]['Rad_Re']-1)*R_E,
-                'x2':self.data[sc_key]['Geographic_Latitude'], 
-                'x3':self.data[sc_key]['Geographic_Longitude'],
-                })
+            time_loc = pd.DataFrame(data={'time':_times, 'x1':x1, 'x2':x2, 'x3':x3})
             
             # For running the T89 model.
             # kp = _get_kp(gps_dict[sc_key]['interpolated_times'])
@@ -200,9 +200,14 @@ class GPS:
             # Convert from (alt, lat, lon) to (lat, lon, alt)
             lla = np.roll(_all, shift=-1, axis=1)
 
-            self.data[sc_key]['footprint_lat'] = lla[:, 0]
-            self.data[sc_key]['footprint_lon'] = lla[:, 1]
-            self.data[sc_key]['footprint_alt'] = lla[:, 2]
+            if sc_key in self.interp_data and 'time' in self.interp_data[sc_key]:
+                self.interp_data[sc_key]['footprint_lat'] = lla[:, 0]
+                self.interp_data[sc_key]['footprint_lon'] = lla[:, 1]
+                self.interp_data[sc_key]['footprint_alt'] = lla[:, 2]
+            else:
+                self.data[sc_key]['footprint_lat'] = lla[:, 0]
+                self.data[sc_key]['footprint_lon'] = lla[:, 1]
+                self.data[sc_key]['footprint_alt'] = lla[:, 2]
         return self.data
     
     def interpolate_gps_loc(self, freq='3s'):
@@ -249,6 +254,9 @@ class GPS:
                 if interpolated_jump_indices.shape[0] > 0:
                     self.interp_data[sc_key][llr_key][interpolated_jump_indices] = np.nan
         return self.data
+    
+    def interpolate_gps_flux(self, freq='3s'):
+        raise NotImplementedError
 
     def __call__(self, time:datetime, ax=None, time_tol_min=4):
         """
