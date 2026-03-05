@@ -253,61 +253,82 @@ class GPS:
                 )
                 if interpolated_jump_indices.shape[0] > 0:
                     self.interp_data[sc_key][llr_key][interpolated_jump_indices] = np.nan
-        return self.data
+        return self.interp_data
     
     def interpolate_gps_flux(self, freq='3s'):
         raise NotImplementedError
 
     def __call__(self, time:datetime, ax=None, time_tol_min=4):
         """
-        This is the method that talks to Clowncar. This method returns the GPS locations and 
-        footprints, interpolated or non-interpolated, if they are within time_tol of the input
-        time. If ax is provided with a Cartopy projection, the GPS units outside the ax's FOV
-        are excluded.
-
-        Note: The fluxes are not interpolated. Rather, they correspond to the nearest time stamp.
+        This is the callback method for Clowncar. This method returns the GPS locations, 
+        footprints, and fluxes. If the interpolated versions of those variables exist it 
+        will return them, otherwise it will return the original data. 
 
         Parameters
         ----------
         time : datetime
             The time at which to get the GPS data.
         ax: matplotlib.axes.Axes, optional
-            The axes on which to check if the GPS unit footprints are in the ax's FOV.
+            The axes on which to check if the GPS unit footprints are in the ax's x- and y-axis 
+            extent.
         time_tol_min : int, optional
-            The time tolerance (in minutes) for matching GPS data to the input time.        
+            To return valid data, the time argument must be within time_tol_min [minutes] of each
+            GPS timestamp.
         """
+        input_keys = [
+                'time', 
+                'Geographic_Latitude', 
+                'Geographic_Longitude', 
+                'Rad_Re', 
+                'footprint_lat', 
+                'footprint_lon', 
+                'footprint_alt',
+                'electron_diff_flux'
+                ]
+        output_keys = [
+            'time', 
+            'sc_lat', 
+            'sc_lon', 
+            'sc_rad',
+            'footprint_lat', 
+            'footprint_lon', 
+            'footprint_alt',
+            'flux'
+            ]
         gps_data = {}
 
         for sc_key in self.data:
-            if 'interpolated_time' in self.data[self.sc_id_0]:
-                _time_key = 'interpolated_time'
-                min_idx = np.argmin(np.abs(
-                    matplotlib.dates.date2num(self.data[sc_key]['interpolated_time']) - matplotlib.dates.date2num(time)
-                ))
-            else:
-                _time_key = 'time'
-                min_idx = np.argmin(np.abs(
+            data_min_idx = np.argmin(np.abs(
                     matplotlib.dates.date2num(self.data[sc_key]['time']) - matplotlib.dates.date2num(time)
                 ))
-            # TODO: return this if statement to enforce time tolerance.
-            # if np.abs((self.data[sc_key][_time_key][min_idx] - time).total_seconds()) <= 60*time_tol_min:
-            gps_data[sc_key] = {}
-            gps_keys = [_time_key, 'Geographic_Latitude', 'Geographic_Longitude', 'Rad_Re']
-            general_keys = [_time_key, 'sc_lat', 'sc_lon', 'sc_rad']
-            for gps_key, general_key in zip(gps_keys, general_keys):
-                gps_data[sc_key][general_key] = self.data[sc_key][gps_key][min_idx]
-            # TODO: Indent this too.
-            if 'footprint_lat' in self.data[self.sc_id_0]:
-                for key in ['footprint_lat', 'footprint_lon', 'footprint_alt']:
-                    gps_data[sc_key][key] = self.data[sc_key][key][min_idx]
+            dt_data = np.abs((self.data[sc_key]['time'][data_min_idx] - time).total_seconds())
 
-            # We are currently not interpolating fluxes, so only use the non-interpolated time.
-            min_idx_flux = np.argmin(np.abs(
-                matplotlib.dates.date2num(self.data[sc_key]['time']) - matplotlib.dates.date2num(time)
-            ))
-            # TODO: return this if statement to enforce time tolerance.
-            # if np.abs((self.data[sc_key]['time'][min_idx_flux] - time).total_seconds()) <= 60*time_tol_min:
-            gps_data[sc_key]['flux'] = self.data[sc_key]['electron_diff_flux'][min_idx_flux, self._energy_idx]
+            if (sc_key in self.interp_data) and ('time' in self.interp_data[sc_key]):
+                interp_data_min_idx = np.argmin(np.abs(
+                    matplotlib.dates.date2num(self.interp_data[sc_key]['time']) - matplotlib.dates.date2num(time)
+                ))
+                dt_interp_data = np.abs((self.interp_data[sc_key]['time'][interp_data_min_idx] - time).total_seconds())
+            else:
+                dt_interp_data = 0  # A dummy time delta value for the following if-statement.
+
+            if (dt_interp_data > 60*time_tol_min):
+                continue
+            elif (dt_data > 60*time_tol_min):
+                continue
+            else:
+                pass
+
+            gps_data[sc_key] = {}
+            for input_key, output_key in zip(input_keys, output_keys):
+                if input_key in self.interp_data[sc_key]:
+                    gps_data[sc_key][output_key] = self.interp_data[sc_key][input_key][interp_data_min_idx, ...]
+                elif input_key in self.data[sc_key]:
+                    gps_data[sc_key][output_key] = self.data[sc_key][input_key][data_min_idx, ...]
+                else:
+                    gps_data[sc_key][output_key] = np.nan
+
+                if (output_key == 'electron_diff_flux') and np.isfinite(gps_data[sc_key][output_key]):
+                    gps_data[sc_key][output_key] = gps_data[sc_key][output_key][self._energy_idx]
 
         # TODO: There is a bug somewhere here that filters out all GPS units.
         # if ax is not None:
@@ -337,8 +358,8 @@ class GPS:
 
         #     for sc_key in gps_units_not_in_view:
         #         gps_data.pop(sc_key)
-        if len(list(gps_data.keys())) == 0:
-            return {}  # Interpolated time stamps before the first GPS time stamp
+        # if len(list(gps_data.keys())) == 0:
+        #     return {}  # Interpolated time stamps before the first GPS time stamp
         # gps_data['sc_id'] = list(gps_data.keys())
         return gps_data
     
@@ -853,23 +874,24 @@ if __name__ == "__main__":
 
     import time
 
-    time_range = (datetime(2021, 11, 3, 0, 0), datetime(2021, 11, 5, 7, 30))
-    L_range = [4.25, 4.75]
-    dt_min=15
-
-    gps = asilib.mission.GPS(time_range)
-
     print('Start debugger')
     time.sleep(2)
 
-    ax = gps.plot_avg_flux(
-        energies=(0.12, 0.3, 0.6, 1.0, 2.0), 
-        L_range=L_range, 
-        dt_min=dt_min, 
-        min_samples=5
-        )
-    # Make the dates & times look pretty.
-    ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=4))
-    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%Y-%m-%d %H:%M'))
-    plt.legend()
+    time_range = (datetime(2021, 11, 4, 6, 0), datetime(2021, 11, 4, 7, 0))
+    L_range = [4.25, 4.75]
+    dt_min=15
+
+    gps1 = asilib.mission.GPS(time_range)
+    gps1.interpolate_gps_loc()
+    gps1.gps_footprint()
+
+    # gps2 = asilib.mission.GPS(time_range)
+    # gps2.interpolate_gps_loc()
+    # # gps2.gps_footprint()
+
+    fig, ax = plt.subplots(3, 1, sharex=True)
+    for ax_i, key in zip(ax, ['footprint_lat', 'footprint_lon', 'footprint_alt']):
+        ax_i.scatter(gps1.data[gps1.sc_id_0]['time'], gps1.data[gps1.sc_id_0][key], c='k', s=20)
+        ax_i.scatter(gps1.interp_data[gps1.sc_id_0]['time'], gps1.interp_data[gps1.sc_id_0][key], c='k', s=50)
+
     plt.show()
