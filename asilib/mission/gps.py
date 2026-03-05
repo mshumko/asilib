@@ -149,8 +149,7 @@ class GPS:
     
     def gps_footprint(self, alt=110, hemi_flag=0):
         """
-        Compute magnetic footprint (lat, lon, alt) for an already-interpolated gps_dict.
-        Add the footprint_lat, footprint_lon, and footprint_alt keys to gps_dict.
+        Compute magnetic footprint (lat, lon, alt) for each GPS unit.
 
         Parameters
         ----------
@@ -162,6 +161,12 @@ class GPS:
             1 - northern magnetic hemisphere
             -1 - southern magnetic hemisphere
             2 - opposite magnetic hemisphere from starting point.
+
+        Returns
+        -------
+        None
+            This method adds the footprint_lat, footprint_lon, and footprint_alt keys to data
+            and optionally interp_data dics
         """        
         if not hasattr(self, 'mag_model'):
             # Initialize the magnetic field model.
@@ -173,19 +178,13 @@ class GPS:
         for sc_key in list(self.data.keys()):
             if self.verbose:
                 print(f'Calculating footprints for GPS SC ID: {sc_key}...', end='\r')
-            if sc_key in self.interp_data and 'time' in self.interp_data[sc_key]:
-                _times = self.interp_data[sc_key]['time']
-                x1 = (self.interp_data[sc_key]['Rad_Re']-1)*R_E
-                x2 = self.interp_data[sc_key]['Geographic_Latitude']
-                x3 = self.interp_data[sc_key]['Geographic_Longitude']
-            else:
-                _times = self.data[sc_key]['time']
-                x1 = (self.data[sc_key]['Rad_Re']-1)*R_E
-                x2 = self.data[sc_key]['Geographic_Latitude']
-                x3 = self.data[sc_key]['Geographic_Longitude']
-            n = len(_times)
+            
+            _times = self.data[sc_key]['time']
+            x1 = (self.data[sc_key]['Rad_Re']-1)*R_E
+            x2 = self.data[sc_key]['Geographic_Latitude']
+            x3 = self.data[sc_key]['Geographic_Longitude']
 
-            _all = np.zeros((n, 3), dtype=float)
+            _all = np.zeros((len(_times), 3), dtype=float)
             time_loc = pd.DataFrame(data={'time':_times, 'x1':x1, 'x2':x2, 'x3':x3})
             
             # For running the T89 model.
@@ -200,15 +199,39 @@ class GPS:
             # Convert from (alt, lat, lon) to (lat, lon, alt)
             lla = np.roll(_all, shift=-1, axis=1)
 
-            if sc_key in self.interp_data and 'time' in self.interp_data[sc_key]:
+            self.data[sc_key]['footprint_lat'] = lla[:, 0]
+            self.data[sc_key]['footprint_lon'] = lla[:, 1]
+            self.data[sc_key]['footprint_alt'] = lla[:, 2]
+
+            if (
+                (sc_key in self.interp_data) and 
+                ('time' in self.interp_data[sc_key]) and
+                ('Geographic_Latitude' in self.interp_data[sc_key])
+                ):
+                _times = self.interp_data[sc_key]['time']
+                x1 = (self.interp_data[sc_key]['Rad_Re']-1)*R_E
+                x2 = self.interp_data[sc_key]['Geographic_Latitude']
+                x3 = self.interp_data[sc_key]['Geographic_Longitude']
+
+                _all = np.zeros((len(_times), 3), dtype=float)
+                time_loc = pd.DataFrame(data={'time':_times, 'x1':x1, 'x2':x2, 'x3':x3})
+                
+                # For running the T89 model.
+                # kp = _get_kp(gps_dict[sc_key]['interpolated_times'])
+                
+                z = zip(time_loc['time'], time_loc['x1'], time_loc['x2'], time_loc['x3'])
+                for i, (time, x1, x2, x3) in enumerate(z):
+                    X = {'Time':time, 'x1':x1, 'x2':x2, 'x3':x3}
+                    _all[i, :] = self.mag_model.find_foot_point(X, {}, alt, hemi_flag)['XFOOT']
+
+                _all[_all == -1E31] = np.nan
+                # Convert from (alt, lat, lon) to (lat, lon, alt)
+                lla = np.roll(_all, shift=-1, axis=1)
+
                 self.interp_data[sc_key]['footprint_lat'] = lla[:, 0]
                 self.interp_data[sc_key]['footprint_lon'] = lla[:, 1]
                 self.interp_data[sc_key]['footprint_alt'] = lla[:, 2]
-            else:
-                self.data[sc_key]['footprint_lat'] = lla[:, 0]
-                self.data[sc_key]['footprint_lon'] = lla[:, 1]
-                self.data[sc_key]['footprint_alt'] = lla[:, 2]
-        return self.data
+        return
     
     def interpolate_gps_loc(self, freq='3s'):
         """
@@ -891,7 +914,7 @@ if __name__ == "__main__":
 
     fig, ax = plt.subplots(3, 1, sharex=True)
     for ax_i, key in zip(ax, ['footprint_lat', 'footprint_lon', 'footprint_alt']):
-        ax_i.scatter(gps1.data[gps1.sc_id_0]['time'], gps1.data[gps1.sc_id_0][key], c='k', s=20)
-        ax_i.scatter(gps1.interp_data[gps1.sc_id_0]['time'], gps1.interp_data[gps1.sc_id_0][key], c='k', s=50)
+        ax_i.scatter(gps1.data[gps1.sc_id_0]['time'], gps1.data[gps1.sc_id_0][key], c='k', s=50)
+        ax_i.scatter(gps1.interp_data[gps1.sc_id_0]['time'], gps1.interp_data[gps1.sc_id_0][key], c='r', s=10)
 
     plt.show()
