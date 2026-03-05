@@ -1,6 +1,6 @@
 """
-Download, load, and plot the GPS CXR data from LANL for clowncar. See the 
-`README <https://www.ngdc.noaa.gov/stp/space-weather/satellite-data/satellite-systems/lanl_gps/version_v1.10/gps_readme_v1.10.pdf>`_ for more information.
+Download, load, and plot the GPS CXR data from LANL. See the 
+`README <https://www.ngdc.noaa.gov/stp/space-weather/satellite-data/satellite-systems/lanl_gps/version_v1.10/gps_readme_v1.10.pdf>`_ for acknowledgments and more information.
 """
 from __future__ import annotations  # to support the -> List[Downloader] return type
 import json
@@ -10,7 +10,6 @@ import pathlib
 import urllib
 import IRBEM
 import warnings
-import pprint
 from datetime import timedelta, datetime, date
 
 try:
@@ -126,6 +125,7 @@ class GPS:
         self.keys = self.data[self.sc_id_0].keys()
 
         self.energies = self.data[self.sc_id_0]['electron_diff_flux_energy'][-1, :]
+        self.flux_units = self.data[self.sc_id_0].attrs['electron_diff_flux']['UNITS']
         self._energy_idx = np.where(energy==self.energies)[0]
         assert len(self._energy_idx) == 1, (
             f'Energy channel {energy} is not in the valid {self.energies} list.'
@@ -203,6 +203,7 @@ class GPS:
         interp_times = pd.date_range(*self.time_range, freq=freq)
         interp_times_numeric = matplotlib.dates.date2num(interp_times)
 
+        # TODO: Add a self.interp_data with the interpolation keys. This should be easy to check.
         for sc_key in self.data:
             if self.verbose:
                 print(f'Interpolating GPS SC ID: {sc_key} posiiton...', end='\r')
@@ -375,22 +376,49 @@ class GPS:
         Parameters
         ----------
         energy: float
-            The energy channel (in MeV) to plot.
+            The energy channel (in MeV) to plot. See self.energies for valid energy channels.
         L_range: tuple of float
             The L-shell range over which to average the flux.
         L_key: str
             The key in the gps data corresponding to the L-shell values. See self.l_keys for valid options.
         dt_min: int
-            The time cadence (in minutes) at which to sample the flux.
+            The time cadence (in minutes) at which to average the fluxes.
         min_samples: int
             The minimum number of samples required to compute the average flux at each time step. If the number
             of samples is less than this value, NaN will be assigned for that time step.
 
         Returns
         -------
-        None
-            Displays a plot of the average flux over time.
-        
+        ax: plt.Axes
+            The subplot object to modify the axis, labels, etc.
+
+        Example
+        -------
+        >>> # Plot the flux enhanement studied in Sorathia+2025.
+        >>> from datetime import datetime
+        >>> 
+        >>> import matplotlib.pyplot as plt
+        >>> import matplotlib.ticker
+        >>> import matplotlib.dates
+        >>> import asilib.mission
+        >>> 
+        >>> time_range = (datetime(2021, 11, 3, 0, 0), datetime(2021, 11, 5, 7, 30))
+        >>> L_range = [4.25, 4.75]
+        >>> dt_min=15
+        >>> 
+        >>> gps = asilib.mission.GPS(time_range)
+        >>> 
+        >>> ax = gps.plot_avg_flux(
+        >>>     energies=(0.12, 0.3, 0.6, 1.0, 2.0), 
+        >>>     L_range=L_range, 
+        >>>     dt_min=dt_min, 
+        >>>     min_samples=5
+        >>>     )
+        >>> # Make the dates & times look pretty.
+        >>> ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=4))
+        >>> ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%Y-%m-%d %H:%M'))
+        >>> plt.legend()
+        >>> plt.show()
         """
         for _energy in energies:
             energy_idx = np.where(_energy==self.energies)[0]
@@ -405,12 +433,12 @@ class GPS:
             )
 
         if ax is None:
-            _, ax = plt.subplots(figsize=(10, 5))
+            _, ax = plt.subplots()
         for _energy in energies:
             ax.plot(_flux.index, _flux[_energy], '-o', label=f'{_energy} MeV', markersize=2)
         if labels:
             ax.set_xlabel('Time')
-            ax.set_ylabel('Flux (1/cm^2-s-sr-MeV)')
+            ax.set_ylabel(f'Flux [{self.flux_units}]')
             ax.set_title(f'GPS Electron Flux | L={L_range}')
             ax.set_yscale('log')
         return ax
@@ -429,7 +457,7 @@ class GPS:
             The key in the gps data corresponding to the L-shell values. Can be one of 
             'L_LGM_T89IGRF'.
         dt_min: int
-            The time cadence (in minutes) at which to sample the flux.
+            The time cadence (in minutes) at which to average the fluxes.
         min_samples: int
             The minimum number of samples required to compute the average flux at each time step. If the number
             of samples is less than this value, NaN will be assigned for that time step.
@@ -488,7 +516,7 @@ class GPS:
         file_paths = []
         spacecraft_ids = []
         for _gps_week in gps_weeks:
-            _file_paths, _spacecraft_ids = self._download_gps(
+            _file_paths, _spacecraft_ids = self._get_gps(
                 _gps_week, sc_id=self.sc_ids, version=self.version, redownload=self.redownload
                 )
             for (_file_path, _spacecraft_id) in zip(_file_paths, _spacecraft_ids):
@@ -543,7 +571,7 @@ class GPS:
                 )
         return gps_data
 
-    def _download_gps(self, date, sc_id=None, version='1.10', redownload=False):
+    def _get_gps(self, date, sc_id=None, version='1.10', redownload=False):
         """
         Download GPS data from all available satellites for a given date and data version.
 
@@ -566,7 +594,18 @@ class GPS:
         spacecraft_ids: list of str
             The spacecraft IDs corresponding to the downloaded files.
         """
+        try:
+            request = requests.head(gps_url)
+            _airplane_mode = False
+        except requests.exceptions.ConnectionError as err:
+            if 'Temporary failure in name resolution' in str(err):
+                print('asilib: No internet connection. Loading only local GPS data.')
+                _airplane_mode = True
+            else:
+                raise 
+
         if sc_id is None:
+            # TODO: Find sc_ids directly from the NOAA website.
             _gps_ids = get_gps_ids(version=version) # Get all spacecraft IDs (only a subset will have data for the date).
         else:
             _gps_ids = [sc_id] if isinstance(sc_id, str) else sc_id  # Ensure sc_id is a list.
@@ -585,12 +624,17 @@ class GPS:
                 spacecraft_ids.append(_gps_id)
                 continue
 
+            if _airplane_mode:
+                continue
+
             _url = urllib.parse.urljoin(
                 gps_url, 
                 f"version_v{version}/{_gps_id}/"+file_name, 
                 allow_fragments=True
                 )
             
+            # I think that the following-block of code catches times
+            # where there is no data available for _gps_id.  
             request = requests.head(_url, timeout=10)
             try:
                 request.raise_for_status()
@@ -745,19 +789,20 @@ def _gps_weeks(_dates):
         return _sundays
 
 if __name__ == "__main__":
-    from datetime import timedelta, datetime
-    import matplotlib.ticker
+    # from datetime import timedelta, datetime
 
-    time_range = (datetime(2021, 11, 4, 6, 30), datetime(2021, 11, 4, 7, 30))
-    # vline_times = (datetime(2007, 2, 13, 12), datetime(2007, 2, 14, 13))
-    L_range = [4.25, 4.75]
-    dt_min=60*3
-    # file_paths, spacecraft_ids = download_gps(date, version='1.10', redownload=False)
-    _gps = GPS(time_range, version='1.10', redownload=False, verbose=True)
-    _gps.interpolate_gps_loc(freq='3s')
-    _gps.gps_footprint(alt=110, hemi_flag=0)
-    _gps(time_range[0]+timedelta(minutes=10))
-    pass
+    # import asilib.mission
+
+    # time_range = (datetime(2021, 11, 3, 0, 0), datetime(2021, 11, 5, 7, 30))
+    # # vline_times = (datetime(2007, 2, 13, 12), datetime(2007, 2, 14, 13))
+    # L_range = [4.25, 4.75]
+    # dt_min=15
+    # # file_paths, spacecraft_ids = download_gps(date, version='1.10', redownload=False)
+    # _gps = asilib.mission.GPS(time_range, version='1.10', redownload=False, verbose=True)
+    # # _gps.interpolate_gps_loc(freq='3s')
+    # # _gps.gps_footprint(alt=110, hemi_flag=0)
+    # # _gps(time_range[0]+timedelta(minutes=10))
+    # # pass
 
     # ax = _gps.plot_avg_flux(
     #     energies=(0.12, 0.3, 0.6, 1.0, 2.0), 
@@ -765,9 +810,39 @@ if __name__ == "__main__":
     #     dt_min=dt_min, 
     #     min_samples=5
     #     )
-    # ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=5))
-    # if vline_times is not None:
-    #     for vline_time in vline_times:
-    #         ax.axvline(vline_time, c='k', ls=':')
+    # # ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=5))
+    # # if vline_times is not None:
+    # #     for vline_time in vline_times:
+    # #         ax.axvline(vline_time, c='k', ls=':')
     # plt.legend()
     # plt.show()
+
+    from datetime import datetime
+
+    import matplotlib.pyplot as plt
+    import matplotlib.ticker
+    import matplotlib.dates
+    import asilib.mission
+
+    import time
+
+    time_range = (datetime(2021, 11, 3, 0, 0), datetime(2021, 11, 5, 7, 30))
+    L_range = [4.25, 4.75]
+    dt_min=15
+
+    gps = asilib.mission.GPS(time_range)
+
+    print('Start debugger')
+    time.sleep(2)
+
+    ax = gps.plot_avg_flux(
+        energies=(0.12, 0.3, 0.6, 1.0, 2.0), 
+        L_range=L_range, 
+        dt_min=dt_min, 
+        min_samples=5
+        )
+    # Make the dates & times look pretty.
+    ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=4))
+    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%Y-%m-%d %H:%M'))
+    plt.legend()
+    plt.show()
