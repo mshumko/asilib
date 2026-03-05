@@ -82,6 +82,9 @@ class GPS:
     ----------
     data : dict
         Dictionary containing the loaded GPS data for each spacecraft.
+    interp_data : dict
+        Dictionary containing the interpolated GPS data for each spacecraft. 
+        Not all keys within data are interpolated.
     keys : list
         List of available data keys.
     energies : numpy.ndarray
@@ -215,7 +218,6 @@ class GPS:
         interp_times = pd.date_range(*self.time_range, freq=freq)
         interp_times_numeric = matplotlib.dates.date2num(interp_times)
 
-        # TODO: Add a self.interp_data with the interpolation keys. This should be easy to check.
         for sc_key in self.data:
             if self.verbose:
                 print(f'Interpolating GPS SC ID: {sc_key} posiiton...', end='\r')
@@ -224,18 +226,20 @@ class GPS:
             lon_jump_start_times = self.data[sc_key]['time'][lon_jumps]
             lon_jump_end_times = self.data[sc_key]['time'][lon_jumps+1]
 
-            self.data[sc_key]['interpolated_times'] = interp_times
+            if sc_key not in self.interp_data:
+                self.interp_data[sc_key] = {}
+            self.interp_data[sc_key]['time'] = interp_times
 
             # Keep track of indices where we had to interpolate across jumps, and nan them out.
             interpolated_jump_indices = np.array([], dtype=int)
             for start_time, end_time in zip(lon_jump_start_times, lon_jump_end_times):
                 idt = np.where(
-                    (self.data[sc_key]['interpolated_times'] >= start_time) &
-                    (self.data[sc_key]['interpolated_times'] <= end_time)
+                    (self.interp_data[sc_key]['time'] >= start_time) &
+                    (self.interp_data[sc_key]['time'] <= end_time)
                     )[0]
                 interpolated_jump_indices = np.concatenate((interpolated_jump_indices, idt))
             for llr_key in ['Geographic_Latitude', 'Geographic_Longitude', 'Rad_Re']:
-                self.data[sc_key][llr_key] = np.interp(
+                self.interp_data[sc_key][llr_key] = np.interp(
                     interp_times_numeric,
                     matplotlib.dates.date2num(self.data[sc_key]['time']),
                     self.data[sc_key][llr_key],
@@ -243,7 +247,7 @@ class GPS:
                     right=np.nan,
                 )
                 if interpolated_jump_indices.shape[0] > 0:
-                    self.data[sc_key][llr_key][interpolated_jump_indices] = np.nan
+                    self.interp_data[sc_key][llr_key][interpolated_jump_indices] = np.nan
         return self.data
 
     def __call__(self, time:datetime, ax=None, time_tol_min=4):

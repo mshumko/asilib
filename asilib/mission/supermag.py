@@ -40,6 +40,8 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker
 import matplotlib.dates
 
+import asilib.utils as utils
+
 baseurl = "https://supermag.jhuapl.edu/"
 
 
@@ -49,6 +51,15 @@ class SuperMAG():
 
     This code is adapted from the supermag-api.py (https://supermag.jhuapl.edu/mag/?tab=api) which
     is credited to S. Antunes, which in turn was credited to R.J. Barnes.
+
+    Parameters
+    ----------
+    userid: str
+        Your registered SuperMAG username.
+    time_range: list of str or datetime.datetime
+        A length 2 list of string-formatted times or datetimes to bracket
+        the data.
+
 
     Methods
     -------
@@ -61,16 +72,17 @@ class SuperMAG():
     locations()
         Download a list of SuperMAG magnetometer locations (lat, lon) for given station codes.
 
+
     Attributes
     ----------
     userid : str
-        Your SuperMAG logon name.
+        Your SuperMAG username.
     time_range : list of datetime
         A list containing the start and end times for the data request.
     api_url: str
         The last API URL used to fetch data.
     """
-    def __init__(self, userid, time_range):
+    def __init__(self, userid: str, time_range: utils._time_range_type):
         self.userid = userid
         self.time_range = time_range
         for i, t_i in enumerate(self.time_range):
@@ -247,7 +259,7 @@ class SuperMAG():
 
     def mag_data(self, station, query_parameters=''):
         """
-        Download and return SuperMAG magnetometer data for a given station.
+        Download and return the magnetometer data for a given station.
 
         Parameters
         ----------
@@ -440,7 +452,7 @@ class SuperMAG():
         myflags = myflags.replace(',$','')
         return(myflags)
 
-    def _get_url_data(self, api_url,fetch='raw'):
+    def _get_url_data(self, api_url, fetch='raw'):
         """
         Given a fetchurl, fetch the data from SuperMAG API.
 
