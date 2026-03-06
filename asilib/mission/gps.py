@@ -912,9 +912,20 @@ if __name__ == "__main__":
     # gps2.interpolate_gps_loc()
     # # gps2.gps_footprint()
 
+    times = pd.date_range(*time_range, freq='5s')
+
     fig, ax = plt.subplots(3, 1, sharex=True)
     for ax_i, key in zip(ax, ['footprint_lat', 'footprint_lon', 'footprint_alt']):
         ax_i.scatter(gps1.data[gps1.sc_id_0]['time'], gps1.data[gps1.sc_id_0][key], c='k', s=50)
         ax_i.scatter(gps1.interp_data[gps1.sc_id_0]['time'], gps1.interp_data[gps1.sc_id_0][key], c='r', s=10)
 
+    for time_i in times:
+        data = gps1(time_i)
+        if data == {}:
+            continue
+        else:
+            data = data[gps1.sc_id_0]
+        for ax_i, key in zip(ax, ['footprint_lat', 'footprint_lon', 'footprint_alt']):
+            ax_i.scatter(data['time'], data[key], c='purple', s=50, marker='x')
+        
     plt.show()
