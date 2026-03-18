@@ -1126,11 +1126,20 @@ class Imager:
             The number of files to sample when calculating the color bound. It is not used if
             images=None.
         """
+        num = min(len(self.file_info['start_time']), n_files)
+
+        if num == 0:
+            warnings.warn(
+                f'No files found in the specified time range for '
+                f'{self.meta["array"]}-{self.meta["location"]}. '
+                f'Returning default color bounds.'
+                )
+            return self.get_color_bounds()
+
         if images is not None:
             lower, upper = np.quantile(images, (0.25, 0.98))
             return [lower, np.min([upper, lower * 10])]
         
-        num = min(len(self.file_info['start_time']), n_files)
         file_indicies = np.arange(
             0, 
             len(self.file_info['start_time']), 
