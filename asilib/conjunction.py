@@ -154,6 +154,9 @@ class Conjunction:
             The auroral intensity near the footprint, calculated either from the nearest pixel
             (if ``box_size=None``) or the mean intensity in a rectangular area defined by
             ``box_size``.
+        np.ndarray
+            The elevation of the pixels used to calculate the auroral intensity, either from the nearest pixel
+            (if ``box_size=None``) or the mean elevation in the masked area.
 
         .. note::
             If box_size=None the nearest pixel is calculated using :py:meth:`~asilib.Conjunction.map_azel`, otherwise
@@ -165,9 +168,9 @@ class Conjunction:
         self.interp_sat()  # Need the sat time stamps and coordinates to match the Imager's.
         
         if len(self.imager.meta['resolution']) == 2: # white-light intensity
-            _intensity = np.nan * np.zeros(self.sat.shape[0], dtype=float)
+            intensities = np.nan * np.zeros(self.sat.shape[0], dtype=float)
         elif len(self.imager.meta['resolution']) == 3: # RGB intensity
-            _intensity = np.nan * np.zeros(
+            intensities = np.nan * np.zeros(
                 (self.sat.shape[0], self.imager.meta['resolution'][-1]), dtype=float
                 )
         else:
@@ -175,6 +178,7 @@ class Conjunction:
                 f'Imager resolution must be 2d or 3d, not {len(self.imager.meta["resolution"])}d.'
                 )
 
+        elevations = np.nan*np.zeros(self.sat.shape[0], dtype=float)
             
         if box is None:  # Nearest pixel to footprint
             _, azel_pixels = self.map_azel()
@@ -182,14 +186,16 @@ class Conjunction:
                 if np.any(np.isnan(pixels)):
                     continue
                 # The ::-1 b/c pixels are in plotting (not indexing) order.
-                _intensity[i] = image[int(pixels[1]), int(pixels[0])]
+                intensities[i] = image[int(pixels[1]), int(pixels[0])]
+                elevations[i] = self.imager.skymap['el'][int(pixels[1]), int(pixels[0])]
         else:  # Area around footprint
             box_op = functools.partial(np.nanmean, axis=(0,1))  # Sum only the x-y pixels.
             # equal_area_gen() is slower than using equal_area(), but this plays nice with memory.
             gen = self.equal_area_gen(box=box)
             for i, ((_, image), mask) in enumerate(zip(self.imager, gen)):
-                _intensity[i] = box_op(image * mask)
-        return _intensity
+                intensities[i] = box_op(image * mask)
+                elevations[i] = box_op(self.imager.skymap['el'] * mask)
+        return intensities, elevations
 
     def interp_sat(self):
         """
@@ -211,7 +217,9 @@ class Conjunction:
         interpolated_lla = {}
 
         # TODO: Detect when longitudes cross the 180-meridian and
-        # correctly interpolate. Use the FIREBIRD data_processing code.
+        # correctly interpolate. Use Joel's suggestion to take the
+        # sin where the longitudes jump, interpolate there, and 
+        # then take the asin.
         for key in ['lat', 'lon', 'alt']:
             interpolated_lla[key] = np.interp(
                 numeric_imager_times,
