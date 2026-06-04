@@ -5,7 +5,7 @@ Download, load, and plot the GPS CXR data from LANL. See the
 from __future__ import annotations  # to support the -> List[Downloader] return type
 import json
 import calendar
-from typing import List
+from typing import List, Tuple
 import pathlib
 import urllib
 import warnings
@@ -454,6 +454,8 @@ class GPS:
         min_samples: int
             The minimum number of samples required to compute the average flux at each time step. If the number
             of samples is less than this value, NaN will be assigned for that time step.
+        labels: bool
+            If True, will set the axis labels and title.
 
         Returns
         -------
@@ -506,10 +508,106 @@ class GPS:
             ax.plot(_flux.index, _flux[_energy], '-o', label=f'{_energy} MeV', markersize=2)
         if labels:
             ax.set_xlabel('Time')
-            ax.set_ylabel(f'Flux [{self.flux_units}]')
+            if self.flux_units == 'cm^-2-s^-1-sr^-1-MeV^-1':
+                ax.set_ylabel(f'Flux [1/$cm$^2$/s/sr/MeV]')
+            else:
+                ax.set_ylabel(f'Flux [{self.flux_units}]')
             ax.set_title(f'GPS Electron Flux | L={L_range}')
             ax.set_yscale('log')
         return ax
+    
+    def plot_flux_spectrogram(
+            self, 
+            energy:float=1.0, 
+            ax:plt.Axes=None,
+            norm='log',
+            color_bounds: Tuple[float, float]=None,
+            colorbar:bool = True,
+            labels=True,
+            L_key:str='L_LGM_T89IGRF',
+            L_bins:np.ndarray=None,
+            dt_min:int=15, 
+            min_samples:int=5
+            ):
+        """
+        Plot the GPS flux spectrogram for a given energy channel as a function of time and L-shell.
+
+        Parameters
+        ----------
+        energy: float
+            The energy channel (in MeV) to plot. See self.energies for valid energy channels.
+        ax: plt.Axes
+            The subplot object to modify the axis, labels, etc. If None, a new figure and axes will be created.
+        norm: str
+            Use the "log" or "lin" normalization for the color scale.
+        color_bounds: tuple of floats
+            The (vmin, vmax) bounds for the color scale. If None, it will be determined automatically from the data.
+        L_key: str
+            The key in the gps data corresponding to the L-shell values. See self.l_keys for valid options.
+        L_bins: np.ndarray
+            The edges of the L-shell bins to use for the spectrogram. If None, it will use 3-12 L-shell 
+            range in 0.5 L-shell steps.
+        dt_min: int
+            The time cadence (in minutes) at which to average the fluxes.
+        min_samples: int
+            The minimum number of samples required to compute the average flux at each time step. If the number
+            of samples is less than this value, NaN will be assigned for that time step.
+        labels: bool
+            If True, will set the axis labels and title.
+
+        Returns
+        -------
+        plt.Axes
+            The subplot object to modify the axis, labels, etc.
+        matplotlib.collections.QuadMesh
+            The pcolormesh object representing the spectrogram.
+        pd.DataFrame
+            The spectrogram data with time index and L-shell bins as columns.
+        """
+        spectrogram_df = self.flux_spectrogram(
+            energy=energy, 
+            L_key=L_key, 
+            L_bins=L_bins, 
+            dt_min=dt_min, 
+            min_samples=min_samples
+            )
+
+        if ax is None:
+            _, ax = plt.subplots()
+
+        if color_bounds is None:
+            color_bounds = (np.nanmin(spectrogram_df.values), np.nanmax(spectrogram_df.values))
+
+        if norm == 'log':
+            norm = matplotlib.colors.LogNorm(vmin=color_bounds[0], vmax=color_bounds[1])
+        elif norm == 'lin':
+            norm = matplotlib.colors.Normalize(vmin=color_bounds[0], vmax=color_bounds[1])
+        else:
+            raise ValueError(f'Invalid norm option: {norm}. Valid options are "log" and "lin".')
+
+        p = ax.pcolormesh(
+            spectrogram_df.index, 
+            spectrogram_df.columns, 
+            spectrogram_df.T, 
+            norm=norm
+            )
+        if colorbar:
+            if self.flux_units == 'cm^-2-s^-1-sr^-1-MeV^-1':
+                _label = f'{energy} MeV Flux [1/cm$^{{2}}$/s/sr/MeV]'
+            else:
+                _label = f'{energy} MeV Flux [{self.flux_units}]'
+            plt.colorbar(p, ax=ax, label=_label)
+        if labels:
+            ax.set_xlabel('Time')
+            ax.set_ylabel(f'L-shell ({L_key})')
+            ax.text(
+                0.01, 
+                0.99, 
+                f'GPS CXD Energy={energy} MeV Electron Flux Spectrogram', 
+                transform=ax.transAxes, 
+                verticalalignment='top'
+                )
+        return ax, p, spectrogram_df
 
     def avg_flux(self, L_range=(5, 6), L_key='L_LGM_T89IGRF', dt_min=15, min_samples=5):
         """
@@ -574,6 +672,77 @@ class GPS:
             else:
                 raise ValueError('Not supposed to get here.')
         return _flux.iloc[:-1, :]
+    
+    def flux_spectrogram(
+            self, 
+            energy:float=1.0, 
+            ax:plt.Axes=None, 
+            L_key:str='L_LGM_T89IGRF',
+            L_bins:np.ndarray=None,
+            dt_min:int=15, 
+            min_samples:int=5
+            ):
+        """
+        
+        """
+
+        if L_bins is None:
+            L_bins = np.arange(3, 12, 0.5)
+
+        energy_idx = np.where(energy==self.energies)[0]
+        assert len(energy_idx) == 1, \
+            (f'Energy channel {energy} is not in the valid {self.energies} list.')
+        energy_idx = energy_idx[0]
+        assert len(self.data.keys()) > 0, 'No GPS data.'
+        assert L_key in self.keys, f'L_key {L_key} not in GPS data keys: {self.keys}.'
+
+        spectrogram_df = pd.DataFrame(
+            index=pd.date_range(
+                self.data[self.sc_id_0]['time'][0].replace(second=0, microsecond=0), 
+                self.data[self.sc_id_0]['time'][-1].replace(second=0, microsecond=0)+pd.Timedelta(minutes=dt_min), 
+                freq=f'{dt_min}min'
+                ),
+            columns=L_bins,
+            dtype=float
+                )
+        self._n_samples_per_bin = np.zeros_like(spectrogram_df.values[:-1, :-1], dtype=int)
+
+        for i, (start_time, end_time) in enumerate(zip(spectrogram_df.index[:-1], spectrogram_df.index[1:])):
+            for j, (L_bin_start, L_bin_end) in enumerate(zip(L_bins[:-1], L_bins[1:])):
+                # Keep track of fluxes and number of samples as we loop through the sc_ids.
+                _fluxes = []
+                _n= 0
+
+                for sc_id in self.data.keys():
+                    idt = np.where(
+                        (self.data[sc_id]['time'] >= start_time) & 
+                        (self.data[sc_id]['time'] < end_time) & 
+                        (self.data[sc_id][L_key] >= L_bin_start) & 
+                        (self.data[sc_id][L_key] < L_bin_end)
+                        # TODO: Add the quality of fit test here.
+                    )[0]
+
+                    _flux_with_nans = self.data[sc_id]['electron_diff_flux'][idt, energy_idx].copy()
+                    _flux_with_nans[_flux_with_nans <= 0] = np.nan
+                    _n += len(np.where(np.isfinite(_flux_with_nans))[0])
+
+                    if len(idt) > 0 and np.any(np.isfinite(_flux_with_nans)):
+                        _fluxes.append(np.nanmean(_flux_with_nans, axis=0))
+
+                self._n_samples_per_bin[i, j] = _n
+
+                if _n < min_samples:
+                    spectrogram_df.loc[start_time, L_bin_start] = np.nan
+                    continue
+
+                if len(_fluxes) == 1:
+                    spectrogram_df.loc[start_time, L_bin_start] = _fluxes[0]
+                elif len(_fluxes) > 1:
+                    spectrogram_df.loc[start_time, L_bin_start] = np.nanmean(np.array(_fluxes), axis=0)
+                else:
+                    raise ValueError('Not supposed to get here.')
+
+        return spectrogram_df
     
     def _find_data(self):
         """
