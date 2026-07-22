@@ -1,11 +1,5 @@
 """
-This Observational System Experiment (OSE) reinterpolates ASI data to calculate the 
-anticipated auroral images from a low Earth orbiting (LEO) satellite that is equipped
-with an auroral imager.
-
-Remember, this is different than an OSSE (Observing System Simulation Experiment) which
-simulates the instrument response from model data. For this type of OSSE, the model input
-will be the auroral intensity on a (lat, lon) grid as a function of time.
+Observational System Experiment (OSE) animation using SAMPEX and THEMIS ASI datasets.
 """
 import dataclasses
 import copy
@@ -34,75 +28,6 @@ import IRBEM
 
 
 R_e = 6378.137  # km
-
-
-@dataclasses.dataclass
-class OSE:
-    """
-    Calculate the THEMIS ASI white-light intensity inside a space-based imager FOV.
-
-    Parameters
-    ----------
-    time_range: Tuple[datetime]
-        Defines the time range for the OSE plot.
-    fov: Tuple[float]
-        The field of view of the AIC in degrees.
-    resolution: Tuple[int]
-        The resolution of the AIC in pixels (width, height).
-    ona: float
-        The off-nadir angle between nadir and the imager's center FOV vectors. If 0, the center of
-        the FOV is pointing towards the nadir and if 90 it points at the limb.
-    azimuth: float
-        The azimuth angle of the AIC FOV measured clockwise from north.
-    lampsat_alt: float
-        The altitude of the LAMPsat in kilometers.
-    themis_location_code: str
-        The THEMIS location code, e.g., 'WHIT' for THEMIS ASI.
-    aurora_alt: float
-        The altitude of the aurora in kilometers.
-    """
-    time_range:Tuple[datetime]
-    fov:Tuple[float]=(45, 30)
-    resolution:Tuple[int]=(64, 64)
-    ona:float=0  # TODO: Implement
-    azimuth:float=0 # TODO: Implement
-    lampsat_alt:float=500
-    themis_location_code:str='WHIT'
-    aurora_alt:float=110
-    checkerboard:bool=True
-    lon_bounds:Tuple[float]=None
-    lat_bounds:Tuple[float]=None
-    color_bounds:Tuple[int]=None
-    detrend_hilt:bool=False
-    detrend_duration_s:float=5
-    detrend_quantile:float=0.5
-    hilt_logscale:bool=True
-    hilt_ylim:tuple=(-20, 4*10**3)
-
-    def __post_init__(self):
-        self.xx, self.yy = np.meshgrid(
-            np.linspace(-self.fov[1]/2, self.fov[1]/2, self.resolution[1]),
-            np.linspace(-self.fov[0]/2, self.fov[0]/2, self.resolution[0]),
-            )
-        
-        if self.ona != 0 or self.azimuth != 0:
-            raise NotImplementedError(
-                "The off-nadir angle and azimuth are not yet implemented. Please submit"
-                "a feature request on GitHub if you would like this functionality."
-                )
-        self.xx += np.sin(np.deg2rad(self.azimuth))*self.ona
-        self.yy += np.cos(np.deg2rad(self.azimuth))*self.ona
-        self.tilts = np.sqrt(self.xx**2 + self.yy**2)
-        self.azs = np.rad2deg(np.arctan2(self.yy, self.xx))
-
-        self._checkerboard = np.zeros((10, 10), dtype=bool)
-        self._checkerboard[::2, ::2] = True
-        self._checkerboard[1::2, 1::2] = True
-        self._checkerboard_xx, self._checkerboard_yy = np.meshgrid(
-            np.linspace(0, self.resolution[0], num=self._checkerboard.shape[0]+1),
-            np.linspace(0, self.resolution[1], num=self._checkerboard.shape[1]+1)
-            )
-        return
 
 
 class SAMPEX_footprint:
