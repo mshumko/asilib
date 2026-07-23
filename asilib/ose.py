@@ -892,7 +892,12 @@ def haversine(
 
 
 if __name__ == '__main__':
+
+    # TODO: Remove after debugging.
+    import time
+
     from asilib.mission import example_satellite
+    from datetime import datetime
 
     time_range = (datetime(2012, 2, 15, 8, 30), datetime(2012, 2, 15, 8, 40))
 
@@ -905,8 +910,33 @@ if __name__ == '__main__':
         ]
     
     asis = asilib.Imagers([asilib.asi.themis(code, time_range=time_range) for code in location_codes])
-    asis.animate_map(lon_bounds=asis.lon_bounds, lat_bounds=asis.lat_bounds)
 
-    # ephemeris = example_satellite.Example_Satellite(
-    #     time_range=time_range
-    # )
+    ephemeris_obj = example_satellite.Example_Satellite(
+        time_range=time_range,
+        mean_anomaly_deg=45,
+        ltan_hours=2,
+    )
+    ephemeris = ephemeris_obj.ephemeris_df()
+
+    ax = asilib.map.create_map(lon_bounds=asis.lon_bounds, lat_bounds=asis.lat_bounds)
+
+    print('Enable breakpoints now...')
+    time.sleep(2)
+    g = asis.animate_map_gen(ax=ax, pcolormesh_kwargs={'rasterized':True}, overwrite=True)
+
+    for i, (guide_time, image, _, im) in enumerate(g):
+        if i == 0:
+            ax.plot(ephemeris['lon'], ephemeris['lat'], 'k:', transform=ccrs.PlateCarree(), label='Satellite Ground Track')
+        else:
+            scatter_point.remove()
+        
+        idx_loc = ephemeris.index.get_indexer([guide_time], method='nearest', tolerance=pd.Timedelta(seconds=2))[0]
+        sat_loc = ephemeris.iloc[idx_loc][['lon', 'lat']].values
+            
+        scatter_point = ax.scatter(sat_loc[0], sat_loc[1], c='red', s=100, marker='x', transform=ccrs.PlateCarree(), label='Satellite Location')
+
+        if i == 0:
+            ax.legend(loc='lower right', fontsize=12, framealpha=0.5)
+
+
+    pass
