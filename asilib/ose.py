@@ -10,11 +10,16 @@ will be the auroral intensity on a (lat, lon) grid as a function of time.
 import dataclasses
 import copy
 from datetime import datetime
+import pathlib
 import string
 from typing import Tuple, List, Union
 from collections import namedtuple
 import dateutil.parser
 
+import fontawesome
+from matplotlib.font_manager import FontProperties
+from matplotlib.textpath import TextToPath
+from matplotlib.path import Path
 import matplotlib.pyplot as plt
 import matplotlib.colors
 import matplotlib.dates
@@ -44,31 +49,31 @@ class OSE:
 
     Parameters
     ----------
-    time_range: Tuple[datetime]
-        Defines the time range for the OSE plot.
+    imagers: asilib.Imagers
+        The imagers to be used in the OSE.
+    ephemeris: Tuple[np.ndarray, np.ndarray]
+        The two-element ephemeris tuple with the first element the n timestamps, and the second 
+        element either a (n, 3) array for one satellite ephemeris with columns corresponding to
+        the (lat, lon, alt) (LLA) coordinates, or a (n, 3, m) array for m satellite ephemerides 
+        with the LLA coordinates. Lat and lon are in degrees and alt is in kilometers.
     fov: Tuple[float]
         The field of view of the AIC in degrees.
-    resolution: Tuple[int]
+    pixel_resolution: Tuple[int]
         The resolution of the AIC in pixels (width, height).
     ona: float
         The off-nadir angle between nadir and the imager's center FOV vectors. If 0, the center of
         the FOV is pointing towards the nadir and if 90 it points at the limb.
     azimuth: float
         The azimuth angle of the AIC FOV measured clockwise from north.
-    lampsat_alt: float
-        The altitude of the LAMPsat in kilometers.
-    themis_location_code: str
-        The THEMIS location code, e.g., 'WHIT' for THEMIS ASI.
     aurora_alt: float
         The altitude of the aurora in kilometers.
     """
-    time_range:Tuple[datetime]
+    imagers: asilib.Imagers
+    ephemeris: np.ndarray
     fov:Tuple[float]=(45, 45)
-    resolution:Tuple[int]=(64, 64)
+    pixel_resolution:Tuple[int]=(64, 64)
     ona:float=0  # TODO: Implement
     azimuth:float=0 # TODO: Implement
-    lampsat_alt:float=500
-    themis_location_code:str='WHIT'
     aurora_alt:float=110
     checkerboard:bool=True
     lon_bounds:Tuple[float]=None
@@ -82,8 +87,8 @@ class OSE:
 
     def __post_init__(self):
         self.xx, self.yy = np.meshgrid(
-            np.linspace(-self.fov[1]/2, self.fov[1]/2, self.resolution[1]),
-            np.linspace(-self.fov[0]/2, self.fov[0]/2, self.resolution[0]),
+            np.linspace(-self.fov[1]/2, self.fov[1]/2, self.pixel_resolution[1]),
+            np.linspace(-self.fov[0]/2, self.fov[0]/2, self.pixel_resolution[0]),
             )
         
         if self.ona != 0 or self.azimuth != 0:
@@ -100,107 +105,151 @@ class OSE:
         self._checkerboard[::2, ::2] = True
         self._checkerboard[1::2, 1::2] = True
         self._checkerboard_xx, self._checkerboard_yy = np.meshgrid(
-            np.linspace(0, self.resolution[0], num=self._checkerboard.shape[0]+1),
-            np.linspace(0, self.resolution[1], num=self._checkerboard.shape[1]+1)
+            np.linspace(0, self.pixel_resolution[0], num=self._checkerboard.shape[0]+1),
+            np.linspace(0, self.pixel_resolution[1], num=self._checkerboard.shape[1]+1)
             )
-        return
-
-
-class SAMPEX_footprint:
-    def __init__(self, time_range):
-        """"
-        Load SAMPEX attitude data and calculate its footprint.
-
-        Parameters
-        ----------
-        day: datetime or str
-        """
-        if isinstance(time_range[0], str):
-            day = dateutil.parser.parse(time_range[0])
+        if len(self.ephemeris[1].shape) == 2:
+            self.n_satellites = 1
+        elif len(self.ephemeris[1].shape) == 3:
+            self.n_satellites = self.ephemeris[1].shape[-1]
         else:
-            day = copy.copy(time_range[0])
-        day = pd.Timestamp(day).replace(hour=0, minute=0, second=0, microsecond=0)
-        self.attitude = sampex.Attitude(day).load()
-
-        self.attitude = self.attitude.loc[
-            (self.attitude.index >= time_range[0]) & 
-            (self.attitude.index < time_range[1]),
-            :]
-        self.m = IRBEM.MagFields(kext='None')
-        self.coords = IRBEM.Coords()
+            raise ValueError(
+                f"Unexpected ephemeris shape: {self.ephemeris[1].shape}. Expected (n, 3) or "
+                f"(n, 3, m) where n is the number of timestamps and m is the number of "
+                f"satellites."
+                )
         return
 
-    def map_down(self, alt=110, hemi_flag=0):
+    def get_image(self, time):
         """
-        Map self.lla down along the magnetic field line to alt using IRBEM.MagFields.find_foot_print.
+        Get image(s) from the OSE for a given time. Depending on if there is one more satellites,
+        the shape of the image(s) will be (pixel_resolution[0], pixel_resolution[1]) if there is
+        one satellite, or (pixel_resolution[0], pixel_resolution[1], n_satellites) if there are 
+        multiple satellites.
+
+        The satellite locations are indexed from the ephemeris timestamps.
+        
+        Parameters
+        ----------
+        time: datetime
+            The time for which to get the image(s).
+        
+        Returns
+        -------
+        images: np.ndarray
+            The image(s) from the OSE for the given time.
+        """
+
+        if self.n_satellites == 1:
+            _ephemeris = self.ephemeris[1].reshape(*self.ephemeris[1].shape, 1)
+        else:
+            _ephemeris = self.ephemeris[1]
+
+        images = np.zeros(
+            (self.pixel_resolution[0], self.pixel_resolution[1], self.n_satellites)
+            )
+
+        _imagers = self.imagers[time]
+        lat_lon_points, intensities = _imagers.get_points()
+
+        ephemeris_time_np = np.array(self.ephemeris[0], dtype='datetime64')
+        ephemeris_time_dt = np.abs(ephemeris_time_np-np.datetime64(time))
+        closest_idt = np.argmin(ephemeris_time_dt)
+
+        if ephemeris_time_dt[closest_idt] > ephemeris_time_np[1] - ephemeris_time_np[0]:
+            raise ValueError(
+                f"Time {time} is too far from the nearest ephemeris timestamps:"
+                f"{self.ephemeris[0][closest_idt]}."
+                )
+        
+        for i in range(self.n_satellites):
+            lla = _ephemeris[closest_idt, :, i]
+            
+            lat_skymap, lon_skymap = self.imager_skymap(time, lla)
+
+            interp_grid = scipy.interpolate.griddata(
+                lat_lon_points, 
+                intensities, 
+                (lat_skymap, lon_skymap), 
+                method='cubic'
+                )
+
+            # We need to mask out the gridded points that are too far away from the original points as
+            # NaNs and this is the most efficient way (source: https://stackoverflow.com/a/31189177).
+            interp_grid_nans = interp_grid.copy()
+            tree = cKDTree(lat_lon_points)
+            xi = np.stack((lat_skymap, lon_skymap), axis=-1)
+            dists, _ = tree.query(xi, distance_upper_bound=0.15)
+            interp_grid_nans[~np.isfinite(dists)] = np.nan
+            images[:, :, i] = interp_grid_nans
+
+        if self.n_satellites == 1:
+            images = images[:, :, 0]
+        return images
+
+    def get_mapped_fov(self, time, lla):
+        """
+        Get the mapped field of view (FOV) of the imager for a given time and satellite location.
+        """
+        lat_skymap, lon_skymap = self.imager_skymap(time, lla)
+
+        lon_perimeter = np.concatenate((
+            lon_skymap[0, :], 
+            lon_skymap[:, -1], 
+            lon_skymap[-1, ::-1], 
+            lon_skymap[::-1, 0]
+            ))
+        lat_perimeter = np.concatenate((
+            lat_skymap[0, :], 
+            lat_skymap[:, -1], 
+            lat_skymap[-1, ::-1], 
+            lat_skymap[::-1, 0]
+            ))
+        return lat_perimeter, lon_perimeter
+
+    def imager_skymap(self, time, lla):
+        """
+        Calculate the imager latitude and longitude skymaps for a given time and satellite 
+        location.
 
         Parameters
         ----------
-        alt: float
-            The mapping altitude in units of kilometers
-        hemi_flag: int
-            What direction to trace the field line: 
-            0 = same magnetic hemisphere as starting point
-            +1   = northern magnetic hemisphere
-            -1   = southern magnetic hemisphere
-            +2   = opposite magnetic hemisphere as starting point
+        time: datetime
+            The time for which to calculate the skymap.
+        lla: Tuple[float]
+            The satellite location in (lat, lon, alt) format, where lat and lon are in degrees 
+            and alt is in kilometers.
+
+        Returns
+        -------
+        imager_lats: np.ndarray
+            The latitude skymap of a single-satellite imager FOV with shape 
+            (pixel_resolution[0], pixel_resolution[1])
+        imager_lons: np.ndarray
+            The longitude skymap of a single-satellite imager FOV with shape 
+            (pixel_resolution[0], pixel_resolution[1])
         """
-        _all = np.zeros_like(self.attitude.loc[:, ['Altitude', 'GEO_Lat', 'GEO_Long']])
+        imager_lats = np.zeros_like(self.azs).flatten()
+        imager_lons = np.zeros_like(self.azs).flatten()
 
-        for i, (time, row) in enumerate(self.attitude.iterrows()):
-            X = {'Time':time, 'x1':row['Altitude'], 'x2':row['GEO_Lat'], 'x3':row['GEO_Long']}
-            _all[i, :] = self.m.find_foot_point(X, {}, alt, hemi_flag)['XFOOT']
-        _all[_all == -1E31] = np.nan
-        _attitude = self.attitude.copy()
-        _attitude.loc[:, ['Altitude', 'GEO_Lat', 'GEO_Long']] = _all
-        return _attitude
-    
-    def map_up(self, alt, sysout='GDZ'):
-        """
-        Map self.lla up along the magnetic field line to alt using IRBEM.MagFields.find_foot_print.
+        for k, (azs_i, tilt_i) in enumerate(zip(self.azs.flatten(), self.tilts.flatten())):
+            imager_lats[k], imager_lons[k], _ = pymap3d.los.lookAtSpheroid(
+                lla[0], 
+                lla[1], 
+                1e3*lla[2],
+                azs_i,
+                tilt_i,
+                ell=Ellipsoid_alt(1e3*self.aurora_alt)
+                )
+ 
+        return imager_lats.reshape(self.azs.shape), imager_lons.reshape(self.azs.shape)
 
-        Parameters
-        ----------
-        alt: float
-            The mapping altitude in units of kilometers.
-        sysout: str
-            The output coordinate system. Default is 'GDZ' (Geodetic Zenith Direction).
-            Other options include 'GEO', 'GSE', 'SM', etc.
-        """
-        lampsat_mapped_x = np.zeros((self.attitude.shape[0], 3))
 
-        for i, (time, row) in enumerate(self.attitude.iterrows()):
-            X = {'Time':time, 'x1':row['Altitude'], 'x2':row['GEO_Lat'], 'x3':row['GEO_Long']}
-            _field_line = self.m.trace_field_line(X, {})
-            _field_line_alt = R_e*(np.linalg.norm(_field_line['POSIT'], axis=1)-1)
-
-            xGEO = _field_line['POSIT'][:_field_line['Nposit'], 0] 
-            yGEO = _field_line['POSIT'][:_field_line['Nposit'], 1] 
-            zGEO = _field_line['POSIT'][:_field_line['Nposit'], 2] 
-            S = range(len(_field_line['blocal'][:_field_line['Nposit']]))
-
-            # Interpolate the magnetic field, as well as GEO coordinates.
-            f_alt_diff = scipy.interpolate.interp1d(S, _field_line_alt-alt, kind='cubic')
-            fx = scipy.interpolate.interp1d(S, xGEO, kind='cubic')
-            fy = scipy.interpolate.interp1d(S, yGEO, kind='cubic')
-            fz = scipy.interpolate.interp1d(S, zGEO, kind='cubic')
-
-            lampsat_loc_idx = scipy.optimize.brentq(f_alt_diff, 0, _field_line_alt.shape[0]/2)
-            lampsat_mapped_x[i, :] = np.array([fx(lampsat_loc_idx), fy(lampsat_loc_idx), fz(lampsat_loc_idx)])
-        if sysout != 'GEO':
-            lampsat_mapped_x = self.coords.transform(self.attitude.index, lampsat_mapped_x, 'GEO', sysout)
-        if sysout == 'GDZ':
-            _attitude = self.attitude.copy()
-            _attitude.loc[:, ['Altitude', 'GEO_Lat', 'GEO_Long']] = lampsat_mapped_x
-            return _attitude
-        return lampsat_mapped_x
-
-  
 class Ellipsoid_alt:
     """
-    From https://geospace-code.github.io/pymap3d/ellipsoid.html
+    Adapted from https://geospace-code.github.io/pymap3d/ellipsoid.html
 
-    as everywhere else in this program, distance units are METERS
+    Distance units are meters.
     """
 
     def __init__(self, alt):
@@ -855,41 +904,14 @@ class ASI_OSE_Montage():
         return
 
 
+def getmarker(mID):
+	symbol = fontawesome.icons[mID]
+	fp = FontProperties(fname=pathlib.Path(__file__).parent / "Font Awesome 7 Free-Solid-900.otf")
 
-def haversine(
-    lat1: np.array, lon1: np.array, lat2: np.array, lon2: np.array, r: float = 1
-) -> np.array:
-    """
-    Haversine distance equation.
-
-    Parameters
-    ----------
-    lat1, lat2: np.array
-        The latitude of points 1 and 2 in units of degrees. Can be n-dimensional.
-    lon1, lon2: np.array
-        The longitude of points 1 and 2 in units of degrees. Can be n-dimensional.
-    r: float
-        The sphere radius.
-    """
-    assert (
-        lat1.shape == lon1.shape == lat2.shape == lon2.shape
-    ), 'All input arrays must have the same shape.'
-    lat1_rad = np.deg2rad(lat1)
-    lat2_rad = np.deg2rad(lat2)
-    lon1_rad = np.deg2rad(lon1)
-    lon2_rad = np.deg2rad(lon2)
-
-    d = (
-        2
-        * r
-        * np.arcsin(
-            np.sqrt(
-                np.sin((lat1_rad - lat2_rad) / 2) ** 2
-                + np.cos(lat1_rad) * np.cos(lat2_rad) * np.sin((lon2_rad - lon1_rad) / 2) ** 2
-            )
-        )
-    )
-    return d
+	v, codes = TextToPath().get_text_path(fp, symbol)
+	v = np.array(v)
+	mean = np.mean([np.max(v,axis=0), np.min(v, axis=0)], axis=0)
+	return Path(v-mean, codes, closed=False)
 
 
 if __name__ == '__main__':
@@ -900,7 +922,7 @@ if __name__ == '__main__':
     from asilib.mission import example_satellite
     from datetime import datetime
 
-    time_range = (datetime(2012, 2, 15, 8, 30), datetime(2012, 2, 15, 8, 40))
+    time_range = (datetime(2012, 2, 15, 8, 30), datetime(2012, 2, 15, 8, 45))
 
     location_codes = [
         'FSIM',
@@ -912,22 +934,50 @@ if __name__ == '__main__':
     
     asis = asilib.Imagers([asilib.asi.themis(code, time_range=time_range) for code in location_codes])
 
-    
+    # Create the CINEMA constellation ephemeris.
     orbit_parameter_type = namedtuple('orbit_parameter_type', ['mean_anomaly_deg', 'ltan_hours'])
     in_track_separation_minutes = 5
+    mean_anomaly_deg = 35
     delta_mean_anomaly_deg = 360*in_track_separation_minutes/95
     constellation = {
-        1:orbit_parameter_type(mean_anomaly_deg=45+delta_mean_anomaly_deg, ltan_hours=1),
-        2:orbit_parameter_type(mean_anomaly_deg=45+delta_mean_anomaly_deg, ltan_hours=2),
-        3:orbit_parameter_type(mean_anomaly_deg=45+delta_mean_anomaly_deg, ltan_hours=3),
-        4:orbit_parameter_type(mean_anomaly_deg=45, ltan_hours=1),
-        5:orbit_parameter_type(mean_anomaly_deg=45, ltan_hours=2),
-        6:orbit_parameter_type(mean_anomaly_deg=45, ltan_hours=3),
-        7:orbit_parameter_type(mean_anomaly_deg=45-delta_mean_anomaly_deg, ltan_hours=1),
-        8:orbit_parameter_type(mean_anomaly_deg=45-delta_mean_anomaly_deg, ltan_hours=2),
-        9:orbit_parameter_type(mean_anomaly_deg=45-delta_mean_anomaly_deg, ltan_hours=3),
+        1:orbit_parameter_type(
+            mean_anomaly_deg=mean_anomaly_deg+delta_mean_anomaly_deg, 
+            ltan_hours=1
+            ),
+        2:orbit_parameter_type(
+            mean_anomaly_deg=mean_anomaly_deg+delta_mean_anomaly_deg, 
+            ltan_hours=2
+            ),
+        3:orbit_parameter_type(
+            mean_anomaly_deg=mean_anomaly_deg+delta_mean_anomaly_deg, 
+            ltan_hours=3
+            ),
+        4:orbit_parameter_type(
+            mean_anomaly_deg=mean_anomaly_deg, 
+            ltan_hours=1
+            ),
+        5:orbit_parameter_type(
+            mean_anomaly_deg=mean_anomaly_deg, 
+            ltan_hours=2
+            ),
+        6:orbit_parameter_type(
+            mean_anomaly_deg=mean_anomaly_deg, 
+            ltan_hours=3
+            ),
+        7:orbit_parameter_type(
+            mean_anomaly_deg=mean_anomaly_deg-delta_mean_anomaly_deg, 
+            ltan_hours=1
+            ),
+        8:orbit_parameter_type(
+            mean_anomaly_deg=mean_anomaly_deg-delta_mean_anomaly_deg, 
+            ltan_hours=2
+            ),
+        9:orbit_parameter_type(
+            mean_anomaly_deg=mean_anomaly_deg-delta_mean_anomaly_deg, 
+            ltan_hours=3
+            ),
     }
-    ephemeris = {}
+    ephemeris = [None, None]
     for key, value in constellation.items():
         ephemeris_obj = example_satellite.Example_Satellite(
             cadence_s=0.5,
@@ -935,27 +985,69 @@ if __name__ == '__main__':
             mean_anomaly_deg=value.mean_anomaly_deg,
             ltan_hours=value.ltan_hours,
         )
-        ephemeris[key] = ephemeris_obj.ephemeris_df()
+        sat_ephemeris = ephemeris_obj.ephemeris()
+        # ephemeris[1][key] = sat_ephemeris[1]
+        if ephemeris[0] is None:
+            ephemeris[0] = sat_ephemeris[0]
+            ephemeris[1] = sat_ephemeris[1].reshape(*sat_ephemeris[1].shape, 1)
+        else:
+            ephemeris[1] = np.concatenate(
+                (ephemeris[1], sat_ephemeris[1].reshape(*sat_ephemeris[1].shape, 1)), axis=2
+                )
 
-    ax = asilib.map.create_map(lon_bounds=asis.lon_bounds, lat_bounds=asis.lat_bounds)
 
     print('Enable breakpoints now...')
     time.sleep(2)
+
+    ose = OSE(asis, ephemeris)
+    
+    images = ose.get_image(datetime(2012, 2, 15, 8, 30))
+
+    fig = plt.figure(figsize=(4, 7), layout='tight')
+    gs = gridspec.GridSpec(nrows=4, ncols=3, figure=fig, height_ratios=(3, 1, 1, 1))
+
+    ax = asilib.map.create_map(
+        lon_bounds=asis.lon_bounds, 
+        lat_bounds=(asis.lat_bounds[0]-1, asis.lat_bounds[1]+1), 
+        fig_ax=(fig, gs[0, :])
+        )
+    bx = np.nan*np.zeros((3, 3), dtype=object)
+    for i in range(3):
+        for j in range(3):
+            bx[i, j] = fig.add_subplot(gs[i+1, j])
+            bx[i, j].set_aspect('equal')
+            bx[i, j].xaxis.set_visible(False)
+            bx[i, j].yaxis.set_visible(False)
+
+    plt.show()
+
     g = asis.animate_map_gen(ax=ax, pcolormesh_kwargs={'rasterized':True}, overwrite=True)
 
     for i, (guide_time, image, _, im) in enumerate(g):
         if i == 0:
-            ax.plot(ephemeris[1]['lon'], ephemeris[1]['lat'], 'k:', transform=ccrs.PlateCarree(), label='Satellite Ground Track')
+            for _ephemeris in ephemeris[1].values():
+                ax.plot(_ephemeris['lon'], _ephemeris['lat'], 'k:', transform=ccrs.PlateCarree())
         else:
-            scatter_point.remove()
+            for scatter_point in scatter_points:
+                scatter_point.remove()
+            for sc_label in sc_labels:
+                sc_label.remove()
         
-        idx_loc = ephemeris[1].index.get_indexer([guide_time], method='nearest', tolerance=pd.Timedelta(seconds=2))[0]
-        sat_loc = ephemeris[1].iloc[idx_loc][['lon', 'lat']].values
-            
-        scatter_point = ax.scatter(sat_loc[0], sat_loc[1], c='red', s=100, marker='x', transform=ccrs.PlateCarree(), label='Satellite Location')
+        scatter_points = []
+        sc_labels = []
+        for sc, _ephemeris in ephemeris[1].items():
+            idx_loc = _ephemeris.index.get_indexer([guide_time], method='nearest', tolerance=pd.Timedelta(seconds=2))[0]
+            sat_loc = _ephemeris.iloc[idx_loc][['lon', 'lat']].values
 
-        if i == 0:
-            ax.legend(loc='lower right', fontsize=12, framealpha=0.5)
+            scatter_points.append(
+                ax.scatter(sat_loc[0], sat_loc[1], c='purple', s=200, marker=getmarker('camera'), transform=ccrs.PlateCarree())
+            )
+            sc_labels.append(
+                ax.text(sat_loc[0]+0.5, sat_loc[1], f'SC{sc}', color='white', fontsize=12, transform=ccrs.PlateCarree(), va='center')
+            )
+
+        # if i == 0:
+        #     ax.legend(loc='lower right', fontsize=12, framealpha=0.5)
 
 
     pass

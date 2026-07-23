@@ -73,7 +73,7 @@ omit = [
 
 [dependency-groups]
 dev = [
-    "aacgmv2==2.7.0",
+    "aacgmv2==2.7.1",
     "asilib",
     "beautifulsoup4==4.14.2",
     "black==25.9.0",
