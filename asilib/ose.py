@@ -12,6 +12,7 @@ import copy
 from datetime import datetime
 import string
 from typing import Tuple, List, Union
+from collections import namedtuple
 import dateutil.parser
 
 import matplotlib.pyplot as plt
@@ -911,12 +912,30 @@ if __name__ == '__main__':
     
     asis = asilib.Imagers([asilib.asi.themis(code, time_range=time_range) for code in location_codes])
 
-    ephemeris_obj = example_satellite.Example_Satellite(
-        time_range=time_range,
-        mean_anomaly_deg=45,
-        ltan_hours=2,
-    )
-    ephemeris = ephemeris_obj.ephemeris_df()
+    
+    orbit_parameter_type = namedtuple('orbit_parameter_type', ['mean_anomaly_deg', 'ltan_hours'])
+    in_track_separation_minutes = 5
+    delta_mean_anomaly_deg = 360*in_track_separation_minutes/95
+    constellation = {
+        1:orbit_parameter_type(mean_anomaly_deg=45+delta_mean_anomaly_deg, ltan_hours=1),
+        2:orbit_parameter_type(mean_anomaly_deg=45+delta_mean_anomaly_deg, ltan_hours=2),
+        3:orbit_parameter_type(mean_anomaly_deg=45+delta_mean_anomaly_deg, ltan_hours=3),
+        4:orbit_parameter_type(mean_anomaly_deg=45, ltan_hours=1),
+        5:orbit_parameter_type(mean_anomaly_deg=45, ltan_hours=2),
+        6:orbit_parameter_type(mean_anomaly_deg=45, ltan_hours=3),
+        7:orbit_parameter_type(mean_anomaly_deg=45-delta_mean_anomaly_deg, ltan_hours=1),
+        8:orbit_parameter_type(mean_anomaly_deg=45-delta_mean_anomaly_deg, ltan_hours=2),
+        9:orbit_parameter_type(mean_anomaly_deg=45-delta_mean_anomaly_deg, ltan_hours=3),
+    }
+    ephemeris = {}
+    for key, value in constellation.items():
+        ephemeris_obj = example_satellite.Example_Satellite(
+            cadence_s=0.5,
+            time_range=time_range,
+            mean_anomaly_deg=value.mean_anomaly_deg,
+            ltan_hours=value.ltan_hours,
+        )
+        ephemeris[key] = ephemeris_obj.ephemeris_df()
 
     ax = asilib.map.create_map(lon_bounds=asis.lon_bounds, lat_bounds=asis.lat_bounds)
 
@@ -926,12 +945,12 @@ if __name__ == '__main__':
 
     for i, (guide_time, image, _, im) in enumerate(g):
         if i == 0:
-            ax.plot(ephemeris['lon'], ephemeris['lat'], 'k:', transform=ccrs.PlateCarree(), label='Satellite Ground Track')
+            ax.plot(ephemeris[1]['lon'], ephemeris[1]['lat'], 'k:', transform=ccrs.PlateCarree(), label='Satellite Ground Track')
         else:
             scatter_point.remove()
         
-        idx_loc = ephemeris.index.get_indexer([guide_time], method='nearest', tolerance=pd.Timedelta(seconds=2))[0]
-        sat_loc = ephemeris.iloc[idx_loc][['lon', 'lat']].values
+        idx_loc = ephemeris[1].index.get_indexer([guide_time], method='nearest', tolerance=pd.Timedelta(seconds=2))[0]
+        sat_loc = ephemeris[1].iloc[idx_loc][['lon', 'lat']].values
             
         scatter_point = ax.scatter(sat_loc[0], sat_loc[1], c='red', s=100, marker='x', transform=ccrs.PlateCarree(), label='Satellite Location')
 
