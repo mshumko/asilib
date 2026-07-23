@@ -181,7 +181,7 @@ class OSE:
             xi = np.stack((lat_skymap, lon_skymap), axis=-1)
             dists, _ = tree.query(xi, distance_upper_bound=0.15)
             interp_grid_nans[~np.isfinite(dists)] = np.nan
-            images[:, :, i] = interp_grid_nans
+            images[:, :, i] = interp_grid_nans.T
 
         if self.n_satellites == 1:
             images = images[:, :, 0]
@@ -244,6 +244,104 @@ class OSE:
  
         return imager_lats.reshape(self.azs.shape), imager_lons.reshape(self.azs.shape)
 
+    def plot_image(self):
+
+        return
+
+    def animate_ose(self, ax=None, bx=None, color_bounds=None):
+        g = self.animate_ose_gen(ax=ax, bx=bx, color_bounds=color_bounds)
+        for _ in g:
+            pass
+        return
+
+    def animate_ose_gen(self, ax=None, bx=None, color_bounds=None):
+        """
+        
+        """
+        # TODO: Remove after debugging.
+        import time
+        print('Enable breakpoints now...')
+        time.sleep(2)
+
+        if color_bounds is None:
+            color_bounds = self.imagers.imagers[0].auto_color_bounds()
+
+        if ax is None:
+            fig = plt.figure(figsize=(4, 7), layout='tight')
+            gs = gridspec.GridSpec(nrows=2, ncols=self.n_satellites, figure=fig, height_ratios=(1, 1))
+        
+            self.ax = asilib.map.create_map(
+                lon_bounds=self.imagers.lon_bounds, 
+                lat_bounds=(self.imagers.lat_bounds[0]-2, self.imagers.lat_bounds[1]+2), 
+                fig_ax=(fig, gs[0, :])
+                )
+            self.bx = np.nan*np.zeros((gs.nrows-1, gs.ncols), dtype=object)
+            for i in range(gs.nrows-1):
+                for j in range(gs.ncols):
+                    self.bx[i, j] = fig.add_subplot(gs[i+1, j])
+                    self.bx[i, j].set_aspect('equal')
+                    self.bx[i, j].xaxis.set_visible(False)
+                    self.bx[i, j].yaxis.set_visible(False)
+        else:
+            self.ax = ax
+            self.bx = bx
+            
+        g = self.imagers.animate_map_gen(
+            ax=self.ax,
+            color_bounds=color_bounds,
+            pcolormesh_kwargs={'rasterized':True}, 
+            overwrite=True
+            )
+        
+        for i, (guide_time, image, _, im) in enumerate(g):
+            if i == 0:
+                for _ephemeris in np.moveaxis(ephemeris[1], -1, 0):
+                    self.ax.plot(_ephemeris[:, 1], _ephemeris[:, 0], 'k:', transform=ccrs.PlateCarree())
+
+                for j, bx_i in enumerate(self.bx.flatten()):
+                    bx_i.text(0.01, 0.99, f'SC{j+1} FOV', fontsize=10, transform=bx_i.transAxes, va='top', color='purple')
+                    if self.checkerboard:
+                        bx_i.pcolormesh(self._checkerboard_xx, self._checkerboard_yy, self._checkerboard, cmap='Reds', vmin=0, vmax=1, rasterized=True)
+            else:
+                for scatter_point in _scatter_points:
+                    scatter_point.remove()
+                for sc_label in _sc_labels:
+                    sc_label.remove()
+                for _image in _images:
+                    _image.remove()
+            
+            _scatter_points = []
+            _sc_labels = []
+            _images = []
+
+            for j, _ephemeris in enumerate(np.moveaxis(ephemeris[1], -1, 0)):
+                ephemeris_time_np = np.array(self.ephemeris[0], dtype='datetime64')
+                ephemeris_time_dt = np.abs(ephemeris_time_np-np.datetime64(guide_time))
+                closest_idt = np.argmin(ephemeris_time_dt)
+        
+                if ephemeris_time_dt[closest_idt] > ephemeris_time_np[1] - ephemeris_time_np[0]:
+                    raise ValueError(
+                        f"Time {guide_time} is too far from the nearest ephemeris timestamps:"
+                        f"{self.ephemeris[0][closest_idt]}."
+                        )
+                
+                lla = _ephemeris[closest_idt, :]
+    
+                _scatter_points.append(
+                    self.ax.scatter(lla[1], lla[0], c='purple', s=200, marker=getmarker('camera'), transform=ccrs.PlateCarree())
+                )
+                _sc_labels.append(
+                    self.ax.text(lla[1]+0.5, lla[0], f'SC{j+1}', color='white', fontsize=12, transform=ccrs.PlateCarree(), va='center')
+                )
+
+            if i == 0 and self.checkerboard:
+                for bx_i in self.bx.flatten():
+                    bx_i.pcolormesh(self._checkerboard_xx, self._checkerboard_yy, self._checkerboard, cmap='Reds', vmin=0, vmax=1, rasterized=True)
+
+            images = self.get_image(guide_time)
+            for j, (bx_i, image_i) in enumerate(zip(self.bx.flatten(), np.moveaxis(images, -1, 0))):
+                _images.append(bx_i.imshow(image_i, cmap='Greys_r', vmin=color_bounds[0], vmax=color_bounds[1], origin='lower'))
+        return
 
 class Ellipsoid_alt:
     """
@@ -905,6 +1003,7 @@ class ASI_OSE_Montage():
 
 
 def getmarker(mID):
+    # TODO: Consider removing this function.
 	symbol = fontawesome.icons[mID]
 	fp = FontProperties(fname=pathlib.Path(__file__).parent / "Font Awesome 7 Free-Solid-900.otf")
 
@@ -916,8 +1015,8 @@ def getmarker(mID):
 
 if __name__ == '__main__':
 
-    # TODO: Remove after debugging.
-    import time
+    
+
 
     from asilib.mission import example_satellite
     from datetime import datetime
@@ -986,7 +1085,6 @@ if __name__ == '__main__':
             ltan_hours=value.ltan_hours,
         )
         sat_ephemeris = ephemeris_obj.ephemeris()
-        # ephemeris[1][key] = sat_ephemeris[1]
         if ephemeris[0] is None:
             ephemeris[0] = sat_ephemeris[0]
             ephemeris[1] = sat_ephemeris[1].reshape(*sat_ephemeris[1].shape, 1)
@@ -995,13 +1093,7 @@ if __name__ == '__main__':
                 (ephemeris[1], sat_ephemeris[1].reshape(*sat_ephemeris[1].shape, 1)), axis=2
                 )
 
-
-    print('Enable breakpoints now...')
-    time.sleep(2)
-
-    ose = OSE(asis, ephemeris)
-    
-    images = ose.get_image(datetime(2012, 2, 15, 8, 30))
+    ose = OSE(asis, ephemeris, checkerboard=False)
 
     fig = plt.figure(figsize=(4, 7), layout='tight')
     gs = gridspec.GridSpec(nrows=4, ncols=3, figure=fig, height_ratios=(3, 1, 1, 1))
@@ -1019,35 +1111,4 @@ if __name__ == '__main__':
             bx[i, j].xaxis.set_visible(False)
             bx[i, j].yaxis.set_visible(False)
 
-    plt.show()
-
-    g = asis.animate_map_gen(ax=ax, pcolormesh_kwargs={'rasterized':True}, overwrite=True)
-
-    for i, (guide_time, image, _, im) in enumerate(g):
-        if i == 0:
-            for _ephemeris in ephemeris[1].values():
-                ax.plot(_ephemeris['lon'], _ephemeris['lat'], 'k:', transform=ccrs.PlateCarree())
-        else:
-            for scatter_point in scatter_points:
-                scatter_point.remove()
-            for sc_label in sc_labels:
-                sc_label.remove()
-        
-        scatter_points = []
-        sc_labels = []
-        for sc, _ephemeris in ephemeris[1].items():
-            idx_loc = _ephemeris.index.get_indexer([guide_time], method='nearest', tolerance=pd.Timedelta(seconds=2))[0]
-            sat_loc = _ephemeris.iloc[idx_loc][['lon', 'lat']].values
-
-            scatter_points.append(
-                ax.scatter(sat_loc[0], sat_loc[1], c='purple', s=200, marker=getmarker('camera'), transform=ccrs.PlateCarree())
-            )
-            sc_labels.append(
-                ax.text(sat_loc[0]+0.5, sat_loc[1], f'SC{sc}', color='white', fontsize=12, transform=ccrs.PlateCarree(), va='center')
-            )
-
-        # if i == 0:
-        #     ax.legend(loc='lower right', fontsize=12, framealpha=0.5)
-
-
-    pass
+    ose.animate_ose(ax=ax, bx=bx)

@@ -14,6 +14,7 @@ docs/_build/
 tests/.coverage
 .vscode/launch.json
 *.~vsdx
+*.otf
 
 env*
 asilib-env/*
