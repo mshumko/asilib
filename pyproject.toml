@@ -23,6 +23,7 @@ dependencies = [
     "numpy",
     "scipy >= 1.10.0",
     "pandas",
+    "skyfield",
     "matplotlib >= 3.7, <4.0",
     "ffmpeg-python",
     "pymap3d",

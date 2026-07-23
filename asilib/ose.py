@@ -62,7 +62,7 @@ class OSE:
         The altitude of the aurora in kilometers.
     """
     time_range:Tuple[datetime]
-    fov:Tuple[float]=(45, 30)
+    fov:Tuple[float]=(45, 45)
     resolution:Tuple[int]=(64, 64)
     ona:float=0  # TODO: Implement
     azimuth:float=0 # TODO: Implement
@@ -892,68 +892,21 @@ def haversine(
 
 
 if __name__ == '__main__':
-    fov = (45, 45)  # degrees
-    resolution = (64, 64)  # pixels
-    ona = 0
-    azimuth = 0
-    lampsat_alt = 500  # km
-    aurora_alt = 110  # km
+    from asilib.mission import example_satellite
 
-    # Event used in Decadal white paper
-    # time_range = (datetime(2007, 2, 14, 13, 29, 40), datetime(2007, 2, 14, 13, 31, 30))
-    # lon_bounds = (-144, -127)
-    # lat_bounds = (56, 66)
-    # color_bounds = (3_000, 3_700)
-    # themis_location_code = 'WHIT'
-    # times=4
+    time_range = (datetime(2012, 2, 15, 8, 30), datetime(2012, 2, 15, 8, 40))
 
-    # Event from Shumko+2021
-    time_range = (
-        datetime(2008, 1, 16, 10, 58, 45), 
-        datetime(2008, 1, 16, 11, 1, 30)
-        )
-    themis_df = asilib.asi.themis_info()
-    themis_location_code = 'GILL'
-    themis_latlon = themis_df.loc[
-        (
-            (themis_df['location_code'] == themis_location_code) & 
-            (themis_df['array'] == 'THEMIS')
-        ),
-            ['latitude', 'longitude']
-        ].values[0]
+    location_codes = [
+        'FSIM',
+        'FSMI',
+        'ATHA',
+        'TPAS',
+        'GILL',
+        ]
     
-    lon_bounds = (themis_latlon[1]-8, themis_latlon[1]+8)
-    lat_bounds = (themis_latlon[0]-5, themis_latlon[0]+5)
-    color_bounds = (4_100, 5_500)
-    times=(
-        datetime(2008, 1, 16, 10, 59, 40), 
-        datetime(2008, 1, 16, 11, 0, 3), 
-        datetime(2008, 1, 16, 11, 0, 15), 
-        datetime(2008, 1, 16, 11, 0, 30)
-        )
+    asis = asilib.Imagers([asilib.asi.themis(code, time_range=time_range) for code in location_codes])
+    asis.animate_map(lon_bounds=asis.lon_bounds, lat_bounds=asis.lat_bounds)
 
-    ose = ASI_OSE_Montage(
-        time_range,
-        times=times,
-        fov=fov, 
-        resolution=resolution,
-        ona=ona,
-        azimuth=azimuth,
-        lampsat_alt=lampsat_alt, 
-        themis_location_code=themis_location_code, 
-        aurora_alt=aurora_alt,
-        lon_bounds=lon_bounds, 
-        lat_bounds=lat_bounds, 
-        color_bounds=color_bounds,
-        detrend_hilt=True,
-        detrend_quantile=0.5,
-        hilt_logscale=False,
-        hilt_ylim=(-20, 2_500)
-    )
-    ose.load_data()
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-        'black_to_purple', ['black', 'purple']
-        )
-    # ose.plot_montage(cmap='Greys_r', noise_floor=287, sensitivity=1_230, n_binned_pixels=1024)
-    ose.ose_animation.animate()
-    # plt.show()
+    # ephemeris = example_satellite.Example_Satellite(
+    #     time_range=time_range
+    # )
