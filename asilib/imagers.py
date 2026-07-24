@@ -247,12 +247,6 @@ class Imagers:
                 )
         return
     
-    # def animate_fisheye(self):
-    #     raise NotImplementedError
-    
-    # def animate_fisheye_gen(self):
-    #     raise NotImplementedError
-    
     def animate_map(self, **kwargs):
         """
         Animate an ASI mosaic. It is a wrapper for the 
@@ -295,6 +289,7 @@ class Imagers:
         min_elevation: float = 10,
         pcolormesh_kwargs: dict = {},
         asi_label: bool = True,
+        animation_name: str = None,
         movie_container: str = 'mp4',
         animation_save_dir: Union[pathlib.Path, str]=None,
         ffmpeg_params={},
@@ -344,6 +339,9 @@ class Imagers:
             plt.pcolormesh.
         asi_label: bool
             Annotates the map with the ASI code in the center of the mapped image.
+        animation_name: str
+            The name of the animation file, otherwise it's format is
+            "YYYYMMDD_HHMMSS_YYYYMMDD_HHMMSS_mosaic.mp4".
         movie_container: str
             The movie container: mp4 has better compression but avi was determined
             to be the official container for preserving digital video by the
@@ -442,12 +440,14 @@ class Imagers:
             'images',
             f'{self.imagers[0].file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_mosaic',
         )
-
-        self.animation_name = (
-            f'{self.imagers[0].file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
-            f'{self.imagers[0].file_info["time_range"][-1].strftime("%H%M%S")}_mosaic.'
-            f'{movie_container}'
-        )
+        if animation_name is not None:
+            self.animation_name = animation_name
+        else:
+            self.animation_name = (
+                f'{self.imagers[0].file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
+                f'{self.imagers[0].file_info["time_range"][-1].strftime("%H%M%S")}_mosaic.'
+                f'{movie_container}'
+            )
         movie_save_path = image_save_dir.parents[1] / self.animation_name
         # If the image directory exists we need to first remove all of the images to avoid
         # animating images produced by different method calls.

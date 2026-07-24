@@ -213,6 +213,9 @@ class Imager:
             the North and East directions, set cardinal_directions='NE'.
         origin: tuple
             The origin of the cardinal direction arrows.
+        animation_name: str
+            The name of the animation file, otherwise it's format is
+            "YYYYMMDD_HHMMSS_YYYYMMDD_HHMMSS_array_location_fisheye.mp4".
         movie_container: str
             The movie container: mp4 has better compression but avi was determined
             to be the official container for preserving digital video by the
@@ -263,6 +266,7 @@ class Imager:
         azel_contour_color: str = 'yellow',
         cardinal_directions: str = 'NE',
         origin: tuple = (0.8, 0.1),
+        animation_name: str = None,
         movie_container: str = 'mp4',
         animation_save_dir: Union[pathlib.Path, str]=None,
         ffmpeg_params={},
@@ -307,6 +311,9 @@ class Imager:
             the North and East directions, set cardinal_directions='NE'.
         origin: tuple
             The origin of the cardinal direction arrows.
+        animation_name: str
+            The name of the animation file, otherwise it's format is
+            "YYYYMMDD_HHMMSS_YYYYMMDD_HHMMSS_array_location_fisheye.mp4".
         movie_container: str
             The movie container: mp4 has better compression but avi was determined
             to be the official container for preserving digital video by the
@@ -370,11 +377,14 @@ class Imager:
             f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_{self.meta["array"].lower()}_'
             f'{self.meta["location"].lower()}_fisheye',
         )
-        self.animation_name = (
-            f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
-            f'{self.file_info["time_range"][-1].strftime("%H%M%S")}_'
-            f'{self.meta["array"].lower()}_{self.meta["location"].lower()}_fisheye.{movie_container}'
-        )
+        if animation_name is not None:
+            self.animation_name = animation_name
+        else:
+            self.animation_name = (
+                f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
+                f'{self.file_info["time_range"][-1].strftime("%H%M%S")}_'
+                f'{self.meta["array"].lower()}_{self.meta["location"].lower()}_fisheye.{movie_container}'
+            )
         movie_save_path = image_save_dir.parents[1] / self.animation_name
 
         # If the image directory exists we need to first remove all of the images to avoid
@@ -622,6 +632,9 @@ class Imager:
             Plot one or more cardinal directions specified with a string containing the first
             letter of one or more cardinal directions. Case insensitive. For example, to plot
             the North and East directions, set cardinal_directions='NE'.
+        animation_name: str
+            The name of the animation file, otherwise it's format is
+            "YYYYMMDD_HHMMSS_YYYYMMDD_HHMMSS_array_location_map.mp4".
         movie_container: str
             The movie container: mp4 has better compression but avi was determined
             to be the official container for preserving digital video by the
@@ -671,6 +684,7 @@ class Imager:
         asi_label: bool = True,
         lon_grid:np.ndarray = None,
         lat_grid:np.ndarray = None,
+        animation_name: str = None,
         movie_container: str = 'mp4',
         animation_save_dir: Union[pathlib.Path, str]=None,
         ffmpeg_params={},
@@ -731,6 +745,9 @@ class Imager:
         lat_grid:np.ndarray
             Map the image onto a custom latitude grid. Both lon_grid and lat_grid must 
             be specified.
+        animation_name: str
+            The name of the animation file, otherwise it's format is
+            "YYYYMMDD_HHMMSS_YYYYMMDD_HHMMSS_array_location_map.mp4".
         movie_container: str
             The movie container: mp4 has better compression but avi was determined
             to be the official container for preserving digital video by the
@@ -806,11 +823,14 @@ class Imager:
             f'{self.meta["location"].lower()}_map',
         )
 
-        self.animation_name = (
-            f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
-            f'{self.file_info["time_range"][-1].strftime("%H%M%S")}_'
-            f'{self.meta["array"].lower()}_{self.meta["location"].lower()}_map.{movie_container}'
-        )
+        if animation_name is not None:
+            self.animation_name = animation_name
+        else:
+            self.animation_name = (
+                f'{self.file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
+                f'{self.file_info["time_range"][-1].strftime("%H%M%S")}_'
+                f'{self.meta["array"].lower()}_{self.meta["location"].lower()}_map.{movie_container}'
+            )
         movie_save_path = image_save_dir.parents[1] / self.animation_name
         # If the image directory exists we need to first remove all of the images to avoid
         # animating images produced by different method calls.

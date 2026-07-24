@@ -275,21 +275,54 @@ class OSE:
 
         return
 
-    def animate_ose(self, ax=None, bx=None, color_bounds=None):
-        g = self.animate_ose_gen(ax=ax, bx=bx, color_bounds=color_bounds)
+    def animate_ose(self, ax=None, bx=None, color_bounds=None, **kwargs):
+        """
+        Animate the Observational System Experiment (OSE) images.
+
+        Parameters
+        ----------
+        ax: matplotlib.axes.Axes, optional
+            The axis on which to plot the ASI mosaic, orbit tracks, and FOVs. 
+            If None, a new figure and axis are created.
+        bx: matplotlib.axes.Axes, optional
+            The axis on which to plot the OSE images. If None, a new figure and axis 
+            are created with one row with columns for each satellite.
+        color_bounds: list, optional
+            The color bounds for the images. If None, the default color bounds are used.
+
+        Returns
+        -------
+        None
+        """
+        g = self.animate_ose_gen(ax=ax, bx=bx, color_bounds=color_bounds, **kwargs)
         for _ in g:
             pass
         return
 
-    def animate_ose_gen(self, ax=None, bx=None, color_bounds=None):
+    def animate_ose_gen(self, ax=None, bx=None, color_bounds=None, **kwargs):
         """
-        
-        """
-        # TODO: Remove after debugging.
-        import time
-        print('Enable breakpoints now...')
-        time.sleep(2)
+        Animate the Observational System Experiment (OSE) image generator.
 
+        Parameters
+        ----------
+        ax: matplotlib.axes.Axes, optional
+            The axis on which to plot the ASI mosaic, orbit tracks, and FOVs. 
+            If None, a new figure and axis are created.
+        bx: matplotlib.axes.Axes, optional
+            The axis on which to plot the OSE images. If None, a new figure and axis 
+            are created with one row with columns for each satellite.
+        color_bounds: list, optional
+            The color bounds for the images. If None, the default color bounds are used.
+        kwargs: dict
+            Additional keyword arguments. The complete list of kwargs is in the 
+            :py:meth:`~asilib.Imagers.animate_map_gen` documentation.
+
+        Returns
+        -------
+        generator
+            A generator that yields the guide_time, ax, bx, images, and 
+            (lon_perimeter, lat_perimeter) tuple
+        """
         if color_bounds is None:
             color_bounds = self.imagers.imagers[0].auto_color_bounds()
 
@@ -395,7 +428,9 @@ class OSE:
                     transform=ccrs.PlateCarree(),
                     )
                 _perimeter_plots.append(_perimiter_plot)
+            yield guide_time, ax, bx, images, (lon_perimeter, lat_perimeter)
         return
+
 
 class Ellipsoid_alt:
     """
@@ -420,640 +455,6 @@ class Ellipsoid_alt:
         self.flattening = (self.semimajor_axis - self.semiminor_axis) / self.semimajor_axis
         self.thirdflattening = (self.semimajor_axis - self.semiminor_axis) / (self.semimajor_axis + self.semiminor_axis)
         self.eccentricity = np.sqrt(2 * self.flattening - self.flattening ** 2)
-
-@dataclasses.dataclass
-class ASI_OSE_Animation:
-    """
-    Calculate the THEMIS ASI white-light intensity inside a space-based imager FOV.
-
-    Parameters
-    ----------
-    time_range: Tuple[datetime]
-        Defines the time range for the OSE plot.
-    fov: Tuple[float]
-        The field of view of the AIC in degrees.
-    resolution: Tuple[int]
-        The resolution of the AIC in pixels (width, height).
-    ona: float
-        The off-nadir angle between nadir and the imager's center FOV vectors. If 0, the center of
-        the FOV is pointing towards the nadir and if 90 it points at the limb.
-    azimuth: float
-        The azimuth angle of the AIC FOV measured clockwise from north.
-    lampsat_alt: float
-        The altitude of the LAMPsat in kilometers.
-    themis_location_code: str
-        The THEMIS location code, e.g., 'WHIT' for THEMIS ASI.
-    aurora_alt: float
-        The altitude of the aurora in kilometers.
-    """
-    time_range:Tuple[datetime]
-    fov:Tuple[float]=(45, 30)
-    resolution:Tuple[int]=(64, 64)
-    ona:float=0,
-    azimuth:float=0,
-    lampsat_alt:float=500
-    themis_location_code:str='WHIT'
-    aurora_alt:float=110
-    checkerboard:bool=True
-    lon_bounds:Tuple[float]=None
-    lat_bounds:Tuple[float]=None
-    color_bounds:Tuple[int]=None
-    detrend_hilt:bool=False
-    detrend_duration_s:float=5
-    detrend_quantile:float=0.5
-    hilt_logscale:bool=True
-    hilt_ylim:tuple=(-20, 4*10**3)
-
-    def __post_init__(self):
-        self.xx, self.yy = np.meshgrid(
-            np.linspace(-self.fov[1]/2, self.fov[1]/2, self.resolution[1]),
-            np.linspace(-self.fov[0]/2, self.fov[0]/2, self.resolution[0]),
-            )
-        self.xx += np.sin(np.deg2rad(self.azimuth))*self.ona
-        self.yy += np.cos(np.deg2rad(self.azimuth))*self.ona
-        self.tilts = np.sqrt(self.xx**2 + self.yy**2)
-        self.azs = np.rad2deg(np.arctan2(self.yy, self.xx))
-        self._checkerboard = np.zeros((10, 10), dtype=bool)
-        self._checkerboard[::2, ::2] = True
-        self._checkerboard[1::2, 1::2] = True
-        self._checkerboard_xx, self._checkerboard_yy = np.meshgrid(
-            np.linspace(0, self.resolution[0], num=self._checkerboard.shape[0]+1),
-            np.linspace(0, self.resolution[1], num=self._checkerboard.shape[1]+1)
-            )
-
-    
-    def load_data(self):
-        self.asi = asilib.asi.themis(self.themis_location_code, time_range=self.time_range, alt=self.aurora_alt)
-
-        if self.color_bounds is None:
-            self.color_bounds = self.asi.auto_color_bounds()
-
-        footprint_obj = SAMPEX_footprint(self.time_range)
-        low_alt_footprint = footprint_obj.map_down(alt=self.aurora_alt)
-        high_alt_footprint = footprint_obj.map_up(alt=self.lampsat_alt, sysout='GDZ')
-
-        self.hilt = sampex.HILT(self.time_range[0]).load()
-        if self.detrend_hilt:
-            N = int(self.detrend_duration_s/20E-3)
-            trend = self.hilt.rolling(N, center=True).quantile(self.detrend_quantile)
-            # Can't use "-" here due to memory allocation issues.
-            self.hilt['counts'] = self.hilt.sub(trend)
-        self.hilt = self.hilt.loc[self.time_range[0]:self.time_range[1], :]
-
-        conjunction_obj = asilib.Conjunction(
-            self.asi, 
-            pd.DataFrame(
-                index=low_alt_footprint.index, 
-                data={
-                    'Lat':low_alt_footprint['GEO_Lat'], 
-                    'Lon':low_alt_footprint['GEO_Long'], 
-                    'Alt':low_alt_footprint['Altitude']}
-                ),
-            )
-        self.low_alt_footprint = conjunction_obj.interp_sat()
-        self.asi_nearest_count_intensity, _ = conjunction_obj.intensity(box=None)
-
-        # Apply the Gabrielse+2021 THEMIS ASI-> 557.7 nm intensity conversion.
-        # https://doi.org/10.3389/fphy.2021.744298
-        self.asi_557_intensity = np.nan*np.zeros_like(self.asi_nearest_count_intensity)
-        self.asi_557_intensity[self.asi_nearest_count_intensity>600] = \
-            10**(1.20+0.93*np.log10(self.asi_nearest_count_intensity[self.asi_nearest_count_intensity>600]))
-        self.asi_557_intensity[self.asi_nearest_count_intensity<=600] = \
-            10**(1.54+0.81*np.log10(self.asi_nearest_count_intensity[self.asi_nearest_count_intensity<=600]))
-
-        conjunction_obj = asilib.Conjunction(
-            self.asi, 
-            pd.DataFrame(
-                index=high_alt_footprint.index, 
-                data={
-                    'Lat':high_alt_footprint['GEO_Lat'], 
-                    'Lon':high_alt_footprint['GEO_Long'], 
-                    'Alt':high_alt_footprint['Altitude']}
-                ),
-            )
-        self.high_alt_footprint = conjunction_obj.interp_sat()
-        return
-    
-    def animate(self):
-        fig = plt.figure(figsize=(9, 7))
-        spec = gridspec.GridSpec(nrows=2, ncols=2, figure=fig, height_ratios=(2, 1))
-        self.ax = asilib.map.create_map(lon_bounds=lon_bounds, lat_bounds=lat_bounds, fig_ax=(fig, spec[0, 0]))
-        self.bx = fig.add_subplot(spec[0, 1])
-        self.cx = fig.add_subplot(spec[1, :])
-
-        self.bx.xaxis.set_visible(False)
-        self.bx.yaxis.set_visible(False)
-
-        self.ax.plot(
-            self.low_alt_footprint.loc[:, 'lon'], 
-            self.low_alt_footprint.loc[:, 'lat'], 
-            'r:', 
-            transform=ccrs.PlateCarree()
-            )
-
-        self.cx.plot(self.hilt.index, self.hilt['counts'], c='r')
-        self.cx.xaxis.set_minor_locator(matplotlib.dates.SecondLocator(interval=5))
-        self.cx.set_xlim(*time_range)
-        if self.hilt_logscale:
-            self.cx.set_yscale('log')
-        self.cx.set_ylim(*self.hilt_ylim)
-        self.cx.set_ylabel(f'[counts/20 ms]')
-        self.cx.xaxis.set_major_locator(matplotlib.dates.SecondLocator(interval=30))
-        manylabels.ManyLabels(
-            self.cx, 
-            self.high_alt_footprint, 
-            label_coord=(-0.08, -0.09)
-            )
-        
-        plt.subplots_adjust(
-            top=0.91,
-            bottom=0.12,
-            left=0.09,
-            right=0.95,
-            hspace=0.07,
-            wspace=0.01
-        )
-
-        if self.detrend_hilt:
-            _detrend = 'Detrended'
-        else:
-            _detrend = ''
-        _aic_label = self.bx.text(
-            0.01, 0.96, f'({string.ascii_lowercase[1]}) AIC FOV', va='center', 
-            transform=self.bx.transAxes, weight='bold', fontsize=15
-        )
-        _aic_label.set_bbox(dict(facecolor='white', pad=0.25))
-
-        self.cx.text(
-            0, 0.99, f'({string.ascii_lowercase[2]}) {_detrend} SAMPEX-HILT >1 MeV electrons', va='top', 
-            transform=self.cx.transAxes, weight='bold', fontsize=15
-            )
-        plt.suptitle(
-                f'LAMPsat OSE | FOV={self.fov[0]}x{self.fov[1]} [$^{{\\circ}}$] | resolution={self.resolution[0]}x{self.resolution[1]} px\n'
-                f'{time_range[0].strftime("%Y-%m-%d %H:%M:%S")} - '
-                f'{time_range[1].strftime("%H:%M:%S")}', fontsize=15
-                )
-
-        gen = self.asi.animate_map_gen(
-            ax=self.ax, 
-            asi_label=False, 
-            lon_bounds=lon_bounds, 
-            lat_bounds=lat_bounds,
-            color_bounds=color_bounds, 
-            pcolormesh_kwargs={'rasterized':True},
-            overwrite=True,
-            ffmpeg_params={'framerate':5},
-            timestamp=False,
-            )
-        
-        legend_plotted = False
-        for i, (time, image, _, im) in enumerate(gen):
-            if '_footprint_dot' in locals():
-                # This is one way I found to clean up an added plotting object.
-                _footprint_dot.remove()
-                _vertical_line.remove()
-                _lampsat_dot.remove()
-                _lampsat_fov_dot.remove()
-                _asi_timestamp.remove()
-                try:
-                    _perimiter_plot.remove()
-                except TypeError:
-                    del(_perimiter_plot)
-                p3.remove()
-
-            _asi_timestamp = self.ax.text(
-                0.01, 0.96, 
-                f'(a) THEMIS ASI {time:%H:%M:%S}', 
-                va='center',
-                transform=self.ax.transAxes, 
-                weight='bold', 
-                fontsize=15
-                )
-            _asi_timestamp.set_bbox(dict(facecolor='white', pad=0.25))
-
-            footprint_idx = self.high_alt_footprint.index.get_indexer(
-                [time], method='nearest', tolerance=pd.Timedelta(seconds=2)
-                )
-            lampsat_lon_lat = self.high_alt_footprint.iloc[footprint_idx][['lon', 'lat']].values[0]
-            footprint_lon_lat = self.low_alt_footprint.iloc[footprint_idx][['lon', 'lat']].values[0]
-            if np.isnan(self.high_alt_footprint.iloc[footprint_idx]['lat']).values:
-                continue
-
-            _lampsat_dot = self.ax.scatter(
-                lampsat_lon_lat[0], 
-                lampsat_lon_lat[1], 
-                c='blue', s=100, marker='x',
-                transform=ccrs.PlateCarree(),
-                label=f'Satellite at {lampsat_alt} km'
-                )
-            _footprint_dot = self.ax.scatter(
-                footprint_lon_lat[0], 
-                footprint_lon_lat[1], 
-                c='red', s=150, marker='.',
-                transform=ccrs.PlateCarree(),
-                label=f'Footprint at {aurora_alt} km'
-                )
-            _vertical_line = self.cx.axvline(
-                time, c='k', ls='--'
-                )
-            
-            if not legend_plotted:
-                self.ax.legend(loc='lower right', fontsize=12, framealpha=0.5)
-                legend_plotted = True
-            
-            aic_lons, aic_lats = self._calc_aic_skymap(time)
-            footprint_px = self.footprint_fov(
-                aic_lons, aic_lats, footprint_lon_lat[0], footprint_lon_lat[1]
-                )
-
-            asis = asilib.Imagers(self.asi[time])
-            lat_lon_points, intensities = asis.get_points()
-            interp_grid = scipy.interpolate.griddata(lat_lon_points, intensities, (aic_lats, aic_lons), method='cubic')
-
-            interp_grid_copy = interp_grid.copy()
-            # We need to mask out the gridded points that are far away from the original points as NaNs and this
-            # is the most efficient way (source: https://stackoverflow.com/a/31189177)
-            tree = cKDTree(lat_lon_points)
-            xi = np.stack((aic_lats, aic_lons), axis=-1)
-            dists, _ = tree.query(xi, distance_upper_bound=0.15)
-            interp_grid_copy[~np.isfinite(dists)] = np.nan
-
-            lon_perimeter = np.concatenate((
-                aic_lons[0, :], 
-                aic_lons[:, -1], 
-                aic_lons[-1, ::-1], 
-                aic_lons[::-1, 0]
-                ))
-            lat_perimeter = np.concatenate((
-                aic_lats[0, :], 
-                aic_lats[:, -1], 
-                aic_lats[-1, ::-1], 
-                aic_lats[::-1, 0]
-                ))
-
-            _perimiter_plot, = self.ax.plot(
-                lon_perimeter, 
-                lat_perimeter, 
-                ls='--', 
-                color='purple', 
-                lw=2, 
-                zorder=2.1, 
-                transform=ccrs.PlateCarree(),
-                )
-            if self.checkerboard:
-                self.bx.pcolormesh(self._checkerboard_xx, self._checkerboard_yy, self._checkerboard, cmap='Reds', vmin=0, vmax=1, rasterized=True)
-            p3 = self.bx.pcolormesh(
-                interp_grid_copy.T, 
-                cmap='Greys_r', 
-                vmin=self.color_bounds[0], 
-                vmax=self.color_bounds[1], 
-                rasterized=True
-                )
-            if i == 0:
-                plt.colorbar(p3, ax=self.bx, label='THEMIS ASI intensity [counts]')
-            _lampsat_fov_dot = self.bx.scatter(
-                footprint_px[0], 
-                footprint_px[1], 
-                c='red', s=150, marker='.'
-                )
-        return
-    
-    def _calc_aic_skymap(self, time):
-        """
-        Calculat the AIC latitude and logitude skymaps for a given time.
-        """
-        footprint_idx = self.high_alt_footprint.index.get_indexer(
-                [time], method='nearest', tolerance=pd.Timedelta(seconds=2)
-                )
-            
-        aic_lons = np.zeros_like(self.azs).flatten()
-        aic_lats = np.zeros_like(self.azs).flatten()
-        for k, (azs_i, tilt_i) in enumerate(zip(self.azs.flatten(), self.tilts.flatten())):
-            aic_lats[k], aic_lons[k], _ = pymap3d.los.lookAtSpheroid(
-                self.high_alt_footprint.iloc[footprint_idx]['lat'], 
-                self.high_alt_footprint.iloc[footprint_idx]['lon'], 
-                1e3*self.high_alt_footprint.iloc[footprint_idx]['alt'],
-                azs_i,
-                tilt_i,
-                ell=Ellipsoid_alt(1e3*aurora_alt)
-                )
-        aic_lons = aic_lons.reshape(self.azs.shape)
-        aic_lats = aic_lats.reshape(self.azs.shape)
-        return aic_lons, aic_lats
-
-    def footprint_fov(self, aic_lons, aic_lats, footprint_lon, footprint_lat):
-        """
-        Calculate the pixel indices of the footprint that is inside the AIC FOV.
-
-        Parameters
-        ----------
-        aic_lons: np.ndarray
-            The longitude grid of the AIC FOV.
-        aic_lats: np.ndarray
-            The latitude grid of the AIC FOV.
-        footprint_lon: float
-            The longitude of the footprint.
-        footprint_lat: float
-            The latitude of the footprint.
-        """
-        dists = haversine(
-            aic_lats,
-            aic_lons,
-            footprint_lat*np.ones_like(aic_lats), 
-            footprint_lon*np.ones_like(aic_lats),
-            r=R_e
-            )
-        idx = np.argmin(dists)
-        if dists.flatten()[idx] > 20:
-            return np.array([np.nan, np.nan])
-        # plt.close()
-        # plt.hist(dists.flatten(), bins=np.arange(50))
-        # plt.show()
-        # raise NotImplementedError
-        return np.unravel_index(idx, aic_lats.shape)
-
-
-@dataclasses.dataclass
-class ASI_OSE_Montage():
-    """
-    Calculate the THEMIS ASI white-light intensity inside a space-based imager FOV and make a montage plot at n time stamps.
-
-    Parameters
-    ----------
-    time_range: Tuple[datetime]
-        Defines the time range for the OSE plot.
-    fov: Tuple[float]
-        The field of view of the AIC in degrees.
-    resolution: Tuple[int]
-        The resolution of the AIC in pixels (width, height).
-    ona: float
-        The off-nadir angle between nadir and the imager's center FOV vectors. If 0, the center of
-        the FOV is pointing towards the nadir and if 90 it points at the limb.
-    azimuth: float
-        The azimuth angle of the AIC FOV measured clockwise from north.
-    lampsat_alt: float
-        The altitude of the LAMPsat in kilometers.
-    themis_location_code: str
-        The THEMIS location code, e.g., 'WHIT' for THEMIS ASI.
-    aurora_alt: float
-        The altitude of the aurora in kilometers.
-    times: int | Tuple[datetime]
-        The number of time stamps to plot or a tuple of specific datetime objects.
-        If an integer is provided, it will plot that many evenly spaced time stamps 
-        within the time_range.
-    """
-    time_range:Tuple[datetime]
-    fov:Tuple[float]=(45, 30)
-    resolution:Tuple[int]=(64, 64)
-    ona:float=0,
-    azimuth:float=0,
-    lampsat_alt:float=500
-    themis_location_code:str='WHIT'
-    aurora_alt:float=110
-    times:int | Tuple[datetime] = 4
-    lon_bounds:Tuple[float]=None
-    lat_bounds:Tuple[float]=None 
-    color_bounds:Tuple[int]=None
-    checkerboard:bool=True
-    detrend_hilt:bool=False
-    detrend_duration_s:float=5
-    detrend_quantile:float=0.5
-    hilt_logscale:bool=True
-    hilt_ylim:tuple=(-20, 4*10**3)
-
-    def __post_init__(self):
-        self.ose_animation = ASI_OSE_Animation(
-            self.time_range, 
-            fov=self.fov, 
-            resolution=self.resolution,
-            ona=self.ona,
-            azimuth=self.azimuth,
-            lampsat_alt=self.lampsat_alt, 
-            themis_location_code=self.themis_location_code, 
-            aurora_alt=self.aurora_alt,
-            lon_bounds=self.lon_bounds,
-            lat_bounds=self.lat_bounds,
-            color_bounds=self.color_bounds,
-            detrend_hilt=self.detrend_hilt,
-            detrend_duration_s=self.detrend_duration_s,
-            detrend_quantile=self.detrend_quantile,
-            hilt_logscale=self.hilt_logscale,
-            hilt_ylim=self.hilt_ylim
-        )
-        if isinstance(self.times, int):
-            if self.times < 1:
-                raise ValueError("The number of time stamps must be at least 1.")
-            time_step = (self.time_range[1] - self.time_range[0]) / (self.times+1)
-            self.times = [self.time_range[0] + (i+1) * time_step for i in range(self.times)]
-        return
-    
-    def load_data(self):
-        self.ose_animation.load_data()
-        self.high_alt_footprint = self.ose_animation.high_alt_footprint
-        self.low_alt_footprint = self.ose_animation.low_alt_footprint
-        self.asi = self.ose_animation.asi
-        self.hilt = self.ose_animation.hilt
-        self.asi_nearest_count_intensity = self.ose_animation.asi_nearest_count_intensity
-        self.asi_557_intensity = self.ose_animation.asi_557_intensity
-    
-    def plot_montage(self, cmap='Greys_r', noise_floor=None, sensitivity=None, n_binned_pixels=None):
-        fig = plt.figure(figsize=(9, 9))
-        spec = gridspec.GridSpec(nrows=4, ncols=len(self.times), figure=fig, height_ratios=(1, 1, 1, 1))
-        self.ax = [None] * len(self.times)
-        for i, time in enumerate(self.times):
-            self.ax[i] = asilib.map.create_map(
-                lon_bounds=lon_bounds, lat_bounds=lat_bounds, fig_ax=(fig, spec[0, i])
-                )
-            # ax[i] = fig.add_subplot(spec[0, i], projection=ccrs.PlateCarree())
-        self.bx = [None] * len(self.times)
-        for i, time in enumerate(self.times):
-            self.bx[i] = fig.add_subplot(spec[1, i])
-            self.bx[i].set_aspect('equal')
-
-        self.cx = fig.add_subplot(spec[2, :])
-        if sensitivity is not None:
-            self.count_cx = self.cx.twinx()
-        self.dx = fig.add_subplot(spec[3, :], sharex=self.cx)
-
-        plt.subplots_adjust(
-            top=0.922,
-            bottom=0.05,
-            left=0.083,
-            right=0.895,
-            hspace=0.124,
-            wspace=0.071
-            )
-
-        for i, (ax_i, bx_i, time) in enumerate(zip(self.ax, self.bx, self.times)):
-
-            ax_label = string.ascii_lowercase[i]
-            bx_label = string.ascii_lowercase[len(self.times)+i]
-
-            ax_i.plot(
-                self.low_alt_footprint.loc[:, 'lon'], 
-                self.low_alt_footprint.loc[:, 'lat'], 
-                'r:', 
-                transform=ccrs.PlateCarree()
-                )
-            self.asi[time].plot_map(
-                ax=ax_i, 
-                asi_label=False, 
-                lon_bounds=lon_bounds, 
-                lat_bounds=lat_bounds,
-                pcolormesh_kwargs={'rasterized':True},
-                color_bounds=self.color_bounds,
-            )
-
-            footprint_idx = self.high_alt_footprint.index.get_indexer(
-                [time], method='nearest', tolerance=pd.Timedelta(seconds=2)
-                )
-
-            lampsat_lon_lat = self.high_alt_footprint.iloc[footprint_idx][['lon', 'lat']].values[0]
-            footprint_lon_lat = self.low_alt_footprint.iloc[footprint_idx][['lon', 'lat']].values[0]
-
-            ax_i.scatter(
-                lampsat_lon_lat[0], 
-                lampsat_lon_lat[1], 
-                c='blue', s=100, marker='X',
-                transform=ccrs.PlateCarree(),
-                label=f'Satellite at {lampsat_alt} km'
-                )
-            ax_i.scatter(
-                footprint_lon_lat[0], 
-                footprint_lon_lat[1], 
-                c='red', s=150, marker='.',
-                transform=ccrs.PlateCarree(),
-                label=f'Footprint at {aurora_alt} km'
-                )
-            
-            aic_lons, aic_lats = self.ose_animation._calc_aic_skymap(time)
-            footprint_px = self.ose_animation.footprint_fov(
-                aic_lons, aic_lats, footprint_lon_lat[0], footprint_lon_lat[1]
-                )
-            asis = asilib.Imagers(self.asi[time])
-            lat_lon_points, intensities = asis.get_points()
-            interp_grid = scipy.interpolate.griddata(lat_lon_points, intensities, (aic_lats, aic_lons), method='cubic')
-
-            interp_grid_copy = interp_grid.copy()
-            # We need to mask out the gridded points that are far away from the original points as NaNs and this
-            # is the most efficient way (source: https://stackoverflow.com/a/31189177)
-            tree = cKDTree(lat_lon_points)
-            xi = np.stack((aic_lats, aic_lons), axis=-1)
-            xi_finite = xi.copy()
-            xi_finite[~np.isfinite(xi_finite)] = -999  # tree.query can take only finite values.
-            dists, _ = tree.query(xi_finite, distance_upper_bound=0.15)
-            interp_grid_copy[
-                ~np.isfinite(dists) | 
-                ~np.isfinite(xi[..., 0]) | 
-                ~np.isfinite(xi[..., 1])
-                ] = np.nan
-
-            lon_perimeter = np.concatenate((
-                aic_lons[0, :], 
-                aic_lons[:, -1], 
-                aic_lons[-1, ::-1], 
-                aic_lons[::-1, 0]
-                ))
-            lat_perimeter = np.concatenate((
-                aic_lats[0, :], 
-                aic_lats[:, -1], 
-                aic_lats[-1, ::-1], 
-                aic_lats[::-1, 0]
-                ))
-
-            _perimiter_plot, = ax_i.plot(
-                lon_perimeter, 
-                lat_perimeter, 
-                ls='--', 
-                color='purple', 
-                lw=2, 
-                zorder=2.1,
-                transform=ccrs.PlateCarree(),
-                )
-
-            if self.checkerboard:
-                bx_i.pcolormesh(
-                    self.ose_animation._checkerboard_xx, 
-                    self.ose_animation._checkerboard_yy, 
-                    self.ose_animation._checkerboard, 
-                    cmap='Reds', 
-                    vmin=0, 
-                    vmax=1, 
-                    rasterized=True,
-                    )
-            p3 = bx_i.pcolormesh(
-                interp_grid_copy.T, 
-                cmap=cmap, 
-                vmin=self.color_bounds[0], 
-                vmax=self.color_bounds[1]
-                )
-            bx_i.scatter(
-                footprint_px[0], 
-                footprint_px[1], 
-                c='red', s=150, marker='.'
-                )
-
-            _text = ax_i.text(
-                0.01, 0.99, f'({ax_label}) {time:%H:%M:%S}', va='top', transform=ax_i.transAxes, fontsize=14
-                )
-            _text.set_bbox(dict(facecolor='white', linewidth=0, pad=0.1, edgecolor='k'))
-            _text = bx_i.text(
-                0.01, 0.99, f'({bx_label})', va='top', transform=bx_i.transAxes, fontsize=14
-                )
-            _text.set_bbox(dict(facecolor='white', linewidth=0, pad=0.1, edgecolor='k'))
-
-            bx_i.xaxis.set_visible(False)
-            bx_i.yaxis.set_visible(False)
-
-        self.cx.plot(self.asi.data.time, self.asi_557_intensity/2E3)
-        self.cx.set_ylabel(f'391.4 nm Intensity [kR]')
-        if sensitivity is not None:
-            self.aic_391_counts = self.asi_557_intensity.copy()
-            self.aic_391_counts -= noise_floor
-            self.aic_391_counts /= sensitivity
-            self.aic_391_counts *= n_binned_pixels
-            self.count_cx.plot(self.asi.data.time, self.aic_391_counts/1E3, c='purple', lw=2)
-            self.count_cx.set_ylabel(f'1000*cts/0.5 s/binned pixel')
-        plt.setp(self.cx.get_xticklabels(), visible=False)
-            
-        self.dx.plot(self.hilt.index, self.hilt['counts'], c='r')
-        self.dx.xaxis.set_minor_locator(matplotlib.dates.SecondLocator(interval=5))
-        self.dx.set_xlim(*time_range)
-        if self.hilt_logscale:
-            self.dx.set_yscale('log')
-            self.dx.set_ylim(*self.hilt_ylim)
-        else:
-            self.dx.set_ylim(*self.hilt_ylim)
-        self.dx.set_ylabel(f'[counts/20 ms]')
-        self.dx.xaxis.set_major_locator(matplotlib.dates.SecondLocator(interval=30))
-
-        # Connect the subplots and add vertical lines to cx and dx.
-        for bx_i, image_time_numeric in zip(self.bx, matplotlib.dates.date2num(self.times)):
-            line = matplotlib.patches.ConnectionPatch(
-                xyA=(0.5, 0), coordsA=bx_i.transAxes,
-                xyB=(image_time_numeric, self.cx.get_ylim()[1]), coordsB=self.cx.transData, 
-                ls='--')
-            bx_i.add_artist(line)
-            self.cx.axvline(image_time_numeric, c='k', ls='--', alpha=1)
-            self.dx.axvline(image_time_numeric, c='k', ls='--', alpha=1)
-
-        manylabels.ManyLabels(
-            self.dx, 
-            self.high_alt_footprint, 
-            label_coord=(-0.07, -0.05)
-            )
-        self.cx.text(0, 0.99, f'({string.ascii_lowercase[2*len(self.times)]}) 391.4 nm emission and AIC counts', va='top', 
-            transform=self.cx.transAxes, fontsize=14
-            )
-        self.dx.text(0, 0.99, f'({string.ascii_lowercase[2*len(self.times)+1]}) SAMPEX-HILT >1 MeV electrons', va='top', 
-            transform=self.dx.transAxes, fontsize=14
-            )
-        
-        plt.suptitle(
-            f'LAMPsat OSE | FOV={self.fov}\nresolution={self.resolution} px | '
-            f'{time_range[0].strftime("%Y-%m-%d %H:%M:%S")} - '
-            f'{time_range[1].strftime("%H:%M:%S")}', fontsize=15)
-        return
 
 
 def getmarker(mID):
@@ -1083,49 +484,65 @@ if __name__ == '__main__':
         'GILL',
         ]
     
-    asis = asilib.Imagers([asilib.asi.themis(code, time_range=time_range) for code in location_codes])
+    asis = asilib.Imagers(
+        [asilib.asi.themis(code, time_range=time_range) for code in location_codes]
+        )
 
     # Create the CINEMA constellation ephemeris.
-    orbit_parameter_type = namedtuple('orbit_parameter_type', ['mean_anomaly_deg', 'ltan_hours'])
+    orbit_parameter_type = namedtuple(
+        'orbit_parameter_type', 
+        ['mean_anomaly_deg', 'ltan_hours', 'alt_km']
+        )
     in_track_separation_minutes = 5
+    orbit_period_minutes = 95
     mean_anomaly_deg = 35
-    delta_mean_anomaly_deg = 360*in_track_separation_minutes/95
+    sat_alt = 500
+    delta_mean_anomaly_deg = 360*in_track_separation_minutes/orbit_period_minutes
     constellation = {
         1:orbit_parameter_type(
             mean_anomaly_deg=mean_anomaly_deg+delta_mean_anomaly_deg, 
-            ltan_hours=1
+            ltan_hours=1,
+            alt_km=sat_alt,
             ),
         2:orbit_parameter_type(
             mean_anomaly_deg=mean_anomaly_deg+delta_mean_anomaly_deg, 
-            ltan_hours=2
+            ltan_hours=2,
+            alt_km=sat_alt,
             ),
         3:orbit_parameter_type(
             mean_anomaly_deg=mean_anomaly_deg+delta_mean_anomaly_deg, 
-            ltan_hours=3
+            ltan_hours=3,
+            alt_km=sat_alt,
             ),
         4:orbit_parameter_type(
             mean_anomaly_deg=mean_anomaly_deg, 
-            ltan_hours=1
+            ltan_hours=1,
+            alt_km=sat_alt,
             ),
         5:orbit_parameter_type(
             mean_anomaly_deg=mean_anomaly_deg, 
-            ltan_hours=2
+            ltan_hours=2,
+            alt_km=sat_alt,
             ),
         6:orbit_parameter_type(
             mean_anomaly_deg=mean_anomaly_deg, 
-            ltan_hours=3
+            ltan_hours=3,
+            alt_km=sat_alt,
             ),
         7:orbit_parameter_type(
             mean_anomaly_deg=mean_anomaly_deg-delta_mean_anomaly_deg, 
-            ltan_hours=1
+            ltan_hours=1,
+            alt_km=sat_alt,
             ),
         8:orbit_parameter_type(
             mean_anomaly_deg=mean_anomaly_deg-delta_mean_anomaly_deg, 
-            ltan_hours=2
+            ltan_hours=2,
+            alt_km=sat_alt,
             ),
         9:orbit_parameter_type(
             mean_anomaly_deg=mean_anomaly_deg-delta_mean_anomaly_deg, 
-            ltan_hours=3
+            ltan_hours=3,
+            alt_km=sat_alt,
             ),
     }
     ephemeris = [None, None]
@@ -1135,6 +552,7 @@ if __name__ == '__main__':
             time_range=time_range,
             mean_anomaly_deg=value.mean_anomaly_deg,
             ltan_hours=value.ltan_hours,
+            altitude_km=value.alt_km,
         )
         sat_ephemeris = ephemeris_obj.ephemeris()
         if ephemeris[0] is None:
@@ -1169,11 +587,6 @@ if __name__ == '__main__':
         crs=cartopy.crs.PlateCarree()
         )
 
-    # ax = asilib.map.create_map(
-    #     lon_bounds=asis.lon_bounds, 
-    #     lat_bounds=(asis.lat_bounds[0]-1, asis.lat_bounds[1]+1), 
-    #     fig_ax=(fig, gs[0, :])
-    #     )
     bx = np.nan*np.zeros((3, 3), dtype=object)
     for i in range(3):
         for j in range(3):
@@ -1181,7 +594,11 @@ if __name__ == '__main__':
             bx[i, j].set_aspect('equal')
             bx[i, j].xaxis.set_visible(False)
             bx[i, j].yaxis.set_visible(False)
-    plt.suptitle(f'CINEMA OSE\n fov={ose.fov} [deg] | resolution={ose.pixel_resolution} [px]', fontsize=10)
+    plt.suptitle(
+        f'CINEMA OSE | fov={ose.fov} [deg]\n'
+        f'alt={sat_alt} [km] | resolution={ose.pixel_resolution} [px]', 
+        fontsize=12
+        )
     plt.subplots_adjust(
         bottom=0.01, top=0.95, left=0.01, right=0.99, wspace=0.03, hspace=0.03
     )
