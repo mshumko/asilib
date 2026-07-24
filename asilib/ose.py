@@ -355,7 +355,7 @@ class OSE:
         
         for i, (guide_time, image, _, im) in enumerate(g):
             if i == 0:
-                for _ephemeris in np.moveaxis(ephemeris[1], -1, 0):
+                for _ephemeris in np.moveaxis(self.ephemeris[1], -1, 0):
                     self.ax.plot(_ephemeris[:, 1], _ephemeris[:, 0], 'k:', transform=ccrs.PlateCarree())
 
                 for j, bx_i in enumerate(self.bx.flatten()):
@@ -381,7 +381,7 @@ class OSE:
             _images = []
             _perimeter_plots = []
 
-            for j, _ephemeris in enumerate(np.moveaxis(ephemeris[1], -1, 0)):
+            for j, _ephemeris in enumerate(np.moveaxis(self.ephemeris[1], -1, 0)):
                 ephemeris_time_np = np.array(self.ephemeris[0], dtype='datetime64')
                 ephemeris_time_dt = np.abs(ephemeris_time_np-np.datetime64(guide_time))
                 closest_idt = np.argmin(ephemeris_time_dt)
@@ -469,10 +469,15 @@ def getmarker(mID):
 
 
 if __name__ == '__main__':
+
+    import itertools
+    from datetime import datetime
+
     import cartopy.crs
     import cartopy.feature as cfeature
     from asilib.mission import example_satellite
-    from datetime import datetime
+    import asilib
+    import asilib.ose
 
     time_range = (datetime(2012, 2, 15, 8, 30), datetime(2012, 2, 15, 8, 45))
 
@@ -489,8 +494,8 @@ if __name__ == '__main__':
         )
 
     # Create the CINEMA constellation ephemeris.
-    orbit_parameter_type = namedtuple(
-        'orbit_parameter_type', 
+    orbit_parameter_tuple_type = namedtuple(
+        'orbit_parameter_tuple_type', 
         ['mean_anomaly_deg', 'ltan_hours', 'alt_km']
         )
     in_track_separation_minutes = 5
@@ -498,53 +503,21 @@ if __name__ == '__main__':
     mean_anomaly_deg = 35
     sat_alt = 500
     delta_mean_anomaly_deg = 360*in_track_separation_minutes/orbit_period_minutes
+
+    ltan_hours = [1, 2, 3]
+    mean_anomalies = [
+        mean_anomaly_deg+delta_mean_anomaly_deg, 
+        mean_anomaly_deg, 
+        mean_anomaly_deg-delta_mean_anomaly_deg
+        ]
     constellation = {
-        1:orbit_parameter_type(
-            mean_anomaly_deg=mean_anomaly_deg+delta_mean_anomaly_deg, 
-            ltan_hours=1,
+        i:orbit_parameter_tuple_type(
+            mean_anomaly_deg=mean_anomaly, 
+            ltan_hours=ltan,
             alt_km=sat_alt,
-            ),
-        2:orbit_parameter_type(
-            mean_anomaly_deg=mean_anomaly_deg+delta_mean_anomaly_deg, 
-            ltan_hours=2,
-            alt_km=sat_alt,
-            ),
-        3:orbit_parameter_type(
-            mean_anomaly_deg=mean_anomaly_deg+delta_mean_anomaly_deg, 
-            ltan_hours=3,
-            alt_km=sat_alt,
-            ),
-        4:orbit_parameter_type(
-            mean_anomaly_deg=mean_anomaly_deg, 
-            ltan_hours=1,
-            alt_km=sat_alt,
-            ),
-        5:orbit_parameter_type(
-            mean_anomaly_deg=mean_anomaly_deg, 
-            ltan_hours=2,
-            alt_km=sat_alt,
-            ),
-        6:orbit_parameter_type(
-            mean_anomaly_deg=mean_anomaly_deg, 
-            ltan_hours=3,
-            alt_km=sat_alt,
-            ),
-        7:orbit_parameter_type(
-            mean_anomaly_deg=mean_anomaly_deg-delta_mean_anomaly_deg, 
-            ltan_hours=1,
-            alt_km=sat_alt,
-            ),
-        8:orbit_parameter_type(
-            mean_anomaly_deg=mean_anomaly_deg-delta_mean_anomaly_deg, 
-            ltan_hours=2,
-            alt_km=sat_alt,
-            ),
-        9:orbit_parameter_type(
-            mean_anomaly_deg=mean_anomaly_deg-delta_mean_anomaly_deg, 
-            ltan_hours=3,
-            alt_km=sat_alt,
-            ),
-    }
+            ) for i, (mean_anomaly, ltan) in enumerate(itertools.product(mean_anomalies, ltan_hours))
+        }
+    
     ephemeris = [None, None]
     for key, value in constellation.items():
         ephemeris_obj = example_satellite.Example_Satellite(
@@ -563,7 +536,7 @@ if __name__ == '__main__':
                 (ephemeris[1], sat_ephemeris[1].reshape(*sat_ephemeris[1].shape, 1)), axis=2
                 )
 
-    ose = OSE(asis, ephemeris, fov=(80, 80), pixel_resolution=(124, 124))
+    ose = asilib.ose.OSE(asis, ephemeris, fov=(80, 80), pixel_resolution=(124, 124))
 
     fig = plt.figure(figsize=(4, 7.5))
     gs = gridspec.GridSpec(nrows=4, ncols=3, figure=fig, height_ratios=(3, 1, 1, 1))
