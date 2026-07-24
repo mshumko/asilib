@@ -187,24 +187,51 @@ class OSE:
             images = images[:, :, 0]
         return images
 
-    def get_mapped_fov(self, time, lla):
+    def get_mapped_fov(self, time):
         """
         Get the mapped field of view (FOV) of the imager for a given time and satellite location.
         """
-        lat_skymap, lon_skymap = self.imager_skymap(time, lla)
+        if self.n_satellites == 1:
+            _ephemeris = self.ephemeris[1].reshape(*self.ephemeris[1].shape, 1)
+        else:
+            _ephemeris = self.ephemeris[1]
 
-        lon_perimeter = np.concatenate((
-            lon_skymap[0, :], 
-            lon_skymap[:, -1], 
-            lon_skymap[-1, ::-1], 
-            lon_skymap[::-1, 0]
-            ))
-        lat_perimeter = np.concatenate((
-            lat_skymap[0, :], 
-            lat_skymap[:, -1], 
-            lat_skymap[-1, ::-1], 
-            lat_skymap[::-1, 0]
-            ))
+        ephemeris_time_np = np.array(self.ephemeris[0], dtype='datetime64')
+        ephemeris_time_dt = np.abs(ephemeris_time_np-np.datetime64(time))
+        closest_idt = np.argmin(ephemeris_time_dt)
+
+        if ephemeris_time_dt[closest_idt] > ephemeris_time_np[1] - ephemeris_time_np[0]:
+            raise ValueError(
+                f"Time {time} is too far from the nearest ephemeris timestamps:"
+                f"{self.ephemeris[0][closest_idt]}."
+                )
+
+        lon_perimeter = np.zeros(
+            (2*self.pixel_resolution[0]+2*self.pixel_resolution[1], self.n_satellites), 
+            dtype=float
+            )
+        lat_perimeter = np.zeros_like(lon_perimeter)
+
+        for i in range(self.n_satellites):
+            lla = _ephemeris[closest_idt, :, i]
+            lat_skymap, lon_skymap = self.imager_skymap(time, lla)
+
+            lon_perimeter[:, i] = np.concatenate((
+                lon_skymap[0, :], 
+                lon_skymap[:, -1], 
+                lon_skymap[-1, ::-1], 
+                lon_skymap[::-1, 0]
+                ))
+            lat_perimeter[:, i] = np.concatenate((
+                lat_skymap[0, :], 
+                lat_skymap[:, -1], 
+                lat_skymap[-1, ::-1], 
+                lat_skymap[::-1, 0]
+                ))
+
+        if self.n_satellites == 1:
+            lon_perimeter = lon_perimeter[..., 0]
+            lat_perimeter = lat_perimeter[..., 0]
         return lat_perimeter, lon_perimeter
 
     def imager_skymap(self, time, lla):
@@ -309,10 +336,16 @@ class OSE:
                     sc_label.remove()
                 for _image in _images:
                     _image.remove()
+                try:
+                    for _perimeter_plot in _perimeter_plots:
+                        _perimeter_plot.remove()
+                except TypeError:
+                    del(_perimeter_plots)
             
             _scatter_points = []
             _sc_labels = []
             _images = []
+            _perimeter_plots = []
 
             for j, _ephemeris in enumerate(np.moveaxis(ephemeris[1], -1, 0)):
                 ephemeris_time_np = np.array(self.ephemeris[0], dtype='datetime64')
@@ -348,6 +381,19 @@ class OSE:
                     origin='lower',
                     zorder=2,
                     ))
+
+            lat_perimeter, lon_perimeter = self.get_mapped_fov(guide_time)
+            for i in range(self.n_satellites):
+                _perimiter_plot, = self.ax.plot(
+                    lon_perimeter[:, i], 
+                    lat_perimeter[:, i], 
+                    ls='--', 
+                    color='purple', 
+                    lw=2, 
+                    zorder=2.1,
+                    transform=ccrs.PlateCarree(),
+                    )
+                _perimeter_plots.append(_perimiter_plot)
         return
 
 class Ellipsoid_alt:
@@ -1098,7 +1144,7 @@ if __name__ == '__main__':
                 (ephemeris[1], sat_ephemeris[1].reshape(*sat_ephemeris[1].shape, 1)), axis=2
                 )
 
-    ose = OSE(asis, ephemeris, checkerboard=True)
+    ose = OSE(asis, ephemeris, fov=(80, 80), pixel_resolution=(124, 124))
 
     fig = plt.figure(figsize=(4, 7))
     gs = gridspec.GridSpec(nrows=4, ncols=3, figure=fig, height_ratios=(3, 1, 1, 1))
