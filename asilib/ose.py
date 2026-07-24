@@ -326,7 +326,8 @@ class OSE:
                     self.ax.plot(_ephemeris[:, 1], _ephemeris[:, 0], 'k:', transform=ccrs.PlateCarree())
 
                 for j, bx_i in enumerate(self.bx.flatten()):
-                    bx_i.text(0.01, 0.99, f'SC{j+1} FOV', fontsize=10, transform=bx_i.transAxes, va='top', color='purple')
+                    _text = bx_i.text(0.01, 0.99, f'SC{j+1} FOV', fontsize=10, transform=bx_i.transAxes, va='top', color='white')
+                    _text.set_bbox(dict(facecolor='orange', pad=0.25))
                     if self.checkerboard:
                         bx_i.pcolormesh(self._checkerboard_xx, self._checkerboard_yy, self._checkerboard, cmap='Reds', vmin=0, vmax=1, rasterized=True)
             else:
@@ -1146,7 +1147,7 @@ if __name__ == '__main__':
 
     ose = OSE(asis, ephemeris, fov=(80, 80), pixel_resolution=(124, 124))
 
-    fig = plt.figure(figsize=(4, 7))
+    fig = plt.figure(figsize=(4, 7.5))
     gs = gridspec.GridSpec(nrows=4, ncols=3, figure=fig, height_ratios=(3, 1, 1, 1))
 
     center = (
@@ -1180,8 +1181,9 @@ if __name__ == '__main__':
             bx[i, j].set_aspect('equal')
             bx[i, j].xaxis.set_visible(False)
             bx[i, j].yaxis.set_visible(False)
+    plt.suptitle(f'CINEMA OSE\n fov={ose.fov} [deg] | resolution={ose.pixel_resolution} [px]', fontsize=10)
     plt.subplots_adjust(
-        bottom=0.01, top=0.99, left=0.01, right=0.99, wspace=0.03, hspace=0.03
+        bottom=0.01, top=0.95, left=0.01, right=0.99, wspace=0.03, hspace=0.03
     )
 
     ose.animate_ose(ax=ax, bx=bx)
