@@ -179,7 +179,7 @@ class OSE:
             interp_grid_nans = interp_grid.copy()
             tree = cKDTree(lat_lon_points)
             xi = np.stack((lat_skymap, lon_skymap), axis=-1)
-            dists, _ = tree.query(xi, distance_upper_bound=0.15)
+            dists, _ = tree.query(xi, distance_upper_bound=0.3)
             interp_grid_nans[~np.isfinite(dists)] = np.nan
             images[:, :, i] = interp_grid_nans.T
 
@@ -272,7 +272,7 @@ class OSE:
         
             self.ax = asilib.map.create_map(
                 lon_bounds=self.imagers.lon_bounds, 
-                lat_bounds=(self.imagers.lat_bounds[0]-2, self.imagers.lat_bounds[1]+2), 
+                lat_bounds=(self.imagers.lat_bounds[0]-3, self.imagers.lat_bounds[1]+3), 
                 fig_ax=(fig, gs[0, :])
                 )
             self.bx = np.nan*np.zeros((gs.nrows-1, gs.ncols), dtype=object)
@@ -340,7 +340,14 @@ class OSE:
 
             images = self.get_image(guide_time)
             for j, (bx_i, image_i) in enumerate(zip(self.bx.flatten(), np.moveaxis(images, -1, 0))):
-                _images.append(bx_i.imshow(image_i, cmap='Greys_r', vmin=color_bounds[0], vmax=color_bounds[1], origin='lower'))
+                _images.append(bx_i.imshow(
+                    image_i, 
+                    cmap='Greys_r',
+                    vmin=color_bounds[0],
+                    vmax=color_bounds[1],
+                    origin='lower',
+                    zorder=2,
+                    ))
         return
 
 class Ellipsoid_alt:
@@ -1014,10 +1021,8 @@ def getmarker(mID):
 
 
 if __name__ == '__main__':
-
-    
-
-
+    import cartopy.crs
+    import cartopy.feature as cfeature
     from asilib.mission import example_satellite
     from datetime import datetime
 
@@ -1093,16 +1098,35 @@ if __name__ == '__main__':
                 (ephemeris[1], sat_ephemeris[1].reshape(*sat_ephemeris[1].shape, 1)), axis=2
                 )
 
-    ose = OSE(asis, ephemeris, checkerboard=False)
+    ose = OSE(asis, ephemeris, checkerboard=True)
 
-    fig = plt.figure(figsize=(4, 7), layout='tight')
+    fig = plt.figure(figsize=(4, 7))
     gs = gridspec.GridSpec(nrows=4, ncols=3, figure=fig, height_ratios=(3, 1, 1, 1))
 
-    ax = asilib.map.create_map(
-        lon_bounds=asis.lon_bounds, 
-        lat_bounds=(asis.lat_bounds[0]-1, asis.lat_bounds[1]+1), 
-        fig_ax=(fig, gs[0, :])
+    center = (
+        np.mean(asis.lon_bounds), np.mean(asis.lat_bounds)
+    )
+    projection = cartopy.crs.Orthographic(
+        central_longitude=center[0], 
+        central_latitude=center[1]
+    )
+
+    ax = fig.add_subplot(gs[0, :], projection=projection)
+    ax.add_feature(cfeature.LAND, color='grey')
+    ax.add_feature(cfeature.OCEAN, color='cyan')
+    ax.add_feature(cfeature.COASTLINE, edgecolor='k')
+    ax.gridlines(linestyle=':')
+    ax.set_global()
+    ax.set_extent(
+        (center[0]-20, center[0]+20, center[1]-11, center[1]+11), 
+        crs=cartopy.crs.PlateCarree()
         )
+
+    # ax = asilib.map.create_map(
+    #     lon_bounds=asis.lon_bounds, 
+    #     lat_bounds=(asis.lat_bounds[0]-1, asis.lat_bounds[1]+1), 
+    #     fig_ax=(fig, gs[0, :])
+    #     )
     bx = np.nan*np.zeros((3, 3), dtype=object)
     for i in range(3):
         for j in range(3):
@@ -1110,5 +1134,8 @@ if __name__ == '__main__':
             bx[i, j].set_aspect('equal')
             bx[i, j].xaxis.set_visible(False)
             bx[i, j].yaxis.set_visible(False)
+    plt.subplots_adjust(
+        bottom=0.01, top=0.99, left=0.01, right=0.99, wspace=0.03, hspace=0.03
+    )
 
     ose.animate_ose(ax=ax, bx=bx)
