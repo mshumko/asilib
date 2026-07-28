@@ -480,6 +480,7 @@ if __name__ == '__main__':
     import asilib.ose
 
     time_range = (datetime(2012, 2, 15, 8, 30), datetime(2012, 2, 15, 8, 45))
+    aurora_alt = 110
 
     location_codes = [
         'FSIM',
@@ -490,7 +491,7 @@ if __name__ == '__main__':
         ]
     
     asis = asilib.Imagers(
-        [asilib.asi.themis(code, time_range=time_range) for code in location_codes]
+        [asilib.asi.themis(code, time_range=time_range, alt=aurora_alt) for code in location_codes]
         )
 
     # Create the CINEMA constellation ephemeris.
@@ -501,10 +502,10 @@ if __name__ == '__main__':
     in_track_separation_minutes = 5
     orbit_period_minutes = 95
     mean_anomaly_deg = 35
-    sat_alt = 500
+    sat_alt = 600
     delta_mean_anomaly_deg = 360*in_track_separation_minutes/orbit_period_minutes
 
-    ltan_hours = [1, 2, 3]
+    ltan_hours = [0.9, 1.9, 2.9]
     mean_anomalies = [
         mean_anomaly_deg+delta_mean_anomaly_deg, 
         mean_anomaly_deg, 
@@ -536,7 +537,7 @@ if __name__ == '__main__':
                 (ephemeris[1], sat_ephemeris[1].reshape(*sat_ephemeris[1].shape, 1)), axis=2
                 )
 
-    ose = asilib.ose.OSE(asis, ephemeris, fov=(80, 80), pixel_resolution=(124, 124))
+    ose = asilib.ose.OSE(asis, ephemeris, fov=(55, 65), pixel_resolution=(124, 124))
 
     fig = plt.figure(figsize=(4, 7.5))
     gs = gridspec.GridSpec(nrows=4, ncols=3, figure=fig, height_ratios=(3, 1, 1, 1))
