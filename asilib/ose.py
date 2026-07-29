@@ -72,8 +72,8 @@ class OSE:
     ephemeris: np.ndarray
     fov:Tuple[float]=(45, 45)
     pixel_resolution:Tuple[int]=(64, 64)
-    ona:float=0  # TODO: Implement
-    azimuth:float=0 # TODO: Implement
+    ona:float=0
+    azimuth:float=0
     aurora_alt:float=110
     checkerboard:bool=True
     lon_bounds:Tuple[float]=None
@@ -90,16 +90,43 @@ class OSE:
             np.linspace(-self.fov[1]/2, self.fov[1]/2, self.pixel_resolution[1]),
             np.linspace(-self.fov[0]/2, self.fov[0]/2, self.pixel_resolution[0]),
             )
-        
-        if self.ona != 0 or self.azimuth != 0:
-            raise NotImplementedError(
-                "The off-nadir angle and azimuth are not yet implemented. Please submit"
-                "a feature request on GitHub if you would like this functionality."
-                )
-        self.xx += np.sin(np.deg2rad(self.azimuth))*self.ona
-        self.yy += np.cos(np.deg2rad(self.azimuth))*self.ona
-        self.tilts = np.sqrt(self.xx**2 + self.yy**2)
-        self.azs = np.rad2deg(np.arctan2(self.yy, self.xx))
+
+        # Build local ENU rays from the nadir-pointing FOV where azimuth is clockwise from north.
+        # see https://en.wikipedia.org/wiki/Local_tangent_plane_coordinates
+        tilt0 = np.deg2rad(np.hypot(self.xx, self.yy))
+        az0 = np.arctan2(self.xx, self.yy)
+        rays = np.stack(
+            (
+                np.sin(tilt0) * np.sin(az0),  # East
+                np.sin(tilt0) * np.cos(az0),  # North
+                np.cos(tilt0),                # Down
+            ),
+            axis=-1,
+        )
+
+        # Use the Rodrigues' rotation formula to rotate all rays so the
+        # boresight moves off-nadir by ona at azimuth.
+        # https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+        ona_rad = np.deg2rad(self.ona)
+        if not np.isclose(ona_rad, 0.0):
+            az_rad = np.deg2rad(self.azimuth)
+            kx, ky, kz = np.array([-np.cos(az_rad), np.sin(az_rad), 0.0])
+            K = np.array(
+                [
+                    [0.0, -kz, ky],
+                    [kz, 0.0, -kx],
+                    [-ky, kx, 0.0],
+                ]
+            )
+            I = np.eye(3)
+            R = I + np.sin(ona_rad) * K + (1 - np.cos(ona_rad)) * (K @ K)
+            rays = rays @ R.T
+
+        # First normalize so that we can avoid floating-point errors when 
+        # calculating arccos() and arctan2().
+        rays = rays / np.linalg.norm(rays, axis=-1, keepdims=True)
+        self.tilts = np.rad2deg(np.arccos(np.clip(rays[..., 2], -1.0, 1.0)))
+        self.azs = np.mod(np.rad2deg(np.arctan2(rays[..., 0], rays[..., 1])), 360.0)
 
         self._checkerboard = np.zeros((10, 10), dtype=bool)
         self._checkerboard[::2, ::2] = True
@@ -108,6 +135,7 @@ class OSE:
             np.linspace(0, self.pixel_resolution[0], num=self._checkerboard.shape[0]+1),
             np.linspace(0, self.pixel_resolution[1], num=self._checkerboard.shape[1]+1)
             )
+        
         if len(self.ephemeris[1].shape) == 2:
             self.n_satellites = 1
         elif len(self.ephemeris[1].shape) == 3:
@@ -181,7 +209,7 @@ class OSE:
             xi = np.stack((lat_skymap, lon_skymap), axis=-1)
             dists, _ = tree.query(xi, distance_upper_bound=0.3)
             interp_grid_nans[~np.isfinite(dists)] = np.nan
-            images[:, :, i] = interp_grid_nans.T
+            images[:, :, i] = interp_grid_nans
 
         if self.n_satellites == 1:
             images = images[:, :, 0]
@@ -398,7 +426,7 @@ class OSE:
                     self.ax.scatter(lla[1], lla[0], c='purple', s=200, marker=getmarker('camera'), transform=ccrs.PlateCarree())
                 )
                 _sc_labels.append(
-                    self.ax.text(lla[1]+0.5, lla[0], f'SC{j+1}', color='white', fontsize=12, transform=ccrs.PlateCarree(), va='center')
+                    self.ax.text(lla[1]+0.5, lla[0], f'SC{j+1}', color='orange', fontsize=12, transform=ccrs.PlateCarree(), va='center')
                 )
 
             if i == 0 and self.checkerboard:
