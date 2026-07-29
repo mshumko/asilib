@@ -60,6 +60,8 @@ class OSE:
         The field of view of the AIC in degrees.
     pixel_resolution: Tuple[int]
         The resolution of the AIC in pixels (width, height).
+    roll: float
+        In-plane rotation of the imager about the boresight (sometimes called clocking angle).
     ona: float
         The off-nadir angle between nadir and the imager's center FOV vectors. If 0, the center of
         the FOV is pointing towards the nadir and if 90 it points at the limb.
@@ -72,6 +74,7 @@ class OSE:
     ephemeris: np.ndarray
     fov:Tuple[float]=(45, 45)
     pixel_resolution:Tuple[int]=(64, 64)
+    roll:float=0
     ona:float=0
     azimuth:float=0
     aurora_alt:float=110
@@ -91,10 +94,59 @@ class OSE:
             np.linspace(-self.fov[0]/2, self.fov[0]/2, self.pixel_resolution[0]),
             )
 
+        self.tilts, self.azs = self._rotate_imager()
+
+        self._checkerboard = np.zeros((10, 10), dtype=bool)
+        self._checkerboard[::2, ::2] = True
+        self._checkerboard[1::2, 1::2] = True
+        self._checkerboard_xx, self._checkerboard_yy = np.meshgrid(
+            np.linspace(0, self.pixel_resolution[0], num=self._checkerboard.shape[0]+1),
+            np.linspace(0, self.pixel_resolution[1], num=self._checkerboard.shape[1]+1)
+            )
+        
+        if len(self.ephemeris[1].shape) == 2:
+            self.n_satellites = 1
+        elif len(self.ephemeris[1].shape) == 3:
+            self.n_satellites = self.ephemeris[1].shape[-1]
+        else:
+            raise ValueError(
+                f"Unexpected ephemeris shape: {self.ephemeris[1].shape}. Expected (n, 3) or "
+                f"(n, 3, m) where n is the number of timestamps and m is the number of "
+                f"satellites."
+                )
+        return
+
+    def _rotate_imager(self):
+        """
+        If the roll, off-nadir angle, and azimuth are not zero, then rotate the imager's pixels
+        in terms of tilt and azimuth angles.
+
+        The transformation is done in two steps:
+        1. Rotate the pixel grid about the nadir-pointing imager center by the roll angle 
+        (boresight angle points nadir during this transformation).
+        2. Rotate the pixel grid so the camera boresight points off-nadir by ona in the 
+        azimuth direction.
+
+        Returns
+        -------
+        tilts: np.ndarray
+            The tilt angles of the imager's pixels in degrees.
+        azs: np.ndarray
+            The azimuth angles of the imager's pixels in degrees.
+        """
+        # Rotate the pixel grid about the imager center before steering the boresight.
+        roll_rad = np.deg2rad(self.roll)
+        if np.isclose(roll_rad, 0.0):
+            xx = self.xx
+            yy = self.yy
+        else:
+            xx = self.xx * np.cos(roll_rad) - self.yy * np.sin(roll_rad)
+            yy = self.xx * np.sin(roll_rad) + self.yy * np.cos(roll_rad)
+
         # Build local ENU rays from the nadir-pointing FOV where azimuth is clockwise from north.
         # see https://en.wikipedia.org/wiki/Local_tangent_plane_coordinates
-        tilt0 = np.deg2rad(np.hypot(self.xx, self.yy))
-        az0 = np.arctan2(self.xx, self.yy)
+        tilt0 = np.deg2rad(np.hypot(xx, yy))
+        az0 = np.arctan2(xx, yy)
         rays = np.stack(
             (
                 np.sin(tilt0) * np.sin(az0),  # East
@@ -125,28 +177,9 @@ class OSE:
         # First normalize so that we can avoid floating-point errors when 
         # calculating arccos() and arctan2().
         rays = rays / np.linalg.norm(rays, axis=-1, keepdims=True)
-        self.tilts = np.rad2deg(np.arccos(np.clip(rays[..., 2], -1.0, 1.0)))
-        self.azs = np.mod(np.rad2deg(np.arctan2(rays[..., 0], rays[..., 1])), 360.0)
-
-        self._checkerboard = np.zeros((10, 10), dtype=bool)
-        self._checkerboard[::2, ::2] = True
-        self._checkerboard[1::2, 1::2] = True
-        self._checkerboard_xx, self._checkerboard_yy = np.meshgrid(
-            np.linspace(0, self.pixel_resolution[0], num=self._checkerboard.shape[0]+1),
-            np.linspace(0, self.pixel_resolution[1], num=self._checkerboard.shape[1]+1)
-            )
-        
-        if len(self.ephemeris[1].shape) == 2:
-            self.n_satellites = 1
-        elif len(self.ephemeris[1].shape) == 3:
-            self.n_satellites = self.ephemeris[1].shape[-1]
-        else:
-            raise ValueError(
-                f"Unexpected ephemeris shape: {self.ephemeris[1].shape}. Expected (n, 3) or "
-                f"(n, 3, m) where n is the number of timestamps and m is the number of "
-                f"satellites."
-                )
-        return
+        tilts = np.rad2deg(np.arccos(np.clip(rays[..., 2], -1.0, 1.0)))
+        azs = np.mod(np.rad2deg(np.arctan2(rays[..., 0], rays[..., 1])), 360.0)
+        return tilts, azs
 
     def get_image(self, time):
         """
