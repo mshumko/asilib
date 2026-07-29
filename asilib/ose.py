@@ -45,7 +45,11 @@ R_e = 6378.137  # km
 @dataclasses.dataclass
 class OSE:
     """
-    Calculate the THEMIS ASI white-light intensity inside a space-based imager FOV.
+    The main Observational System Experiment (OSE) class that reinterpolates ASI data to 
+    calculate the anticipated auroral images from a low Earth orbiting (LEO) satellite 
+    that is equipped with an auroral imager. This class is designed to be used with the 
+    :py:class:`~asilib.Imagers` class and a satellite ephemeris which can be one or multiple
+    satellites.
 
     Parameters
     ----------
@@ -201,11 +205,6 @@ class OSE:
             The image(s) from the OSE for the given time.
         """
 
-        if self.n_satellites == 1:
-            _ephemeris = self.ephemeris[1].reshape(*self.ephemeris[1].shape, 1)
-        else:
-            _ephemeris = self.ephemeris[1]
-
         images = np.zeros(
             (self.pixel_resolution[0], self.pixel_resolution[1], self.n_satellites)
             )
@@ -213,20 +212,8 @@ class OSE:
         _imagers = self.imagers[time]
         lat_lon_points, intensities = _imagers.get_points()
 
-        ephemeris_time_np = np.array(self.ephemeris[0], dtype='datetime64')
-        ephemeris_time_dt = np.abs(ephemeris_time_np-np.datetime64(time))
-        closest_idt = np.argmin(ephemeris_time_dt)
-
-        if ephemeris_time_dt[closest_idt] > ephemeris_time_np[1] - ephemeris_time_np[0]:
-            raise ValueError(
-                f"Time {time} is too far from the nearest ephemeris timestamps:"
-                f"{self.ephemeris[0][closest_idt]}."
-                )
-        
         for i in range(self.n_satellites):
-            lla = _ephemeris[closest_idt, :, i]
-            
-            lat_skymap, lon_skymap = self.imager_skymap(time, lla)
+            lat_skymap, lon_skymap = self.imager_skymap(time, i)
 
             interp_grid = scipy.interpolate.griddata(
                 lat_lon_points, 
@@ -252,21 +239,6 @@ class OSE:
         """
         Get the mapped field of view (FOV) of the imager for a given time and satellite location.
         """
-        if self.n_satellites == 1:
-            _ephemeris = self.ephemeris[1].reshape(*self.ephemeris[1].shape, 1)
-        else:
-            _ephemeris = self.ephemeris[1]
-
-        ephemeris_time_np = np.array(self.ephemeris[0], dtype='datetime64')
-        ephemeris_time_dt = np.abs(ephemeris_time_np-np.datetime64(time))
-        closest_idt = np.argmin(ephemeris_time_dt)
-
-        if ephemeris_time_dt[closest_idt] > ephemeris_time_np[1] - ephemeris_time_np[0]:
-            raise ValueError(
-                f"Time {time} is too far from the nearest ephemeris timestamps:"
-                f"{self.ephemeris[0][closest_idt]}."
-                )
-
         lon_perimeter = np.zeros(
             (2*self.pixel_resolution[0]+2*self.pixel_resolution[1], self.n_satellites), 
             dtype=float
@@ -274,8 +246,7 @@ class OSE:
         lat_perimeter = np.zeros_like(lon_perimeter)
 
         for i in range(self.n_satellites):
-            lla = _ephemeris[closest_idt, :, i]
-            lat_skymap, lon_skymap = self.imager_skymap(time, lla)
+            lat_skymap, lon_skymap = self.imager_skymap(time, i)
 
             lon_perimeter[:, i] = np.concatenate((
                 lon_skymap[0, :], 
@@ -295,7 +266,7 @@ class OSE:
             lat_perimeter = lat_perimeter[..., 0]
         return lat_perimeter, lon_perimeter
 
-    def imager_skymap(self, time, lla):
+    def imager_skymap(self, time, satellite_index=0):
         """
         Calculate the imager latitude and longitude skymaps for a given time and satellite 
         location.
@@ -304,9 +275,8 @@ class OSE:
         ----------
         time: datetime
             The time for which to calculate the skymap.
-        lla: Tuple[float]
-            The satellite location in (lat, lon, alt) format, where lat and lon are in degrees 
-            and alt is in kilometers.
+        satellite_index: int
+            The satellite index to use when selecting the nearest ephemeris point.
 
         Returns
         -------
@@ -319,6 +289,9 @@ class OSE:
         """
         imager_lats = np.zeros_like(self.azs).flatten()
         imager_lons = np.zeros_like(self.azs).flatten()
+        lla = self._get_lla(time)
+        if self.n_satellites > 1:
+            lla = lla[satellite_index]
 
         for k, (azs_i, tilt_i) in enumerate(zip(self.azs.flatten(), self.tilts.flatten())):
             imager_lats[k], imager_lons[k], _ = pymap3d.los.lookAtSpheroid(
@@ -332,13 +305,34 @@ class OSE:
  
         return imager_lats.reshape(self.azs.shape), imager_lons.reshape(self.azs.shape)
 
-    def plot_image(self):
+    def _get_lla(self, time):
+        """
+        Return the nearest ephemeris LLA at a time for one or multiple satellites.
+        """
+        ephemeris_time_np = np.array(self.ephemeris[0], dtype='datetime64')
+        ephemeris_time_dt = np.abs(ephemeris_time_np - np.datetime64(time))
+        closest_idt = np.argmin(ephemeris_time_dt)
 
+        if ephemeris_time_dt[closest_idt] > ephemeris_time_np[1] - ephemeris_time_np[0]:
+            raise ValueError(
+                f"Time {time} is too far from the nearest ephemeris timestamps:"
+                f"{self.ephemeris[0][closest_idt]}."
+                )
+
+        if self.n_satellites == 1:
+            return self.ephemeris[1][closest_idt, :]
+        return self.ephemeris[1][closest_idt, :, :].T
+
+    def plot_image(self):
+        raise NotImplementedError()
         return
+
+    def get_images(self):
+        raise NotImplementedError()
 
     def animate_ose(self, ax=None, bx=None, color_bounds=None, **kwargs):
         """
-        Animate the Observational System Experiment (OSE) images.
+        Animate the OSE for a satellite constellation.
 
         Parameters
         ----------
@@ -362,7 +356,7 @@ class OSE:
 
     def animate_ose_gen(self, ax=None, bx=None, color_bounds=None, **kwargs):
         """
-        Animate the Observational System Experiment (OSE) image generator.
+        Animate the OSE for a satellite constellation.
 
         Parameters
         ----------
@@ -442,18 +436,9 @@ class OSE:
             _images = []
             _perimeter_plots = []
 
-            for j, _ephemeris in enumerate(np.moveaxis(self.ephemeris[1], -1, 0)):
-                ephemeris_time_np = np.array(self.ephemeris[0], dtype='datetime64')
-                ephemeris_time_dt = np.abs(ephemeris_time_np-np.datetime64(guide_time))
-                closest_idt = np.argmin(ephemeris_time_dt)
-        
-                if ephemeris_time_dt[closest_idt] > ephemeris_time_np[1] - ephemeris_time_np[0]:
-                    raise ValueError(
-                        f"Time {guide_time} is too far from the nearest ephemeris timestamps:"
-                        f"{self.ephemeris[0][closest_idt]}."
-                        )
-                
-                lla = _ephemeris[closest_idt, :]
+            lla_all = self._get_lla(guide_time)
+            for j in range(self.n_satellites):
+                lla = lla_all if self.n_satellites == 1 else lla_all[j]
     
                 _scatter_points.append(
                     self.ax.scatter(lla[1], lla[0], c='purple', s=200, marker=getmarker('camera'), transform=ccrs.PlateCarree())
@@ -461,6 +446,7 @@ class OSE:
                 _sc_labels.append(
                     self.ax.text(lla[1]+0.5, lla[0], f'SC{j+1}', color='orange', fontsize=12, transform=ccrs.PlateCarree(), va='center')
                 )
+                _sc_labels[-1].clipbox = self.ax.bbox  # Clip the text to the map extent so it doesn't go outside the map.
 
             if i == 0 and self.checkerboard:
                 for bx_i in self.bx.flatten():
@@ -598,7 +584,13 @@ if __name__ == '__main__':
                 (ephemeris[1], sat_ephemeris[1].reshape(*sat_ephemeris[1].shape, 1)), axis=2
                 )
 
-    ose = asilib.ose.OSE(asis, ephemeris, fov=(55, 65), pixel_resolution=(124, 124))
+    ose = asilib.ose.OSE(
+        asis, 
+        ephemeris, 
+        fov=(55, 65), 
+        pixel_resolution=(124, 124),
+        roll=7,
+        )
 
     fig = plt.figure(figsize=(4, 7.5))
     gs = gridspec.GridSpec(nrows=4, ncols=3, figure=fig, height_ratios=(3, 1, 1, 1))
