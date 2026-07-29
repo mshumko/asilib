@@ -524,7 +524,7 @@ class Imagers:
                     transform=ax.transAxes,
                     fontsize=12,
                     color='white',
-                    bbox=dict(facecolor='grey', edgecolor='black', alpha=0.5)
+                    bbox=dict(facecolor='grey', edgecolor='black', alpha=0.5, pad=0.1)
                 )
 
             # Give the user the control of the subplot, image object, and return the image time
@@ -1194,105 +1194,3 @@ class Imagers:
             raise ValueError(
                 'The 0th imager object does not have a "time" or a "time_range" variable.'
                 )
-        
-
-if __name__ == '__main__':
-    import asilib.asi
-    import asilib.map
-    import matplotlib.pyplot as plt
-    import cartopy.crs as ccrs
-
-    time = datetime(2007, 3, 13, 5, 8, 45)
-    location_codes = ['ATHA', 'TPAS']
-    map_alt = 110
-    _imagers = [asilib.asi.themis(location_code, time=time, alt=map_alt) 
-                for location_code in location_codes]
-    asis = asilib.Imagers(_imagers)
-    overlapping_masks = asis.find_overlap_pixels(min_elevation=2)
-
-    ax = asilib.map.create_map(
-        lon_bounds=(-125, -90), lat_bounds=(42, 64)
-        )            
-
-    asis.plot_map(ax=ax, min_elevation=2)
-
-    asi_names = [f'{_imager.meta["array"]}-{_imager.meta["location"]}' for _imager in asis.imagers]
-
-    for self_loc, neighbors in overlapping_masks.items():
-        for neighbor_loc, overlapping_mask in neighbors.items():
-            self_loc_idx = asi_names.index(self_loc)
-            neighbor_loc_idx = asi_names.index(neighbor_loc)
-            ax.scatter(
-                asis.imagers[self_loc_idx].skymap['lon'][overlapping_mask], 
-                asis.imagers[self_loc_idx].skymap['lat'][overlapping_mask], 
-                alpha=0.5, 
-                label=f'{self_loc} pixels overlapping with {neighbor_loc}',
-                s=2,
-                transform=ccrs.PlateCarree()
-            )   
-            
-    ax.legend(loc='lower left', fontsize=12, markerscale=3)
-    plt.tight_layout()
-    plt.show()
-
-    # # You will need to install cdasws to run this example (python -m pip install cdasws)
-    # from datetime import datetime, timedelta, timezone
-    
-    # import cdasws
-    # import matplotlib.pyplot as plt
-    # import matplotlib.dates
-    # import pandas as pd
-    # import asilib.asi
-    
-    # time_range=(datetime(2021, 11, 4, 1, 56), datetime(2021, 11, 4, 12, 30))  #datetime(2021, 11, 4, 12, 24)
-    # mango_location_code='CFS'
-    # mango_asi = asilib.asi.mango(mango_location_code, 'redline', time_range=time_range)
-    # trex_location_codes = ['FSMI', 'LUCK', 'RABB', 'PINA', 'GILL']
-    # trex_asis = [asilib.asi.trex_rgb(location_code, time_range=time_range) 
-    #               for location_code in trex_location_codes]
-    # asis = asilib.Imagers([mango_asi]+trex_asis)
-
-    # fig = plt.figure(layout='constrained', figsize=(8, 9))
-    # gs = matplotlib.gridspec.GridSpec(2, 1, fig, height_ratios=(3, 1))
-    # ax = asilib.map.create_map(lat_bounds=(30, 64), lon_bounds=(-125, -75), fig_ax=(fig, gs[0]))
-    # bx = fig.add_subplot(gs[1])
-    # bx.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%H:%M'))
-    # gen = asis.animate_map_gen(ax=ax, asi_label=True, overwrite=True, ffmpeg_params={'framerate':100})
-    
-    # cdas = cdasws.CdasWs()
-    # time_range_cdasws = cdasws.TimeInterval(
-    #     datetime.fromisoformat(str(time_range[0]-timedelta(days=0.5))).replace(tzinfo=timezone.utc),
-    #     datetime.fromisoformat(str(time_range[1]+timedelta(days=0.5))).replace(tzinfo=timezone.utc)
-    #     )
-    # _, data = cdas.get_data(
-    #                 'OMNI_HRO_5MIN', ['SYM_H'], time_range_cdasws
-    #                 )
-    # symh = pd.DataFrame(index=data['SYM_H'].Epoch.data, data={'SYM_H':data['SYM_H']})
-    # bx.plot(symh.index, symh['SYM_H'], c='k')
-    # bx.set(xlabel='Time [HH:MM]', ylabel='Sym-H [nT]')
-
-    # plt.suptitle(f'MANGO & TREx-RGB Mosaic | {time_range[0]:%F %T} to {time_range[1]:%T}', fontsize=16)
-    
-    # for guide_time, image_times, images, ax in gen:
-    #     # We will need to delete the prior text object, otherwise the current one
-    #     # will overplot on the prior one---clean up after yourself!
-    #     if '_time_guide' in locals():
-    #         _time_guide.remove()  # noqa: F821
-    #         _text_box.remove()  # noqa: F821
-    #     _zip = zip([mango_location_code]+trex_location_codes, image_times)
-    #     time_str = (
-    #         f'Current timestamps:\n'+
-    #         '\n'.join([f'{name} {ti.strftime("%H:%M:%S.%f")}' for name, ti in _zip])
-    #         )
-    #     _text_box = ax.text(
-    #         0.75, 
-    #         0.01, 
-    #         time_str, 
-    #         color='w',
-    #         transform=ax.transAxes, 
-    #         bbox=dict(boxstyle='round', facecolor='purple', alpha=0.5), 
-    #         ha='left', 
-    #         va='bottom'
-    #         )
-    #     _time_guide = bx.axvline(guide_time, c='k', ls='--')
-        

@@ -629,5 +629,8 @@ if __name__ == '__main__':
     plt.subplots_adjust(
         bottom=0.01, top=0.95, left=0.01, right=0.99, wspace=0.03, hspace=0.03
     )
-
-    ose.animate_ose(ax=ax, bx=bx)
+    save_name = (
+        f'{time_range[0].strftime("%Y%m%d_%H%M%S")}_{time_range[-1].strftime("%H%M%S")}'
+        f'_cinema_ose_{sat_alt=}km_ltan{round(ltan_hours[1])}_{aurora_alt=}km.mp4'
+        )
+    ose.animate_ose(ax=ax, bx=bx, animation_name=save_name)
