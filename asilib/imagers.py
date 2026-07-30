@@ -470,7 +470,6 @@ class Imagers:
             self._get_skymaps_for_operating_asis(
                 _asi_times, min_elevation, overlap
                 )
-            print(i, list(self._skymaps.keys()), self.operating_asis)
             for j, (_asi_time, _asi_image) in enumerate(zip(_asi_times, _asi_images)):
                 if _asi_time == datetime.min:
                     continue

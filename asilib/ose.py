@@ -347,7 +347,7 @@ class OSE:
             pass
         return
 
-    def animate_ose_gen(self, ax=None, bx=None, color_bounds=None, **kwargs):
+    def animate_ose_gen(self, ax=None, bx=None, color_bounds=None, marker='s', marker_size=200, **kwargs):
         """
         Animate the OSE for a satellite constellation.
 
@@ -361,6 +361,10 @@ class OSE:
             are created with one row with columns for each satellite.
         color_bounds: list, optional
             The color bounds for the images. If None, the default color bounds are used.
+        marker: str, optional
+            The marker style for the satellite locations. Default is 's' (square).
+        marker_size: float, optional
+            The marker size for the satellite locations.
         kwargs: dict
             Additional keyword arguments. The complete list of kwargs is in the 
             :py:meth:`~asilib.Imagers.animate_map_gen` documentation.
@@ -433,7 +437,7 @@ class OSE:
                 lla = lla_all if self.n_satellites == 1 else lla_all[j]
     
                 _scatter_points.append(
-                    self.ax.scatter(lla[1], lla[0], c='purple', s=200, marker=getmarker('camera'), transform=ccrs.PlateCarree())
+                    self.ax.scatter(lla[1], lla[0], c='purple', s=marker_size, marker=marker, transform=ccrs.PlateCarree())
                 )
                 _sc_labels.append(
                     self.ax.text(lla[1]+0.5, lla[0], f'SC{j+1}', color='orange', fontsize=12, transform=ccrs.PlateCarree(), va='center')
