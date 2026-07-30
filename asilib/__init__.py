@@ -25,9 +25,11 @@ config = {'ASILIB_DIR': HERE, 'ASI_DATA_DIR': ASI_DATA_DIR, 'ACKNOWLEDGED_ASIS':
 from asilib.imager import Imager
 from asilib.imagers import Imagers
 from asilib.conjunction import Conjunction
+from asilib.ose import OSE
 
 __all__ = [
     'Imager',
     'Imagers',
     'Conjunction',
+    'OSE',
 ]  # So Sphinx shortens the name. See https://stackoverflow.com/a/31594545

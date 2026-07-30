@@ -16,10 +16,6 @@ from typing import Tuple, List, Union
 from collections import namedtuple
 import dateutil.parser
 
-import fontawesome
-from matplotlib.font_manager import FontProperties
-from matplotlib.textpath import TextToPath
-from matplotlib.path import Path
 import matplotlib.pyplot as plt
 import matplotlib.colors
 import matplotlib.dates
@@ -32,11 +28,8 @@ import numpy as np
 import asilib
 import asilib.map
 import asilib.asi
-import sampex
 import cartopy.crs as ccrs
-import manylabels
 import pymap3d.los
-import IRBEM
 
 
 R_e = 6378.137  # km
@@ -502,16 +495,6 @@ class Ellipsoid_alt:
         self.thirdflattening = (self.semimajor_axis - self.semiminor_axis) / (self.semimajor_axis + self.semiminor_axis)
         self.eccentricity = np.sqrt(2 * self.flattening - self.flattening ** 2)
 
-
-def getmarker(mID):
-    # TODO: Consider removing this function.
-	symbol = fontawesome.icons[mID]
-	fp = FontProperties(fname=pathlib.Path(__file__).parent / "Font Awesome 7 Free-Solid-900.otf")
-
-	v, codes = TextToPath().get_text_path(fp, symbol)
-	v = np.array(v)
-	mean = np.mean([np.max(v,axis=0), np.min(v, axis=0)], axis=0)
-	return Path(v-mean, codes, closed=False)
 
 
 if __name__ == '__main__':
