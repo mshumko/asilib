@@ -461,39 +461,16 @@ class Imagers:
             iter_length=self.n_times,
             text=self.animation_name,
         )
-        operating_asis = np.array([])
+        self.operating_asis = np.array([])
 
         for i, (_guide_time, _asi_times, _asi_images) in _progressbar:
             asi_labels = len(self.imagers)*[None]
             pcolormesh_objs = len(self.imagers)*[None]
 
-            # Determine if an imager turned off/on and we need to recalculate overlapping skymaps.
-            currently_on_asis = np.where(np.array(_asi_times) != datetime.min)[0].astype(int)
-            if (currently_on_asis.shape != operating_asis.shape) or np.any(currently_on_asis != operating_asis):
-                _skymaps = {}
-                for j in currently_on_asis:
-                    imager = self.imagers[j]
-                    _skymaps[imager.meta['location']] = {
-                        'lon':imager.skymap['lon'].copy(), 
-                        'lat':imager.skymap['lat'].copy()
-                    }
-
-                if not overlap:
-                    _skymaps = self.nan_overlap_pixels(_skymaps, idx=currently_on_asis)
-
-                for j in currently_on_asis:
-                    imager = self.imagers[j]
-                    _skymap_cleaner = Skymap_Cleaner(
-                        _skymaps[imager.meta['location']]['lon'], 
-                        _skymaps[imager.meta['location']]['lat'], 
-                        imager.skymap['el'],
-                    )
-                    _skymap_cleaner.mask_elevation(min_elevation=min_elevation)
-                    _cleaned_lon_grid, _cleaned_lat_grid = _skymap_cleaner.remove_nans()
-                    _skymaps[imager.meta['location']]['lon'] = _cleaned_lon_grid
-                    _skymaps[imager.meta['location']]['lat'] = _cleaned_lat_grid
-                operating_asis = currently_on_asis
-
+            self._get_skymaps_for_operating_asis(
+                _asi_times, min_elevation, overlap
+                )
+            print(i, list(self._skymaps.keys()), self.operating_asis)
             for j, (_asi_time, _asi_image) in enumerate(zip(_asi_times, _asi_images)):
                 if _asi_time == datetime.min:
                     continue
@@ -507,10 +484,10 @@ class Imagers:
                     min_elevation, 
                     _color_map, 
                     _color_norm, 
-                    asi_label, 
+                    asi_labels[j], 
                     pcolormesh_kwargs, 
-                    lon_grid=_skymaps[self.imagers[j].meta['location']]['lon'], 
-                    lat_grid=_skymaps[self.imagers[j].meta['location']]['lat']
+                    lon_grid=self._skymaps[self.imagers[j].meta['location']]['lon'], 
+                    lat_grid=self._skymaps[self.imagers[j].meta['location']]['lat']
                 )
 
             if timestamp:
@@ -546,6 +523,37 @@ class Imagers:
         
         self.imagers[0]._create_animation(image_paths, movie_save_path, ffmpeg_params, overwrite)
         return
+
+    def _get_skymaps_for_operating_asis(self, asi_times, min_elevation, overlap):
+        # Determine if an imager turned off/on and we need to recalculate overlapping skymaps.
+        currently_on_asis = np.where(np.array(asi_times) != datetime.min)[0].astype(int)
+
+        if (currently_on_asis.shape != self.operating_asis.shape) or np.any(currently_on_asis != self.operating_asis):
+            self._skymaps = {}
+
+            for j in currently_on_asis:
+                imager = self.imagers[j]
+                self._skymaps[imager.meta['location']] = {
+                    'lon':imager.skymap['lon'].copy(), 
+                    'lat':imager.skymap['lat'].copy()
+                }
+
+            if not overlap:
+                self._skymaps = self.nan_overlap_pixels(self._skymaps, idx=currently_on_asis)
+
+            for j in currently_on_asis:
+                imager = self.imagers[j]
+                _skymap_cleaner = Skymap_Cleaner(
+                    self._skymaps[imager.meta['location']]['lon'], 
+                    self._skymaps[imager.meta['location']]['lat'], 
+                    imager.skymap['el'],
+                )
+                _skymap_cleaner.mask_elevation(min_elevation=min_elevation)
+                _cleaned_lon_grid, _cleaned_lat_grid = _skymap_cleaner.remove_nans()
+                self._skymaps[imager.meta['location']]['lon'] = _cleaned_lon_grid
+                self._skymaps[imager.meta['location']]['lat'] = _cleaned_lat_grid
+            self.operating_asis = currently_on_asis
+        return self._skymaps
     
     def map_eq(self, b_model: Callable='IGRF', normalize_intensities:bool=False, min_elevation:float=10) -> Tuple[np.ndarray, np.ndarray]:
         """

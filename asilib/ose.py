@@ -404,8 +404,7 @@ class OSE:
         g = self.imagers.animate_map_gen(
             ax=self.ax,
             color_bounds=color_bounds,
-            pcolormesh_kwargs={'rasterized':True}, 
-            overwrite=True
+            **kwargs
             )
         
         for i, (guide_time, image, _, im) in enumerate(g):
@@ -517,6 +516,124 @@ def getmarker(mID):
 
 if __name__ == '__main__':
 
+    # import itertools
+    # from datetime import datetime
+
+    # import cartopy.crs
+    # import cartopy.feature as cfeature
+    # from asilib.mission import example_satellite
+    # import asilib
+    # import asilib.ose
+
+    # time_range = (datetime(2012, 2, 15, 8, 30), datetime(2012, 2, 15, 8, 45))
+    # aurora_alt = 110
+
+    # location_codes = [
+    #     'FSIM',
+    #     'FSMI',
+    #     'ATHA',
+    #     'TPAS',
+    #     'GILL',
+    #     ]
+    
+    # asis = asilib.Imagers(
+    #     [asilib.asi.themis(code, time_range=time_range, alt=aurora_alt) for code in location_codes]
+    #     )
+
+    # # Create the CINEMA constellation ephemeris.
+    # orbit_parameter_tuple_type = namedtuple(
+    #     'orbit_parameter_tuple_type', 
+    #     ['mean_anomaly_deg', 'ltan_hours', 'alt_km']
+    #     )
+    # in_track_separation_minutes = 5
+    # orbit_period_minutes = 95
+    # mean_anomaly_deg = 35
+    # sat_alt = 600
+    # delta_mean_anomaly_deg = 360*in_track_separation_minutes/orbit_period_minutes
+
+    # ltan_hours = [0.9, 1.9, 2.9]
+    # mean_anomalies = [
+    #     mean_anomaly_deg+delta_mean_anomaly_deg, 
+    #     mean_anomaly_deg, 
+    #     mean_anomaly_deg-delta_mean_anomaly_deg
+    #     ]
+    # constellation = {
+    #     i:orbit_parameter_tuple_type(
+    #         mean_anomaly_deg=mean_anomaly, 
+    #         ltan_hours=ltan,
+    #         alt_km=sat_alt,
+    #         ) for i, (mean_anomaly, ltan) in enumerate(itertools.product(mean_anomalies, ltan_hours))
+    #     }
+    
+    # ephemeris = [None, None]
+    # for key, value in constellation.items():
+    #     ephemeris_obj = example_satellite.Example_Satellite(
+    #         cadence_s=0.5,
+    #         time_range=time_range,
+    #         mean_anomaly_deg=value.mean_anomaly_deg,
+    #         ltan_hours=value.ltan_hours,
+    #         altitude_km=value.alt_km,
+    #     )
+    #     sat_ephemeris = ephemeris_obj.ephemeris()
+    #     if ephemeris[0] is None:
+    #         ephemeris[0] = sat_ephemeris[0]
+    #         ephemeris[1] = sat_ephemeris[1].reshape(*sat_ephemeris[1].shape, 1)
+    #     else:
+    #         ephemeris[1] = np.concatenate(
+    #             (ephemeris[1], sat_ephemeris[1].reshape(*sat_ephemeris[1].shape, 1)), axis=2
+    #             )
+
+    # ose = asilib.ose.OSE(
+    #     asis, 
+    #     ephemeris, 
+    #     fov=(55, 65), 
+    #     pixel_resolution=(124, 124),
+    #     roll=7,
+    #     )
+
+    # fig = plt.figure(figsize=(4, 7.5))
+    # gs = gridspec.GridSpec(nrows=4, ncols=3, figure=fig, height_ratios=(3, 1, 1, 1))
+
+    # center = (
+    #     np.mean(asis.lon_bounds), np.mean(asis.lat_bounds)
+    # )
+    # projection = cartopy.crs.Orthographic(
+    #     central_longitude=center[0], 
+    #     central_latitude=center[1]
+    # )
+
+    # ax = fig.add_subplot(gs[0, :], projection=projection)
+    # ax.add_feature(cfeature.LAND, color='grey')
+    # ax.add_feature(cfeature.OCEAN, color='cyan')
+    # ax.add_feature(cfeature.COASTLINE, edgecolor='k')
+    # ax.gridlines(linestyle=':')
+    # ax.set_global()
+    # ax.set_extent(
+    #     (center[0]-20, center[0]+20, center[1]-11, center[1]+11), 
+    #     crs=cartopy.crs.PlateCarree()
+    #     )
+
+    # bx = np.nan*np.zeros((3, 3), dtype=object)
+    # for i in range(3):
+    #     for j in range(3):
+    #         bx[i, j] = fig.add_subplot(gs[i+1, j])
+    #         bx[i, j].set_aspect('equal')
+    #         bx[i, j].xaxis.set_visible(False)
+    #         bx[i, j].yaxis.set_visible(False)
+    # plt.suptitle(
+    #     f'CINEMA OSE | fov={ose.fov} [deg]\n'
+    #     f'alt={sat_alt} [km] | resolution={ose.pixel_resolution} [px]', 
+    #     fontsize=12
+    #     )
+    # plt.subplots_adjust(
+    #     bottom=0.01, top=0.95, left=0.01, right=0.99, wspace=0.03, hspace=0.03
+    # )
+    # save_name = (
+    #     f'{time_range[0].strftime("%Y%m%d_%H%M%S")}_{time_range[-1].strftime("%H%M%S")}'
+    #     f'_cinema_ose_{sat_alt=}km_ltan{round(ltan_hours[1])}_{aurora_alt=}km.mp4'
+    #     )
+    # ose.animate_ose(ax=ax, bx=bx, animation_name=save_name)
+
     import itertools
     from datetime import datetime
 
@@ -525,16 +642,17 @@ if __name__ == '__main__':
     from asilib.mission import example_satellite
     import asilib
     import asilib.ose
+    from collections import namedtuple
 
-    time_range = (datetime(2012, 2, 15, 8, 30), datetime(2012, 2, 15, 8, 45))
+    time_range = (datetime(2008, 2, 4, 10, 35), datetime(2008, 2, 4, 10, 55))
     aurora_alt = 110
 
     location_codes = [
+        'FYKN',
+        'INUV',
         'FSIM',
-        'FSMI',
-        'ATHA',
-        'TPAS',
-        'GILL',
+        'WHIT',
+        'KIAN',
         ]
     
     asis = asilib.Imagers(
@@ -552,7 +670,8 @@ if __name__ == '__main__':
     sat_alt = 600
     delta_mean_anomaly_deg = 360*in_track_separation_minutes/orbit_period_minutes
 
-    ltan_hours = [0.9, 1.9, 2.9]
+    center_ltan = 2.25
+    ltan_hours = [center_ltan-1, center_ltan, center_ltan+1]
     mean_anomalies = [
         mean_anomaly_deg+delta_mean_anomaly_deg, 
         mean_anomaly_deg, 
@@ -610,7 +729,7 @@ if __name__ == '__main__':
     ax.gridlines(linestyle=':')
     ax.set_global()
     ax.set_extent(
-        (center[0]-20, center[0]+20, center[1]-11, center[1]+11), 
+        (center[0]-20, center[0]+20, center[1]-10, center[1]+8), 
         crs=cartopy.crs.PlateCarree()
         )
 
@@ -633,4 +752,4 @@ if __name__ == '__main__':
         f'{time_range[0].strftime("%Y%m%d_%H%M%S")}_{time_range[-1].strftime("%H%M%S")}'
         f'_cinema_ose_{sat_alt=}km_ltan{round(ltan_hours[1])}_{aurora_alt=}km.mp4'
         )
-    ose.animate_ose(ax=ax, bx=bx, animation_name=save_name)
+    ose.animate_ose(ax=ax, bx=bx, animation_name=save_name, pcolormesh_kwargs={'rasterized':True})
