@@ -347,7 +347,7 @@ class OSE:
             pass
         return
 
-    def animate_ose_gen(self, ax=None, bx=None, color_bounds=None, marker='s', marker_size=200, **kwargs):
+    def animate_ose_gen(self, ax=None, bx=None, color_bounds=None, marker='s', marker_size=100, **kwargs):
         """
         Animate the OSE for a satellite constellation.
 
