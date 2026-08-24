@@ -522,7 +522,7 @@ def _fps(path):
         fps = 10
         if date_long >= 20170126:
             fps = 100
-    elif camid in (2, 6, 7):
+    elif camid in (2, 6, 7, 8):
         fps = 100
     else:
         fps = 10
@@ -970,3 +970,20 @@ def psa_project_lamp_skymap(location_code, alt, redownload):
     valid_val_idx = np.where(~np.isnan(skymap['azm']))
     skymap['azm'][valid_val_idx] = np.mod(skymap['azm'][valid_val_idx], 360)
     return skymap
+
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    from datetime import datetime, timedelta
+
+    asi = asilib.asi.psa_project(
+        'C8', 
+        time_range=('2018-10-09T11:50', '2018-10-09T13:00'), 
+        downsample_factor=100
+        )
+    color_bounds = (2050, 2910)  #asi.auto_color_bounds()
+    # print(f'color_bounds={color_bounds}')
+    asi.animate_fisheye(
+        color_bounds=color_bounds,
+        overwrite=True
+        )
