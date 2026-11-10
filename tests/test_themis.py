@@ -133,16 +133,16 @@ def test_themis_download_bug_fix():
     location_code = 'KAPU'
     time_range = (datetime(2013, 3, 17, 11), datetime(2013, 3, 17, 11, 1))
 
-    with pytest.warns(UserWarning) as warninfo:
+    with pytest.raises(FileNotFoundError) as download_err:
         asi = asilib.asi.themis(location_code, time_range=time_range)
 
     with pytest.raises(ValueError) as excinfo:
         asi.plot_keogram()
     
-    # check that only one warning was raised
-    assert len(warninfo) == 1
+    # check that only one exception was raised
+    assert len(download_err) == 1
     # check that the message matches
-    assert 'No local or online image files found' in warninfo[0].message.args[0]
+    assert 'has been moved (HTTP code 301)' in str(download_err)
     assert 'The keogram is empty' in str(excinfo.value)
     return
 
