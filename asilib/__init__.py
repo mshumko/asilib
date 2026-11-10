@@ -26,10 +26,12 @@ from asilib.imager import Imager
 from asilib.imagers import Imagers
 from asilib.conjunction import Conjunction
 from asilib.ose import OSE
+from asilib.download import Downloader
 
 __all__ = [
     'Imager',
     'Imagers',
     'Conjunction',
     'OSE',
+    'Downloader',
 ]  # So Sphinx shortens the name. See https://stackoverflow.com/a/31594545

@@ -49,7 +49,7 @@ def test_trex_nir_no_file():
     Tests that trex_nir() returns a FileNotFound error when we try to download
     non-existent data.
     """
-    with pytest.raises(requests.exceptions.HTTPError):
+    with pytest.raises(FileNotFoundError):
         asilib.asi.trex_nir('gill', time='2011/07/07T02:00')
     return
 

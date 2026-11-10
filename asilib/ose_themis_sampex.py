@@ -333,16 +333,16 @@ class ASI_OSE_Animation:
         for i, (time, image, _, im) in enumerate(gen):
             if '_footprint_dot' in locals():
                 # This is one way I found to clean up an added plotting object.
-                _footprint_dot.remove()
-                _vertical_line.remove()
-                _lampsat_dot.remove()
-                _lampsat_fov_dot.remove()
-                _asi_timestamp.remove()
+                _footprint_dot.remove()  # noqa: F821
+                _vertical_line.remove()  # noqa: F821
+                _lampsat_dot.remove()  # noqa: F821
+                _lampsat_fov_dot.remove()  # noqa: F821
+                _asi_timestamp.remove()  # noqa: F821
                 try:
-                    _perimiter_plot.remove()
+                    _perimiter_plot.remove()  # noqa: F821
                 except TypeError:
                     del(_perimiter_plot)
-                p3.remove()
+                p3.remove()  # noqa: F821
 
             _asi_timestamp = self.ax.text(
                 0.01, 0.96, 

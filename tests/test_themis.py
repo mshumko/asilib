@@ -56,7 +56,7 @@ def test_themis_no_file():
     Tests that themis() returns a FileNotFound error when we try to download
     non-existant data.
     """
-    with pytest.raises(requests.exceptions.HTTPError):
+    with pytest.raises(FileNotFoundError):
         asilib.asi.themis('pina', time='2011/07/07T02:00')
     return
 

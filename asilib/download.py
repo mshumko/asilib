@@ -102,6 +102,11 @@ class Downloader:
             with requests.Session() as s:
                 r = s.get(self.url, stream=True, timeout=timeout, headers=self.headers)
             r.raise_for_status()
+            if r.status_code == 301:
+                raise FileNotFoundError(
+                    f'File at {self.url} has been moved (HTTP code 301).'
+                )
+
             file_size = int(r.headers.get('content-length'))
             downloaded_bites = 0
 
@@ -195,6 +200,10 @@ class Downloader:
         while n_tries < retries:
             try:
                 response = requests.get(url, timeout=timeout, headers=self.headers)
+                if response.status_code == 301:
+                    raise FileNotFoundError(
+                        f'File at {url} has been moved (HTTP code 301).'
+                    )
                 break
             except (requests.ConnectionError, requests.Timeout) as err:
                 n_tries += 1

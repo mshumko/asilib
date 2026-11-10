@@ -415,14 +415,14 @@ class OSE:
                     if self.checkerboard:
                         bx_i.pcolormesh(self._checkerboard_xx, self._checkerboard_yy, self._checkerboard, cmap='Reds', vmin=0, vmax=1, rasterized=True)
             else:
-                for scatter_point in _scatter_points:
+                for scatter_point in _scatter_points:  # noqa: F821
                     scatter_point.remove()
-                for sc_label in _sc_labels:
+                for sc_label in _sc_labels:  # noqa: F821
                     sc_label.remove()
-                for _image in _images:
+                for _image in _images:  # noqa: F821
                     _image.remove()
                 try:
-                    for _perimeter_plot in _perimeter_plots:
+                    for _perimeter_plot in _perimeter_plots:  # noqa: F821
                         _perimeter_plot.remove()
                 except TypeError:
                     del(_perimeter_plots)
