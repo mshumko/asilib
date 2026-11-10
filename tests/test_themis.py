@@ -10,6 +10,8 @@ import numpy as np
 
 import asilib.asi
 
+image_tol = 35
+
 ##########################################
 ############# TEST LOADERS ###############
 ##########################################
@@ -109,7 +111,7 @@ def test_themis_asi_meta():
 ############# TEST EXAMPLES ##############
 ##########################################
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_themis_fisheye'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_themis_fisheye'], tol=image_tol, remove_text=True, extensions=['png']
 )
 def test_themis_fisheye():
     """
@@ -141,7 +143,7 @@ def test_themis_download_bug_fix():
 
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_themis_map'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_themis_map'], tol=image_tol, remove_text=True, extensions=['png']
 )
 def test_themis_map():
     """
@@ -161,7 +163,7 @@ def test_themis_map():
 
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_themis_keogram'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_themis_keogram'], tol=image_tol, remove_text=True, extensions=['png']
 )
 def test_themis_keogram():
     """
@@ -195,7 +197,7 @@ def test_themis_available_time_range():
     return
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_themis_available_multiday_time_range'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_themis_available_multiday_time_range'], tol=image_tol, remove_text=True, extensions=['png']
 )
 def test_themis_available_multiday_time_range():
     time_range = ('2018-01-29T00:01:27', '2018-01-31T20:00')

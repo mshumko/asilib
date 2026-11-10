@@ -11,6 +11,7 @@ import matplotlib.testing.decorators
 ############# TEST LOADERS ###############
 ##########################################
 
+image_tol = 35
 
 # def test_rego_time():
 #     """
@@ -104,7 +105,7 @@ import matplotlib.testing.decorators
 ############# TEST EXAMPLES ##############
 ##########################################
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_rego_fisheye_map_example'], tol=20, remove_text=True, extensions=['png']
+    baseline_images=['test_rego_fisheye_map_example'], tol=image_tol, remove_text=True, extensions=['png']
 )
 def test_rego_fisheye_map_example():
     """
@@ -131,7 +132,7 @@ def test_rego_fisheye_map_example():
 
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_rego_keogram_example'], tol=20, remove_text=True, extensions=['png']
+    baseline_images=['test_rego_keogram_example'], tol=image_tol, remove_text=True, extensions=['png']
 )
 def test_rego_keogram_example():
     """

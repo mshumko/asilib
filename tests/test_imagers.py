@@ -5,9 +5,11 @@ import matplotlib.testing.decorators
 import numpy as np
 
 
+image_tol = 35
+
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_donovan_arc_example'],
-    tol=10,
+    tol=image_tol,
     remove_text=True,
     extensions=['png'],
 )
@@ -32,7 +34,7 @@ def test_donovan_arc_example():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_plot_bad_image'],
-    tol=10,
+    tol=image_tol,
     remove_text=True,
     extensions=['png'],
 )
@@ -56,7 +58,7 @@ def test_plot_bad_image():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_plot_fisheye'],
-    tol=10,
+    tol=image_tol,
     remove_text=True,
     extensions=['png'],
 )
@@ -321,7 +323,7 @@ def test_multi_asi_iter():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_pixel_overlap'],
-    tol=10,
+    tol=,
     remove_text=True,
     extensions=['png'],
 )

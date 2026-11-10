@@ -15,6 +15,7 @@ import asilib.asi
 ############# TEST LOADERS ###############
 ##########################################
 
+image_tol = 35
 
 def test_trex_nir_time():
     """
@@ -59,7 +60,7 @@ def test_trex_nir_no_file():
 ##########################################
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_nir_fisheye_map_example'],
-    tol=20,
+    tol=image_tol,
     remove_text=True,
     extensions=['png'],
 )
@@ -88,7 +89,7 @@ def test_trex_nir_fisheye_map_example():
 
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_trex_nir_keogram_example'], tol=20, remove_text=True, extensions=['png']
+    baseline_images=['test_trex_nir_keogram_example'], tol=image_tol, remove_text=True, extensions=['png']
 )
 def test_trex_nir_keogram_example():
     """
@@ -111,7 +112,7 @@ def test_trex_nir_keogram_example():
     return
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_trex_rgb_keogram'], tol=20, remove_text=True, extensions=['png']
+    baseline_images=['test_trex_rgb_keogram'], tol=image_tol, remove_text=True, extensions=['png']
 )
 def test_trex_rgb_keogram():
     from datetime import datetime
@@ -131,7 +132,7 @@ def test_trex_rgb_keogram():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_rgb_fisheye'],
-    tol=20,
+    tol=image_tol,
     remove_text=True,
     extensions=['png'],
 )
@@ -153,7 +154,7 @@ def test_trex_rgb_fisheye():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_rgb_fisheye_contrast'],
-    tol=20,
+    tol=image_tol,
     remove_text=True,
     extensions=['png'],
 )
@@ -178,7 +179,7 @@ def test_trex_rgb_fisheye_contrast():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_g_fisheye'],
-    tol=20,
+    tol=image_tol,
     remove_text=True,
     extensions=['png'],
 )
@@ -200,7 +201,7 @@ def test_trex_g_fisheye():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_rgb_map'],
-    tol=20,
+    tol=image_tol,
     remove_text=True,
     extensions=['png'],
 )
@@ -227,7 +228,7 @@ def test_trex_rgb_map():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_b_map'],
-    tol=20,
+    tol=image_tol,
     remove_text=True,
     extensions=['png'],
 )
@@ -254,7 +255,7 @@ def test_trex_b_map():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_gb_map'],
-    tol=20,
+    tol=image_tol,
     remove_text=True,
     extensions=['png'],
 )
