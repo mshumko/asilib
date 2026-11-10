@@ -134,16 +134,9 @@ def test_themis_download_bug_fix():
     time_range = (datetime(2013, 3, 17, 11), datetime(2013, 3, 17, 11, 1))
 
     with pytest.raises(FileNotFoundError) as download_err:
-        asi = asilib.asi.themis(location_code, time_range=time_range)
-
-    with pytest.raises(ValueError) as excinfo:
-        asi.plot_keogram()
+        asilib.asi.themis(location_code, time_range=time_range)
     
-    # check that only one exception was raised
-    assert len(download_err) == 1
-    # check that the message matches
     assert 'has been moved (HTTP code 301)' in str(download_err)
-    assert 'The keogram is empty' in str(excinfo.value)
     return
 
 
