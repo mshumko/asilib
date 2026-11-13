@@ -6,12 +6,11 @@ from datetime import datetime
 import requests
 import pytest
 import matplotlib.testing.decorators
+import asilib
 
 ##########################################
 ############# TEST LOADERS ###############
 ##########################################
-
-image_tol = 35
 
 # def test_rego_time():
 #     """
@@ -105,7 +104,7 @@ image_tol = 35
 ############# TEST EXAMPLES ##############
 ##########################################
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_rego_fisheye_map_example'], tol=image_tol, remove_text=True, extensions=['png']
+    baseline_images=['test_rego_fisheye_map_example'], tol=asilib.config['_test_image_tol'], remove_text=True, extensions=['png'], style='classic'
 )
 def test_rego_fisheye_map_example():
     """
@@ -132,7 +131,7 @@ def test_rego_fisheye_map_example():
 
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_rego_keogram_example'], tol=image_tol, remove_text=True, extensions=['png']
+    baseline_images=['test_rego_keogram_example'], tol=asilib.config['_test_image_tol'], remove_text=True, extensions=['png'], style='classic'
 )
 def test_rego_keogram_example():
     """

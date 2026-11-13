@@ -3,13 +3,15 @@ import asilib.asi
 import matplotlib.testing.decorators
 import matplotlib.pyplot as plt
 
+import asilib
 from asilib.imager import Skymap_Cleaner
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_geodetic_skymap'],
-    tol=20,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_geodetic_skymap():
     """

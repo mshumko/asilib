@@ -19,9 +19,13 @@ try:
 except KeyError:
     ASI_DATA_DIR = pathlib.Path.home() / 'asilib-data'
 
-config = {'ASILIB_DIR': HERE, 'ASI_DATA_DIR': ASI_DATA_DIR, 'ACKNOWLEDGED_ASIS':[]}
+config = {
+    'ASILIB_DIR': HERE, 
+    'ASI_DATA_DIR': ASI_DATA_DIR, 
+    'ACKNOWLEDGED_ASIS':[],
+    '_test_image_tol': 35,
+    }
 
-# Imager implementation functions and classes.
 from asilib.imager import Imager
 from asilib.imagers import Imagers
 from asilib.conjunction import Conjunction

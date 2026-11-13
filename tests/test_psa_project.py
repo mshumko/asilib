@@ -9,9 +9,9 @@ import matplotlib
 import pytest
 import matplotlib.testing.decorators
 
+import asilib
 import asilib.asi
 
-image_tol = 35
 
 def test_valid_camera_code():
     location_code = 'c2'
@@ -35,9 +35,10 @@ def test_invalid_camera_code():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_plot_fisheye'], 
-    tol=image_tol, 
+    tol=asilib.config['_test_image_tol'], 
     remove_text=True, 
-    extensions=['png']
+    extensions=['png'],
+    style='classic'
 )
 def test_plot_fisheye():
     """

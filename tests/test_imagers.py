@@ -4,14 +4,14 @@ Tests for the asilib.Imagers class.
 import matplotlib.testing.decorators
 import numpy as np
 
-
-image_tol = 35
+import asilib
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_donovan_arc_example'],
-    tol=image_tol,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_donovan_arc_example():
     from datetime import datetime
@@ -34,9 +34,10 @@ def test_donovan_arc_example():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_plot_bad_image'],
-    tol=image_tol,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_plot_bad_image():
     """
@@ -58,9 +59,10 @@ def test_plot_bad_image():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_plot_fisheye'],
-    tol=image_tol,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_plot_fisheye():
     from datetime import datetime
@@ -323,9 +325,10 @@ def test_multi_asi_iter():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_pixel_overlap'],
-    tol=,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_overlap_pixels():
     """

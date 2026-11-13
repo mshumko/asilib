@@ -66,7 +66,7 @@ def test_iter_files():
 ############# TEST PLOTTING ##############
 ##########################################
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_fisheye'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_fisheye'], tol=asilib.config['_test_image_tol'], remove_text=True, extensions=['png'], style='classic'
 )
 def test_fisheye():
     """
@@ -78,7 +78,7 @@ def test_fisheye():
 
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_plot_keogram'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_plot_keogram'], tol=asilib.config['_test_image_tol'], remove_text=True, extensions=['png'], style='classic'
 )
 def test_plot_keogram():
     """
@@ -95,7 +95,7 @@ def test_plot_keogram():
 
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_plot_fisheye_example'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_plot_fisheye_example'], tol=asilib.config['_test_image_tol'], remove_text=True, extensions=['png'], style='classic'
 )
 def test_plot_fisheye_example():
     """
@@ -114,7 +114,7 @@ def test_plot_fisheye_example():
 
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_plot_map_example'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_plot_map_example'], tol=asilib.config['_test_image_tol'], remove_text=True, extensions=['png'], style='classic'
 )
 def test_plot_map_example():
     """
@@ -199,9 +199,10 @@ def test_animate_map_example():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_plot_keogram_geographic_example'],
-    tol=10,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_plot_keogram_geographic_example():
     """
@@ -221,9 +222,10 @@ def test_plot_keogram_geographic_example():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_plot_keogram_magnetic_example'],
-    tol=10,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_plot_keogram_magnetic_example():
     """
@@ -247,9 +249,10 @@ def test_plot_keogram_magnetic_example():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_plot_keogram_magnetic_path_example'],
-    tol=10,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_plot_keogram_magnetic_path_example():
     """

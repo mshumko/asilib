@@ -123,9 +123,10 @@ def test_conjunction_find_multiple():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_plot_conjunction_find_multiple'],
-    tol=10,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_plot_conjunction_find_multiple():
     """
@@ -176,7 +177,7 @@ def test_interp_sat():
 
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_plot_interp_sat'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_plot_interp_sat'], tol=asilib.config['_test_image_tol'], remove_text=True, extensions=['png'], style='classic'
 )
 def test_plot_interp_sat():
     """
@@ -208,7 +209,7 @@ def test_plot_interp_sat():
 
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_plot_interp_sat_wrap'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_plot_interp_sat_wrap'], tol=asilib.config['_test_image_tol'], remove_text=True, extensions=['png'], style='classic'
 )
 def test_plot_interp_sat_wrap():
     """
@@ -452,9 +453,10 @@ def test_intensity_closest_pixel():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_rgb_intensity_closest_pixel'],
-    tol=10,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_rgb_intensity_closest_pixel():
     """
@@ -605,9 +607,10 @@ def test_intensity_area():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_rgb_intensity_area'],
-    tol=10,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_rgb_intensity_area():
     """

@@ -9,6 +9,7 @@ import matplotlib.testing.decorators
 import pandas as pd
 import numpy as np
 
+import asilib
 import asilib.asi
 
 ##########################################
@@ -60,9 +61,10 @@ def test_trex_nir_no_file():
 ##########################################
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_nir_fisheye_map_example'],
-    tol=image_tol,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_trex_nir_fisheye_map_example():
     """
@@ -89,7 +91,7 @@ def test_trex_nir_fisheye_map_example():
 
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_trex_nir_keogram_example'], tol=image_tol, remove_text=True, extensions=['png']
+    baseline_images=['test_trex_nir_keogram_example'], tol=asilib.config['_test_image_tol'], remove_text=True, extensions=['png'], style='classic'
 )
 def test_trex_nir_keogram_example():
     """
@@ -112,7 +114,7 @@ def test_trex_nir_keogram_example():
     return
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_trex_rgb_keogram'], tol=image_tol, remove_text=True, extensions=['png']
+    baseline_images=['test_trex_rgb_keogram'], tol=asilib.config['_test_image_tol'], remove_text=True, extensions=['png'], style='classic'
 )
 def test_trex_rgb_keogram():
     from datetime import datetime
@@ -132,9 +134,10 @@ def test_trex_rgb_keogram():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_rgb_fisheye'],
-    tol=image_tol,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_trex_rgb_fisheye():
     """
@@ -154,9 +157,10 @@ def test_trex_rgb_fisheye():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_rgb_fisheye_contrast'],
-    tol=image_tol,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_trex_rgb_fisheye_contrast():
     """
@@ -179,9 +183,10 @@ def test_trex_rgb_fisheye_contrast():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_g_fisheye'],
-    tol=image_tol,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_trex_g_fisheye():
     """
@@ -201,9 +206,10 @@ def test_trex_g_fisheye():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_rgb_map'],
-    tol=image_tol,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_trex_rgb_map():
     """
@@ -228,9 +234,10 @@ def test_trex_rgb_map():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_b_map'],
-    tol=image_tol,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_trex_b_map():
     """
@@ -255,9 +262,10 @@ def test_trex_b_map():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_trex_gb_map'],
-    tol=image_tol,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_trex_gb_map():
     """
@@ -281,7 +289,7 @@ def test_trex_gb_map():
 
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_trex_mosaic'], tol=20, remove_text=True, extensions=['png']
+    baseline_images=['test_trex_mosaic'], tol=asilib.config['_test_image_tol'], remove_text=True, extensions=['png'], style='classic'
 )
 def test_trex_mosaic():
     from datetime import datetime
@@ -321,7 +329,7 @@ def test_trex_rgb_available_time():
 
 
 @matplotlib.testing.decorators.image_comparison(
-    baseline_images=['test_trex_rgb_available_multiday_time_range'], tol=10, remove_text=True, extensions=['png']
+    baseline_images=['test_trex_rgb_available_multiday_time_range'], tol=asilib.config['_test_image_tol'], remove_text=True, extensions=['png'], style='classic'
 )
 def test_trex_rgb_available_time_range_and_plot():
     """

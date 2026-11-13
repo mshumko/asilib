@@ -14,6 +14,8 @@ except ImportError as err:
     # (as compared to failed to import), but it is a subclass of ImportError.
     cartopy_imported = False
 
+import asilib
+
 ##########################################
 ########## TEST SIMPLE MAP ###############
 ##########################################
@@ -21,9 +23,10 @@ except ImportError as err:
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_create_simple_map_no_subplot'],
-    tol=10,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_create_simple_map_no_subplot():
     """
@@ -39,9 +42,10 @@ def test_create_simple_map_no_subplot():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_create_simple_map_equal_subplots'],
-    tol=10,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_create_simple_map_equal_subplots():
     """
@@ -62,9 +66,10 @@ def test_create_simple_map_equal_subplots():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_create_simple_map_unequal_subplots'],
-    tol=10,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_create_simple_map_unequal_subplots():
     """
@@ -86,9 +91,10 @@ def test_create_simple_map_unequal_subplots():
 
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_create_simple_map_gridspec'],
-    tol=10,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_create_simple_map_gridspec():
     """
@@ -113,9 +119,10 @@ def test_create_simple_map_gridspec():
 @pytest.mark.skipif(not cartopy_imported, reason='cartopy not installed')
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_create_cartopy_map_no_subplot'],
-    tol=10,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_create_cartopy_map_no_subplot():
     """
@@ -132,9 +139,10 @@ def test_create_cartopy_map_no_subplot():
 @pytest.mark.skipif(not cartopy_imported, reason='cartopy not installed')
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_create_cartopy_map_equal_subplots'],
-    tol=10,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_create_cartopy_map_equal_subplots():
     """
@@ -156,9 +164,10 @@ def test_create_cartopy_map_equal_subplots():
 @pytest.mark.skipif(not cartopy_imported, reason='cartopy not installed')
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_create_cartopy_map_unequal_subplots'],
-    tol=10,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_create_cartopy_map_unequal_subplots():
     """
@@ -181,9 +190,10 @@ def test_create_cartopy_map_unequal_subplots():
 @pytest.mark.skipif(not cartopy_imported, reason='cartopy not installed')
 @matplotlib.testing.decorators.image_comparison(
     baseline_images=['test_create_cartopy_map_gridspec'],
-    tol=10,
+    tol=asilib.config['_test_image_tol'],
     remove_text=True,
     extensions=['png'],
+    style='classic'
 )
 def test_create_cartopy_map_gridspec():
     """
