@@ -120,14 +120,20 @@ class OSE:
         Returns
         -------
         images: np.ndarray
-            The calculated OSE images for each satellite and timestamp with shape 
-            (n_timestamps, n_satellites, pixel_resolution[0], pixel_resolution[1]).
-        skymaps: np.ndarray
+            The calculated OSE images for each satellite and timestamp with shape
+            (n_timestamps, pixel_resolution[0], pixel_resolution[1]) for a single 
+            satellite or (n_timestamps, n_satellites, pixel_resolution[0], 
+            pixel_resolution[1]) for multiple satellites.
+        lat_skymaps/lon_skymaps: np.ndarray
             The skymaps corresponding to each image with shape
-            (n_timestamps, n_satellites, pixel_resolution[0], pixel_resolution[1]).
-        perimeters: np.ndarray
-            The perimeters of the detected features in each image with shape
-            (n_timestamps, n_satellites, ...).
+            (n_timestamps, pixel_resolution[0], pixel_resolution[1]) for a single 
+            satellite or (n_timestamps, n_satellites, pixel_resolution[0], 
+            pixel_resolution[1]) for multiple satellites.
+        lat_perimeters/lon_perimeters: np.ndarray
+            The perimeters of each each image with shape (n_timestamps, 
+            2*self.pixel_resolution[0]+2*self.pixel_resolution[1]) for a single 
+            satellite or (n_timestamps, n_satellites, 
+            2*self.pixel_resolution[0]+2*self.pixel_resolution[1]) for multiple satellites.
         """
         guide_times = np.array([
                     self.imagers.start_time+timedelta(seconds=i*self.imagers.min_cadence) 
