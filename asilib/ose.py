@@ -9,7 +9,7 @@ will be the auroral intensity on a (lat, lon) grid as a function of time.
 """
 import dataclasses
 import copy
-from datetime import datetime
+from datetime import datetime, timedelta
 import pathlib
 import string
 from typing import Tuple, List, Union
@@ -113,6 +113,64 @@ class OSE:
                 )
         return
 
+    def calc_images_skymaps(self):
+        """
+        Calculate the OSE images, skymaps, and perimeters for each satellite and timestamp.
+
+        Returns
+        -------
+        images: np.ndarray
+            The calculated OSE images for each satellite and timestamp with shape 
+            (n_timestamps, n_satellites, pixel_resolution[0], pixel_resolution[1]).
+        skymaps: np.ndarray
+            The skymaps corresponding to each image with shape
+            (n_timestamps, n_satellites, pixel_resolution[0], pixel_resolution[1]).
+        perimeters: np.ndarray
+            The perimeters of the detected features in each image with shape
+            (n_timestamps, n_satellites, ...).
+        """
+        guide_times = np.array([
+                    self.imagers.start_time+timedelta(seconds=i*self.imagers.min_cadence) 
+                    for i in range(self.imagers.n_times)
+                    ])
+        _progressbar = asilib.utils.progressbar(
+                guide_times,
+                text='Calculating OSE images and skymaps',
+            )
+        self.images = np.zeros(
+            (self.imagers.n_times, self.n_satellites, self.pixel_resolution[0], self.pixel_resolution[1])
+        )
+        self.lat_skymaps = np.zeros_like(self.images)
+        self.lon_skymaps = np.zeros_like(self.images)
+        self.perimeters = np.zeros((
+            self.imagers.n_times,
+            self.n_satellites,
+            2,
+            2*self.pixel_resolution[0]+2*self.pixel_resolution[1]
+            ))
+
+        for i, _time in enumerate(_progressbar):
+            for _sat in range(self.n_satellites):
+                lat_skymap, lon_skymap = self.imager_skymap(_time, _sat)
+                self.lat_skymaps[i, _sat] = lat_skymap
+                self.lon_skymaps[i, _sat] = lon_skymap
+
+                self.perimeters[i, _sat, 0] = np.concatenate((
+                                lon_skymap[0, :], 
+                                lon_skymap[:, -1], 
+                                lon_skymap[-1, ::-1], 
+                                lon_skymap[::-1, 0]
+                                ))
+                self.perimeters[i, _sat, 1] = np.concatenate((
+                                lat_skymap[0, :], 
+                                lat_skymap[:, -1], 
+                                lat_skymap[-1, ::-1], 
+                                lat_skymap[::-1, 0]
+                                ))
+            _images = self.get_images(_time)
+            self.images[i] = _images
+        return
+
     def _rotate_imager(self):
         """
         If the roll, off-nadir angle, and azimuth are not zero, then rotate the imager's pixels
@@ -199,7 +257,7 @@ class OSE:
         """
 
         images = np.zeros(
-            (self.pixel_resolution[0], self.pixel_resolution[1], self.n_satellites)
+            (self.n_satellites, self.pixel_resolution[0], self.pixel_resolution[1])
             )
 
         _imagers = self.imagers[time]
@@ -222,10 +280,10 @@ class OSE:
             xi = np.stack((lat_skymap, lon_skymap), axis=-1)
             dists, _ = tree.query(xi, distance_upper_bound=0.3)
             interp_grid_nans[~np.isfinite(dists)] = np.nan
-            images[:, :, i] = interp_grid_nans
+            images[i, :, :] = interp_grid_nans
 
-        if self.n_satellites == 1:
-            images = images[:, :, 0]
+        # if self.n_satellites == 1:
+        #     images = images[0, :, :]
         return images
 
     def get_mapped_fov(self, time):
@@ -233,7 +291,7 @@ class OSE:
         Get the mapped field of view (FOV) of the imager for a given time and satellite location.
         """
         lon_perimeter = np.zeros(
-            (2*self.pixel_resolution[0]+2*self.pixel_resolution[1], self.n_satellites), 
+            (self.n_satellites, 2*self.pixel_resolution[0]+2*self.pixel_resolution[1]), 
             dtype=float
             )
         lat_perimeter = np.zeros_like(lon_perimeter)
@@ -241,13 +299,13 @@ class OSE:
         for i in range(self.n_satellites):
             lat_skymap, lon_skymap = self.imager_skymap(time, i)
 
-            lon_perimeter[:, i] = np.concatenate((
+            lon_perimeter[i, :] = np.concatenate((
                 lon_skymap[0, :], 
                 lon_skymap[:, -1], 
                 lon_skymap[-1, ::-1], 
                 lon_skymap[::-1, 0]
                 ))
-            lat_perimeter[:, i] = np.concatenate((
+            lat_perimeter[i, :] = np.concatenate((
                 lat_skymap[0, :], 
                 lat_skymap[:, -1], 
                 lat_skymap[-1, ::-1], 
@@ -255,8 +313,8 @@ class OSE:
                 ))
 
         if self.n_satellites == 1:
-            lon_perimeter = lon_perimeter[..., 0]
-            lat_perimeter = lat_perimeter[..., 0]
+            lon_perimeter = lon_perimeter[0, ...]
+            lat_perimeter = lat_perimeter[0, ...]
         return lat_perimeter, lon_perimeter
 
     def imager_skymap(self, time, satellite_index=0):
