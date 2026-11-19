@@ -113,7 +113,7 @@ class OSE:
                 )
         return
 
-    def calc_images_skymaps(self):
+    def run_ose(self):
         """
         Calculate the OSE images, skymaps, and perimeters for each satellite and timestamp.
 
@@ -142,10 +142,14 @@ class OSE:
         )
         self.lat_skymaps = np.zeros_like(self.images)
         self.lon_skymaps = np.zeros_like(self.images)
-        self.perimeters = np.zeros((
+        self.lat_perimeters = np.zeros((
             self.imagers.n_times,
             self.n_satellites,
-            2,
+            2*self.pixel_resolution[0]+2*self.pixel_resolution[1]
+            ))
+        self.lon_perimeters = np.zeros((
+            self.imagers.n_times,
+            self.n_satellites,
             2*self.pixel_resolution[0]+2*self.pixel_resolution[1]
             ))
 
@@ -155,20 +159,26 @@ class OSE:
                 self.lat_skymaps[i, _sat] = lat_skymap
                 self.lon_skymaps[i, _sat] = lon_skymap
 
-                self.perimeters[i, _sat, 0] = np.concatenate((
+                self.lon_perimeters[i, _sat] = np.concatenate((
                                 lon_skymap[0, :], 
                                 lon_skymap[:, -1], 
                                 lon_skymap[-1, ::-1], 
                                 lon_skymap[::-1, 0]
                                 ))
-                self.perimeters[i, _sat, 1] = np.concatenate((
+                self.lat_perimeters[i, _sat] = np.concatenate((
                                 lat_skymap[0, :], 
                                 lat_skymap[:, -1], 
                                 lat_skymap[-1, ::-1], 
                                 lat_skymap[::-1, 0]
                                 ))
-            _images = self.get_images(_time)
-            self.images[i] = _images
+            self.images[i] = self._get_images(_time)
+
+        if self.n_satellites == 1:
+            self.images[i] = self.images[:, 0, :, :]
+            self.lat_skymaps = self.lat_skymaps[:, 0, :, :]
+            self.lon_skymaps = self.lon_skymaps[:, 0, :, :]
+            self.lat_perimeters = self.lat_perimeters[:, 0, :]
+            self.lon_perimeters = self.lon_perimeters[:, 0, :]
         return
 
     def _rotate_imager(self):
@@ -236,7 +246,7 @@ class OSE:
         azs = np.mod(np.rad2deg(np.arctan2(rays[..., 0], rays[..., 1])), 360.0)
         return tilts, azs
 
-    def get_image(self, time):
+    def _get_images(self, time):
         """
         Get image(s) from the OSE for a given time. Depending on if there is one more satellites,
         the shape of the image(s) will be (pixel_resolution[0], pixel_resolution[1]) if there is
@@ -378,9 +388,6 @@ class OSE:
         raise NotImplementedError()
         return
 
-    def get_images(self):
-        raise NotImplementedError()
-
     def animate_ose(self, ax=None, bx=None, color_bounds=None, **kwargs):
         """
         Animate the OSE for a satellite constellation.
@@ -506,7 +513,7 @@ class OSE:
                 for bx_i in self.bx.flatten():
                     bx_i.pcolormesh(self._checkerboard_xx, self._checkerboard_yy, self._checkerboard, cmap='Reds', vmin=0, vmax=1, rasterized=True)
 
-            images = self.get_image(guide_time)
+            # images = self.get_images(guide_time)
             for j, (bx_i, image_i) in enumerate(zip(self.bx.flatten(), np.moveaxis(images, -1, 0))):
                 _images.append(bx_i.imshow(
                     image_i, 
