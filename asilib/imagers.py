@@ -428,18 +428,6 @@ class Imagers:
                 f'({len(self.imagers)}, 2), not {np.array(color_bounds).shape}'
                 )
 
-        # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
-        # not exist.
-        if animation_save_dir is None:
-            _path = asilib.config['ASI_DATA_DIR']
-        else:
-            _path = animation_save_dir
-        image_save_dir = pathlib.Path(
-            _path,
-            'animations',
-            'images',
-            f'{self.imagers[0].file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_mosaic',
-        )
         if animation_name is not None:
             self.animation_name = animation_name
         else:
@@ -447,7 +435,14 @@ class Imagers:
                 f'{self.imagers[0].file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
                 f'{self.imagers[0].file_info["time_range"][-1].strftime("%H%M%S")}_mosaic.'
                 f'{movie_container}'
-            )
+            )        
+        # Create the animation directory inside asilib.config['ASI_DATA_DIR'] if it does
+        # not exist.
+        if animation_save_dir is None:
+            image_save_dir = asilib.config['ASI_DATA_DIR'] / 'animations' / 'images' / self.animation_name.split('.')[0]
+        else:
+            image_save_dir = pathlib.Path(animation_save_dir) / self.animation_name.split('.')[0]
+        
         movie_save_path = image_save_dir.parents[1] / self.animation_name
         # If the image directory exists we need to first remove all of the images to avoid
         # animating images produced by different method calls.
