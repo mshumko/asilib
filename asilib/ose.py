@@ -44,6 +44,9 @@ class OSE:
     :py:class:`~asilib.Imagers` class and a satellite ephemeris which can be one or multiple
     satellites.
 
+    All of the OSE images, skymaps, and perimeters are calculated up front by calling the
+    :py:func:`~asilib.OSE.run_ose` method.
+
     Parameters
     ----------
     imagers: asilib.Imagers
@@ -141,7 +144,7 @@ class OSE:
                     ])
         _progressbar = asilib.utils.progressbar(
                 guide_times,
-                text='Calculating OSE images and skymaps',
+                text='Step 1: Calculating OSE images and skymaps',
             )
         self.images = np.zeros(
             (self.imagers.n_times, self.n_satellites, self.pixel_resolution[0], self.pixel_resolution[1])
@@ -177,7 +180,11 @@ class OSE:
                                 lat_skymap[-1, ::-1], 
                                 lat_skymap[::-1, 0]
                                 ))
-            self.images[i] = self._get_images(_time)
+            self.images[i] = self._get_images(
+                _time,
+                self.lat_skymaps[i, ...],
+                self.lon_skymaps[i, ...]
+                )
 
         if self.n_satellites == 1:
             self.images[i] = self.images[:, 0, :, :]
@@ -185,7 +192,7 @@ class OSE:
             self.lon_skymaps = self.lon_skymaps[:, 0, :, :]
             self.lat_perimeters = self.lat_perimeters[:, 0, :]
             self.lon_perimeters = self.lon_perimeters[:, 0, :]
-        return
+        return self.images, self.lat_skymaps, self.lon_skymaps, self.lat_perimeters, self.lon_perimeters
 
     def _rotate_imager(self):
         """
@@ -252,7 +259,7 @@ class OSE:
         azs = np.mod(np.rad2deg(np.arctan2(rays[..., 0], rays[..., 1])), 360.0)
         return tilts, azs
 
-    def _get_images(self, time):
+    def _get_images(self, time, lat_skymap, lon_skymap):
         """
         Get image(s) from the OSE for a given time. Depending on if there is one more satellites,
         the shape of the image(s) will be (pixel_resolution[0], pixel_resolution[1]) if there is
@@ -280,12 +287,10 @@ class OSE:
         lat_lon_points, intensities = _imagers.get_points()
 
         for i in range(self.n_satellites):
-            lat_skymap, lon_skymap = self.imager_skymap(time, i)
-
             interp_grid = scipy.interpolate.griddata(
                 lat_lon_points, 
                 intensities, 
-                (lat_skymap, lon_skymap), 
+                (lat_skymap[i, ...], lon_skymap[i, ...]), 
                 method='cubic'
                 )
 
@@ -293,45 +298,11 @@ class OSE:
             # NaNs and this is the most efficient way (source: https://stackoverflow.com/a/31189177).
             interp_grid_nans = interp_grid.copy()
             tree = cKDTree(lat_lon_points)
-            xi = np.stack((lat_skymap, lon_skymap), axis=-1)
+            xi = np.stack((lat_skymap[i, ...], lon_skymap[i, ...]), axis=-1)
             dists, _ = tree.query(xi, distance_upper_bound=0.3)
             interp_grid_nans[~np.isfinite(dists)] = np.nan
             images[i, :, :] = interp_grid_nans
-
-        # if self.n_satellites == 1:
-        #     images = images[0, :, :]
         return images
-
-    def get_mapped_fov(self, time):
-        """
-        Get the mapped field of view (FOV) of the imager for a given time and satellite location.
-        """
-        lon_perimeter = np.zeros(
-            (self.n_satellites, 2*self.pixel_resolution[0]+2*self.pixel_resolution[1]), 
-            dtype=float
-            )
-        lat_perimeter = np.zeros_like(lon_perimeter)
-
-        for i in range(self.n_satellites):
-            lat_skymap, lon_skymap = self.imager_skymap(time, i)
-
-            lon_perimeter[i, :] = np.concatenate((
-                lon_skymap[0, :], 
-                lon_skymap[:, -1], 
-                lon_skymap[-1, ::-1], 
-                lon_skymap[::-1, 0]
-                ))
-            lat_perimeter[i, :] = np.concatenate((
-                lat_skymap[0, :], 
-                lat_skymap[:, -1], 
-                lat_skymap[-1, ::-1], 
-                lat_skymap[::-1, 0]
-                ))
-
-        if self.n_satellites == 1:
-            lon_perimeter = lon_perimeter[0, ...]
-            lat_perimeter = lat_perimeter[0, ...]
-        return lat_perimeter, lon_perimeter
 
     def imager_skymap(self, time, satellite_index=0):
         """
@@ -418,7 +389,17 @@ class OSE:
             pass
         return
 
-    def animate_ose_gen(self, ax=None, bx=None, color_bounds=None, marker='s', marker_size=100, **kwargs):
+    def animate_ose_gen(
+            self,
+            ax=None,
+            bx=None,
+            color_bounds=None,
+            marker='s',
+            marker_size=100,
+            animation_name=None,
+            movie_container='mp4',
+            **kwargs
+            ):
         """
         Animate the OSE for a satellite constellation.
 
@@ -436,6 +417,10 @@ class OSE:
             The marker style for the satellite locations. Default is 's' (square).
         marker_size: float, optional
             The marker size for the satellite locations.
+        animation_name: str, optional
+            The name of the animation file. If None, a default name is used.
+        movie_container: str, optional
+            The movie container format. Default is 'mp4'.
         kwargs: dict
             Additional keyword arguments. The complete list of kwargs is in the 
             :py:meth:`~asilib.Imagers.animate_map_gen` documentation.
@@ -468,10 +453,16 @@ class OSE:
         else:
             self.ax = ax
             self.bx = bx
-            
+
+        animation_name = (
+            f'{self.imagers[0].file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
+            f'{self.imagers[0].file_info["time_range"][-1].strftime("%H%M%S")}_ose.'
+            f'{movie_container}'
+            )
         g = self.imagers.animate_map_gen(
             ax=self.ax,
             color_bounds=color_bounds,
+            animation_name=animation_name,
             **kwargs
             )
         
@@ -519,8 +510,7 @@ class OSE:
                 for bx_i in self.bx.flatten():
                     bx_i.pcolormesh(self._checkerboard_xx, self._checkerboard_yy, self._checkerboard, cmap='Reds', vmin=0, vmax=1, rasterized=True)
 
-            # images = self.get_images(guide_time)
-            for j, (bx_i, image_i) in enumerate(zip(self.bx.flatten(), np.moveaxis(images, -1, 0))):
+            for j, (bx_i, image_i) in enumerate(zip(self.bx.flatten(), self.images[i, ...])):
                 _images.append(bx_i.imshow(
                     image_i, 
                     cmap='Greys_r',
@@ -530,11 +520,10 @@ class OSE:
                     zorder=2,
                     ))
 
-            lat_perimeter, lon_perimeter = self.get_mapped_fov(guide_time)
-            for i in range(self.n_satellites):
+            for j in range(self.n_satellites):
                 _perimiter_plot, = self.ax.plot(
-                    lon_perimeter[:, i], 
-                    lat_perimeter[:, i], 
+                    self.lon_perimeters[i, j, :], 
+                    self.lat_perimeters[i, j, :], 
                     ls='--', 
                     color='purple', 
                     lw=2, 
@@ -542,7 +531,7 @@ class OSE:
                     transform=ccrs.PlateCarree(),
                     )
                 _perimeter_plots.append(_perimiter_plot)
-            yield guide_time, ax, bx, images, (lon_perimeter, lat_perimeter)
+            yield guide_time, ax, bx, self.images[i, ...], (self.lon_perimeters[i, ...], self.lat_perimeters[i, ...])
         return
 
 
@@ -702,7 +691,8 @@ if __name__ == '__main__':
     import asilib.ose
     from collections import namedtuple
 
-    time_range = (datetime(2008, 2, 4, 10, 35), datetime(2008, 2, 4, 10, 55))
+    # time_range = (datetime(2008, 2, 4, 10, 35), datetime(2008, 2, 4, 10, 55))
+    time_range = (datetime(2008, 2, 4, 10, 35), datetime(2008, 2, 4, 10, 40))
     aurora_alt = 110
 
     location_codes = [
@@ -768,6 +758,7 @@ if __name__ == '__main__':
         pixel_resolution=(124, 124),
         roll=7,
         )
+    ose.run_ose()
 
     fig = plt.figure(figsize=(4, 7.5))
     gs = gridspec.GridSpec(nrows=4, ncols=3, figure=fig, height_ratios=(3, 1, 1, 1))
