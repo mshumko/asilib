@@ -455,8 +455,8 @@ class OSE:
             self.bx = bx
 
         animation_name = (
-            f'{self.imagers[0].file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
-            f'{self.imagers[0].file_info["time_range"][-1].strftime("%H%M%S")}_ose.'
+            f'{self.imagers.imagers[0].file_info["time_range"][0].strftime("%Y%m%d_%H%M%S")}_'
+            f'{self.imagers.imagers[0].file_info["time_range"][-1].strftime("%H%M%S")}_ose.'
             f'{movie_container}'
             )
         g = self.imagers.animate_map_gen(
